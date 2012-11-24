@@ -10,7 +10,7 @@ e_ffmpeg_video.la \
 e_ffmpeg_audio.la \
 e_ffmpeg.la
 
-common_sources = ffmpeg_common.c codecs.c
+common_sources = ffmpeg_common.c codecs.c codec.c
 
 e_ffmpeg_video_la_SOURCES = e_ffmpeg_video.c $(common_sources)
 e_ffmpeg_video_la_LIBADD  = @GMERLIN_DEP_LIBS@ @AVFORMAT_LIBS@

@@ -658,7 +658,8 @@ bg_ffmpeg_create_video_parameters(const ffmpeg_format_info_t * format_info)
   }
 
 enum CodecID
-bg_ffmpeg_find_audio_encoder(const ffmpeg_format_info_t * format, const char * name)
+bg_ffmpeg_find_audio_encoder(const ffmpeg_format_info_t * format,
+                             const char * name)
   {
   int i = 0, found = 0;
   enum CodecID ret = CODEC_ID_NONE;
@@ -672,7 +673,9 @@ bg_ffmpeg_find_audio_encoder(const ffmpeg_format_info_t * format, const char * n
       }
     i++;
     }
-
+  if(!format)
+    return ret;
+  
   i = 0;
   while(format->audio_codecs[i] != CODEC_ID_NONE)
     {
@@ -696,7 +699,8 @@ bg_ffmpeg_find_audio_encoder(const ffmpeg_format_info_t * format, const char * n
   }
 
 enum CodecID
-bg_ffmpeg_find_video_encoder(const ffmpeg_format_info_t * format, const char * name)
+bg_ffmpeg_find_video_encoder(const ffmpeg_format_info_t * format,
+                             const char * name)
   {
   int i = 0, found = 0;
   enum CodecID ret = CODEC_ID_NONE;
@@ -711,6 +715,9 @@ bg_ffmpeg_find_video_encoder(const ffmpeg_format_info_t * format, const char * n
     i++;
     }
 
+  if(!format)
+    return ret;
+  
   i = 0;
   while(format->video_codecs[i] != CODEC_ID_NONE)
     {
@@ -731,6 +738,29 @@ bg_ffmpeg_find_video_encoder(const ffmpeg_format_info_t * format, const char * n
     }
   
   return ret;
+  }
+
+static const bg_parameter_info_t *
+get_codec_parameters(const ffmpeg_codec_info_t * codecs, enum CodecID id) 
+  {
+  int i = 0;
+  while(audio_codecs[i].name)
+    {
+    if(id == audio_codecs[i].id)
+      return audio_codecs[i].parameters;
+    i++;
+    }
+  return NULL;
+  }
+
+const bg_parameter_info_t * bg_ffmpeg_get_codec_parameters(enum CodecID id, int type)
+  {
+  if(type == CODEC_TYPE_AUDIO)
+    return get_codec_parameters(audio_codecs, id);
+  else if(type == CODEC_TYPE_VIDEO)
+    return get_codec_parameters(video_codecs, id);
+  else
+    return NULL;
   }
 
 

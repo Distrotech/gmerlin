@@ -34,29 +34,6 @@
 
 #define LOG_DOMAIN "ffmpeg"
 
-#if LIBAVCODEC_VERSION_MAJOR >= 53
-#define CodecType AVMediaType
-#define CODEC_TYPE_UNKNOWN    AVMEDIA_TYPE_UNKNOWN
-#define CODEC_TYPE_VIDEO      AVMEDIA_TYPE_VIDEO
-#define CODEC_TYPE_AUDIO      AVMEDIA_TYPE_AUDIO
-#define CODEC_TYPE_DATA       AVMEDIA_TYPE_DATA
-#define CODEC_TYPE_SUBTITLE   AVMEDIA_TYPE_SUBTITLE
-#define CODEC_TYPE_ATTACHMENT AVMEDIA_TYPE_ATTACHMENT
-#define CODEC_TYPE_NB         AVMEDIA_TYPE_NB
-#endif
-
-
-#if LIBAVCODEC_VERSION_MAJOR >= 53
-#define PKT_FLAG_KEY AV_PKT_FLAG_KEY
-#endif
-
-#if LIBAVCODEC_VERSION_MAJOR >= 53
-#define guess_format(a, b, c) av_guess_format(a, b, c)
-#endif
-
-#if LIBAVFORMAT_VERSION_MAJOR >= 53
-#define NEW_METADATA
-#endif
 
 #ifdef NEW_METADATA
 #if LIBAVUTIL_VERSION_INT >= AV_VERSION_INT(51,5,0)
@@ -343,35 +320,35 @@ int bg_ffmpeg_open(void * data, const char * filename,
   return 1;
   }
 
-static void set_audio_params(ffmpeg_audio_stream_t * st, enum CodecID id)
+static void set_audio_params(bg_ffmpeg_audio_stream_t * st, enum CodecID id)
   {
-  /* Will be cleared later if we don't write compressed
-     packets */
-  st->stream->codec->codec_type        = CODEC_TYPE_AUDIO;
 
   /* Adjust format */
   st->format.interleave_mode = GAVL_INTERLEAVE_ALL;
   st->format.sample_format   = GAVL_SAMPLE_S16;
 
   /* Set format for codec */
-  st->stream->codec->codec_id = id;
-  st->stream->codec->sample_rate = st->format.samplerate;
-  st->stream->codec->channels    = st->format.num_channels;
-  st->stream->codec->codec_type  = CODEC_TYPE_AUDIO;
+
+  /* Will be cleared later if we don't write compressed
+     packets */
+  st->com.stream->codec->codec_id = id;
+  st->com.stream->codec->sample_rate = st->format.samplerate;
+  st->com.stream->codec->channels    = st->format.num_channels;
+  st->com.stream->codec->codec_type  = CODEC_TYPE_AUDIO;
   }
 
-static void set_video_params(ffmpeg_video_stream_t * st, enum CodecID id)
+static void set_video_params(bg_ffmpeg_video_stream_t * st, enum CodecID id)
   {
-  st->stream->codec->codec_type = CODEC_TYPE_VIDEO;
-  st->stream->codec->codec_id = id;
+  st->com.stream->codec->codec_type = CODEC_TYPE_VIDEO;
+  st->com.stream->codec->codec_id = id;
   /* Set format for codec */
-  st->stream->codec->width  = st->format.image_width;
-  st->stream->codec->height = st->format.image_height;
+  st->com.stream->codec->width  = st->format.image_width;
+  st->com.stream->codec->height = st->format.image_height;
   
-  st->stream->codec->sample_aspect_ratio.num = st->format.pixel_width;
-  st->stream->codec->sample_aspect_ratio.den = st->format.pixel_height;
-  st->stream->sample_aspect_ratio.num = st->format.pixel_width;
-  st->stream->sample_aspect_ratio.den = st->format.pixel_height;
+  st->com.stream->codec->sample_aspect_ratio.num = st->format.pixel_width;
+  st->com.stream->codec->sample_aspect_ratio.den = st->format.pixel_height;
+  st->com.stream->sample_aspect_ratio.num = st->format.pixel_width;
+  st->com.stream->sample_aspect_ratio.den = st->format.pixel_height;
   }
 
 
@@ -380,7 +357,7 @@ int bg_ffmpeg_add_audio_stream(void * data,
                                const gavl_audio_format_t * format)
   {
   ffmpeg_priv_t * priv;
-  ffmpeg_audio_stream_t * st;
+  bg_ffmpeg_audio_stream_t * st;
 #if LIBAVFORMAT_VERSION_INT >= AV_VERSION_INT(53,10,0)
   const char *lang;
 #endif  
@@ -396,11 +373,11 @@ int bg_ffmpeg_add_audio_stream(void * data,
   gavl_audio_format_copy(&st->format, format);
 
 #if LIBAVFORMAT_VERSION_INT >= AV_VERSION_INT(53,10,0)
-  st->stream = avformat_new_stream(priv->ctx, NULL);
+  st->com.stream = avformat_new_stream(priv->ctx, NULL);
   /* Set language */
   lang = gavl_metadata_get(m, GAVL_META_LANGUAGE);
   if(lang)
-    av_dict_set(&st->stream->metadata, "language", lang, 0);
+    av_dict_set(&st->com.stream->metadata, "language", lang, 0);
 #else
   st->stream = av_new_stream(priv->ctx,
                              priv->num_audio_streams +
@@ -408,7 +385,7 @@ int bg_ffmpeg_add_audio_stream(void * data,
                              priv->num_text_streams);
 #endif 
 
-  st->ffmpeg = priv;
+  st->com.ffmpeg = priv;
   set_audio_params(st, CODEC_ID_NONE);
   
   priv->num_audio_streams++;
@@ -420,7 +397,7 @@ int bg_ffmpeg_add_video_stream(void * data,
                                const gavl_video_format_t * format)
   {
   ffmpeg_priv_t * priv;
-  ffmpeg_video_stream_t * st;
+  bg_ffmpeg_video_stream_t * st;
   priv = data;
 
   priv->video_streams =
@@ -433,18 +410,18 @@ int bg_ffmpeg_add_video_stream(void * data,
   gavl_video_format_copy(&st->format, format);
 
 #if LIBAVFORMAT_VERSION_INT >= AV_VERSION_INT(53,10,0)
-  st->stream = avformat_new_stream(priv->ctx, NULL);
+  st->com.stream = avformat_new_stream(priv->ctx, NULL);
 #else
-  st->stream = av_new_stream(priv->ctx,
-                             priv->num_audio_streams +
-                             priv->num_video_streams +
-                             priv->num_text_streams);
+  st->com.stream = av_new_stream(priv->ctx,
+                                 priv->num_audio_streams +
+                                 priv->num_video_streams +
+                                 priv->num_text_streams);
 #endif 
 
   /* Will be cleared later if we don't write compressed
      packets */
   set_video_params(st, CODEC_ID_NONE);
-  st->ffmpeg = priv;
+  st->com.ffmpeg = priv;
   priv->num_video_streams++;
   return priv->num_video_streams-1;
   }
@@ -459,9 +436,9 @@ static gavl_sink_status_t
 write_text_packet_func(void * data, gavl_packet_t * p)
   {
   AVPacket pkt;
-  ffmpeg_text_stream_t * st = data;
+  bg_ffmpeg_text_stream_t * st = data;
 
-  ffmpeg_priv_t * priv = st->ffmpeg;
+  ffmpeg_priv_t * priv = st->com.ffmpeg;
   
   av_init_packet(&pkt);
   
@@ -469,16 +446,16 @@ write_text_packet_func(void * data, gavl_packet_t * p)
   pkt.size     = p->data_len + 1; // Let's hope the packet got padded!!!
   
   pkt.pts= av_rescale_q(p->pts,
-                        st->stream->codec->time_base,
-                        st->stream->time_base);
+                        st->com.stream->codec->time_base,
+                        st->com.stream->time_base);
   
   pkt.duration= av_rescale_q(p->duration,
-                             st->stream->codec->time_base,
-                             st->stream->time_base);
+                             st->com.stream->codec->time_base,
+                             st->com.stream->time_base);
   
   pkt.convergence_duration = pkt.duration;
   pkt.dts = pkt.pts;
-  pkt.stream_index = st->stream->index;
+  pkt.stream_index = st->com.stream->index;
   
   if(av_interleaved_write_frame(priv->ctx, &pkt) != 0)
     {
@@ -493,7 +470,7 @@ int bg_ffmpeg_add_text_stream(void * data,
                               uint32_t * timescale)
   {
   ffmpeg_priv_t * priv;
-  ffmpeg_text_stream_t * st;
+  bg_ffmpeg_text_stream_t * st;
 #if LIBAVFORMAT_VERSION_INT >= AV_VERSION_INT(53,10,0)
   const char * lang;
 #endif
@@ -507,11 +484,11 @@ int bg_ffmpeg_add_text_stream(void * data,
   memset(st, 0, sizeof(*st));
 
 #if LIBAVFORMAT_VERSION_INT >= AV_VERSION_INT(53,10,0)
-  st->stream = avformat_new_stream(priv->ctx, NULL);
+  st->com.stream = avformat_new_stream(priv->ctx, NULL);
 
   lang = gavl_metadata_get(m, GAVL_META_LANGUAGE);
   if(lang)
-    av_dict_set(&st->stream->metadata, "language", lang, 0);
+    av_dict_set(&st->com.stream->metadata, "language", lang, 0);
 #else
   st->stream = av_new_stream(priv->ctx,
                              priv->num_audio_streams +
@@ -519,12 +496,12 @@ int bg_ffmpeg_add_text_stream(void * data,
                              priv->num_text_streams);
 #endif 
 
-  st->stream->codec->codec_type = CODEC_TYPE_SUBTITLE;
-  st->stream->codec->codec_id = CODEC_ID_TEXT;
+  st->com.stream->codec->codec_type = CODEC_TYPE_SUBTITLE;
+  st->com.stream->codec->codec_id = CODEC_ID_TEXT;
 
-  st->stream->codec->time_base.num = 1;
-  st->stream->codec->time_base.den = *timescale;
-  st->ffmpeg = priv;
+  st->com.stream->codec->time_base.num = 1;
+  st->com.stream->codec->time_base.den = *timescale;
+  st->com.ffmpeg = priv;
   
   priv->num_text_streams++;
   return priv->num_text_streams-1;
@@ -534,7 +511,7 @@ void bg_ffmpeg_set_audio_parameter(void * data, int stream, const char * name,
                                    const bg_parameter_value_t * v)
   {
   ffmpeg_priv_t * priv;
-  ffmpeg_audio_stream_t * st;
+  bg_ffmpeg_audio_stream_t * st;
   priv = data;
 
   st = &priv->audio_streams[stream];
@@ -542,17 +519,19 @@ void bg_ffmpeg_set_audio_parameter(void * data, int stream, const char * name,
   if(!name)
     {
     /* Set the bitrate for PCM codecs */
-    switch(st->stream->codec->codec_id)
+    switch(st->com.stream->codec->codec_id)
       {
       case CODEC_ID_PCM_S16BE:
       case CODEC_ID_PCM_S16LE:
-        st->stream->codec->bit_rate = st->format.samplerate * st->format.num_channels * 16;
+        st->com.stream->codec->bit_rate =
+          st->format.samplerate * st->format.num_channels * 16;
         break;
       case CODEC_ID_PCM_S8:
       case CODEC_ID_PCM_U8:
       case CODEC_ID_PCM_ALAW:
       case CODEC_ID_PCM_MULAW:
-        st->stream->codec->bit_rate = st->format.samplerate * st->format.num_channels * 8;
+        st->com.stream->codec->bit_rate =
+          st->format.samplerate * st->format.num_channels * 8;
         break;
       default:
         break;
@@ -568,19 +547,19 @@ void bg_ffmpeg_set_audio_parameter(void * data, int stream, const char * name,
 #if LIBAVFORMAT_VERSION_INT >= AV_VERSION_INT(53,10,0)
     AVCodec * codec;
 #endif
-    st->stream->codec->codec_type        = CODEC_TYPE_AUDIO;
+    st->com.stream->codec->codec_type        = CODEC_TYPE_AUDIO;
     id = bg_ffmpeg_find_audio_encoder(priv->format, v->val_str);
 #if LIBAVFORMAT_VERSION_INT >= AV_VERSION_INT(53,10,0)
     codec = avcodec_find_encoder(id);
     if(codec)
-      avcodec_get_context_defaults3(st->stream->codec, codec);
+      avcodec_get_context_defaults3(st->com.stream->codec, codec);
 #endif
     set_audio_params(st, id);
     }
   else
-    bg_ffmpeg_set_codec_parameter(st->stream->codec,
+    bg_ffmpeg_set_codec_parameter(st->com.stream->codec,
 #if LIBAVCODEC_VERSION_MAJOR >= 54
-                                  &st->options,
+                                  &st->com.options,
 #endif
                                   name, v);
   
@@ -590,7 +569,7 @@ void bg_ffmpeg_set_video_parameter(void * data, int stream, const char * name,
                                    const bg_parameter_value_t * v)
   {
   ffmpeg_priv_t * priv;
-  ffmpeg_video_stream_t * st;
+  bg_ffmpeg_video_stream_t * st;
   priv = data;
 
   if(!name)
@@ -605,12 +584,12 @@ void bg_ffmpeg_set_video_parameter(void * data, int stream, const char * name,
 #if LIBAVFORMAT_VERSION_INT >= AV_VERSION_INT(53,10,0)
     AVCodec * codec;
 #endif
-    st->stream->codec->codec_type = CODEC_TYPE_VIDEO;
+    st->com.stream->codec->codec_type = CODEC_TYPE_VIDEO;
     id = bg_ffmpeg_find_video_encoder(priv->format, v->val_str);
 #if LIBAVFORMAT_VERSION_INT >= AV_VERSION_INT(53,10,0)
     codec = avcodec_find_encoder(id);
     if(codec)
-      avcodec_get_context_defaults3(st->stream->codec, codec);
+      avcodec_get_context_defaults3(st->com.stream->codec, codec);
 #endif
 
     // avcodec_get_context_defaults3
@@ -625,9 +604,9 @@ void bg_ffmpeg_set_video_parameter(void * data, int stream, const char * name,
     return;
     }
   else
-    bg_ffmpeg_set_codec_parameter(st->stream->codec,
+    bg_ffmpeg_set_codec_parameter(st->com.stream->codec,
 #if LIBAVCODEC_VERSION_MAJOR >= 54
-                                  &st->options,
+                                  &st->com.options,
 #endif
                                   name, v);
   }
@@ -638,7 +617,7 @@ int bg_ffmpeg_set_video_pass(void * data, int stream, int pass,
                              const char * stats_filename)
   {
   ffmpeg_priv_t * priv;
-  ffmpeg_video_stream_t * st;
+  bg_ffmpeg_video_stream_t * st;
   priv = data;
 
   st = &priv->video_streams[stream];
@@ -649,21 +628,21 @@ int bg_ffmpeg_set_video_pass(void * data, int stream, int pass,
   return 1;
   }
 
-static int64_t rescale_video_timestamp(ffmpeg_video_stream_t * st,
+static int64_t rescale_video_timestamp(bg_ffmpeg_video_stream_t * st,
                                        int64_t ts)
   {
   if(st->format.framerate_mode == GAVL_FRAMERATE_CONSTANT)
     return av_rescale_q(ts / st->format.frame_duration,
-                        st->stream->codec->time_base,
-                        st->stream->time_base);
+                        st->com.stream->codec->time_base,
+                        st->com.stream->time_base);
   else
     return av_rescale_q(ts,
-                        st->stream->codec->time_base,
-                        st->stream->time_base);
+                        st->com.stream->codec->time_base,
+                        st->com.stream->time_base);
   
   }
 
-static int flush_video(ffmpeg_priv_t * priv, ffmpeg_video_stream_t * st,
+static int flush_video(ffmpeg_priv_t * priv, bg_ffmpeg_video_stream_t * st,
                        AVFrame * frame)
   {
   AVPacket pkt;
@@ -673,15 +652,15 @@ static int flush_video(ffmpeg_priv_t * priv, ffmpeg_video_stream_t * st,
   av_init_packet(&pkt);
 
 #if ENCODE_VIDEO2
-  pkt.data = st->buffer;
-  pkt.size = st->buffer_alloc;
+  pkt.data = st->com.gp.data;
+  pkt.size = st->com.gp.data_alloc;
   
-  if(avcodec_encode_video2(st->stream->codec, &pkt, frame, &got_packet) < 0)
+  if(avcodec_encode_video2(st->com.stream->codec, &pkt, frame, &got_packet) < 0)
     return -1;
   if(got_packet)
     bytes_encoded = pkt.size;
 #else
-  bytes_encoded = avcodec_encode_video(st->stream->codec,
+  bytes_encoded = avcodec_encode_video(st->com.stream->codec,
                                        st->buffer, st->buffer_alloc,
                                        frame);
   if(bytes_encoded < 0)
@@ -693,9 +672,9 @@ static int flush_video(ffmpeg_priv_t * priv, ffmpeg_video_stream_t * st,
   if(got_packet)
     {
 #if ENCODE_VIDEO // Old
-    pkt.pts= rescale_video_timestamp(st, st->stream->codec->coded_frame->pts);
+    pkt.pts= rescale_video_timestamp(st, st->com.stream->codec->coded_frame->pts);
     
-    if(st->stream->codec->coded_frame->key_frame)
+    if(st->com.stream->codec->coded_frame->key_frame)
       pkt.flags |= PKT_FLAG_KEY;
     pkt.data = st->buffer;
     pkt.size = bytes_encoded;
@@ -708,7 +687,7 @@ static int flush_video(ffmpeg_priv_t * priv, ffmpeg_video_stream_t * st,
       pkt.dts=rescale_video_timestamp(st, pkt.dts);
 #endif
     
-    pkt.stream_index = st->stream->index;
+    pkt.stream_index = st->com.stream->index;
 
     //    if(av_write_frame(priv->ctx, &pkt) != 0) 
     if(av_interleaved_write_frame(priv->ctx, &pkt) != 0)
@@ -719,8 +698,8 @@ static int flush_video(ffmpeg_priv_t * priv, ffmpeg_video_stream_t * st,
 
     /* Write stats */
     
-    if((st->pass == 1) && st->stream->codec->stats_out && st->stats_file)
-      fprintf(st->stats_file, "%s", st->stream->codec->stats_out);
+    if((st->pass == 1) && st->com.stream->codec->stats_out && st->stats_file)
+      fprintf(st->stats_file, "%s", st->com.stream->codec->stats_out);
     }
   return bytes_encoded;
   }
@@ -729,10 +708,10 @@ static gavl_sink_status_t
 write_video_func(void * data, gavl_video_frame_t * frame)
   {
   ffmpeg_priv_t * priv;
-  ffmpeg_video_stream_t * st;
+  bg_ffmpeg_video_stream_t * st;
   
   st = data;
-  priv = st->ffmpeg;
+  priv = st->com.ffmpeg;
   
   st->frame->pts = frame->timestamp;
   
@@ -757,8 +736,8 @@ static gavl_sink_status_t
 write_video_packet_func(void * priv, gavl_packet_t * packet)
   {
   AVPacket pkt;
-  ffmpeg_video_stream_t * st = priv;
-  ffmpeg_priv_t * f = st->ffmpeg;
+  bg_ffmpeg_video_stream_t * st = priv;
+  ffmpeg_priv_t * f = st->com.ffmpeg;
   
   //  fprintf(stderr, "Write video packet: ");
   //  gavl_packet_dump(packet);
@@ -772,7 +751,7 @@ write_video_packet_func(void * priv, gavl_packet_t * packet)
 
   pkt.pts= rescale_video_timestamp(st, packet->pts);
     
-  if(st->ci->flags & GAVL_COMPRESSION_HAS_B_FRAMES)
+  if(st->com.ci.flags & GAVL_COMPRESSION_HAS_B_FRAMES)
     {
     if(st->dts == GAVL_TIME_UNDEFINED)
       st->dts = packet->pts - 3*packet->duration;
@@ -786,7 +765,7 @@ write_video_packet_func(void * priv, gavl_packet_t * packet)
   if(packet->flags & GAVL_PACKET_KEYFRAME)  
     pkt.flags |= PKT_FLAG_KEY;
   
-  pkt.stream_index= st->stream->index;
+  pkt.stream_index= st->com.stream->index;
   
   /* write the compressed frame in the media file */
   if(av_interleaved_write_frame(f->ctx, &pkt) != 0)
@@ -801,7 +780,7 @@ write_video_packet_func(void * priv, gavl_packet_t * packet)
 
 #if ENCODE_AUDIO2
 static int flush_audio(ffmpeg_priv_t * priv,
-                       ffmpeg_audio_stream_t * st)
+                       bg_ffmpeg_audio_stream_t * st)
   {
   AVPacket pkt;
   AVFrame f;
@@ -809,8 +788,8 @@ static int flush_audio(ffmpeg_priv_t * priv,
   
   av_init_packet(&pkt);
 
-  pkt.data = st->buffer;
-  pkt.size = st->buffer_alloc;
+  pkt.data = st->com.gp.data;
+  pkt.size = st->com.gp.data_alloc;
   
   avcodec_get_frame_defaults(&f);
   f.nb_samples = st->frame->valid_samples;
@@ -818,12 +797,12 @@ static int flush_audio(ffmpeg_priv_t * priv,
   f.pts = st->samples_written;
   
   avcodec_fill_audio_frame(&f, st->format.num_channels,
-                           st->stream->codec->sample_fmt,
+                           st->com.stream->codec->sample_fmt,
                            st->frame->samples.u_8,
-                           st->stream->codec->frame_size *
+                           st->com.stream->codec->frame_size *
                            st->format.num_channels * 2, 1);
     
-  if(avcodec_encode_audio2(st->stream->codec, &pkt,
+  if(avcodec_encode_audio2(st->com.stream->codec, &pkt,
                            &f, &got_packet) < 0)
     return 0;
   
@@ -831,11 +810,11 @@ static int flush_audio(ffmpeg_priv_t * priv,
     {
     if(pkt.pts != AV_NOPTS_VALUE)
       pkt.pts= av_rescale_q(pkt.pts,
-                            st->stream->codec->time_base,
-                            st->stream->time_base);
+                            st->com.stream->codec->time_base,
+                            st->com.stream->time_base);
     
     pkt.flags |= PKT_FLAG_KEY;
-    pkt.stream_index= st->stream->index;
+    pkt.stream_index= st->com.stream->index;
     
     /* write the compressed frame in the media file */
     if(av_interleaved_write_frame(priv->ctx, &pkt) != 0)
@@ -862,12 +841,12 @@ static int flush_audio(ffmpeg_priv_t * priv,
   int bytes_encoded;
   AVPacket pkt;
 
-  if(st->stream->codec->frame_size <= 1)
-    out_size = st->stream->codec->block_align * st->frame->valid_samples;
+  if(st->com.stream->codec->frame_size <= 1)
+    out_size = st->com.stream->codec->block_align * st->frame->valid_samples;
   else
     out_size = st->buffer_alloc;
 
-  bytes_encoded = avcodec_encode_audio(st->stream->codec, st->buffer,
+  bytes_encoded = avcodec_encode_audio(st->com.stream->codec, st->buffer,
                                        out_size,
                                        st->frame->samples.s_16);
   
@@ -876,14 +855,14 @@ static int flush_audio(ffmpeg_priv_t * priv,
     av_init_packet(&pkt);
     pkt.size = bytes_encoded;
     
-    if(st->stream->codec->coded_frame &&
-       (st->stream->codec->coded_frame->pts != AV_NOPTS_VALUE))
-      pkt.pts= av_rescale_q(st->stream->codec->coded_frame->pts,
-                            st->stream->codec->time_base,
-                            st->stream->time_base)  + st->pts_offset;
+    if(st->com.stream->codec->coded_frame &&
+       (st->com.stream->codec->coded_frame->pts != AV_NOPTS_VALUE))
+      pkt.pts= av_rescale_q(st->com.stream->codec->coded_frame->pts,
+                            st->com.stream->codec->time_base,
+                            st->com.stream->time_base)  + st->pts_offset;
     
     pkt.flags |= PKT_FLAG_KEY;
-    pkt.stream_index= st->stream->index;
+    pkt.stream_index= st->com.stream->index;
     pkt.data= st->buffer;
     
     /* write the compressed frame in the media file */
@@ -905,12 +884,12 @@ static int flush_audio(ffmpeg_priv_t * priv,
 static gavl_sink_status_t
 write_audio_func(void * data, gavl_audio_frame_t * frame)
   {
-  ffmpeg_audio_stream_t * st;
+  bg_ffmpeg_audio_stream_t * st;
   ffmpeg_priv_t * priv;
   int samples_written = 0;
   int samples_copied;
   st = data;
-  priv = st->ffmpeg;
+  priv = st->com.ffmpeg;
   
   while(samples_written < frame->valid_samples)
     {
@@ -941,8 +920,8 @@ write_audio_packet_func(void * data, gavl_packet_t * packet)
   {
   AVPacket pkt;
   ffmpeg_priv_t * f;
-  ffmpeg_audio_stream_t * st = data;
-  f = st->ffmpeg;
+  bg_ffmpeg_audio_stream_t * st = data;
+  f = st->com.ffmpeg;
   
   if(packet->pts == GAVL_TIME_UNDEFINED)
     return 1; // Drop undecodable packet
@@ -953,13 +932,13 @@ write_audio_packet_func(void * data, gavl_packet_t * packet)
   pkt.size = packet->data_len;
     
   pkt.pts= av_rescale_q(packet->pts,
-                        st->stream->codec->time_base,
-                        st->stream->time_base);
+                        st->com.stream->codec->time_base,
+                        st->com.stream->time_base);
 
 
   pkt.dts = pkt.pts;
   pkt.flags |= PKT_FLAG_KEY;
-  pkt.stream_index= st->stream->index;
+  pkt.stream_index= st->com.stream->index;
   
   /* write the compressed frame in the media file */
   if(av_interleaved_write_frame(f->ctx, &pkt) != 0)
@@ -972,19 +951,19 @@ write_audio_packet_func(void * data, gavl_packet_t * packet)
 
 
 static int open_audio_encoder(ffmpeg_priv_t * priv,
-                              ffmpeg_audio_stream_t * st)
+                              bg_ffmpeg_audio_stream_t * st)
   {
   AVCodec * codec;
   
-  if(st->ci)
+  if(st->com.flags & STREAM_IS_COMPRESSED)
     {
-    st->psink = gavl_packet_sink_create(NULL, write_audio_packet_func, st);
+    st->com.psink = gavl_packet_sink_create(NULL, write_audio_packet_func, st);
     return 1;
     }
-  if(st->stream->codec->codec_id == CODEC_ID_NONE)
+  if(st->com.stream->codec->codec_id == CODEC_ID_NONE)
     return 0;
   
-  codec = avcodec_find_encoder(st->stream->codec->codec_id);
+  codec = avcodec_find_encoder(st->com.stream->codec->codec_id);
   if(!codec)
     {
     bg_log(BG_LOG_ERROR, LOG_DOMAIN,
@@ -992,78 +971,77 @@ static int open_audio_encoder(ffmpeg_priv_t * priv,
     return 0;
     }
 
-  st->stream->codec->sample_fmt = codec->sample_fmts[0];
+  st->com.stream->codec->sample_fmt = codec->sample_fmts[0];
   st->format.sample_format =
     bg_sample_format_ffmpeg_2_gavl(codec->sample_fmts[0]);
 
   /* Extract extradata */
   if(priv->ctx->oformat->flags & AVFMT_GLOBALHEADER)
-    st->stream->codec->flags |= CODEC_FLAG_GLOBAL_HEADER;
+    st->com.stream->codec->flags |= CODEC_FLAG_GLOBAL_HEADER;
   
 #if LIBAVCODEC_VERSION_MAJOR < 54
-  if(avcodec_open(st->stream->codec, codec) < 0)
+  if(avcodec_open(st->com.stream->codec, codec) < 0)
     {
     bg_log(BG_LOG_ERROR, LOG_DOMAIN, "avcodec_open failed for audio");
     return 0;
     }
 #else
-  if(avcodec_open2(st->stream->codec, codec, &st->options) < 0)
+  if(avcodec_open2(st->com.stream->codec, codec, &st->com.options) < 0)
     {
     bg_log(BG_LOG_ERROR, LOG_DOMAIN, "avcodec_open2 failed for audio");
     return 0;
     }
 #endif
   
-  if(st->stream->codec->frame_size <= 1)
+  if(st->com.stream->codec->frame_size <= 1)
     st->format.samples_per_frame = 1024; // Frame size for uncompressed codecs
   else
-    st->format.samples_per_frame = st->stream->codec->frame_size;
+    st->format.samples_per_frame = st->com.stream->codec->frame_size;
   
   st->frame = gavl_audio_frame_create(&st->format);
   /* Mute frame */
   gavl_audio_frame_mute(st->frame, &st->format);
-  
-  st->buffer_alloc = 32768;
-  st->buffer = malloc(st->buffer_alloc); /* Hopefully enough */
 
+  gavl_packet_alloc(&st->com.gp, 32768);
+  
   st->sink = gavl_audio_sink_create(NULL, write_audio_func, st, &st->format);
   
-  st->initialized = 1;
+  st->com.flags |= STREAM_ENCODER_INITIALIZED;
   
   return 1;
   }
 
-static void set_framerate(ffmpeg_video_stream_t * st)
+static void set_framerate(bg_ffmpeg_video_stream_t * st)
   {
   if(st->format.framerate_mode == GAVL_FRAMERATE_CONSTANT)
     {
-    st->stream->codec->time_base.den = st->format.timescale;
-    st->stream->codec->time_base.num = st->format.frame_duration;
+    st->com.stream->codec->time_base.den = st->format.timescale;
+    st->com.stream->codec->time_base.num = st->format.frame_duration;
     }
   else
     {
-    st->stream->codec->time_base.den = st->format.timescale;
-    st->stream->codec->time_base.num = 1;
+    st->com.stream->codec->time_base.den = st->format.timescale;
+    st->com.stream->codec->time_base.num = 1;
     }
   }
 
 static int open_video_encoder(ffmpeg_priv_t * priv,
-                              ffmpeg_video_stream_t * st)
+                              bg_ffmpeg_video_stream_t * st)
   {
   int stats_len;
   AVCodec * codec;
 
-  if(st->stream->codec->codec_id == CODEC_ID_NONE)
+  if(st->com.stream->codec->codec_id == CODEC_ID_NONE)
     return 0;
 
-  if(st->ci)
+  if(st->com.flags & STREAM_IS_COMPRESSED)
     {
-    st->psink = gavl_packet_sink_create(NULL, write_video_packet_func, st);
+    st->com.psink = gavl_packet_sink_create(NULL, write_video_packet_func, st);
     set_framerate(st);
     return 1;
     }
   
-  codec = avcodec_find_encoder(st->stream->codec->codec_id);
+  codec = avcodec_find_encoder(st->com.stream->codec->codec_id);
   if(!codec)
     {
     bg_log(BG_LOG_ERROR, LOG_DOMAIN,
@@ -1078,7 +1056,7 @@ static int open_video_encoder(ffmpeg_priv_t * priv,
     if(st->pass == 1)
       {
       st->stats_file = fopen(st->stats_filename, "w");
-      st->stream->codec->flags |= CODEC_FLAG_PASS1;
+      st->com.stream->codec->flags |= CODEC_FLAG_PASS1;
       }
     else if(st->pass == st->total_passes)
       {
@@ -1087,28 +1065,28 @@ static int open_video_encoder(ffmpeg_priv_t * priv,
       stats_len = ftell(st->stats_file);
       fseek(st->stats_file, 0, SEEK_SET);
       
-      st->stream->codec->stats_in = av_malloc(stats_len + 1);
-      if(fread(st->stream->codec->stats_in, 1,
+      st->com.stream->codec->stats_in = av_malloc(stats_len + 1);
+      if(fread(st->com.stream->codec->stats_in, 1,
                stats_len, st->stats_file) < stats_len)
         {
-        av_free(st->stream->codec->stats_in);
-        st->stream->codec->stats_in = NULL;
+        av_free(st->com.stream->codec->stats_in);
+        st->com.stream->codec->stats_in = NULL;
         }
       else
-        st->stream->codec->stats_in[stats_len] = '\0';
+        st->com.stream->codec->stats_in[stats_len] = '\0';
       
       fclose(st->stats_file);
       st->stats_file = NULL;
       
-      st->stream->codec->flags |= CODEC_FLAG_PASS2;
+      st->com.stream->codec->flags |= CODEC_FLAG_PASS2;
       }
     }
 
   /* Set up pixelformat */
   
-  st->stream->codec->pix_fmt = codec->pix_fmts[0];
+  st->com.stream->codec->pix_fmt = codec->pix_fmts[0];
   st->format.pixelformat =
-    bg_pixelformat_ffmpeg_2_gavl(st->stream->codec->pix_fmt);
+    bg_pixelformat_ffmpeg_2_gavl(st->com.stream->codec->pix_fmt);
   
   /* Set up framerate */
 
@@ -1126,32 +1104,29 @@ static int open_video_encoder(ffmpeg_priv_t * priv,
 
   /* Extract extradata */
   if(priv->ctx->oformat->flags & AVFMT_GLOBALHEADER)
-    st->stream->codec->flags |= CODEC_FLAG_GLOBAL_HEADER;
+    st->com.stream->codec->flags |= CODEC_FLAG_GLOBAL_HEADER;
   
 #if LIBAVCODEC_VERSION_MAJOR < 54
-  if(avcodec_open(st->stream->codec, codec) < 0)
+  if(avcodec_open(st->com.stream->codec, codec) < 0)
     {
     bg_log(BG_LOG_ERROR, LOG_DOMAIN, "avcodec_open failed for video");
     return 0;
     }
 #else
-  if(avcodec_open2(st->stream->codec, codec, &st->options) < 0)
+  if(avcodec_open2(st->com.stream->codec, codec, &st->com.options) < 0)
     {
     bg_log(BG_LOG_ERROR, LOG_DOMAIN, "avcodec_open2 failed for video");
     return 0;
     }
 #endif
 
-  st->buffer_alloc = st->format.image_width * st->format.image_width * 4;
-  st->buffer = malloc(st->buffer_alloc);
+  gavl_packet_alloc(&st->com.gp, st->format.image_width * st->format.image_width * 4);
   
   st->frame = avcodec_alloc_frame();
 
   st->sink = gavl_video_sink_create(NULL, write_video_func, st, &st->format);
   
-  st->initialized = 1;
-
-  
+  st->com.flags |= STREAM_ENCODER_INITIALIZED;
   
   return 1;
   }
@@ -1206,7 +1181,7 @@ int bg_ffmpeg_start(void * data)
   for(i = 0; i < priv->num_text_streams ; i++)
     {
     
-    priv->text_streams[i].psink =
+    priv->text_streams[i].com.psink =
       gavl_packet_sink_create(NULL, write_text_packet_func,
                               &priv->text_streams[i]);
 
@@ -1281,7 +1256,7 @@ int bg_ffmpeg_write_subtitle_text(void * data,const char * text,
   {
   gavl_packet_t pkt;
   ffmpeg_priv_t * priv;
-  ffmpeg_text_stream_t * st;
+  bg_ffmpeg_text_stream_t * st;
   int ret;
   int len;
   
@@ -1299,13 +1274,13 @@ int bg_ffmpeg_write_subtitle_text(void * data,const char * text,
   pkt.pts      = start;
   pkt.duration = duration;
 
-  ret = (gavl_packet_sink_put_packet(st->psink, &pkt) == GAVL_SINK_OK);
+  ret = (gavl_packet_sink_put_packet(st->com.psink, &pkt) == GAVL_SINK_OK);
   gavl_packet_free(&pkt);
   return ret;
   }
 
 static void flush_audio_encoder(ffmpeg_priv_t * priv,
-                                ffmpeg_audio_stream_t * st)
+                                bg_ffmpeg_audio_stream_t * st)
   {
   /* Flush */
   if(st->frame && st->frame->valid_samples && priv->initialized)
@@ -1314,52 +1289,54 @@ static void flush_audio_encoder(ffmpeg_priv_t * priv,
       return;
     }
   }
-  
-static int close_audio_encoder(ffmpeg_priv_t * priv,
-                               ffmpeg_audio_stream_t * st)
+
+static void close_common(bg_ffmpeg_stream_common_t * com)
   {
-  
+  if((com->flags & STREAM_ENCODER_INITIALIZED) && (com->stream))
+    {
+    avcodec_close(com->stream->codec);
+    }
+  gavl_packet_free(&com->gp);
+  }
+
+
+static int close_audio_encoder(ffmpeg_priv_t * priv,
+                               bg_ffmpeg_audio_stream_t * st)
+  {
+  close_common(&st->com);
   /* Close encoder and free buffers */
 
-  if(st->initialized)
-    avcodec_close(st->stream->codec);
-  
 #ifndef AVFORMAT_FREE_CONTEXT  
-  av_free(st->stream->codec);
+  av_free(st->com.stream->codec);
 #endif
   
-  //  st->stream->codec = NULL;
+  //  st->com.stream->codec = NULL;
   
-  if(st->buffer)
-    free(st->buffer);
   if(st->frame)
     gavl_audio_frame_destroy(st->frame);
 
   if(st->sink)
     gavl_audio_sink_destroy(st->sink);
-  if(st->psink)
-    gavl_packet_sink_destroy(st->psink);
   
   return 1;
   }
 
 static int close_text_encoder(ffmpeg_priv_t * priv,
-                              ffmpeg_text_stream_t * st)
+                              bg_ffmpeg_text_stream_t * st)
   {
-  if(st->psink)
-    gavl_packet_sink_destroy(st->psink);
+  close_common(&st->com);
   return 1;
   }
 
 static void flush_video_encoder(ffmpeg_priv_t * priv,
-                                ffmpeg_video_stream_t * st)
+                                bg_ffmpeg_video_stream_t * st)
   {
   int result;
 
-  if(st->ci)
+  if(st->com.flags & STREAM_IS_COMPRESSED)
     return;
   
-  if(priv->initialized)
+  if(st->com.flags & STREAM_ENCODER_INITIALIZED)
     {
     while(1)
       {
@@ -1371,27 +1348,27 @@ static void flush_video_encoder(ffmpeg_priv_t * priv,
   }
 
 static void close_video_encoder(ffmpeg_priv_t * priv,
-                                ffmpeg_video_stream_t * st)
+                                bg_ffmpeg_video_stream_t * st)
   {
-  if(st->stream->codec->stats_in)
+  close_common(&st->com);
+  
+  if(st->com.stream->codec->stats_in)
     {
-    free(st->stream->codec->stats_in);
-    st->stream->codec->stats_in = NULL;
+    free(st->com.stream->codec->stats_in);
+    st->com.stream->codec->stats_in = NULL;
     }
-  if(st->initialized)
-    avcodec_close(st->stream->codec);
+  if(st->com.flags & STREAM_ENCODER_INITIALIZED)
+    avcodec_close(st->com.stream->codec);
   
   /* Close encoder and free buffers */
 #ifndef AVFORMAT_FREE_CONTEXT  
-  av_free(st->stream->codec);
+  av_free(st->com.stream->codec);
 #endif
   
-  //  st->stream->codec = NULL;
+  //  st->com.stream->codec = NULL;
   
   if(st->frame)
     free(st->frame);
-  if(st->buffer)
-    free(st->buffer);
 
   if(st->stats_filename)
     free(st->stats_filename);
@@ -1401,9 +1378,6 @@ static void close_video_encoder(ffmpeg_priv_t * priv,
 
   if(st->sink)
     gavl_video_sink_destroy(st->sink);
-  if(st->psink)
-    gavl_packet_sink_destroy(st->psink);
-  
   }
 
 int bg_ffmpeg_close(void * data, int do_delete)
@@ -1415,15 +1389,11 @@ int bg_ffmpeg_close(void * data, int do_delete)
   // Flush the streams
 
   for(i = 0; i < priv->num_audio_streams; i++)
-    {
     flush_audio_encoder(priv, &priv->audio_streams[i]);
-    }
-
+  
   for(i = 0; i < priv->num_video_streams; i++)
-    {
     flush_video_encoder(priv, &priv->video_streams[i]);
-    }
-
+  
   if(priv->initialized)
     {
     av_write_trailer(priv->ctx);
@@ -1437,14 +1407,26 @@ int bg_ffmpeg_close(void * data, int do_delete)
   // Close the encoders
 
   for(i = 0; i < priv->num_audio_streams; i++)
-    close_audio_encoder(priv, &priv->audio_streams[i]);
-  
+    {
+    bg_ffmpeg_audio_stream_t * st = &priv->audio_streams[i];
+    close_audio_encoder(priv, st);
+    if(st->com.psink)
+      gavl_packet_sink_destroy(st->com.psink);
+    }
   for(i = 0; i < priv->num_video_streams; i++)
-    close_video_encoder(priv, &priv->video_streams[i]);
-  
+    {
+    bg_ffmpeg_video_stream_t * st = &priv->video_streams[i];
+    close_video_encoder(priv, st);
+    if(st->com.psink)
+      gavl_packet_sink_destroy(st->com.psink);
+    }
   for(i = 0; i < priv->num_text_streams; i++)
-    close_text_encoder(priv, &priv->text_streams[i]);
-  
+    {
+    bg_ffmpeg_text_stream_t * st = &priv->text_streams[i];
+    close_text_encoder(priv, st);
+    if(st->com.psink)
+      gavl_packet_sink_destroy(st->com.psink);
+    }
   if(do_delete)
     remove(priv->ctx->filename);
   
@@ -1661,20 +1643,23 @@ bg_ffmpeg_add_audio_stream_compressed(void * priv,
                                       const gavl_compression_info_t * info)
   {
   int ret;
-  ffmpeg_audio_stream_t * st;
+  bg_ffmpeg_audio_stream_t * st;
   ffmpeg_priv_t * f = priv;
 
   ret = bg_ffmpeg_add_audio_stream(priv, m, format);
   st = f->audio_streams + ret;
-  st->ci = info;
-  st->stream->codec->codec_id = bg_codec_id_gavl_2_ffmpeg(st->ci->id);
 
-  st->stream->codec->time_base.num = 1;
-  st->stream->codec->time_base.den = st->format.samplerate;
-  if(st->ci->bitrate)
+  gavl_compression_info_copy(&st->com.ci, info);
+  st->com.flags |= STREAM_IS_COMPRESSED;
+    
+  st->com.stream->codec->codec_id = bg_codec_id_gavl_2_ffmpeg(st->com.ci.id);
+
+  st->com.stream->codec->time_base.num = 1;
+  st->com.stream->codec->time_base.den = st->format.samplerate;
+  if(st->com.ci.bitrate)
     {
-    st->stream->codec->bit_rate = st->ci->bitrate;
-    st->stream->codec->rc_max_rate = st->ci->bitrate;
+    st->com.stream->codec->bit_rate = st->com.ci.bitrate;
+    st->com.stream->codec->rc_max_rate = st->com.ci.bitrate;
     }
   return ret;
   }
@@ -1685,30 +1670,32 @@ int bg_ffmpeg_add_video_stream_compressed(void * priv,
                                           const gavl_compression_info_t * info)
   {
   int ret;
-  ffmpeg_video_stream_t * st;
+  bg_ffmpeg_video_stream_t * st;
   ffmpeg_priv_t * f = priv;
 
   ret = bg_ffmpeg_add_video_stream(priv, m, format);
   st = f->video_streams + ret;
-  st->ci = info;
-  st->stream->codec->codec_id = bg_codec_id_gavl_2_ffmpeg(st->ci->id);
+
+  gavl_compression_info_copy(&st->com.ci, info);
+  st->com.flags |= STREAM_IS_COMPRESSED;
+  st->com.stream->codec->codec_id = bg_codec_id_gavl_2_ffmpeg(st->com.ci.id);
   st->dts = GAVL_TIME_UNDEFINED;
 
-  if(st->ci->bitrate)
+  if(st->com.ci.bitrate)
     {
-    st->stream->codec->rc_max_rate = st->ci->bitrate;
-    st->stream->codec->bit_rate = st->ci->bitrate;
+    st->com.stream->codec->rc_max_rate = st->com.ci.bitrate;
+    st->com.stream->codec->bit_rate = st->com.ci.bitrate;
     }
   /* Set extradata */
-  if(st->ci && st->ci->global_header_len)
+  if(st->com.ci.global_header_len)
     {
-    st->stream->codec->extradata_size = st->ci->global_header_len;
-    st->stream->codec->extradata =
-      av_malloc(st->stream->codec->extradata_size);
-    memcpy(st->stream->codec->extradata,
-           st->ci->global_header,
-           st->ci->global_header_len);
-    st->stream->codec->flags |= CODEC_FLAG_GLOBAL_HEADER;
+    st->com.stream->codec->extradata_size = st->com.ci.global_header_len;
+    st->com.stream->codec->extradata =
+      av_malloc(st->com.stream->codec->extradata_size);
+    memcpy(st->com.stream->codec->extradata,
+           st->com.ci.global_header,
+           st->com.ci.global_header_len);
+    st->com.stream->codec->flags |= CODEC_FLAG_GLOBAL_HEADER;
     }
   return ret;
   }
@@ -1718,35 +1705,35 @@ int bg_ffmpeg_write_audio_packet(void * priv,
                                  gavl_packet_t * packet, int stream)
   {
   ffmpeg_priv_t * f = priv;
-  ffmpeg_audio_stream_t * st = f->audio_streams + stream;
-  return gavl_packet_sink_put_packet(st->psink, packet) == GAVL_SINK_OK;
+  bg_ffmpeg_audio_stream_t * st = f->audio_streams + stream;
+  return gavl_packet_sink_put_packet(st->com.psink, packet) == GAVL_SINK_OK;
   }
 
 int bg_ffmpeg_write_video_packet(void * priv, gavl_packet_t * packet,
                                  int stream)
   {
   ffmpeg_priv_t * f = priv;
-  ffmpeg_video_stream_t * st = f->video_streams + stream;
-  return gavl_packet_sink_put_packet(st->psink, packet) == GAVL_SINK_OK;
+  bg_ffmpeg_video_stream_t * st = f->video_streams + stream;
+  return gavl_packet_sink_put_packet(st->com.psink, packet) == GAVL_SINK_OK;
   }
 
 gavl_packet_sink_t *
 bg_ffmpeg_get_audio_packet_sink(void * data, int stream)
   {
   ffmpeg_priv_t * f = data;
-  return f->audio_streams[stream].psink;
+  return f->audio_streams[stream].com.psink;
   }
 
 gavl_packet_sink_t *
 bg_ffmpeg_get_video_packet_sink(void * data, int stream)
   {
   ffmpeg_priv_t * f = data;
-  return f->video_streams[stream].psink;
+  return f->video_streams[stream].com.psink;
   }
 
 gavl_packet_sink_t *
 bg_ffmpeg_get_text_packet_sink(void * data, int stream)
   {
   ffmpeg_priv_t * f = data;
-  return f->text_streams[stream].psink;
+  return f->text_streams[stream].com.psink;
   }

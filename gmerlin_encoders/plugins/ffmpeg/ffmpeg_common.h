@@ -52,6 +52,31 @@
 #define ENCODE_AUDIO 1
 #endif
 
+#if LIBAVCODEC_VERSION_MAJOR >= 53
+#define CodecType AVMediaType
+#define CODEC_TYPE_UNKNOWN    AVMEDIA_TYPE_UNKNOWN
+#define CODEC_TYPE_VIDEO      AVMEDIA_TYPE_VIDEO
+#define CODEC_TYPE_AUDIO      AVMEDIA_TYPE_AUDIO
+#define CODEC_TYPE_DATA       AVMEDIA_TYPE_DATA
+#define CODEC_TYPE_SUBTITLE   AVMEDIA_TYPE_SUBTITLE
+#define CODEC_TYPE_ATTACHMENT AVMEDIA_TYPE_ATTACHMENT
+#define CODEC_TYPE_NB         AVMEDIA_TYPE_NB
+#endif
+
+
+#if LIBAVCODEC_VERSION_MAJOR >= 53
+#define PKT_FLAG_KEY AV_PKT_FLAG_KEY
+#endif
+
+#if LIBAVCODEC_VERSION_MAJOR >= 53
+#define guess_format(a, b, c) av_guess_format(a, b, c)
+#endif
+
+#if LIBAVFORMAT_VERSION_MAJOR >= 53
+#define NEW_METADATA
+#endif
+
+
 
 typedef struct
   {
@@ -109,47 +134,107 @@ enum CodecID
 bg_ffmpeg_find_video_encoder(const ffmpeg_format_info_t * format,
                              const char * name);
 
+const bg_parameter_info_t * bg_ffmpeg_get_codec_parameters(enum CodecID id, int type);
+
+/*
+ *  Standalone codecs
+ */
+
+/*
+ *  Create a codec context.
+ *  If avctx is NULL, it will be created and destroyed.
+ *  If id is CODEC_ID_NONE, a "codec" parameter will be supported
+ *
+ *  Type is one of CODEC_TYPE_VIDEO or CODEC_TYPE_AUDIO
+ */
+
+typedef struct bg_ffmpeg_codec_context_s bg_ffmpeg_codec_context_t;
+
+bg_ffmpeg_codec_context_t * bg_ffmpeg_codec_create(int type,
+                                                   AVCodecContext * avctx,
+                                                   enum CodecID id,
+                                                   const ffmpeg_format_info_t * format);
+
+const bg_parameter_info_t * bg_ffmpeg_codec_get_parameters(bg_ffmpeg_codec_context_t * ctx);
+
+
+void bg_ffmpeg_codec_set_parameter(bg_ffmpeg_codec_context_t * ctx,
+                                   const char * name,
+                                   const bg_parameter_value_t * val);
+
+int bg_ffmpeg_codec_set_video_pass(bg_ffmpeg_codec_context_t * ctx,
+                                   int pass,
+                                   int total_passes,
+                                   const char * stats_filename);
+
+
+gavl_audio_sink_t * bg_ffmpeg_codec_open_audio(bg_ffmpeg_codec_context_t * ctx,
+                                               gavl_compression_info_t * ci,
+                                               gavl_audio_format_t * fmt,
+                                               gavl_metadata_t * m);
+
+gavl_video_sink_t * bg_ffmpeg_codec_open_video(bg_ffmpeg_codec_context_t * ctx,
+                                               gavl_compression_info_t * ci,
+                                               gavl_video_format_t * fmt,
+                                               gavl_metadata_t * m);
+
+
+void bg_ffmpeg_codec_destroy(bg_ffmpeg_codec_context_t * ctx);
+
+void bg_ffmpeg_codec_set_packet_sink(bg_ffmpeg_codec_context_t * ctx,
+                                     gavl_packet_sink_t * psink);
+
+
+/* ffmpeg_common.c */
+
 typedef struct ffmpeg_priv_s ffmpeg_priv_t;
+
+#define STREAM_ENCODER_INITIALIZED (1<<0)
+#define STREAM_IS_COMPRESSED       (1<<1)
 
 typedef struct
   {
   AVStream * stream;
-  gavl_audio_format_t format;
+  gavl_packet_t gp;
+
+  int flags;
   
-  uint8_t * buffer;
-  int buffer_alloc;
-
-  gavl_audio_frame_t * frame;
-
-  int initialized;
+  gavl_packet_sink_t * psink;
+  ffmpeg_priv_t * ffmpeg;
+  gavl_compression_info_t ci;
 
 #if LIBAVCODEC_VERSION_MAJOR >= 54
   AVDictionary * options;
 #endif
-
-#if ENCODE_AUDIO2
-  int64_t samples_written;
-#endif
-  
-  const gavl_compression_info_t * ci;
-
-  gavl_audio_sink_t * sink;
-  gavl_packet_sink_t * psink;
-
-  ffmpeg_priv_t * ffmpeg;
-  } ffmpeg_audio_stream_t;
+  } bg_ffmpeg_stream_common_t;
 
 typedef struct
   {
-  AVStream * stream;
+  bg_ffmpeg_stream_common_t com;
+  gavl_audio_format_t format;
+  
+  //  uint8_t * buffer;
+  //  int buffer_alloc;
+  
+  gavl_audio_frame_t * frame;
+  
+#if ENCODE_AUDIO2
+  int64_t samples_written;
+#endif
+  gavl_audio_sink_t * sink;
+  } bg_ffmpeg_audio_stream_t;
+
+typedef struct
+  {
+  bg_ffmpeg_stream_common_t com;
+  
   gavl_video_format_t format;
 
-  uint8_t * buffer;
-  int buffer_alloc;
+  //  uint8_t * buffer;
+  //  int buffer_alloc;
+  
   AVFrame * frame;
-
-  int initialized;
-
+  
   /* Multipass stuff */
   char * stats_filename;
   int pass;
@@ -158,26 +243,15 @@ typedef struct
   bg_encoder_framerate_t fr;
   
   int64_t frames_written;
-
-#if LIBAVCODEC_VERSION_MAJOR >= 54
-  AVDictionary * options;
-#endif
-  const gavl_compression_info_t * ci;
-  
   int64_t dts;
 
   gavl_video_sink_t * sink;
-  gavl_packet_sink_t * psink;
-  
-  ffmpeg_priv_t * ffmpeg;
-  } ffmpeg_video_stream_t;
+  } bg_ffmpeg_video_stream_t;
 
 typedef struct
   {
-  AVStream * stream;
-  gavl_packet_sink_t * psink;
-  ffmpeg_priv_t * ffmpeg;
-  } ffmpeg_text_stream_t;
+  bg_ffmpeg_stream_common_t com;
+  } bg_ffmpeg_text_stream_t;
 
 struct ffmpeg_priv_s
   {
@@ -185,9 +259,9 @@ struct ffmpeg_priv_s
   int num_video_streams;
   int num_text_streams;
   
-  ffmpeg_audio_stream_t * audio_streams;
-  ffmpeg_video_stream_t * video_streams;
-  ffmpeg_text_stream_t * text_streams;
+  bg_ffmpeg_audio_stream_t * audio_streams;
+  bg_ffmpeg_video_stream_t * video_streams;
+  bg_ffmpeg_text_stream_t * text_streams;
   
   AVFormatContext * ctx;
   
@@ -286,7 +360,6 @@ int bg_ffmpeg_write_video_frame(void * data,
 int bg_ffmpeg_write_subtitle_text(void * data,const char * text,
                                   int64_t start,
                                   int64_t duration, int stream);
-
 
 int bg_ffmpeg_close(void * data, int do_delete);
 
