@@ -1523,6 +1523,41 @@ enum PixelFormat bg_pixelformat_gavl_2_ffmpeg(gavl_pixelformat_t p)
   return PIX_FMT_NONE;
   }
 
+void bg_ffmpeg_choose_pixelformat(const enum PixelFormat * supported,
+                                  enum PixelFormat * ffmpeg_fmt,
+                                  gavl_pixelformat_t * gavl_fmt)
+  {
+  int i, num;
+  gavl_pixelformat_t * gavl_fmts;
+
+  /* Count pixelformats */
+  i = 0;
+  num = 0;
+
+  while(supported[i] != PIX_FMT_NONE)
+    {
+    if(bg_pixelformat_ffmpeg_2_gavl(supported[i]) != GAVL_PIXELFORMAT_NONE)
+      num++;
+    i++;
+    }
+  
+  gavl_fmts = malloc((num+1) * sizeof(gavl_fmts));
+  
+  i = 0;
+  num = 0;
+  
+  while(supported[i] != PIX_FMT_NONE)
+    {
+    if((gavl_fmts[num] = bg_pixelformat_ffmpeg_2_gavl(supported[i])) != GAVL_PIXELFORMAT_NONE)
+      num++;
+    i++;
+    }
+  gavl_fmts[num] = GAVL_PIXELFORMAT_NONE;
+
+  *gavl_fmt = gavl_pixelformat_get_best(*gavl_fmt, gavl_fmts, NULL);
+  *ffmpeg_fmt = bg_pixelformat_gavl_2_ffmpeg(*gavl_fmt);
+  free(gavl_fmts);
+  }
 
 static const struct
   {

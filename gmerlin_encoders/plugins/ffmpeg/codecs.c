@@ -417,63 +417,56 @@ static const ffmpeg_codec_info_t video_codecs[] =
       .long_name  = TRS("Motion JPEG"),
       .id         = CODEC_ID_MJPEG,
       .parameters = parameters_mjpeg,
-      .pixelformats = (enum PixelFormat[]) { PIX_FMT_YUVJ420P, PIX_FMT_NB },
     },
     {
       .name       = "mpeg4",
       .long_name  = TRS("MPEG-4"),
       .id         = CODEC_ID_MPEG4,
       .parameters = parameters_mpeg4,
-      .pixelformats = (enum PixelFormat[]) { PIX_FMT_YUV420P, PIX_FMT_NB },
     },
     {
       .name       = "msmpeg4v3",
       .long_name  = TRS("Divx 3 compatible"),
       .id         = CODEC_ID_MSMPEG4V3,
       .parameters = parameters_msmpeg4v3,
-      .pixelformats = (enum PixelFormat[]) { PIX_FMT_YUV420P, PIX_FMT_NB },
     },
     {
       .name       = "mpeg1video",
       .long_name  = TRS("MPEG-1 Video"),
       .id         = CODEC_ID_MPEG1VIDEO,
       .parameters = parameters_mpeg1,
-      .pixelformats = (enum PixelFormat[]) { PIX_FMT_YUV420P, PIX_FMT_NB },
+      .flags      = BG_FFMPEG_CODEC_CFR,
     },
     {
       .name       = "mpeg2video",
       .long_name  = TRS("MPEG-2 Video"),
       .id         = CODEC_ID_MPEG2VIDEO,
       .parameters = parameters_mpeg1,
-      .pixelformats = (enum PixelFormat[]) { PIX_FMT_YUV420P, PIX_FMT_NB },
+      .flags      = BG_FFMPEG_CODEC_CFR,
     },
     {
       .name       = "flv1",
       .long_name  = TRS("Flash 1"),
       .id         = CODEC_ID_FLV1,
       .parameters = parameters_msmpeg4v3,
-      .pixelformats = (enum PixelFormat[]) { PIX_FMT_YUV420P, PIX_FMT_NB },
     },
     {
       .name       = "wmv1",
       .long_name  = TRS("WMV 1"),
       .id         = CODEC_ID_WMV1,
       .parameters = parameters_msmpeg4v3,
-      .pixelformats = (enum PixelFormat[]) { PIX_FMT_YUV420P, PIX_FMT_NB },
     },
     {
       .name       = "rv10",
       .long_name  = TRS("Real Video 1"),
       .id         = CODEC_ID_RV10,
       .parameters = parameters_msmpeg4v3,
-      .pixelformats = (enum PixelFormat[]) { PIX_FMT_YUV420P, PIX_FMT_NB },
     },
     {
       .name       = "libx264",
       .long_name  = TRS("H.264"),
       .id         = CODEC_ID_H264,
       .parameters = parameters_libx264,
-      .pixelformats = (enum PixelFormat[]) { PIX_FMT_YUV420P, PIX_FMT_NB },
     },
 #if 0
     {
@@ -744,10 +737,10 @@ static const bg_parameter_info_t *
 get_codec_parameters(const ffmpeg_codec_info_t * codecs, enum CodecID id) 
   {
   int i = 0;
-  while(audio_codecs[i].name)
+  while(codecs[i].name)
     {
-    if(id == audio_codecs[i].id)
-      return audio_codecs[i].parameters;
+    if(id == codecs[i].id)
+      return codecs[i].parameters;
     i++;
     }
   return NULL;
@@ -1043,14 +1036,3 @@ bg_ffmpeg_set_codec_parameter(AVCodecContext * ctx,
   
   }
 
-enum PixelFormat * bg_ffmpeg_get_pixelformats(enum CodecID id)
-  {
-  int i = 0;
-  while(video_codecs[i].name)
-    {
-    if(video_codecs[i].id == id)
-      return video_codecs[i].pixelformats;
-    i++;
-    }
-  return NULL;
-  }

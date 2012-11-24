@@ -24,16 +24,11 @@
 #include <gmerlin/plugin.h>
 #include <gmerlin/translation.h>
 
+#include "ffmpeg_common.h"
 
-#include "ogg_common.h"
-
-
-extern const bg_ogg_codec_t bg_theora_codec;
-
-#define CODEC_NAME "c_theoraenc"
-#define CODEC_LONG_NAME TRS("Theora")
-#define CODEC bg_theora_codec
-
-#define CODEC_DESC TRS("Libtheora based encoder")
+#define CODEC_NAME "c_ffmpeg_mpeg4"
+#define CODEC_LONG_NAME TRS("MPEG-4")
+#define CODEC_ID CODEC_ID_MPEG4
+#define CODEC_DESC TRS("libavcodec MPEG-4 encoder")
 
 #include "_codec_plugin.c"

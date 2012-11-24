@@ -76,7 +76,7 @@
 #define NEW_METADATA
 #endif
 
-
+#define BG_FFMPEG_CODEC_CFR (1<<0)
 
 typedef struct
   {
@@ -85,8 +85,7 @@ typedef struct
   enum CodecID id;
   const bg_parameter_info_t * parameters;
 
-  /* Terminated with PIX_FMT_NB */
-  enum PixelFormat * pixelformats;
+  int flags;
   
   } ffmpeg_codec_info_t;
 
@@ -322,8 +321,6 @@ void bg_ffmpeg_set_audio_parameter(void * data, int stream, const char * name,
 void bg_ffmpeg_set_video_parameter(void * data, int stream, const char * name,
                                   const bg_parameter_value_t * v);
 
-enum PixelFormat * bg_ffmpeg_get_pixelformats(enum CodecID id);
-
 
 int bg_ffmpeg_set_video_pass(void * data, int stream, int pass,
                              int total_passes,
@@ -366,9 +363,14 @@ int bg_ffmpeg_close(void * data, int do_delete);
 gavl_pixelformat_t bg_pixelformat_ffmpeg_2_gavl(enum PixelFormat p);
 enum PixelFormat bg_pixelformat_gavl_2_ffmpeg(gavl_pixelformat_t p);
 
+void bg_ffmpeg_choose_pixelformat(const enum PixelFormat * supported,
+                                  enum PixelFormat * ffmpeg_fmt,
+                                  gavl_pixelformat_t * gavl_fmt);
+
 gavl_sample_format_t bg_sample_format_ffmpeg_2_gavl(enum SampleFormat p);
 
 enum CodecID bg_codec_id_gavl_2_ffmpeg(gavl_codec_id_t gavl);
+
 
 
 /* Compressed stream support */
