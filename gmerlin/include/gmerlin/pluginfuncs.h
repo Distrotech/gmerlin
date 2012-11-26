@@ -61,3 +61,15 @@ void
 bg_encoder_set_framerate_nearest(const bg_encoder_framerate_t * rate_default,
                                  const bg_encoder_framerate_t * rates_supported,
                                  gavl_video_format_t * format);
+
+/* PTS cache for encoders, which reorder frames */
+
+typedef struct bg_encoder_pts_cache_s bg_encoder_pts_cache_t;
+
+bg_encoder_pts_cache_t * bg_encoder_pts_cache_create(void);
+void bg_encoder_pts_cache_destroy(bg_encoder_pts_cache_t*);
+
+int bg_encoder_pts_cache_push_frame(bg_encoder_pts_cache_t*, gavl_video_frame_t * f);
+
+int bg_encoder_pts_cache_pop_packet(bg_encoder_pts_cache_t*, gavl_packet_t * p,
+                                    int64_t frame_num, int64_t pts);

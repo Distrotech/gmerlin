@@ -492,6 +492,8 @@ static int bg_gavf_start(void * data)
                                      &s->com.ci,
                                      &s->format,
                                      &s->com.m);
+      if(!s->sink)
+        return 0;
       }
 
     s->com.index =
@@ -510,6 +512,8 @@ static int bg_gavf_start(void * data)
                                      &s->com.ci,
                                      &s->format,
                                      &s->com.m);
+      if(!s->sink)
+        return 0;
       }
     
     s->com.index = gavf_add_video_stream(priv->enc, &s->com.ci,

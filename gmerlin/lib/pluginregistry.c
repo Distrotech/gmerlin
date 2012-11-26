@@ -550,7 +550,8 @@ static bg_plugin_info_t * plugin_info_create(const bg_plugin_common_t * plugin,
   if(plugin->get_parameters)
     {
     parameter_info = plugin->get_parameters(plugin_priv);
-    new_info->parameters = bg_parameter_info_copy_array(parameter_info);
+    if(parameter_info)
+      new_info->parameters = bg_parameter_info_copy_array(parameter_info);
     if(new_info->parameters)
       {
       prefix = bg_sprintf("plugins/%s", new_info->name);
