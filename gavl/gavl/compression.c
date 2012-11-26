@@ -77,7 +77,7 @@ compression_ids[] =
     /* Audio */
     { GAVL_CODEC_ID_ALAW,      NULL,       "alaw",   "alaw",         0,       1 },
     { GAVL_CODEC_ID_ULAW,      NULL,       "ulaw",   "ulaw",         0,       1 },
-    { GAVL_CODEC_ID_MP2,       "mp2",      "mp2",    "MPEG layer 3", FLAG_CFS },
+    { GAVL_CODEC_ID_MP2,       "mp2",      "mp2",    "MPEG layer 2", FLAG_CFS },
     { GAVL_CODEC_ID_MP3,       "mp3",      "mp3",    "MPEG layer 3", FLAG_CFS },
     { GAVL_CODEC_ID_AC3,       "ac3",      "ac3",    "AC3",          FLAG_CFS },
     { GAVL_CODEC_ID_AAC,       NULL,       "aac",    "AAC",          FLAG_CFS },

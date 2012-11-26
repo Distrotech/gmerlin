@@ -403,14 +403,16 @@ static int write_sync_header(gavf_t * g, int stream, const gavl_packet_t * p)
     return 0;
 #if 0
   fprintf(stderr, "Write sync header\n");
+#endif
   
   for(i = 0; i < g->ph.num_streams; i++)
     {
+#if 0
     fprintf(stderr, "PTS[%d]: %"PRId64"\n", i, g->sync_pts[i]);
+#endif
     if(!gavf_io_write_int64v(g->io, g->sync_pts[i]))
       return 0;
     }
-#endif
   /* Update last sync pts */
 
   for(i = 0; i < g->ph.num_streams; i++)
@@ -419,6 +421,7 @@ static int write_sync_header(gavf_t * g, int stream, const gavl_packet_t * p)
       g->streams[i].last_sync_pts = g->sync_pts[i];
     }
   gavf_io_flush(g->io);
+  
   return 1;
   }
 
@@ -453,6 +456,8 @@ static int write_packet(gavf_t * g, int stream, const gavl_packet_t * p)
     {
     if(!write_sync_header(g, stream, p))
       return 0;
+    if(g->sync_distance)
+      g->last_sync_time = gavl_time_unscale(s->timescale, p->pts);
     }
   
   // If a stream has B-frames, this won't be correct
@@ -487,7 +492,7 @@ static int write_packet(gavf_t * g, int stream, const gavl_packet_t * p)
   gavf_io_flush(g->io);
 
   s->packets_since_sync++;
-  
+
   return 1;
   }
 
@@ -892,16 +897,16 @@ static int read_sync_header(gavf_t * g)
   {
   int i;
   /* Read sync header */
-
+#if 0
   fprintf(stderr, "Read sync header\n");
-  
+#endif
   for(i = 0; i < g->ph.num_streams; i++)
     {
     if(!gavf_io_read_int64v(g->io, &g->sync_pts[i]))
       return 0;
-
+#if 0
     fprintf(stderr, "PTS[%d]: %ld\n", i, g->sync_pts[i]);
-    
+#endif
     if(g->sync_pts[i] != GAVL_TIME_UNDEFINED)
       {
       g->streams[i].last_sync_pts = g->sync_pts[i];
