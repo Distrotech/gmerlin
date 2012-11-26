@@ -124,12 +124,16 @@ bg_encoder_set_framerate_nearest(const bg_encoder_framerate_t * rate_default,
 
 /* PTS cache for encoders, which reorder frames */
 
-#define PTS_CACHE_MAX 64
+/*
+ *  Original idea was to make it a fixed size until
+ *  we learned that x264 has insanely large encoding delays.
+ */
 
 struct bg_encoder_pts_cache_s
   {
   int64_t frame_counter;
   int num_frames;
+  int frames_alloc;
   
   struct
     {
@@ -138,7 +142,7 @@ struct bg_encoder_pts_cache_s
     gavl_interlace_mode_t il;
     gavl_timecode_t tc;
     int64_t frame_num;
-    } entries[PTS_CACHE_MAX];
+    } * entries;
   
   };
 
@@ -150,14 +154,21 @@ bg_encoder_pts_cache_t * bg_encoder_pts_cache_create(void)
 
 void bg_encoder_pts_cache_destroy(bg_encoder_pts_cache_t * c)
   {
+  if(c->entries)
+    free(c->entries);
   free(c);
   }
 
-int bg_encoder_pts_cache_push_frame(bg_encoder_pts_cache_t * c, gavl_video_frame_t * f)
+int
+bg_encoder_pts_cache_push_frame(bg_encoder_pts_cache_t * c,
+                                gavl_video_frame_t * f)
   {
-  if(c->num_frames >= PTS_CACHE_MAX)
-    return 0;
-
+  if(c->num_frames >= c->frames_alloc)
+    {
+    c->frames_alloc += 128;
+    c->entries = realloc(c->entries, c->frames_alloc * sizeof(*c->entries));
+    }
+  
   c->entries[c->num_frames].pts       = f->timestamp;
   c->entries[c->num_frames].duration  = f->duration;
   c->entries[c->num_frames].il        = f->interlace_mode;
@@ -168,8 +179,10 @@ int bg_encoder_pts_cache_push_frame(bg_encoder_pts_cache_t * c, gavl_video_frame
   return 1;
   }
 
-int bg_encoder_pts_cache_pop_packet(bg_encoder_pts_cache_t * c, gavl_packet_t * p,
-                                    int64_t frame_num, int64_t pts)
+int
+bg_encoder_pts_cache_pop_packet(bg_encoder_pts_cache_t * c,
+                                gavl_packet_t * p,
+                                int64_t frame_num, int64_t pts)
   {
   int i, idx = -1;
 
@@ -199,15 +212,15 @@ int bg_encoder_pts_cache_pop_packet(bg_encoder_pts_cache_t * c, gavl_packet_t * 
   if(idx < 0)
     return 0;
 
-  p->pts = c->entries[idx].pts;
-  p->timecode = c->entries[idx].tc;
-  p->duration = c->entries[idx].duration;
+  p->pts            = c->entries[idx].pts;
+  p->timecode       = c->entries[idx].tc;
+  p->duration       = c->entries[idx].duration;
   p->interlace_mode = c->entries[idx].il;
 
   if(idx < c->num_frames-1)
     {
-    memmove(&c->entries[idx], &c->entries[idx+1],
-            sizeof(c->entries[idx]) * (c->num_frames-1-idx));
+    memmove(c->entries + idx, c->entries + (idx+1),
+            sizeof(*c->entries) * (c->num_frames-1-idx));
     }
   c->num_frames--;
   return 1;
