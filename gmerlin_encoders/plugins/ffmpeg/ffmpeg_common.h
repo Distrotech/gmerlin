@@ -24,8 +24,6 @@
 #include <gmerlin/plugin.h>
 #include <gmerlin/pluginfuncs.h>
 
-#define FLAG_CONSTANT_FRAMERATE (1<<9)
-
 #ifdef HAVE_LIBAVCORE_AVCORE_H
 #include <libavcore/avcore.h>
 #endif
@@ -76,7 +74,9 @@
 #define NEW_METADATA
 #endif
 
-#define BG_FFMPEG_CODEC_CFR (1<<0)
+#define FLAG_CONSTANT_FRAMERATE (1<<0)
+#define FLAG_INTRA_ONLY         (1<<1)
+#define FLAG_B_FRAMES           (1<<2)
 
 typedef struct
   {
@@ -86,7 +86,7 @@ typedef struct
   const bg_parameter_info_t * parameters;
 
   int flags;
-  
+  const bg_encoder_framerate_t * framerates;
   } ffmpeg_codec_info_t;
 
 typedef struct
@@ -102,7 +102,6 @@ typedef struct
   const enum CodecID * video_codecs;
   
   int flags;
-  const bg_encoder_framerate_t * framerates;
   
   } ffmpeg_format_info_t;
 
@@ -134,6 +133,10 @@ bg_ffmpeg_find_video_encoder(const ffmpeg_format_info_t * format,
                              const char * name);
 
 const bg_parameter_info_t * bg_ffmpeg_get_codec_parameters(enum CodecID id, int type);
+
+const ffmpeg_codec_info_t *
+bg_ffmpeg_get_codec_info(enum CodecID id, int type);
+
 
 /*
  *  Standalone codecs
@@ -370,6 +373,7 @@ void bg_ffmpeg_choose_pixelformat(const enum PixelFormat * supported,
 gavl_sample_format_t bg_sample_format_ffmpeg_2_gavl(enum SampleFormat p);
 
 enum CodecID bg_codec_id_gavl_2_ffmpeg(gavl_codec_id_t gavl);
+gavl_codec_id_t bg_codec_id_ffmpeg_2_gavl(enum CodecID ffmpeg);
 
 
 

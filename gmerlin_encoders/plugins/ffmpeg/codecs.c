@@ -417,12 +417,14 @@ static const ffmpeg_codec_info_t video_codecs[] =
       .long_name  = TRS("Motion JPEG"),
       .id         = CODEC_ID_MJPEG,
       .parameters = parameters_mjpeg,
+      .flags      = FLAG_INTRA_ONLY,
     },
     {
       .name       = "mpeg4",
       .long_name  = TRS("MPEG-4"),
       .id         = CODEC_ID_MPEG4,
       .parameters = parameters_mpeg4,
+      .flags      = FLAG_B_FRAMES,
     },
     {
       .name       = "msmpeg4v3",
@@ -435,14 +437,16 @@ static const ffmpeg_codec_info_t video_codecs[] =
       .long_name  = TRS("MPEG-1 Video"),
       .id         = CODEC_ID_MPEG1VIDEO,
       .parameters = parameters_mpeg1,
-      .flags      = BG_FFMPEG_CODEC_CFR,
+      .flags      = FLAG_CONSTANT_FRAMERATE|FLAG_B_FRAMES,
+      .framerates = bg_ffmpeg_mpeg_framerates,
     },
     {
       .name       = "mpeg2video",
       .long_name  = TRS("MPEG-2 Video"),
       .id         = CODEC_ID_MPEG2VIDEO,
       .parameters = parameters_mpeg1,
-      .flags      = BG_FFMPEG_CODEC_CFR,
+      .flags      = FLAG_CONSTANT_FRAMERATE|FLAG_B_FRAMES,
+      .framerates = bg_ffmpeg_mpeg_framerates,
     },
     {
       .name       = "flv1",
@@ -467,6 +471,7 @@ static const ffmpeg_codec_info_t video_codecs[] =
       .long_name  = TRS("H.264"),
       .id         = CODEC_ID_H264,
       .parameters = parameters_libx264,
+      .flags      = FLAG_B_FRAMES,
     },
 #if 0
     {
@@ -522,6 +527,7 @@ add_codec_info(const ffmpeg_codec_info_t ** info, enum CodecID id, int * num)
   (*num)++;
   return info;
   }
+
 
 static const bg_parameter_info_t audio_parameters[] =
   {
@@ -733,27 +739,42 @@ bg_ffmpeg_find_video_encoder(const ffmpeg_format_info_t * format,
   return ret;
   }
 
-static const bg_parameter_info_t *
-get_codec_parameters(const ffmpeg_codec_info_t * codecs, enum CodecID id) 
+static const ffmpeg_codec_info_t *
+get_codec_info(const ffmpeg_codec_info_t * codecs, enum CodecID id) 
   {
   int i = 0;
   while(codecs[i].name)
     {
     if(id == codecs[i].id)
-      return codecs[i].parameters;
+      return &codecs[i];
     i++;
     }
   return NULL;
   }
 
-const bg_parameter_info_t * bg_ffmpeg_get_codec_parameters(enum CodecID id, int type)
+const ffmpeg_codec_info_t *
+bg_ffmpeg_get_codec_info(enum CodecID id, int type)
   {
   if(type == CODEC_TYPE_AUDIO)
-    return get_codec_parameters(audio_codecs, id);
+    return get_codec_info(audio_codecs, id);
   else if(type == CODEC_TYPE_VIDEO)
-    return get_codec_parameters(video_codecs, id);
-  else
+    return get_codec_info(video_codecs, id);
+  return NULL;
+  }
+
+
+const bg_parameter_info_t * bg_ffmpeg_get_codec_parameters(enum CodecID id, int type)
+  {
+  const ffmpeg_codec_info_t * ci = NULL;
+  
+  if(type == CODEC_TYPE_AUDIO)
+    ci = get_codec_info(audio_codecs, id);
+  else if(type == CODEC_TYPE_VIDEO)
+    ci =  get_codec_info(video_codecs, id);
+  
+  if(!ci)
     return NULL;
+  return ci->parameters;
   }
 
 
@@ -1036,3 +1057,202 @@ bg_ffmpeg_set_codec_parameter(AVCodecContext * ctx,
   
   }
 
+/* Type conversion */
+
+const bg_encoder_framerate_t bg_ffmpeg_mpeg_framerates[] =
+  {
+    { 24000, 1001 },
+    {    24,    1 },
+    {    25,    1 },
+    { 30000, 1001 },
+    {    30,    1 },
+    {    50,    1 },
+    { 60000, 1001 },
+    {    60,    1 },
+    { /* End of framerates */ }
+  };
+
+static const struct
+  {
+  enum PixelFormat  ffmpeg_csp;
+  gavl_pixelformat_t gavl_csp;
+  }
+pixelformats[] =
+  {
+    { PIX_FMT_YUV420P,       GAVL_YUV_420_P },  ///< Planar YUV 4:2:0 (1 Cr & Cb sample per 2x2 Y samples)
+#if LIBAVUTIL_VERSION_INT < (50<<16)
+    { PIX_FMT_YUV422,        GAVL_YUY2      },
+#else
+    { PIX_FMT_YUYV422,       GAVL_YUY2      },
+#endif
+    { PIX_FMT_YUV422P,       GAVL_YUV_422_P },  ///< Planar YUV 4:2:2 (1 Cr & Cb sample per 2x1 Y samples)
+    { PIX_FMT_YUV444P,       GAVL_YUV_444_P }, ///< Planar YUV 4:4:4 (1 Cr & Cb sample per 1x1 Y samples)
+    { PIX_FMT_YUV411P,       GAVL_YUV_411_P }, ///< Planar YUV 4:1:1 (1 Cr & Cb sample per 4x1 Y samples)
+    { PIX_FMT_YUVJ420P,      GAVL_YUVJ_420_P }, ///< Planar YUV 4:2:0 full scale (jpeg)
+    { PIX_FMT_YUVJ422P,      GAVL_YUVJ_422_P }, ///< Planar YUV 4:2:2 full scale (jpeg)
+    { PIX_FMT_YUVJ444P,      GAVL_YUVJ_444_P }, ///< Planar YUV 4:4:4 full scale (jpeg)
+
+#if 0 // Not needed in the forseeable future    
+    { PIX_FMT_RGB24,         GAVL_RGB_24    },  ///< Packed pixel, 3 bytes per pixel, RGBRGB...
+    { PIX_FMT_BGR24,         GAVL_BGR_24    },  ///< Packed pixel, 3 bytes per pixel, BGRBGR...
+#if LIBAVUTIL_VERSION_INT < (50<<16)
+    { PIX_FMT_RGBA32,        GAVL_RGBA_32   },  ///< Packed pixel, 4 bytes per pixel, BGRABGRA..., stored in cpu endianness
+#else
+    { PIX_FMT_RGB32,         GAVL_RGBA_32   },  ///< Packed pixel, 4 bytes per pixel, BGRABGRA..., stored in cpu endianness
+#endif
+    { PIX_FMT_YUV410P,       GAVL_YUV_410_P }, ///< Planar YUV 4:1:0 (1 Cr & Cb sample per 4x4 Y samples)
+    { PIX_FMT_RGB565,        GAVL_RGB_16 }, ///< always stored in cpu endianness
+    { PIX_FMT_RGB555,        GAVL_RGB_15 }, ///< always stored in cpu endianness, most significant bit to 1
+    { PIX_FMT_GRAY8,         GAVL_PIXELFORMAT_NONE },
+    { PIX_FMT_MONOWHITE,     GAVL_PIXELFORMAT_NONE }, ///< 0 is white
+    { PIX_FMT_MONOBLACK,     GAVL_PIXELFORMAT_NONE }, ///< 0 is black
+    // { PIX_FMT_PAL8,          GAVL_RGB_24     }, ///< 8 bit with RGBA palette
+    { PIX_FMT_XVMC_MPEG2_MC, GAVL_PIXELFORMAT_NONE }, ///< XVideo Motion Acceleration via common packet passing(xvmc_render.h)
+    { PIX_FMT_XVMC_MPEG2_IDCT, GAVL_PIXELFORMAT_NONE },
+#if LIBAVCODEC_BUILD >= ((51<<16)+(45<<8)+0)
+    { PIX_FMT_YUVA420P,      GAVL_YUVA_32 },
+#endif
+    
+#endif // Not needed
+    { PIX_FMT_NB, GAVL_PIXELFORMAT_NONE }
+};
+
+gavl_pixelformat_t bg_pixelformat_ffmpeg_2_gavl(enum PixelFormat p)
+  {
+  int i;
+  for(i = 0; i < sizeof(pixelformats)/sizeof(pixelformats[0]); i++)
+    {
+    if(pixelformats[i].ffmpeg_csp == p)
+      return pixelformats[i].gavl_csp;
+    }
+  return GAVL_PIXELFORMAT_NONE;
+  }
+
+enum PixelFormat bg_pixelformat_gavl_2_ffmpeg(gavl_pixelformat_t p)
+  {
+  int i;
+  for(i = 0; i < sizeof(pixelformats)/sizeof(pixelformats[0]); i++)
+    {
+    if(pixelformats[i].gavl_csp == p)
+      return pixelformats[i].ffmpeg_csp;
+    }
+  return PIX_FMT_NONE;
+  }
+
+void bg_ffmpeg_choose_pixelformat(const enum PixelFormat * supported,
+                                  enum PixelFormat * ffmpeg_fmt,
+                                  gavl_pixelformat_t * gavl_fmt)
+  {
+  int i, num;
+  gavl_pixelformat_t * gavl_fmts;
+
+  /* Count pixelformats */
+  i = 0;
+  num = 0;
+
+  while(supported[i] != PIX_FMT_NONE)
+    {
+    if(bg_pixelformat_ffmpeg_2_gavl(supported[i]) != GAVL_PIXELFORMAT_NONE)
+      num++;
+    i++;
+    }
+  
+  gavl_fmts = malloc((num+1) * sizeof(gavl_fmts));
+  
+  i = 0;
+  num = 0;
+  
+  while(supported[i] != PIX_FMT_NONE)
+    {
+    if((gavl_fmts[num] = bg_pixelformat_ffmpeg_2_gavl(supported[i])) != GAVL_PIXELFORMAT_NONE)
+      num++;
+    i++;
+    }
+  gavl_fmts[num] = GAVL_PIXELFORMAT_NONE;
+
+  *gavl_fmt = gavl_pixelformat_get_best(*gavl_fmt, gavl_fmts, NULL);
+  *ffmpeg_fmt = bg_pixelformat_gavl_2_ffmpeg(*gavl_fmt);
+  free(gavl_fmts);
+  }
+
+static const struct
+  {
+  enum SampleFormat  ffmpeg_fmt;
+  gavl_sample_format_t gavl_fmt;
+  }
+sampleformats[] =
+  {
+    { SAMPLE_FMT_U8,  GAVL_SAMPLE_U8 },
+    { SAMPLE_FMT_S16, GAVL_SAMPLE_S16 },    ///< signed 16 bits
+    { SAMPLE_FMT_S32, GAVL_SAMPLE_S32 },    ///< signed 32 bits
+    { SAMPLE_FMT_FLT, GAVL_SAMPLE_FLOAT },  ///< float
+    { SAMPLE_FMT_DBL, GAVL_SAMPLE_DOUBLE }, ///< double
+  };
+
+gavl_sample_format_t bg_sample_format_ffmpeg_2_gavl(enum SampleFormat p)
+  {
+  int i;
+  for(i = 0; i < sizeof(sampleformats)/sizeof(sampleformats[0]); i++)
+    {
+    if(sampleformats[i].ffmpeg_fmt == p)
+      return sampleformats[i].gavl_fmt;
+    }
+  return GAVL_SAMPLE_NONE;
+  }
+
+/* Compressed stream support */
+
+static const struct
+  {
+  gavl_codec_id_t gavl;
+  enum CodecID    ffmpeg;
+  }
+codec_ids[] =
+  {
+    /* Audio */
+    { GAVL_CODEC_ID_ALAW,   CODEC_ID_PCM_ALAW  }, //!< alaw 2:1
+    { GAVL_CODEC_ID_ULAW,   CODEC_ID_PCM_MULAW }, //!< mu-law 2:1
+    { GAVL_CODEC_ID_MP2,    CODEC_ID_MP2       }, //!< MPEG-1 audio layer II
+    { GAVL_CODEC_ID_MP3,    CODEC_ID_MP3       }, //!< MPEG-1/2 audio layer 3 CBR/VBR
+    { GAVL_CODEC_ID_AC3,    CODEC_ID_AC3       }, //!< AC3
+    { GAVL_CODEC_ID_AAC,    CODEC_ID_AAC       }, //!< AAC as stored in quicktime/mp4
+    { GAVL_CODEC_ID_VORBIS, CODEC_ID_VORBIS    }, //!< Vorbis (segmented extradata and packets)
+    
+    /* Video */
+    { GAVL_CODEC_ID_JPEG,      CODEC_ID_MJPEG      }, //!< JPEG image
+    { GAVL_CODEC_ID_PNG,       CODEC_ID_PNG        }, //!< PNG image
+    { GAVL_CODEC_ID_TIFF,      CODEC_ID_TIFF       }, //!< TIFF image
+    { GAVL_CODEC_ID_TGA,       CODEC_ID_TARGA      }, //!< TGA image
+    { GAVL_CODEC_ID_MPEG1,     CODEC_ID_MPEG1VIDEO }, //!< MPEG-1 video
+    { GAVL_CODEC_ID_MPEG2,     CODEC_ID_MPEG2VIDEO }, //!< MPEG-2 video
+    { GAVL_CODEC_ID_MPEG4_ASP, CODEC_ID_MPEG4      }, //!< MPEG-4 ASP (a.k.a. Divx4)
+    { GAVL_CODEC_ID_H264,      CODEC_ID_H264       }, //!< H.264 (Annex B)
+    { GAVL_CODEC_ID_THEORA,    CODEC_ID_THEORA     }, //!< Theora (segmented extradata
+    { GAVL_CODEC_ID_DIRAC,     CODEC_ID_DIRAC      }, //!< Complete DIRAC frames, sequence end code appended to last packet
+    { GAVL_CODEC_ID_DV,        CODEC_ID_DVVIDEO    }, //!< DV (several variants)
+    { GAVL_CODEC_ID_NONE,      CODEC_ID_NONE       },
+  };
+
+enum CodecID bg_codec_id_gavl_2_ffmpeg(gavl_codec_id_t gavl)
+  {
+  int i = 0;
+  while(codec_ids[i].gavl != GAVL_CODEC_ID_NONE)
+    {
+    if(codec_ids[i].gavl == gavl)
+      return codec_ids[i].ffmpeg;
+    i++;
+    }
+  return CODEC_ID_NONE;
+  }
+
+gavl_codec_id_t bg_codec_id_ffmpeg_2_gavl(enum CodecID ffmpeg)
+  {
+  int i = 0;
+  while(codec_ids[i].gavl != GAVL_CODEC_ID_NONE)
+    {
+    if(codec_ids[i].ffmpeg == ffmpeg)
+      return codec_ids[i].gavl;
+    i++;
+    }
+  return GAVL_CODEC_ID_NONE;
+  }

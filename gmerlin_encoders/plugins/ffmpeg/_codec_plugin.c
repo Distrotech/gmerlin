@@ -53,7 +53,8 @@ static const bg_parameter_info_t * get_parameters(void * priv)
   return bg_ffmpeg_codec_get_parameters(c->codec);
   }
 
-static void set_parameter(void * priv, const char * name, const bg_parameter_value_t * val)
+static void set_parameter(void * priv, const char * name,
+                          const bg_parameter_value_t * val)
   {
   stream_codec_t * c = priv;
   bg_ffmpeg_codec_set_parameter(c->codec, name, val);
