@@ -253,6 +253,8 @@ gavl_codec_id_t gavl_get_compression(int index);
 #define GAVL_PACKET_EXT      (1<<4) //!< Packet has extensions (used only in gavf files)
 #define GAVL_PACKET_REF      (1<<5) //!< B-frame used as reference (can't savely be skipped)
 
+#define GAVL_PACKET_PADDING  32 //!< Packets are padded with this many zero bytes
+  
 /** \brief Packet structure
  *
  *  This specifies one packet of compressed data.
