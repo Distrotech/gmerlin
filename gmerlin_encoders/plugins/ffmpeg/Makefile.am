@@ -10,6 +10,8 @@ e_ffmpeg_video.la \
 e_ffmpeg_audio.la \
 e_ffmpeg.la \
 c_ffmpeg_ac3.la \
+c_ffmpeg_alaw.la \
+c_ffmpeg_ulaw.la \
 c_ffmpeg_mpeg4.la \
 c_ffmpeg_x264.la \
 c_ffmpeg_mp2.la \
@@ -41,6 +43,12 @@ c_ffmpeg_mp2_la_LIBADD  = @GMERLIN_DEP_LIBS@ @AVFORMAT_LIBS@
 
 c_ffmpeg_ac3_la_SOURCES = c_ffmpeg_ac3.c $(codec_sources)
 c_ffmpeg_ac3_la_LIBADD  = @GMERLIN_DEP_LIBS@ @AVFORMAT_LIBS@
+
+c_ffmpeg_alaw_la_SOURCES = c_ffmpeg_alaw.c $(codec_sources)
+c_ffmpeg_alaw_la_LIBADD  = @GMERLIN_DEP_LIBS@ @AVFORMAT_LIBS@
+
+c_ffmpeg_ulaw_la_SOURCES = c_ffmpeg_ulaw.c $(codec_sources)
+c_ffmpeg_ulaw_la_LIBADD  = @GMERLIN_DEP_LIBS@ @AVFORMAT_LIBS@
 
 c_ffmpeg_jpeg_la_SOURCES = c_ffmpeg_jpeg.c $(codec_sources)
 c_ffmpeg_jpeg_la_LIBADD  = @GMERLIN_DEP_LIBS@ @AVFORMAT_LIBS@

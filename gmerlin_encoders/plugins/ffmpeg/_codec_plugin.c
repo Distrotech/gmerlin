@@ -47,6 +47,7 @@ static void destroy_codec(void * priv)
   free(c);
   }
 
+#ifndef NO_PARAMS
 static const bg_parameter_info_t * get_parameters(void * priv)
   {
   stream_codec_t * c = priv;
@@ -59,6 +60,7 @@ static void set_parameter(void * priv, const char * name,
   stream_codec_t * c = priv;
   bg_ffmpeg_codec_set_parameter(c->codec, name, val);
   }
+#endif
 
 #ifdef IS_AUDIO
 static gavl_audio_sink_t * open_audio(void * priv,
@@ -103,8 +105,10 @@ const bg_codec_plugin_t the_plugin =
       .priority =        5,
       .create =          create_codec,
       .destroy =         destroy_codec,
+#ifndef NO_PARAMS
       .get_parameters =    get_parameters,
       .set_parameter =     set_parameter,
+#endif
     },
 #ifdef IS_AUDIO
     .open_encode_audio = open_audio,

@@ -243,11 +243,17 @@ static int flush_audio(bg_ffmpeg_codec_context_t * ctx)
   f.pts = ctx->samples_written;
   ctx->samples_written += ctx->aframe->valid_samples;
   
-  avcodec_fill_audio_frame(&f, ctx->afmt.num_channels,
-                           ctx->avctx->sample_fmt,
-                           ctx->aframe->samples.u_8,
-                           ctx->avctx->frame_size *
-                           ctx->afmt.num_channels * ctx->sample_size, 1);
+  if(avcodec_fill_audio_frame(&f, ctx->afmt.num_channels,
+                              ctx->avctx->sample_fmt,
+                              ctx->aframe->samples.u_8,
+                              ctx->afmt.samples_per_frame *
+                              // ctx->avctx->frame_size *
+                              ctx->afmt.num_channels * ctx->sample_size, 1) < 0)
+    {
+    bg_log(BG_LOG_ERROR, LOG_DOMAIN,
+           "avcodec_fill_audio_frame failed");
+
+    }
   
   if(avcodec_encode_audio2(ctx->avctx, &pkt, &f, &got_packet) < 0)
     return 0;
