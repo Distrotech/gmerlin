@@ -94,6 +94,16 @@ LDFLAGS="$GMERLIN_DEP_RPATH"
 
 dnl Check for mingw
 
+case "$build" in
+	*cygwin*)
+	CYGWIN_LDFLAGS="-no-undefined -mwindows"
+	AC_MSG_WARN([build is $build])
+	;;
+	*)
+	CYGWIN_LDFLAGS=
+	;;
+esac
+
 case "$host" in
 	*-*-mingw*|*cygwin*)
 	os_win32=yes		
@@ -110,7 +120,7 @@ if test "$os_win32" = "yes"; then
 	LIBS=" -lpthreadGC2  -lregex -lz -lws2_32 -lintl $LIBS"
 	dnl it appears that -no-undefined is necessary in mingw in order to build dll
 	dnl maybe we should check here if the user only wants static libs
-	LDFLAGS="-no-undefined -mwindows -mms-bitfields $LDFLAGS"
+        LDFLAGS="$CYGWIN_LDFLAGS -mms-bitfields $LDFLAGS"
 	AC_CHECK_LIB(pthreadGC2, pthread_mutex_lock, , AC_MSG_ERROR([libpthread not found get it from ftp://sourceware.org/pub/pthreads-win32/]))
 else
 	AC_CHECK_LIB(pthread, pthread_mutex_lock, , AC_MSG_ERROR([libpthread not found but you are not using windows.  You should really have this.]))
