@@ -39,7 +39,6 @@
 struct bg_ffmpeg_codec_context_s
   {
   AVCodec * codec;
-
   
   AVCodecContext * avctx_priv;
   AVCodecContext * avctx;
@@ -85,8 +84,9 @@ struct bg_ffmpeg_codec_context_s
   bg_encoder_framerate_t fr;
   
   bg_encoder_pts_cache_t * pc;
-  };
 
+  int sample_size;
+  };
 
 static int find_encoder(bg_ffmpeg_codec_context_t * ctx)
   {
@@ -247,7 +247,7 @@ static int flush_audio(bg_ffmpeg_codec_context_t * ctx)
                            ctx->avctx->sample_fmt,
                            ctx->aframe->samples.u_8,
                            ctx->avctx->frame_size *
-                           ctx->afmt.num_channels * 2, 1);
+                           ctx->afmt.num_channels * ctx->sample_size, 1);
   
   if(avcodec_encode_audio2(ctx->avctx, &pkt, &f, &got_packet) < 0)
     return 0;
@@ -323,18 +323,22 @@ gavl_audio_sink_t * bg_ffmpeg_codec_open_audio(bg_ffmpeg_codec_context_t * ctx,
   
   /* Adjust format */
   fmt->interleave_mode = GAVL_INTERLEAVE_ALL;
-  fmt->sample_format   = GAVL_SAMPLE_S16;
-
+  
   /* Set format for codec */
   ctx->avctx->sample_rate = fmt->samplerate;
   
-  /* TODO: Channel setup */
+  /* Channel setup */
   ctx->avctx->channels    = fmt->num_channels;
+  ctx->avctx->channel_layout =
+    bg_ffmpeg_get_channel_layout(fmt);
 
+  /* Sample format */
   ctx->avctx->sample_fmt = ctx->codec->sample_fmts[0];
   fmt->sample_format =
     bg_sample_format_ffmpeg_2_gavl(ctx->avctx->sample_fmt);
 
+  ctx->sample_size = gavl_bytes_per_sample(fmt->sample_format);
+  
   /* Set bitrate */
   switch(ctx->avctx->codec_id)
     {

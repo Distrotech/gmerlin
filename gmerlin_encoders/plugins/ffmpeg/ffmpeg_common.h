@@ -375,6 +375,8 @@ gavl_sample_format_t bg_sample_format_ffmpeg_2_gavl(enum SampleFormat p);
 enum CodecID bg_codec_id_gavl_2_ffmpeg(gavl_codec_id_t gavl);
 gavl_codec_id_t bg_codec_id_ffmpeg_2_gavl(enum CodecID ffmpeg);
 
+uint64_t
+bg_ffmpeg_get_channel_layout(gavl_audio_format_t * format);
 
 
 /* Compressed stream support */

@@ -1256,3 +1256,78 @@ gavl_codec_id_t bg_codec_id_ffmpeg_2_gavl(enum CodecID ffmpeg)
     }
   return GAVL_CODEC_ID_NONE;
   }
+
+/* Channel layout */
+
+struct
+  {
+  gavl_channel_id_t gavl_id;
+  uint64_t    ffmpeg_id;
+  }
+channel_ids[] =
+  {
+    { GAVL_CHID_FRONT_CENTER,       AV_CH_FRONT_CENTER },
+    { GAVL_CHID_FRONT_LEFT,         AV_CH_FRONT_LEFT     },
+    { GAVL_CHID_FRONT_RIGHT,        AV_CH_FRONT_RIGHT   },
+    { GAVL_CHID_FRONT_CENTER_LEFT,  AV_CH_FRONT_LEFT_OF_CENTER },
+    { GAVL_CHID_FRONT_CENTER_RIGHT, AV_CH_FRONT_RIGHT_OF_CENTER },
+    { GAVL_CHID_REAR_LEFT,          AV_CH_BACK_LEFT },
+    { GAVL_CHID_REAR_RIGHT,         AV_CH_BACK_RIGHT },
+    { GAVL_CHID_REAR_CENTER,        AV_CH_BACK_CENTER },
+    { GAVL_CHID_SIDE_LEFT,          AV_CH_SIDE_LEFT },
+    { GAVL_CHID_SIDE_RIGHT,         AV_CH_SIDE_RIGHT },
+    { GAVL_CHID_LFE,                AV_CH_LOW_FREQUENCY },
+    //    { GAVL_CHID_AUX, 0 }
+    { GAVL_CHID_NONE, 0 },
+  };
+
+static uint64_t chid_gavl_2_ffmpeg(gavl_channel_id_t gavl_id)
+  {
+  int i = 0;
+
+  while(channel_ids[i].gavl_id != GAVL_CHID_NONE)
+    {
+    if(channel_ids[i].gavl_id == gavl_id)
+      return channel_ids[i].ffmpeg_id;
+    i++;
+    }
+  return 0;
+  }
+
+static gavl_channel_id_t chid_ffmpeg_2_gavl(uint64_t ffmpeg_id)
+  {
+  int i = 0;
+
+  while(channel_ids[i].gavl_id != GAVL_CHID_NONE)
+    {
+    if(channel_ids[i].ffmpeg_id == ffmpeg_id)
+      return channel_ids[i].gavl_id;
+    i++;
+    }
+  return GAVL_CHID_NONE;
+  }
+
+uint64_t
+bg_ffmpeg_get_channel_layout(gavl_audio_format_t * format)
+  {
+  int i, idx;
+  uint64_t mask = 1;
+  uint64_t ret = 0;
+
+  for(i = 0; i < format->num_channels; i++)
+    ret |= chid_gavl_2_ffmpeg(format->channel_locations[i]);
+  
+  idx = 0;
+  for(i = 0; i < 64; i++)
+    {
+    if(ret & mask)
+      {
+      format->channel_locations[idx] = chid_ffmpeg_2_gavl(mask);
+      idx++;
+      }
+    mask <<= 1;
+    }
+
+  return ret;
+  }
+
