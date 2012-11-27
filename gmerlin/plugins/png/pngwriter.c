@@ -38,7 +38,7 @@
 #include "pngwriter.h"
 
 static void
-write_function(png_structp png_ptr, png_bytep data, png_uint_32 length)
+write_function(png_structp png_ptr, png_bytep data, png_size_t length)
   {
   bg_pngwriter_t * png = png_get_io_ptr(png_ptr);
 
@@ -213,7 +213,9 @@ int bg_pngwriter_write_image(void * priv, gavl_video_frame_t * frame)
   png_write_png(png->png_ptr, png->info_ptr, png->transform_flags, NULL);
  
   png_destroy_write_struct(&png->png_ptr, &png->info_ptr);
-  fclose(png->output);
+
+  if(png->output)
+    fclose(png->output);
   free(rows);
 
   if(png->num_text)

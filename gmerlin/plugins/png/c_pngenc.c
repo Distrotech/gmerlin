@@ -33,12 +33,13 @@
 #include <gmerlin/plugin.h>
 #include <gmerlin/utils.h>
 #include <gavl/metatags.h>
+#include <gavl/gavf.h>
 
 #include "pngwriter.h"
 
 typedef struct
   {
-  bg_pngwriter_t w;
+  bg_pngwriter_t png;
   gavl_packet_sink_t * psink;
   gavl_video_sink_t * vsink;
   gavl_video_format_t fmt;
@@ -88,7 +89,7 @@ static void set_parameter(void * priv, const char * name,
                           const bg_parameter_value_t * val)
   {
   stream_codec_t * c = priv;
-  bg_pngwriter_set_parameter(&c->w, name, val);
+  bg_pngwriter_set_parameter(&c->png, name, val);
   }
 
 static gavl_sink_status_t put_frame(void * priv,
@@ -96,6 +97,20 @@ static gavl_sink_status_t put_frame(void * priv,
   {
   stream_codec_t * c = priv;
   
+  if(!c->have_header)
+    {
+    gavl_packet_reset(&c->p);
+    if(!bg_pngwriter_write_header(&c->png, NULL,
+                                  &c->p,
+                                  &c->fmt,
+                                  NULL))
+      return GAVL_SINK_ERROR;
+    }
+  bg_pngwriter_write_image(&c->png, f);
+  gavf_video_frame_to_packet_metadata(f, &c->p);
+  c->have_header = 0;
+  c->p.flags |= GAVL_PACKET_KEYFRAME;
+  return gavl_packet_sink_put_packet(c->psink, &c->p);
   }
 
 static gavl_video_sink_t * open_video(void * priv,
@@ -104,7 +119,21 @@ static gavl_video_sink_t * open_video(void * priv,
                                       gavl_metadata_t * m)
   {
   stream_codec_t * c = priv;
+  gavl_packet_reset(&c->p);
+  if(!bg_pngwriter_write_header(&c->png, NULL,
+                                &c->p,
+                                fmt,
+                                NULL))
+    return NULL;
   
+  gavl_metadata_set(m, GAVL_META_SOFTWARE, "libpng-" PNG_LIBPNG_VER_STRING);
+  gavl_video_format_copy(&c->fmt, fmt);
+  c->have_header = 1;
+  c->vsink = gavl_video_sink_create(NULL, put_frame, c, &c->fmt);
+
+  ci->id = GAVL_CODEC_ID_PNG;
+
+  return c->vsink;
   }
 
 static void set_packet_sink(void * priv, gavl_packet_sink_t * s)
