@@ -238,9 +238,6 @@ static int flush_packet(vorbis_t * vorbis, ogg_packet * op)
   gavl_packet_init(&gp);
 
   bg_ogg_packet_to_gavl(op, &gp, &vorbis->pts);
-
-  fprintf(stderr, "Got vorbis packet\n");
-  gavl_packet_dump(&gp);
   
   return gavl_packet_sink_put_packet(vorbis->psink, &gp) ? 1 : 0;
   }
