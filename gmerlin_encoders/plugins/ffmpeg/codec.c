@@ -526,8 +526,6 @@ write_video_func(void * data, gavl_video_frame_t * frame)
   if(ctx->vfmt.framerate_mode == GAVL_FRAMERATE_CONSTANT)
     ctx->frame->pts /= ctx->vfmt.frame_duration;
   
-  av_frame_set_pkt_duration(ctx->frame, frame->duration);
-  
   ctx->frame->data[0]     = frame->planes[0];
   ctx->frame->data[1]     = frame->planes[1];
   ctx->frame->data[2]     = frame->planes[2];
