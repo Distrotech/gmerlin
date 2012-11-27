@@ -34,12 +34,28 @@
 #include <gmerlin/utils.h>
 #include <gavl/metatags.h>
 
-#include <png.h>
-
 
 #include "pngwriter.h"
 
-int bg_pngwriter_write_header(void * priv, const char * filename,
+static void
+write_function(png_structp png_ptr, png_bytep data, png_uint_32 length)
+  {
+  bg_pngwriter_t * png = png_get_io_ptr(png_ptr);
+
+  gavl_packet_alloc(png->p, png->p->data_len + length);
+  memcpy(png->p->data + png->p->data_len, data, length);
+  png->p->data_len += length;
+  }
+
+static void
+flush_function(png_structp png_ptr)
+  {
+  
+  }
+
+int bg_pngwriter_write_header(void * priv,
+                              const char * filename,
+                              gavl_packet_t * p,
                               gavl_video_format_t * format,
                               const gavl_metadata_t * metadata)
   {
@@ -47,23 +63,40 @@ int bg_pngwriter_write_header(void * priv, const char * filename,
   int bits = 8;
   int j;
   bg_pngwriter_t * png = priv;
-
-  png->transform_flags = PNG_TRANSFORM_IDENTITY;
   
-  png->output = fopen(filename, "wb");
-  if(!png->output)
+  png->transform_flags = PNG_TRANSFORM_IDENTITY;
+
+  if(filename)
     {
-    bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Cannot open %s: %s",
-           filename, strerror(errno));
-    return 0;
+    png->output = fopen(filename, "wb");
+    if(!png->output)
+      {
+      bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Cannot open %s: %s",
+             filename, strerror(errno));
+      return 0;
+      }
     }
+  else if(p)
+    png->p = p;
+  else
+    return 0; // Should never happen
+  
   png->png_ptr = png_create_write_struct(PNG_LIBPNG_VER_STRING, NULL,
                                          NULL, NULL);
 
   png->info_ptr = png_create_info_struct(png->png_ptr);
   setjmp(png_jmpbuf(png->png_ptr));
-  png_init_io(png->png_ptr, png->output);
 
+  if(filename)
+    png_init_io(png->png_ptr, png->output);
+  else
+    {
+    png_set_write_fn(png->png_ptr,
+                     png, 
+                     write_function,
+                     flush_function);
+    }
+  
   switch(png->bit_mode)
     {
     case BITS_AUTO:
@@ -156,9 +189,9 @@ int bg_pngwriter_write_header(void * priv, const char * filename,
     else if(!strcmp(metadata->tags[j].key, GAVL_META_COPYRIGHT))
       png->text[j].key         = bg_strdup(png->text[j].key, "Copyright");
     else
-      png->text[j].key         = bg_strdup(png->text[j].key, metadata->tags[j].key);
+      png->text[j].key = bg_strdup(png->text[j].key, metadata->tags[j].key);
     
-    png->text[j].text        = bg_strdup(png->text[j].text, metadata->tags[j].val);
+    png->text[j].text = bg_strdup(png->text[j].text, metadata->tags[j].val);
     }
   
   png_set_text(png->png_ptr, png->info_ptr, png->text, png->num_text);

@@ -29,7 +29,6 @@
 #include <gmerlin/pluginfuncs.h>
 #include <gmerlin/utils.h>
 
-#include <png.h>
 
 #include "pngwriter.h"
 
@@ -156,7 +155,7 @@ static int write_subtitle_overlay_spumux(void * priv, gavl_overlay_t * ovl, int 
     return 0;
     }
   
-  if(!bg_pngwriter_write_header(priv, image_filename,
+  if(!bg_pngwriter_write_header(priv, image_filename, NULL,
                                 &tmp_format, &spumux->metadata))
     return 0;
   

@@ -19,6 +19,8 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  * *****************************************************************/
 
+#include <png.h>
+
 #define BITS_AUTO  0
 #define BITS_8     8
 #define BITS_16   16
@@ -36,10 +38,13 @@ typedef struct
   png_text * text;
   int num_text;
   int dont_force_extension;
+
+  gavl_packet_t * p;
   
   } bg_pngwriter_t;
 
 int bg_pngwriter_write_header(void * priv, const char * filename,
+                              gavl_packet_t * p,
                               gavl_video_format_t * format,
                               const gavl_metadata_t * metadata);
 

@@ -22,72 +22,41 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
+#include <errno.h>
 
 #include <config.h>
 #include <gmerlin/translation.h>
-#include <gmerlin/plugin.h>
-#include <gmerlin/pluginfuncs.h>
-#include <gmerlin/utils.h>
 
+#include <gmerlin/log.h>
+#define LOG_DOMAIN "pngwriter"
+
+#include <gmerlin/plugin.h>
+#include <gmerlin/utils.h>
+#include <gavl/metatags.h>
 
 #include "pngwriter.h"
 
-/* PNG writer */
-
 typedef struct
   {
-  bg_pngwriter_t writer; /* Must come first */
-  bg_iw_callbacks_t * cb;
-  
-  int dont_force_extension;
-  } png_t;
+  bg_pngwriter_t w;
+  gavl_packet_sink_t * psink;
+  gavl_video_sink_t * vsink;
+  gavl_video_format_t fmt;
+  int have_header;
+  gavl_packet_t p;
+  } stream_codec_t;
 
-static void set_callbacks_png(void * data, bg_iw_callbacks_t * cb)
+static void * create_codec()
   {
-  png_t * e = data;
-  e->cb = cb;
-  }
-
-static void * create_png()
-  {
-  png_t * ret;
-  ret = calloc(1, sizeof(*ret));
-
+  stream_codec_t * ret = calloc(1, sizeof(*ret));
   return ret;
   }
 
-static void destroy_png(void * priv)
+static void destroy_codec(void * priv)
   {
-  png_t * png = priv;
-  free(png);
+  stream_codec_t * c = priv;
+  free(c);
   }
-
-static int write_header_png(void * priv, const char * filename,
-                            gavl_video_format_t * format, const gavl_metadata_t * metadata)
-  {
-  int ret;
-  char * real_filename;
-  png_t * png = priv;
-  
-  if(png->writer.dont_force_extension)
-    real_filename = bg_strdup(NULL, filename);
-  else
-    real_filename = bg_filename_ensure_extension(filename, "png");
-  
-  if(!bg_iw_cb_create_output_file(png->cb, real_filename))
-    {
-    free(real_filename);
-    return 0;
-    }
-  ret = bg_pngwriter_write_header(&png->writer, real_filename,
-                                  NULL,
-                                  format, metadata);
-  
-  free(real_filename);
-  return ret;
-  }
-
-/* Configuration stuff */
 
 static const bg_parameter_info_t parameters[] =
   {
@@ -107,43 +76,62 @@ static const bg_parameter_info_t parameters[] =
       .val_default = { .val_str = "8" },
       .help_string = TRS("If you select auto, the depth will be chosen according to the input format")
     },
-    {
-      /* Needed for the gmerlin video thumbnailer */
-      .name =        "dont_force_extension",
-      .type =        BG_PARAMETER_CHECKBUTTON,
-      .flags =        BG_PARAMETER_HIDE_DIALOG,
-    },
     { /* End of parameters */ }
   };
 
-static const bg_parameter_info_t * get_parameters_png(void * p)
+static const bg_parameter_info_t * get_parameters(void * priv)
   {
   return parameters;
   }
 
+static void set_parameter(void * priv, const char * name,
+                          const bg_parameter_value_t * val)
+  {
+  stream_codec_t * c = priv;
+  bg_pngwriter_set_parameter(&c->w, name, val);
+  }
 
-const bg_image_writer_plugin_t the_plugin =
+static gavl_sink_status_t put_frame(void * priv,
+                                    gavl_video_frame_t * f)
+  {
+  stream_codec_t * c = priv;
+  
+  }
+
+static gavl_video_sink_t * open_video(void * priv,
+                                      gavl_compression_info_t * ci,
+                                      gavl_video_format_t * fmt,
+                                      gavl_metadata_t * m)
+  {
+  stream_codec_t * c = priv;
+  
+  }
+
+static void set_packet_sink(void * priv, gavl_packet_sink_t * s)
+  {
+  stream_codec_t * c = priv;
+  c->psink = s;
+  }
+
+const bg_codec_plugin_t the_plugin =
   {
     .common =
     {
       BG_LOCALE,
-      .name =           "iw_png",
-      .long_name =      TRS("PNG writer"),
-      .description =    TRS("Writer for PNG images"),
-      .type =           BG_PLUGIN_IMAGE_WRITER,
-      .flags =          BG_PLUGIN_FILE,
-      .priority =       5,
-      .create =         create_png,
-      .destroy =        destroy_png,
-      .get_parameters = get_parameters_png,
-      .set_parameter =  bg_pngwriter_set_parameter
+      .name =            "c_pngenc",       /* Unique short name */
+      .long_name =       "PNG",
+      .description =     "libpng based encoder",
+      .type =            BG_PLUGIN_CODEC,
+      .flags =           BG_PLUGIN_VIDEO_COMPRESSOR,
+      .priority =        5,
+      .create =          create_codec,
+      .destroy =         destroy_codec,
+      .get_parameters =    get_parameters,
+      .set_parameter =     set_parameter,
     },
-    .extensions = "png",
-    .set_callbacks = set_callbacks_png,
-    .write_header =  write_header_png,
-    .write_image =   bg_pngwriter_write_image,
+    .open_encode_video = open_video,
+    .set_packet_sink = set_packet_sink,
   };
-
 /* Include this into all plugin modules exactly once
    to let the plugin loader obtain the API version */
 BG_GET_PLUGIN_API_VERSION;
