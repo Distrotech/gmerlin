@@ -262,7 +262,7 @@ static void set_codec_parameter(bg_gavf_t * f, stream_common_t * s, const char *
   {
   if(!name)
     {
-    if(s->plugin)
+    if(s->plugin && s->plugin->plugin->set_parameter)
       s->plugin->plugin->set_parameter(s->plugin->priv, NULL, NULL);
     return;
     }
