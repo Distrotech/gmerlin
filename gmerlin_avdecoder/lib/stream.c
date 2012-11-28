@@ -306,7 +306,7 @@ void bgav_stream_done_packet_write(bgav_stream_t * s, bgav_packet_t * p)
     }
   /* Padding (if fourcc != gavl) */
   if(p->data)
-    memset(p->data + p->data_size, 0, PACKET_PADDING);
+    memset(p->data + p->data_size, 0, GAVL_PACKET_PADDING);
 
   /* Set timestamps from file index because the
      demuxer might have them messed up */

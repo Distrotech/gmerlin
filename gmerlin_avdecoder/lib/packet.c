@@ -52,19 +52,19 @@ void bgav_packet_destroy(bgav_packet_t * p)
 
 void bgav_packet_alloc(bgav_packet_t * p, int size)
   {
-  if(size + PACKET_PADDING > p->data_alloc)
+  if(size + GAVL_PACKET_PADDING > p->data_alloc)
     {
-    p->data_alloc = size + PACKET_PADDING + 1024;
+    p->data_alloc = size + GAVL_PACKET_PADDING + 1024;
     p->data = realloc(p->data, p->data_alloc);
     }
   /* Pad in advance */
-  memset(p->data + size, 0, PACKET_PADDING);
+  memset(p->data + size, 0, GAVL_PACKET_PADDING);
   }
 
 void bgav_packet_pad(bgav_packet_t * p)
   {
   /* Padding */
-  memset(p->data + p->data_size, 0, PACKET_PADDING);
+  memset(p->data + p->data_size, 0, GAVL_PACKET_PADDING);
   }
 
 
