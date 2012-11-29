@@ -161,6 +161,7 @@ static const bg_parameter_info_t audio_parameters[] =
     },
     { /* End of parameters */ }
   };
+
 static const bg_parameter_info_t * get_audio_parameters_faac(void * data)
   {
   return audio_parameters;
@@ -343,7 +344,8 @@ static int flush_audio(faac_t * faac)
   
   /* Encode the stuff */
 
-  bytes_encoded = faacEncEncode(faac->enc, (int32_t*)faac->frame->samples.f,
+  bytes_encoded = faacEncEncode(faac->enc,
+                                (int32_t*)faac->frame->samples.f,
                                 faac->frame->valid_samples * faac->format.num_channels,
                                 faac->output_buffer, faac->output_buffer_size);
   faac->frame->valid_samples = 0;
@@ -358,7 +360,8 @@ static int flush_audio(faac_t * faac)
   return bytes_encoded;
   }
 
-static gavl_sink_status_t write_audio_func_faac(void * data, gavl_audio_frame_t * frame)
+static gavl_sink_status_t
+write_audio_func_faac(void * data, gavl_audio_frame_t * frame)
   {
   int samples_done = 0;
   int samples_copied;
@@ -486,15 +489,13 @@ static int add_audio_stream_faac(void * data,
 static void get_audio_format_faac(void * data, int stream,
                                  gavl_audio_format_t * ret)
   {
-  faac_t * faac;
-  faac = data;
+  faac_t * faac = data;
   gavl_audio_format_copy(ret, &faac->format);
   }
 
 static gavl_audio_sink_t * get_audio_sink_faac(void * data, int stream)
   {
-  faac_t * faac;
-  faac = data;
+  faac_t * faac = data;
   return faac->sink;
   }
 
