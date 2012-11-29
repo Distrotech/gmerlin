@@ -237,6 +237,9 @@ static gavl_source_status_t decode_frame_mad(bgav_stream_t * s)
           priv->stream.this_frame - priv->stream.buffer,
           priv->stream.next_frame - priv->stream.this_frame);
 #endif
+
+  s->flags |= STREAM_HAVE_FRAME;
+  
   bgav_bytebuffer_remove(&priv->buf, 
                          priv->stream.next_frame - priv->stream.buffer);
   return GAVL_SOURCE_OK;

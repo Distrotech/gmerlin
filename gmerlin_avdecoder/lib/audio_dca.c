@@ -180,6 +180,9 @@ static gavl_source_status_t decode_frame_dts(bgav_stream_t * s)
   
   priv->frame->valid_samples = BLOCK_SAMPLES;
   s->data.audio.frame->valid_samples = BLOCK_SAMPLES;
+
+  s->flags |= STREAM_HAVE_FRAME;
+
   return GAVL_SOURCE_OK;
   }
 

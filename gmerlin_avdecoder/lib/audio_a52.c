@@ -140,6 +140,8 @@ static gavl_source_status_t decode_frame_a52(bgav_stream_t * s)
 
   bgav_stream_done_packet_read(s, p);
 
+  s->flags |= STREAM_HAVE_FRAME;
+  
   return GAVL_SOURCE_OK;
   }
 

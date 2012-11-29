@@ -38,8 +38,10 @@ typedef struct
   faacDecHandle dec;
   float * sample_buffer;
   
-  int64_t last_position; /* For parsing only */
-  
+  int init;
+
+  int64_t last_duration;
+    
   } faad_priv_t;
 
 static gavl_source_status_t get_data(bgav_stream_t * s)
@@ -58,8 +60,10 @@ static gavl_source_status_t get_data(bgav_stream_t * s)
   /* If we know the number of samples (i.e. when the packet comes
      from an mp4/mov container), flush the buffer to remove previous
      padding bytes */
-  if(p->duration)
+  if(p->duration > 0)
     bgav_bytebuffer_flush(&priv->buf);
+
+  priv->last_duration = p->duration;
   
   bgav_bytebuffer_append(&priv->buf, p, 0);
   bgav_stream_done_packet_read(s, p);
@@ -133,6 +137,14 @@ static gavl_source_status_t decode_frame_faad2(bgav_stream_t * s)
     s->data.audio.frame->valid_samples = s->data.audio.format.samples_per_frame;
   else
     s->data.audio.frame->valid_samples = frame_info.samples  / s->data.audio.format.num_channels;
+
+  if(s->data.audio.frame->valid_samples > priv->last_duration)
+    s->data.audio.frame->valid_samples = priv->last_duration;
+  
+  s->flags |= STREAM_HAVE_FRAME;
+
+  if(!priv->init)
+    return GAVL_SOURCE_OK;
   
   if(s->data.audio.format.channel_locations[0] == GAVL_CHID_NONE)
     {
@@ -237,8 +249,13 @@ static int init_faad2(bgav_stream_t * s)
   faacDecSetConfiguration(priv->dec, cfg);
 
   /* Decode a first frame to get the channel setup and the description */
+
+  priv->init = 1;
+  
   if(decode_frame_faad2(s) != GAVL_SOURCE_OK)
     return 0;
+  
+  priv->init = 0;
   return 1;
   }
 

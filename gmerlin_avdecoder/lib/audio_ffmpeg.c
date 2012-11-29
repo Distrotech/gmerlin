@@ -312,6 +312,8 @@ static gavl_source_status_t decode_frame_ffmpeg(bgav_stream_t * s)
   
   gavl_audio_frame_copy_ptrs(&s->data.audio.format,
                              s->data.audio.frame, priv->frame);
+
+  s->flags |= STREAM_HAVE_FRAME;
   
   return GAVL_SOURCE_OK;
   }
@@ -427,6 +429,8 @@ static gavl_source_status_t decode_frame_ffmpeg(bgav_stream_t * s)
 #ifdef DUMP_DECODE
   bgav_dprintf("Got %d samples\n", priv->frame->valid_samples);
 #endif
+
+  s->flags |= STREAM_HAVE_FRAME;
   
   gavl_audio_frame_copy_ptrs(&s->data.audio.format,
                              s->data.audio.frame, priv->frame);

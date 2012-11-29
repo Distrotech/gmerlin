@@ -469,12 +469,12 @@ static int decode_mpeg2(bgav_stream_t*s, gavl_video_frame_t*f)
     mpeg2_skip(priv->dec, 1);
 #endif
 
-  if(!(s->flags & STREAM_HAVE_PICTURE))
+  if(!(s->flags & STREAM_HAVE_FRAME))
     {
     if(!decode_picture(s))
       return 0;
 
-    s->flags |= STREAM_HAVE_PICTURE;
+    s->flags |= STREAM_HAVE_FRAME;
     }
   
   if(priv->flags & FLAG_INIT)
@@ -661,7 +661,7 @@ static int skipto_mpeg2(bgav_stream_t * s, int64_t time, int exact)
     if(!decode_picture(s))
       return 0;
 
-    s->flags |= STREAM_HAVE_PICTURE;
+    s->flags |= STREAM_HAVE_FRAME;
 
     if(priv->picture_timestamp + priv->picture_duration > time)
       {

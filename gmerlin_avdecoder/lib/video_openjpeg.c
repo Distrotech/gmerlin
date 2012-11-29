@@ -122,7 +122,7 @@ static gavl_source_status_t decode_openjpeg(bgav_stream_t * s, gavl_video_frame_
   
   priv = s->data.video.decoder->priv;
 
-  if(!(s->flags & STREAM_HAVE_PICTURE))
+  if(!(s->flags & STREAM_HAVE_FRAME))
     {
     if((st = bgav_stream_get_packet_read(s, &p)) != GAVL_SOURCE_OK)
       return st;
@@ -130,7 +130,7 @@ static gavl_source_status_t decode_openjpeg(bgav_stream_t * s, gavl_video_frame_
   
   if(f || priv->need_format)
     {
-    if(!(s->flags & STREAM_HAVE_PICTURE))
+    if(!(s->flags & STREAM_HAVE_FRAME))
       {
       /* open a byte stream */
       cio = opj_cio_open((opj_common_ptr)priv->dinfo, 
@@ -157,7 +157,7 @@ static gavl_source_status_t decode_openjpeg(bgav_stream_t * s, gavl_video_frame_
           s->data.video.format.pixelformat = GAVL_RGB_48;
           }
         }
-      s->flags |= STREAM_HAVE_PICTURE;
+      s->flags |= STREAM_HAVE_FRAME;
       }
     if(f)
       {

@@ -127,7 +127,7 @@ static gavl_source_status_t decode_tga(bgav_stream_t * s, gavl_video_frame_t * f
   priv = s->data.video.decoder->priv;
   s->flags |= STREAM_INTRA_ONLY;
   
-  if(!(s->flags & STREAM_HAVE_PICTURE))
+  if(!(s->flags & STREAM_HAVE_FRAME))
     {
     /* Decode a frame */
     if((st = bgav_stream_get_packet_read(s, &priv->p)) != GAVL_SOURCE_OK)
@@ -149,7 +149,7 @@ static gavl_source_status_t decode_tga(bgav_stream_t * s, gavl_video_frame_t * f
       return GAVL_SOURCE_EOF;
       }
 
-    s->flags |= STREAM_HAVE_PICTURE;
+    s->flags |= STREAM_HAVE_FRAME;
     }
   if(priv->do_init)
     {

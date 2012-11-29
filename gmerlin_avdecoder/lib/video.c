@@ -61,7 +61,7 @@ static int check_still(bgav_stream_t * s)
   {
   if(!STREAM_IS_STILL(s))
     return 1;
-  if(s->flags & STREAM_HAVE_PICTURE)
+  if(s->flags & STREAM_HAVE_FRAME)
     return 1;
   if(bgav_stream_peek_packet_read(s, NULL, 0) == GAVL_SOURCE_OK)
     return 1;
@@ -95,7 +95,7 @@ read_video_nocopy(void * sp,
   bgav_dprintf("Video timestamp: %"PRId64"\n", s->data.video.frame->timestamp);
 #endif    
   s->out_time = s->data.video.frame->timestamp + s->data.video.frame->duration;
-  s->flags &= ~STREAM_HAVE_PICTURE;
+  s->flags &= ~STREAM_HAVE_FRAME;
   return GAVL_SOURCE_OK;
   }
 
@@ -120,7 +120,7 @@ static gavl_source_status_t read_video_copy(void * sp,
 #ifdef DUMP_TIMESTAMPS
   bgav_dprintf("Video timestamp: %"PRId64"\n", s->data.video.frame->timestamp);
 #endif    
-  s->flags &= ~STREAM_HAVE_PICTURE;
+  s->flags &= ~STREAM_HAVE_FRAME;
   return GAVL_SOURCE_OK;
   }
 
@@ -372,7 +372,7 @@ void bgav_video_stop(bgav_stream_t * s)
     s->data.video.decoder = NULL;
     }
   /* Clear still mode flag (it will be set during reinit) */
-  s->flags &= ~(STREAM_STILL_SHOWN  | STREAM_HAVE_PICTURE);
+  s->flags &= ~(STREAM_STILL_SHOWN  | STREAM_HAVE_FRAME);
   
   if(s->data.video.kft)
     {
@@ -391,7 +391,7 @@ void bgav_video_resync(bgav_stream_t * s)
                         STREAM_GET_SYNC(s));
     }
 
-  s->flags &= ~STREAM_HAVE_PICTURE;
+  s->flags &= ~STREAM_HAVE_FRAME;
   
   if(s->data.video.parser)
     {

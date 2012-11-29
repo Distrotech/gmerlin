@@ -50,11 +50,13 @@ static gavl_source_status_t get_frame(void * sp, gavl_audio_frame_t ** frame)
   {
   bgav_stream_t * s = sp;
   
-  if(!s->data.audio.decoder->decoder->decode_frame(s))
+  if(!(s->flags & STREAM_HAVE_FRAME) &&
+     !s->data.audio.decoder->decoder->decode_frame(s))
     {
     s->flags |= STREAM_EOF_C;
     return GAVL_SOURCE_EOF;
     }
+  s->flags &= ~STREAM_HAVE_FRAME; 
   s->data.audio.frame->timestamp = s->out_time;
   s->out_time += s->data.audio.frame->valid_samples;
   *frame = s->data.audio.frame;

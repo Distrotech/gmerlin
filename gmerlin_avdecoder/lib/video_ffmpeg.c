@@ -621,7 +621,7 @@ static gavl_source_status_t decode_picture(bgav_stream_t * s)
     if(have_picture)
       {
       int i;
-      s->flags |= STREAM_HAVE_PICTURE; 
+      s->flags |= STREAM_HAVE_FRAME; 
 
       /* Set our internal frame */
       for(i = 0; i < 3; i++)
@@ -665,7 +665,7 @@ static int skipto_ffmpeg(bgav_stream_t * s, int64_t time)
       {
       bgav_log(s->opt, BGAV_LOG_ERROR, LOG_DOMAIN,
                "Got EOF while skipping");
-      s->flags &= ~STREAM_HAVE_PICTURE;
+      s->flags &= ~STREAM_HAVE_FRAME;
       return 0;
       }
 #if 0
@@ -691,12 +691,12 @@ decode_ffmpeg(bgav_stream_t * s, gavl_video_frame_t * f)
      ffmpeg returns are not reliable */
   priv = s->data.video.decoder->priv;
   
-  if(!(s->flags & STREAM_HAVE_PICTURE))
+  if(!(s->flags & STREAM_HAVE_FRAME))
     {
     if((st = decode_picture(s)) != GAVL_SOURCE_OK)
       return st;
     }
-  if(s->flags & STREAM_HAVE_PICTURE)
+  if(s->flags & STREAM_HAVE_FRAME)
     {
     if(f)
       {
