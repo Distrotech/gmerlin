@@ -28,6 +28,12 @@
 #include <gmerlin/log.h>
 #define LOG_DOMAIN "lame"
 
+#include <gmerlin/utils.h>
+
+
+#include <gavl/metatags.h>
+
+
 #include <bglame.h>
 
 /* MPEG header detection: lame outputs incomplete frames,
@@ -669,7 +675,9 @@ gavl_audio_sink_t * bg_lame_open(bg_lame_t * lame,
     }
   if(m)
     {
-    /* TODO: Set software */
+    /* Set software */
+    gavl_metadata_set_nocpy(m, GAVL_META_SOFTWARE,
+                            bg_sprintf("lame %s", get_lame_version()));
     }
 
   
