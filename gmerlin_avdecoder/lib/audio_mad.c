@@ -56,6 +56,8 @@ typedef struct
   int partial; /* Partial frame is left in the buffer.
                   Either we can decode this (layer 3) or
                   we'll mute it. */
+  
+  int last_duration;
   } mad_priv_t;
 
 static gavl_source_status_t get_data(bgav_stream_t * s)
@@ -71,24 +73,11 @@ static gavl_source_status_t get_data(bgav_stream_t * s)
   switch(st)
     {
     case GAVL_SOURCE_AGAIN:
-      return st;
-      break;
     case GAVL_SOURCE_EOF:
-      if(!priv->eof)
-        {
-        /* Append zeros to the end so we can decode the very last
-           frame */
-        if(!priv->buf.size)
-          {
-          priv->eof = 1;
-          return GAVL_SOURCE_EOF;
-          }
-        priv->partial = 1;
-        priv->eof = 1;
-        }
-      break;
+      return st;
     case GAVL_SOURCE_OK:
       bgav_bytebuffer_append(&priv->buf, p, MAD_BUFFER_GUARD);
+      priv->last_duration = p->duration;
       bgav_stream_done_packet_read(s, p);
       break;
     }
@@ -162,74 +151,73 @@ static void get_format(bgav_stream_t * s)
 static gavl_source_status_t decode_frame_mad(bgav_stream_t * s)
   {
   mad_priv_t * priv;
-  int i, j, done;
+  int i, j;
   gavl_source_status_t st;
+  int got_frame;
+  int flush = 0;
+  
   priv = s->data.audio.decoder->priv;
-
+  
   if(priv->eof)
     return GAVL_SOURCE_EOF;
-  
-  /* Check if we need new data */
-  if((priv->buf.size <= MAD_BUFFER_GUARD) && 
-     ((st = get_data(s)) != GAVL_SOURCE_OK))
-    return st;
 
-  if(priv->partial)
-    mad_stream_buffer(&priv->stream, priv->buf.buffer,
-                      priv->buf.size + MAD_BUFFER_GUARD);
-  else
-    mad_stream_buffer(&priv->stream, priv->buf.buffer,
-                      priv->buf.size);
-  
-  done = 0;
-  while(mad_frame_decode(&priv->frame, &priv->stream) == -1)
+  st = get_data(s);
+
+  switch(st)
     {
-    switch(priv->stream.error)
-      {
-      case MAD_ERROR_BUFLEN:
-        if(priv->partial)
-          {
-          mad_frame_mute(&priv->frame);
-          priv->partial = 0;
-          done = 1;
-          break;
-          }
-        
-        if((st = get_data(s)) != GAVL_SOURCE_OK)
-          return st;
-        
-        mad_stream_buffer(&priv->stream, priv->buf.buffer,
-                          priv->buf.size);
-
-        break;
-      default:
-        mad_frame_mute(&priv->frame);
-        break;
-      }
-    if(done)
+    case GAVL_SOURCE_AGAIN:
+      return st;
+      break;
+    case GAVL_SOURCE_EOF:
+      flush = 1;
+      return st;
+    case GAVL_SOURCE_OK:
       break;
     }
   
-  if(priv->do_init)
-    get_format(s);
- 
-  mad_synth_frame(&priv->synth, &priv->frame);
-
-  for(i = 0; i < s->data.audio.format.num_channels; i++)
+  
+  got_frame = 1;
+  
+  mad_stream_buffer(&priv->stream, priv->buf.buffer, priv->buf.size + flush * MAD_BUFFER_GUARD);
+  
+  if(mad_frame_decode(&priv->frame, &priv->stream) == -1)
     {
-    for(j = 0; j < s->data.audio.format.samples_per_frame; j++)
-      {
-      if (priv->synth.pcm.samples[i][j] >= MAD_F_ONE)
-        priv->synth.pcm.samples[i][j] = MAD_F_ONE - 1;
-      else if (priv->synth.pcm.samples[i][j] < -MAD_F_ONE)
-        priv->synth.pcm.samples[i][j] = -MAD_F_ONE;
-      
-      priv->audio_frame->channels.f[i][j] =
-        (float)(priv->synth.pcm.samples[i][j]) /
-        (float)MAD_F_ONE;
-      }
+    bgav_log(s->opt, BGAV_LOG_ERROR, LOG_DOMAIN, "Decode failed %s\n", mad_stream_errorstr(&priv->stream));
+    got_frame = 0;
     }
-  priv->audio_frame->valid_samples   = s->data.audio.format.samples_per_frame;
+  
+  if(got_frame)
+    {
+    // fprintf(stderr, "Decodes %ld bytes\n", priv->stream.next_frame - priv->stream.buffer);
+    
+    if(priv->do_init)
+      get_format(s);
+ 
+    mad_synth_frame(&priv->synth, &priv->frame);
+
+    for(i = 0; i < s->data.audio.format.num_channels; i++)
+      {
+      for(j = 0; j < s->data.audio.format.samples_per_frame; j++)
+        {
+        if (priv->synth.pcm.samples[i][j] >= MAD_F_ONE)
+          priv->synth.pcm.samples[i][j] = MAD_F_ONE - 1;
+        else if (priv->synth.pcm.samples[i][j] < -MAD_F_ONE)
+          priv->synth.pcm.samples[i][j] = -MAD_F_ONE;
+      
+        priv->audio_frame->channels.f[i][j] =
+          (float)(priv->synth.pcm.samples[i][j]) /
+          (float)MAD_F_ONE;
+        }
+      }
+    
+    priv->audio_frame->valid_samples   = s->data.audio.format.samples_per_frame;
+    }
+  else
+    gavl_audio_frame_mute(priv->audio_frame, &s->data.audio.format);
+  
+  if(flush && priv->last_duration && (priv->last_duration < priv->audio_frame->valid_samples))
+    priv->audio_frame->valid_samples = priv->last_duration;
+  
   gavl_audio_frame_copy_ptrs(&s->data.audio.format,
                              s->data.audio.frame, priv->audio_frame);
 #if 0
@@ -240,7 +228,7 @@ static gavl_source_status_t decode_frame_mad(bgav_stream_t * s)
 
   s->flags |= STREAM_HAVE_FRAME;
   
-  bgav_bytebuffer_remove(&priv->buf, 
+  bgav_bytebuffer_remove(&priv->buf,
                          priv->stream.next_frame - priv->stream.buffer);
   return GAVL_SOURCE_OK;
   }
@@ -259,7 +247,7 @@ static int init_mad(bgav_stream_t * s)
   /* Now, decode the first header to get the format */
   
   get_data(s);
-
+  
   priv->do_init = 1;
 
   if(!decode_frame_mad(s))
@@ -288,6 +276,7 @@ static void resync_mad(bgav_stream_t * s)
   mad_synth_init(&priv->synth);
   mad_stream_init(&priv->stream);
 
+  get_data(s);
   }
 
 static void close_mad(bgav_stream_t * s)

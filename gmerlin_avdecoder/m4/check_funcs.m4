@@ -41,7 +41,8 @@ AH_TEMPLATE([HAVE_LIBAVCODEC],
 
 have_avcodec=false
 
-AVCODEC_BUILD="3412992"
+dnl 54.1.0
+AVCODEC_BUILD="3539200"
 
 AC_ARG_ENABLE(libavcodec,
 [AC_HELP_STRING([--disable-libavcodec],[Disable libavcodec (default: autodetect)])],
@@ -359,6 +360,11 @@ AC_SUBST(SCHROEDINGER_LIBS)
 AC_SUBST(SCHROEDINGER_CFLAGS)
 
 AM_CONDITIONAL(HAVE_SCHROEDINGER, test x$have_schroedinger = xtrue)
+
+OLD_CFLAGS=$CFLAGS
+CFLAGS=$SCHROEDINGER_CFLAGS
+AC_CHECK_HEADERS(schroedinger/schroversion.h)
+CFLAGS=$OLD_CFLAGS
 
 if test "x$have_schroedinger" = "xtrue"; then
 AC_DEFINE([HAVE_SCHROEDINGER])

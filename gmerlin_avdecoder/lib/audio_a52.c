@@ -135,6 +135,10 @@ static gavl_source_status_t decode_frame_a52(bgav_stream_t * s)
     }
   
   priv->frame->valid_samples = FRAME_SAMPLES;
+
+  if((p->duration > 0) && (p->duration < priv->frame->valid_samples))
+    priv->frame->valid_samples = p->duration;
+  
   gavl_audio_frame_copy_ptrs(&s->data.audio.format,
                              s->data.audio.frame, priv->frame);
 
