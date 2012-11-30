@@ -81,7 +81,8 @@ AH_TEMPLATE([AVFORMAT_HEADER], [libavformat header])
 
 have_avformat=false
 
-AVFORMAT_BUILD="3415808"
+dnl 53.10.0
+AVFORMAT_BUILD="3475968"
 
 AC_ARG_ENABLE(libavformat,
 [AC_HELP_STRING([--disable-libavformat],[Disable libavformat (default: autodetect)])],

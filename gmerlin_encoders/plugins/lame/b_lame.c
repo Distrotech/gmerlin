@@ -92,12 +92,8 @@ static int open_lame(void * data, const char * filename,
                      const gavl_metadata_t * metadata,
                      const gavl_chapter_list_t * chapter_list)
   {
-  b_lame_t * lame;
-
-  lame = data;
-  
-  if(!bg_shout_open(lame->shout))
-    return 0;
+  //  b_lame_t * lame;
+  //  lame = data;
   
   return 1;
   }
@@ -133,9 +129,10 @@ static void set_audio_parameter_lame(void * data, int stream, const char * name,
   bg_lame_set_parameter(lame->com, name, val);
   }
 
-static gavl_sink_status_t write_callback(void * priv, gavl_packet_t * p)
+static gavl_sink_status_t write_callback(void * data, gavl_packet_t * p)
   {
-  return (bg_shout_write(priv, p->data, p->data_len) == p->data_len) ?
+  b_lame_t * lame = data;
+  return (bg_shout_write(lame->shout, p->data, p->data_len) == p->data_len) ?
     GAVL_SINK_OK : GAVL_SINK_ERROR;
   }
 
@@ -143,13 +140,16 @@ static int start_lame(void * data)
   {
   b_lame_t * lame = data;
 
+  if(!bg_shout_open(lame->shout))
+    return 0;
+  
   /* Create sink */
   lame->psink = gavl_packet_sink_create(NULL, write_callback,
                                         lame);
-  
   if(!lame->compressed)
     {
     lame->asink = bg_lame_open(lame->com, NULL, &lame->fmt, NULL);
+    bg_lame_set_packet_sink(lame->com, lame->psink);
     }
   
   return 1;

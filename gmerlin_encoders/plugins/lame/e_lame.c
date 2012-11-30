@@ -222,7 +222,7 @@ write_audio_packet_func_lame(void * data, gavl_packet_t * p)
   
   lame = data;
 
-  if((lame->ci.bitrate < 0) &&
+  if((lame->ci.bitrate == GAVL_BITRATE_VBR) &&
      !lame->xing)
     {
     lame->xing = bg_xing_create(p->data, p->data_len);
@@ -305,6 +305,7 @@ static int start_lame(void * data)
                                &lame->ci,
                                &lame->fmt,
                                NULL);
+    bg_lame_set_packet_sink(lame->codec, lame->psink);
     }
   
   return 1;
