@@ -106,7 +106,8 @@ int bg_pngwriter_write_header(void * priv,
         if(gavl_pixelformat_bytes_per_component(format->pixelformat) > 1)
           bits = 16;
         }
-      else if(gavl_pixelformat_bytes_per_pixel(format->pixelformat) > 4)
+      else if(gavl_pixelformat_bytes_per_pixel(format->pixelformat) >
+              gavl_pixelformat_num_channels(format->pixelformat))
         bits = 16;
       break;
     case BITS_8:
