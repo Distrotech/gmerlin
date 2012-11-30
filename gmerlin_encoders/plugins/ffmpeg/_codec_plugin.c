@@ -30,9 +30,9 @@ static void * create_codec()
 
   ret->codec = bg_ffmpeg_codec_create(
 #ifdef IS_AUDIO
-                                      CODEC_TYPE_AUDIO,
+                                      AVMEDIA_TYPE_AUDIO,
 #else
-                                      CODEC_TYPE_VIDEO,
+                                      AVMEDIA_TYPE_VIDEO,
 #endif
                                       NULL,
                                       CODEC_ID,

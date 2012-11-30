@@ -28,44 +28,6 @@
 #include <libavcore/avcore.h>
 #endif
 
-#if (LIBAVCORE_VERSION_INT >= ((0<<16)|(10<<8)|0)) || (LIBAVUTIL_VERSION_INT >= ((50<<16)|(38<<8)|0))
-#define SampleFormat    AVSampleFormat
-#define SAMPLE_FMT_U8   AV_SAMPLE_FMT_U8
-#define SAMPLE_FMT_S16  AV_SAMPLE_FMT_S16
-#define SAMPLE_FMT_S32  AV_SAMPLE_FMT_S32
-#define SAMPLE_FMT_FLT  AV_SAMPLE_FMT_FLT
-#define SAMPLE_FMT_DBL  AV_SAMPLE_FMT_DBL
-#define SAMPLE_FMT_NONE AV_SAMPLE_FMT_NONE
-#endif
-
-#if LIBAVCODEC_VERSION_INT >= AV_VERSION_INT(54,1,0)
-#define ENCODE_VIDEO2 1
-#else
-#define ENCODE_VIDEO 1
-#endif
-
-#if LIBAVCODEC_VERSION_INT >= AV_VERSION_INT(53,34,0)
-#define ENCODE_AUDIO2 1
-#else
-#define ENCODE_AUDIO 1
-#endif
-
-#if LIBAVCODEC_VERSION_MAJOR >= 53
-#define CodecType AVMediaType
-#define CODEC_TYPE_UNKNOWN    AVMEDIA_TYPE_UNKNOWN
-#define CODEC_TYPE_VIDEO      AVMEDIA_TYPE_VIDEO
-#define CODEC_TYPE_AUDIO      AVMEDIA_TYPE_AUDIO
-#define CODEC_TYPE_DATA       AVMEDIA_TYPE_DATA
-#define CODEC_TYPE_SUBTITLE   AVMEDIA_TYPE_SUBTITLE
-#define CODEC_TYPE_ATTACHMENT AVMEDIA_TYPE_ATTACHMENT
-#define CODEC_TYPE_NB         AVMEDIA_TYPE_NB
-#endif
-
-
-#if LIBAVCODEC_VERSION_MAJOR >= 53
-#define PKT_FLAG_KEY AV_PKT_FLAG_KEY
-#endif
-
 #if LIBAVCODEC_VERSION_MAJOR >= 53
 #define guess_format(a, b, c) av_guess_format(a, b, c)
 #endif
@@ -220,9 +182,7 @@ typedef struct
   
   gavl_audio_frame_t * frame;
   
-#if ENCODE_AUDIO2
   int64_t samples_written;
-#endif
   gavl_audio_sink_t * sink;
   } bg_ffmpeg_audio_stream_t;
 
@@ -370,7 +330,8 @@ void bg_ffmpeg_choose_pixelformat(const enum PixelFormat * supported,
                                   enum PixelFormat * ffmpeg_fmt,
                                   gavl_pixelformat_t * gavl_fmt);
 
-gavl_sample_format_t bg_sample_format_ffmpeg_2_gavl(enum SampleFormat p);
+gavl_sample_format_t bg_sample_format_ffmpeg_2_gavl(enum AVSampleFormat p,
+                                                    gavl_interleave_mode_t * il);
 
 enum CodecID bg_codec_id_gavl_2_ffmpeg(gavl_codec_id_t gavl);
 gavl_codec_id_t bg_codec_id_ffmpeg_2_gavl(enum CodecID ffmpeg);

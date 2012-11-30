@@ -43,6 +43,8 @@
 
 #include "faac_codec.h"
 
+#define FAAC_DELAY 1024
+
 struct bg_faac_s
   {
   faacEncHandle enc;
@@ -293,6 +295,9 @@ write_audio_func_faac(void * data, gavl_audio_frame_t * frame)
   int samples_done = 0;
   int samples_copied;
   bg_faac_t * ctx = data;
+
+  if(ctx->pts == GAVL_TIME_UNDEFINED)
+    ctx->pts = frame->timestamp - FAAC_DELAY;
   
   while(samples_done < frame->valid_samples)
     {
@@ -427,14 +432,13 @@ gavl_audio_sink_t * bg_faac_open(bg_faac_t * ctx,
     faacEncGetDecoderSpecificInfo(ctx->enc, &ci->global_header,
                                   &SizeOfDecoderSpecificInfo);
     ci->global_header_len = SizeOfDecoderSpecificInfo;
-    ci->pre_skip = 1024;
-    ctx->pts = -((int64_t)ci->pre_skip);
-
+    ci->pre_skip = FAAC_DELAY;
     gavl_metadata_set_nocpy(m, GAVL_META_SOFTWARE,
                             bg_sprintf("libfaac %s", ctx->enc_config->name));
     
     }
   
+  ctx->pts = GAVL_TIME_UNDEFINED;
   return ctx->asink;
   }
 

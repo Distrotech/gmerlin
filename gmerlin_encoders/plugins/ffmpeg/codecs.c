@@ -755,9 +755,9 @@ get_codec_info(const ffmpeg_codec_info_t * codecs, enum CodecID id)
 const ffmpeg_codec_info_t *
 bg_ffmpeg_get_codec_info(enum CodecID id, int type)
   {
-  if(type == CODEC_TYPE_AUDIO)
+  if(type == AVMEDIA_TYPE_AUDIO)
     return get_codec_info(audio_codecs, id);
-  else if(type == CODEC_TYPE_VIDEO)
+  else if(type == AVMEDIA_TYPE_VIDEO)
     return get_codec_info(video_codecs, id);
   return NULL;
   }
@@ -767,9 +767,9 @@ const bg_parameter_info_t * bg_ffmpeg_get_codec_parameters(enum CodecID id, int 
   {
   const ffmpeg_codec_info_t * ci = NULL;
   
-  if(type == CODEC_TYPE_AUDIO)
+  if(type == AVMEDIA_TYPE_AUDIO)
     ci = get_codec_info(audio_codecs, id);
-  else if(type == CODEC_TYPE_VIDEO)
+  else if(type == AVMEDIA_TYPE_VIDEO)
     ci =  get_codec_info(video_codecs, id);
   
   if(!ci)
@@ -913,7 +913,6 @@ const enum_t mb_decision[] =
     found = 1;                                      \
     }
 
-#if LIBAVCODEC_VERSION_MAJOR >= 54
 #define PARAM_DICT_STRING(n, ffmpeg_key) \
   if(!strcmp(n, name)) \
     { \
@@ -939,15 +938,11 @@ const enum_t mb_decision[] =
     av_dict_set(options, ffmpeg_key, str, 0); \
     free(str); \
     }
-#endif
 
 
 void
 bg_ffmpeg_set_codec_parameter(AVCodecContext * ctx,
-#if LIBAVCODEC_VERSION_MAJOR >= 54
                               AVDictionary ** options,
-#endif
-
                               const char * name,
                               const bg_parameter_value_t * val)
   {
@@ -1030,11 +1025,7 @@ bg_ffmpeg_set_codec_parameter(AVCodecContext * ctx,
   PARAM_FLAG("ff_flag_emu_edge",CODEC_FLAG_EMU_EDGE);
   PARAM_FLAG("ff_flag_normalize_aqp",CODEC_FLAG_NORMALIZE_AQP);
   //  PARAM_FLAG("ff_flag_alt_scan",CODEC_FLAG_ALT_SCAN);
-#if LIBAVCODEC_VERSION_INT < ((52<<16)+(0<<8)+0)
-  PARAM_FLAG("ff_flag_trellis_quant",CODEC_FLAG_TRELLIS_QUANT);
-#else
   PARAM_INT("ff_trellis",trellis);
-#endif
   PARAM_FLAG("ff_flag_bitexact",CODEC_FLAG_BITEXACT);
   PARAM_FLAG("ff_flag_ac_pred",CODEC_FLAG_AC_PRED);
   //  PARAM_FLAG("ff_flag_h263p_umv",CODEC_FLAG_H263P_UMV);
@@ -1048,12 +1039,10 @@ bg_ffmpeg_set_codec_parameter(AVCodecContext * ctx,
   PARAM_FLAG2("ff_flag2_fast",CODEC_FLAG2_FAST);
   PARAM_FLAG2("ff_flag2_strict_gop",CODEC_FLAG2_STRICT_GOP);
 
-#if LIBAVCODEC_VERSION_MAJOR >= 54
   PARAM_DICT_STRING("libx264_preset", "preset");
   PARAM_DICT_STRING("libx264_tune",   "tune");
   PARAM_DICT_FLOAT("libx264_crf", "crf");
   PARAM_DICT_FLOAT("libx264_qp", "qp");
-#endif
   
   }
 
@@ -1177,25 +1166,41 @@ void bg_ffmpeg_choose_pixelformat(const enum PixelFormat * supported,
 
 static const struct
   {
-  enum SampleFormat  ffmpeg_fmt;
+  enum AVSampleFormat  ffmpeg_fmt;
   gavl_sample_format_t gavl_fmt;
+  int planar;
   }
 sampleformats[] =
   {
-    { SAMPLE_FMT_U8,  GAVL_SAMPLE_U8 },
-    { SAMPLE_FMT_S16, GAVL_SAMPLE_S16 },    ///< signed 16 bits
-    { SAMPLE_FMT_S32, GAVL_SAMPLE_S32 },    ///< signed 32 bits
-    { SAMPLE_FMT_FLT, GAVL_SAMPLE_FLOAT },  ///< float
-    { SAMPLE_FMT_DBL, GAVL_SAMPLE_DOUBLE }, ///< double
+    { AV_SAMPLE_FMT_U8,   GAVL_SAMPLE_U8,     0 },
+    { AV_SAMPLE_FMT_S16,  GAVL_SAMPLE_S16,    0 },    ///< signed 16 bits
+    { AV_SAMPLE_FMT_S32,  GAVL_SAMPLE_S32,    0 },    ///< signed 32 bits
+    { AV_SAMPLE_FMT_FLT,  GAVL_SAMPLE_FLOAT,  0 },  ///< float
+    { AV_SAMPLE_FMT_DBL,  GAVL_SAMPLE_DOUBLE, 0 }, ///< double
+    { AV_SAMPLE_FMT_U8P,  GAVL_SAMPLE_U8,     1 },
+    { AV_SAMPLE_FMT_S16P, GAVL_SAMPLE_S16,    1 },    ///< signed 16 bits
+    { AV_SAMPLE_FMT_S32P, GAVL_SAMPLE_S32,    1 },    ///< signed 32 bits
+    { AV_SAMPLE_FMT_FLTP, GAVL_SAMPLE_FLOAT,  1 },  ///< float
+    { AV_SAMPLE_FMT_DBLP, GAVL_SAMPLE_DOUBLE, 1 }, ///< double
   };
 
-gavl_sample_format_t bg_sample_format_ffmpeg_2_gavl(enum SampleFormat p)
+gavl_sample_format_t bg_sample_format_ffmpeg_2_gavl(enum AVSampleFormat p,
+                                                    gavl_interleave_mode_t * il)
   {
   int i;
   for(i = 0; i < sizeof(sampleformats)/sizeof(sampleformats[0]); i++)
     {
     if(sampleformats[i].ffmpeg_fmt == p)
+      {
+      if(il)
+        {
+        if(sampleformats[i].planar)
+          *il = GAVL_INTERLEAVE_NONE;
+        else
+          *il = GAVL_INTERLEAVE_ALL;
+        }
       return sampleformats[i].gavl_fmt;
+      }
     }
   return GAVL_SAMPLE_NONE;
   }

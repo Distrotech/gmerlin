@@ -334,12 +334,12 @@ static void set_audio_params(bg_ffmpeg_audio_stream_t * st, enum CodecID id)
   st->com.stream->codec->codec_id = id;
   st->com.stream->codec->sample_rate = st->format.samplerate;
   st->com.stream->codec->channels    = st->format.num_channels;
-  st->com.stream->codec->codec_type  = CODEC_TYPE_AUDIO;
+  st->com.stream->codec->codec_type  = AVMEDIA_TYPE_AUDIO;
   }
 
 static void set_video_params(bg_ffmpeg_video_stream_t * st, enum CodecID id)
   {
-  st->com.stream->codec->codec_type = CODEC_TYPE_VIDEO;
+  st->com.stream->codec->codec_type = AVMEDIA_TYPE_VIDEO;
   st->com.stream->codec->codec_id = id;
   /* Set format for codec */
   st->com.stream->codec->width  = st->format.image_width;
@@ -496,7 +496,7 @@ int bg_ffmpeg_add_text_stream(void * data,
                              priv->num_text_streams);
 #endif 
 
-  st->com.stream->codec->codec_type = CODEC_TYPE_SUBTITLE;
+  st->com.stream->codec->codec_type = AVMEDIA_TYPE_SUBTITLE;
   st->com.stream->codec->codec_id = CODEC_ID_TEXT;
 
   st->com.stream->codec->time_base.num = 1;
@@ -547,7 +547,7 @@ void bg_ffmpeg_set_audio_parameter(void * data, int stream, const char * name,
 #if LIBAVFORMAT_VERSION_INT >= AV_VERSION_INT(53,10,0)
     AVCodec * codec;
 #endif
-    st->com.stream->codec->codec_type        = CODEC_TYPE_AUDIO;
+    st->com.stream->codec->codec_type        = AVMEDIA_TYPE_AUDIO;
     id = bg_ffmpeg_find_audio_encoder(priv->format, v->val_str);
 #if LIBAVFORMAT_VERSION_INT >= AV_VERSION_INT(53,10,0)
     codec = avcodec_find_encoder(id);
@@ -558,9 +558,7 @@ void bg_ffmpeg_set_audio_parameter(void * data, int stream, const char * name,
     }
   else
     bg_ffmpeg_set_codec_parameter(st->com.stream->codec,
-#if LIBAVCODEC_VERSION_MAJOR >= 54
                                   &st->com.options,
-#endif
                                   name, v);
   
   }
@@ -584,7 +582,7 @@ void bg_ffmpeg_set_video_parameter(void * data, int stream, const char * name,
 #if LIBAVFORMAT_VERSION_INT >= AV_VERSION_INT(53,10,0)
     AVCodec * codec;
 #endif
-    st->com.stream->codec->codec_type = CODEC_TYPE_VIDEO;
+    st->com.stream->codec->codec_type = AVMEDIA_TYPE_VIDEO;
     id = bg_ffmpeg_find_video_encoder(priv->format, v->val_str);
 #if LIBAVFORMAT_VERSION_INT >= AV_VERSION_INT(53,10,0)
     codec = avcodec_find_encoder(id);
@@ -605,9 +603,7 @@ void bg_ffmpeg_set_video_parameter(void * data, int stream, const char * name,
     }
   else
     bg_ffmpeg_set_codec_parameter(st->com.stream->codec,
-#if LIBAVCODEC_VERSION_MAJOR >= 54
                                   &st->com.options,
-#endif
                                   name, v);
   }
 
@@ -651,7 +647,6 @@ static int flush_video(ffmpeg_priv_t * priv, bg_ffmpeg_video_stream_t * st,
   int got_packet = 0;
   av_init_packet(&pkt);
 
-#if ENCODE_VIDEO2
   pkt.data = st->com.gp.data;
   pkt.size = st->com.gp.data_alloc;
   
@@ -659,33 +654,15 @@ static int flush_video(ffmpeg_priv_t * priv, bg_ffmpeg_video_stream_t * st,
     return -1;
   if(got_packet)
     bytes_encoded = pkt.size;
-#else
-  bytes_encoded = avcodec_encode_video(st->com.stream->codec,
-                                       st->buffer, st->buffer_alloc,
-                                       frame);
-  if(bytes_encoded < 0)
-    return;
-  else if(bytes_encoded > 0)
-    got_packet = 1;
-#endif
 
   if(got_packet)
     {
-#if ENCODE_VIDEO // Old
-    pkt.pts= rescale_video_timestamp(st, st->com.stream->codec->coded_frame->pts);
-    
-    if(st->com.stream->codec->coded_frame->key_frame)
-      pkt.flags |= PKT_FLAG_KEY;
-    pkt.data = st->buffer;
-    pkt.size = bytes_encoded;
-#else // New
 
     if(pkt.pts != AV_NOPTS_VALUE)
       pkt.pts=rescale_video_timestamp(st, pkt.pts);
     
     if(pkt.dts != AV_NOPTS_VALUE)
       pkt.dts=rescale_video_timestamp(st, pkt.dts);
-#endif
     
     pkt.stream_index = st->com.stream->index;
 
@@ -763,7 +740,7 @@ write_video_packet_func(void * priv, gavl_packet_t * packet)
     pkt.dts = pkt.pts;
   
   if(packet->flags & GAVL_PACKET_KEYFRAME)  
-    pkt.flags |= PKT_FLAG_KEY;
+    pkt.flags |= AV_PKT_FLAG_KEY;
   
   pkt.stream_index= st->com.stream->index;
   
@@ -777,8 +754,6 @@ write_video_packet_func(void * priv, gavl_packet_t * packet)
   return GAVL_SINK_OK;
   }
 
-
-#if ENCODE_AUDIO2
 static int flush_audio(ffmpeg_priv_t * priv,
                        bg_ffmpeg_audio_stream_t * st)
   {
@@ -813,7 +788,7 @@ static int flush_audio(ffmpeg_priv_t * priv,
                             st->com.stream->codec->time_base,
                             st->com.stream->time_base);
     
-    pkt.flags |= PKT_FLAG_KEY;
+    pkt.flags |= AV_PKT_FLAG_KEY;
     pkt.stream_index= st->com.stream->index;
     
     /* write the compressed frame in the media file */
@@ -831,55 +806,6 @@ static int flush_audio(ffmpeg_priv_t * priv,
   
   return pkt.size;
   }
-
-#else
-
-static int flush_audio(ffmpeg_priv_t * priv,
-                       ffmpeg_audio_stream_t * st)
-  {
-  int out_size;
-  int bytes_encoded;
-  AVPacket pkt;
-
-  if(st->com.stream->codec->frame_size <= 1)
-    out_size = st->com.stream->codec->block_align * st->frame->valid_samples;
-  else
-    out_size = st->buffer_alloc;
-
-  bytes_encoded = avcodec_encode_audio(st->com.stream->codec, st->buffer,
-                                       out_size,
-                                       st->frame->samples.s_16);
-  
-  if(bytes_encoded > 0)
-    {
-    av_init_packet(&pkt);
-    pkt.size = bytes_encoded;
-    
-    if(st->com.stream->codec->coded_frame &&
-       (st->com.stream->codec->coded_frame->pts != AV_NOPTS_VALUE))
-      pkt.pts= av_rescale_q(st->com.stream->codec->coded_frame->pts,
-                            st->com.stream->codec->time_base,
-                            st->com.stream->time_base)  + st->pts_offset;
-    
-    pkt.flags |= PKT_FLAG_KEY;
-    pkt.stream_index= st->com.stream->index;
-    pkt.data= st->buffer;
-    
-    /* write the compressed frame in the media file */
-    if(av_interleaved_write_frame(priv->ctx, &pkt) != 0)
-      {
-      priv->got_error = 1;
-      return 0;
-      }
-    }
-  
-  /* Mute frame */
-  gavl_audio_frame_mute(st->frame, &st->format);
-  st->frame->valid_samples = 0;
-  return bytes_encoded;
-  }
-
-#endif
 
 static gavl_sink_status_t
 write_audio_func(void * data, gavl_audio_frame_t * frame)
@@ -937,7 +863,7 @@ write_audio_packet_func(void * data, gavl_packet_t * packet)
 
 
   pkt.dts = pkt.pts;
-  pkt.flags |= PKT_FLAG_KEY;
+  pkt.flags |= AV_PKT_FLAG_KEY;
   pkt.stream_index= st->com.stream->index;
   
   /* write the compressed frame in the media file */
@@ -973,25 +899,18 @@ static int open_audio_encoder(ffmpeg_priv_t * priv,
 
   st->com.stream->codec->sample_fmt = codec->sample_fmts[0];
   st->format.sample_format =
-    bg_sample_format_ffmpeg_2_gavl(codec->sample_fmts[0]);
-
+    bg_sample_format_ffmpeg_2_gavl(codec->sample_fmts[0],
+                                   &st->format.interleave_mode);
+  
   /* Extract extradata */
   if(priv->ctx->oformat->flags & AVFMT_GLOBALHEADER)
     st->com.stream->codec->flags |= CODEC_FLAG_GLOBAL_HEADER;
   
-#if LIBAVCODEC_VERSION_MAJOR < 54
-  if(avcodec_open(st->com.stream->codec, codec) < 0)
-    {
-    bg_log(BG_LOG_ERROR, LOG_DOMAIN, "avcodec_open failed for audio");
-    return 0;
-    }
-#else
   if(avcodec_open2(st->com.stream->codec, codec, &st->com.options) < 0)
     {
     bg_log(BG_LOG_ERROR, LOG_DOMAIN, "avcodec_open2 failed for audio");
     return 0;
     }
-#endif
   
   if(st->com.stream->codec->frame_size <= 1)
     st->format.samples_per_frame = 1024; // Frame size for uncompressed codecs
@@ -1032,7 +951,7 @@ static int open_video_encoder(ffmpeg_priv_t * priv,
   AVCodec * codec;
   const ffmpeg_codec_info_t * ci =
     bg_ffmpeg_get_codec_info(st->com.stream->codec->codec_id,
-                             CODEC_TYPE_VIDEO);
+                             AVMEDIA_TYPE_VIDEO);
   
   if(st->com.stream->codec->codec_id == CODEC_ID_NONE)
     return 0;
@@ -1110,20 +1029,11 @@ static int open_video_encoder(ffmpeg_priv_t * priv,
   if(priv->ctx->oformat->flags & AVFMT_GLOBALHEADER)
     st->com.stream->codec->flags |= CODEC_FLAG_GLOBAL_HEADER;
   
-#if LIBAVCODEC_VERSION_MAJOR < 54
-  if(avcodec_open(st->com.stream->codec, codec) < 0)
-    {
-    bg_log(BG_LOG_ERROR, LOG_DOMAIN, "avcodec_open failed for video");
-    return 0;
-    }
-#else
   if(avcodec_open2(st->com.stream->codec, codec, &st->com.options) < 0)
     {
     bg_log(BG_LOG_ERROR, LOG_DOMAIN, "avcodec_open2 failed for video");
     return 0;
     }
-#endif
-
   gavl_packet_alloc(&st->com.gp, st->format.image_width * st->format.image_width * 4);
   
   st->frame = avcodec_alloc_frame();
