@@ -14,11 +14,16 @@ endif
 
 
 gmerlin_plugin_LTLIBRARIES = \
+c_lame.la \
 e_lame.la \
 $(shout_plugins)
 
 e_lame_la_SOURCES = e_lame.c xing.c bglame.c
 e_lame_la_LIBADD = @GMERLIN_DEP_LIBS@ $(top_builddir)/lib/libgmerlin_encoders.la @LAME_LIBS@
+
+c_lame_la_SOURCES = c_lame.c bglame.c
+c_lame_la_LIBADD = @GMERLIN_DEP_LIBS@ @LAME_LIBS@
+
 
 b_lame_la_CFLAGS = $(AM_CFLAGS)
 b_lame_la_SOURCES = b_lame.c bglame.c

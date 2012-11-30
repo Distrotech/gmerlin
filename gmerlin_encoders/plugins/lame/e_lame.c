@@ -28,7 +28,7 @@
 #include <gmerlin/pluginfuncs.h>
 #include <gmerlin/translation.h>
 
-#define LAME_FILE
+#define USE_VBR
 #include "bglame.h"
 
 #include <gmerlin/utils.h>

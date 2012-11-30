@@ -40,39 +40,11 @@ gavl_audio_sink_t * bg_lame_open(bg_lame_t * lame,
 void bg_lame_set_packet_sink(bg_lame_t * lame,
                              gavl_packet_sink_t * sink);
 
-
-
-/*
-
-void bg_lame_init(lame_common_t * com);
-void bg_lame_close(lame_common_t * com);
-
-void bg_lame_set_audio_parameter(void * data, int stream,
-                                 const char * name,
-                                 const bg_parameter_value_t * v);
-
-void bg_lame_open(lame_common_t * com);
-
-int bg_lame_add_audio_stream(void * data,
-                             const gavl_metadata_t * m, 
-                             const gavl_audio_format_t * format);
-
-int bg_lame_write_audio_frame(void * priv,
-                              gavl_audio_frame_t * f, int stream);
-
-void bg_lame_get_audio_format(void * data, int stream,
-                              gavl_audio_format_t * ret);
-
-gavl_audio_sink_t * bg_lame_get_audio_sink(void * data, int stream);
-
-int bg_lame_flush(lame_common_t * lame);
-*/
-
 /* Audio parameters */
 
 static const bg_parameter_info_t audio_parameters[] =
   {
-#ifdef LAME_FILE
+#ifdef USE_VBR
     {
       .name =        "bitrate_mode",
       .long_name =   TRS("Bitrate mode"),

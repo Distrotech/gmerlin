@@ -385,6 +385,9 @@ bg_lame_t * bg_lame_create()
   ret = calloc(1, sizeof(*ret));
   ret->vbr_mode = vbr_off;
   ret->lame = lame_init();
+  ret->in_pts = GAVL_TIME_UNDEFINED;
+  ret->out_pts = GAVL_TIME_UNDEFINED;
+
   return ret;
   }
  
@@ -655,10 +658,7 @@ gavl_audio_sink_t * bg_lame_open(bg_lame_t * lame,
   
   lame->buffer_alloc = (5 * fmt->samples_per_frame) / 4 + 7200 + 4096;
   lame->buffer = malloc(lame->buffer_alloc);
-
-  lame->in_pts = GAVL_TIME_UNDEFINED;
-  lame->out_pts = GAVL_TIME_UNDEFINED;
-
+  
   if(ci)
     {
     ci->id = GAVL_CODEC_ID_MP3;
@@ -686,15 +686,20 @@ void bg_lame_destroy(bg_lame_t * lame)
   int bytes_encoded;
   
   /* Flush */
+
+  if(lame->in_pts != GAVL_TIME_UNDEFINED)
+    {
+    bytes_encoded = lame_encode_flush(lame->lame,
+                                      lame->buffer + lame->buffer_size, 
+                                      lame->buffer_alloc - lame->buffer_size);
+
+    lame->buffer_size += bytes_encoded;
+
+    if(lame->buffer_size)
+      flush_packets(lame, 1);
+
+    }
   
-  bytes_encoded = lame_encode_flush(lame->lame,
-                                    lame->buffer + lame->buffer_size, 
-                                    lame->buffer_alloc - lame->buffer_size);
-
-  lame->buffer_size += bytes_encoded;
-
-  if(lame->buffer_size)
-    flush_packets(lame, 1);
   
   /* Destroy */
   if(lame->lame)

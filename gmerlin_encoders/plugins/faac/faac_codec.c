@@ -56,11 +56,11 @@ struct bg_faac_s
   gavl_audio_frame_t * frame;
 
   gavl_packet_t p;
-  int64_t samples_read;
   
   gavl_audio_format_t fmt;
 
-  int64_t pts;
+  int64_t in_pts;
+  int64_t out_pts;
   
   /* Config stuff */
   unsigned int mpegVersion;
@@ -254,7 +254,7 @@ static int flush_audio(bg_faac_t * ctx)
   num_samples = ctx->frame->valid_samples ?
     (ctx->fmt.samples_per_frame * ctx->fmt.num_channels) : 0;
 
-  fprintf(stderr, "Encode %d\n", num_samples);
+  //fprintf(stderr, "Encode %d\n", num_samples);
   
   bytes_encoded = faacEncEncode(ctx->enc,
                                 (int32_t*)ctx->frame->samples.f,
@@ -272,12 +272,16 @@ static int flush_audio(bg_faac_t * ctx)
 
   if(bytes_encoded)
     {
-    ctx->p.pts = ctx->pts;
-    ctx->p.duration = ctx->fmt.samples_per_frame;
-    if(ctx->p.duration + ctx->p.pts > ctx->samples_read)
-      ctx->p.duration = ctx->samples_read - ctx->p.pts;
     
-    ctx->pts += ctx->p.duration;
+    
+    ctx->p.pts = ctx->out_pts;
+
+    ctx->p.duration = ctx->fmt.samples_per_frame;
+
+    if(ctx->p.pts + ctx->p.duration > ctx->in_pts)
+      ctx->p.duration = ctx->in_pts - ctx->p.pts;
+    
+    ctx->out_pts += ctx->p.duration;
     
     fprintf(stderr, "Got AAC packet\n");
     gavl_packet_dump(&ctx->p);
@@ -296,8 +300,11 @@ write_audio_func_faac(void * data, gavl_audio_frame_t * frame)
   int samples_copied;
   bg_faac_t * ctx = data;
 
-  if(ctx->pts == GAVL_TIME_UNDEFINED)
-    ctx->pts = frame->timestamp - FAAC_DELAY;
+  if(ctx->in_pts == GAVL_TIME_UNDEFINED)
+    {
+    ctx->in_pts = frame->timestamp;
+    ctx->out_pts = ctx->in_pts - FAAC_DELAY;
+    }
   
   while(samples_done < frame->valid_samples)
     {
@@ -325,7 +332,7 @@ write_audio_func_faac(void * data, gavl_audio_frame_t * frame)
       }
     }
   
-  ctx->samples_read += frame->valid_samples;
+  ctx->in_pts += ctx->frame->valid_samples;
   return GAVL_SINK_OK;
   }
 
@@ -438,7 +445,8 @@ gavl_audio_sink_t * bg_faac_open(bg_faac_t * ctx,
     
     }
   
-  ctx->pts = GAVL_TIME_UNDEFINED;
+  ctx->in_pts = GAVL_TIME_UNDEFINED;
+  ctx->out_pts = GAVL_TIME_UNDEFINED;
   return ctx->asink;
   }
 
@@ -453,7 +461,7 @@ void bg_faac_destroy(bg_faac_t * ctx)
   int result;
   /* Flush remaining audio data */
 
-  if(ctx->samples_read)
+  if(ctx->enc)
     {
     while(1)
       {

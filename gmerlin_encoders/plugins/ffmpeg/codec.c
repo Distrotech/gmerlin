@@ -78,11 +78,6 @@ struct bg_ffmpeg_codec_context_s
   int64_t in_pts;
   int64_t out_pts;
 
-#if 0
-  int64_t samples_written;
-  int64_t pts; // Audio pts
-  int64_t first_pts; // First audio frame
-#endif  
   bg_encoder_framerate_t fr;
   
   bg_encoder_pts_cache_t * pc;
@@ -280,8 +275,8 @@ static int flush_audio(bg_ffmpeg_codec_context_t * ctx)
     
     ctx->gp.data_len = pkt.size;
     
-    fprintf(stderr, "Put audio packet\n");
-    gavl_packet_dump(&ctx->gp);
+    // fprintf(stderr, "Put audio packet\n");
+    // gavl_packet_dump(&ctx->gp);
     
     if(gavl_packet_sink_put_packet(ctx->psink, &ctx->gp) != GAVL_SINK_OK)
       ctx->flags |= FLAG_ERROR;
@@ -303,7 +298,7 @@ write_audio_func(void * data, gavl_audio_frame_t * frame)
     ctx->out_pts = ctx->in_pts - ctx->avctx->delay;
     }
 
-  fprintf(stderr, "write_audio_func %d\n", frame->valid_samples);
+  //  fprintf(stderr, "write_audio_func %d\n", frame->valid_samples);
   
   while(samples_written < frame->valid_samples)
     {
