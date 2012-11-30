@@ -1,4 +1,36 @@
 dnl
+dnl Standardized linker flags:
+dnl We use --as-needed for executables and
+dnl --no-undefined for libraries
+dnl
+
+AC_DEFUN([GMERLIN_CHECK_LDFLAGS],[
+
+GMERLIN_LIB_LDFLAGS=""
+GMERLIN_EXE_LDFLAGS=""
+
+AC_MSG_CHECKING(if linker supports --no-undefined)
+OLD_LDFLAGS=$LDFLAGS
+LDFLAGS="$LDFLAGS -Wl,--no-undefined"
+AC_TRY_LINK([],[],
+            [GMERLIN_LIB_LDFLAGS="-Wl,--no-undefined $GMERLIN_LIB_LDFLAGS"; AC_MSG_RESULT(Supported)],
+            [AC_MSG_RESULT(Unsupported)])
+LDFLAGS=$OLD_LDFLAGS
+
+AC_MSG_CHECKING(if linker supports --as-needed)
+OLD_LDFLAGS=$LDFLAGS
+LDFLAGS="$LDFLAGS -Wl,--as-needed"
+AC_TRY_LINK([],[],
+            [GMERLIN_EXE_LDFLAGS="-Wl,--as-needed $GMERLIN_EXE_LDFLAGS"; AC_MSG_RESULT(Supported)],
+            [AC_MSG_RESULT(Unsupported)])
+LDFLAGS=$OLD_LDFLAGS
+
+AC_SUBST(GMERLIN_LIB_LDFLAGS)
+AC_SUBST(GMERLIN_EXE_LDFLAGS)
+
+])
+
+dnl
 dnl AVCodec
 dnl
 
@@ -9,7 +41,8 @@ AH_TEMPLATE([HAVE_LIBAVCODEC],
 
 have_avcodec=false
 
-AVCODEC_BUILD="3412992"
+dnl 54.1.0
+AVCODEC_BUILD="3539200"
 
 AC_ARG_ENABLE(libavcodec,
 [AC_HELP_STRING([--disable-libavcodec],[Disable libavcodec (default: autodetect)])],
@@ -327,6 +360,11 @@ AC_SUBST(SCHROEDINGER_LIBS)
 AC_SUBST(SCHROEDINGER_CFLAGS)
 
 AM_CONDITIONAL(HAVE_SCHROEDINGER, test x$have_schroedinger = xtrue)
+
+OLD_CFLAGS=$CFLAGS
+CFLAGS=$SCHROEDINGER_CFLAGS
+AC_CHECK_HEADERS(schroedinger/schroversion.h)
+CFLAGS=$OLD_CFLAGS
 
 if test "x$have_schroedinger" = "xtrue"; then
 AC_DEFINE([HAVE_SCHROEDINGER])
@@ -989,7 +1027,7 @@ dnl
 
 AC_DEFUN([GMERLIN_CHECK_FLAC],[
 
-FLAC_REQUIRED="1.1.0"
+FLAC_REQUIRED="1.2.0"
 have_flac="false"
 
 AC_ARG_ENABLE(flac,
@@ -1024,7 +1062,7 @@ LIBS="$GMERLIN_DEP_LIBS -lFLAC -lm"
     if(sscanf(FLAC__VERSION_STRING, "%d.%d.%d", &version_major,
               &version_minor, &version_patchlevel) < 3)
       return -1;
-    if((version_major != 1) || (version_minor < 1))
+    if((version_major != 1) || (version_minor < 2))
       return 1;
     version_file = fopen("flac_version", "w");
     fprintf(version_file, "%d.%d.%d\n", version_major,
@@ -1277,7 +1315,7 @@ AC_DEFUN([GMERLIN_CHECK_CDIO],[
 AH_TEMPLATE([HAVE_CDIO], [ libcdio found ])
 
 have_cdio="false"
-CDIO_REQUIRED="0.76"
+CDIO_REQUIRED="0.79"
 
 AC_ARG_ENABLE(libcdio,
 [AC_HELP_STRING([--disable-libcdio],[Disable libcdio (default: autodetect)])],
@@ -1296,6 +1334,45 @@ AC_SUBST(CDIO_REQUIRED)
 if test "x$have_cdio" = "xtrue"; then
 AC_DEFINE([HAVE_CDIO])
 fi
+
+])
+
+dnl
+dnl libudf
+dnl
+
+AC_DEFUN([GMERLIN_CHECK_LIBUDF],[
+
+AH_TEMPLATE([HAVE_LIBUDF], [ libudf found ])
+
+AC_MSG_CHECKING([for libudf])
+if test "x$have_cdio" = "xtrue"; then
+
+OLD_CFLAGS=$CFLAGS
+OLD_LIBS=$LIBS
+
+CFLAGS=$CDIO_CFLAGS
+LIBS=$CDIO_LIBS
+
+AC_CHECK_LIB(udf, udf_open, have_libudf=true, have_libudf=false)
+
+if test "x$have_libudf" = "xtrue"; then
+AC_DEFINE([HAVE_LIBUDF])
+LIBUDF_LIBS="-ludf"
+AC_MSG_RESULT([Found])
+else
+LIBUDF_LIBS=""
+AC_MSG_RESULT([Not found])
+fi
+
+CFLAGS=$OLD_CFLAGS
+LIBS=$OLD_LIBS
+
+else
+AC_MSG_RESULT([Not found (libcdio missing)])
+fi
+
+AC_SUBST(LIBUDF_LIBS)
 
 ])
 
@@ -1876,6 +1953,43 @@ AM_CONDITIONAL(HAVE_SHOUT, test x$have_shout = xtrue)
 
 if test "x$have_shout" = "xtrue"; then
 AC_DEFINE([HAVE_SHOUT])
+fi
+
+])
+
+dnl
+dnl Check for opus codec
+dnl
+
+AC_DEFUN([GMERLIN_CHECK_OPUS],[
+
+AH_TEMPLATE([HAVE_OPUS],
+            [Do we have libopus installed?])
+
+have_theora="false"
+
+OPUS_REQUIRED="1.0.0"
+
+AC_ARG_ENABLE(opus,
+[AC_HELP_STRING([--disable-opus],[Disable opus (default: autodetect)])],
+[case "${enableval}" in
+   yes) test_opus=true ;;
+   no)  test_opus=false ;;
+esac],[test_opus=true])
+
+if test x$test_opus = xtrue; then
+
+PKG_CHECK_MODULES(OPUS, opus, have_opus="true", have_opus="false")
+fi
+
+AC_SUBST(OPUS_REQUIRED)
+AC_SUBST(OPUS_LIBS)
+AC_SUBST(OPUS_CFLAGS)
+
+AM_CONDITIONAL(HAVE_OPUS, test x$have_opus = xtrue)
+
+if test "x$have_opus" = "xtrue"; then
+AC_DEFINE([HAVE_OPUS])
 fi
 
 ])
