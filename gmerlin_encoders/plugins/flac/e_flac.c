@@ -330,8 +330,8 @@ static void append_packet(flac_t * f, int samples)
   f->frame_table[f->frame_table_len].stream_offset = f->bytes_written - f->data_start;
   f->frame_table_len++;
 
-  fprintf(stderr, "Append packet %ld %d -> %ld\n", f->samples_written, samples,
-          f->samples_written + samples);
+  //  fprintf(stderr, "Append packet %ld %d -> %ld\n", f->samples_written, samples,
+  //          f->samples_written + samples);
   
   f->samples_written += samples;
   

@@ -35,15 +35,20 @@
 
 typedef struct
   {
-  lame_common_t com; // Must be first!!
+  bg_lame_t * com;
   bg_shout_t * shout;
+  gavl_audio_format_t fmt;
+  gavl_packet_sink_t * psink;
+  gavl_audio_sink_t * asink;
+  int compressed;
+  gavl_compression_info_t ci;
   } b_lame_t;
 
 static void * create_lame()
   {
   b_lame_t * ret;
   ret = calloc(1, sizeof(*ret));
-  bg_lame_init(&ret->com);
+  ret->com = bg_lame_create();
   ret->shout = bg_shout_create(SHOUT_FORMAT_MP3);
   return ret;
   }
@@ -52,7 +57,6 @@ static void destroy_lame(void * priv)
   {
   b_lame_t * lame;
   lame = priv;
-  bg_lame_close(&lame->com);
   if(lame->shout)
     bg_shout_destroy(lame->shout);
   free(lame);
@@ -75,10 +79,6 @@ static const bg_parameter_info_t * get_audio_parameters_lame(void * data)
   return audio_parameters;
   }
 
-static int write_callback(void * priv, uint8_t * data, int len)
-  {
-  return bg_shout_write(priv, data, len);
-  }
 
 static void update_metadata(void * data,
                             const char * name,
@@ -95,17 +95,72 @@ static int open_lame(void * data, const char * filename,
   b_lame_t * lame;
 
   lame = data;
-
-  bg_lame_open(&lame->com);
-
+  
   if(!bg_shout_open(lame->shout))
     return 0;
-
-  lame->com.write_callback = write_callback;
-  lame->com.write_priv = lame->shout;
   
   return 1;
   }
+
+static int
+add_audio_stream_lame(void * data,
+                      const gavl_metadata_t * m,
+                      const gavl_audio_format_t * format)
+  {
+  b_lame_t * lame = data;
+  gavl_audio_format_copy(&lame->fmt, format);
+  return 0;
+  }
+
+static int
+add_audio_stream_compressed_lame(void * data,
+                                 const gavl_metadata_t * m,
+                                 const gavl_audio_format_t * format,
+                                 const gavl_compression_info_t * ci)
+  {
+  b_lame_t * lame = data;
+
+  add_audio_stream_lame(data, m, format);
+  gavl_compression_info_copy(&lame->ci, ci);
+  lame->compressed = 1;
+  return 0;
+  }
+
+static void set_audio_parameter_lame(void * data, int stream, const char * name,
+                                     const bg_parameter_value_t * val)
+  {
+  b_lame_t * lame = data;
+  bg_lame_set_parameter(lame->com, name, val);
+  }
+
+static gavl_sink_status_t write_callback(void * priv, gavl_packet_t * p)
+  {
+  return (bg_shout_write(priv, p->data, p->data_len) == p->data_len) ?
+    GAVL_SINK_OK : GAVL_SINK_ERROR;
+  }
+
+static int start_lame(void * data)
+  {
+  b_lame_t * lame = data;
+
+  /* Create sink */
+  lame->psink = gavl_packet_sink_create(NULL, write_callback,
+                                        lame);
+  
+  if(!lame->compressed)
+    {
+    lame->asink = bg_lame_open(lame->com, NULL, &lame->fmt, NULL);
+    }
+  
+  return 1;
+  }
+
+static int write_audio_packet_lame(void * data, gavl_packet_t * p, int stream)
+  {
+  b_lame_t * lame = data;
+  return gavl_packet_sink_put_packet(lame->psink, p) == GAVL_SINK_OK;
+  }
+
 
 static int close_lame(void * data, int do_delete)
   {
@@ -114,18 +169,45 @@ static int close_lame(void * data, int do_delete)
   lame = data;
 
   /* 1. Flush the buffer */
-  
-  if(lame->com.samples_read)
-    {
-    if(!bg_lame_flush(&lame->com))
-      ret = 0;
-    }
 
+  bg_lame_destroy(lame->com);
+  lame->com = NULL;
+  
   bg_shout_destroy(lame->shout);
   lame->shout = NULL;
   
   return ret;
   }
+
+static void get_audio_format_lame(void * data, int stream,
+                           gavl_audio_format_t * ret)
+  {
+  b_lame_t * lame = data;
+  gavl_audio_format_copy(ret, &lame->fmt);
+  }
+
+static gavl_audio_sink_t * get_audio_sink_lame(void * data, int stream)
+  {
+  b_lame_t * lame = data;
+  return lame->asink;
+  }
+
+static int write_audio_frame_lame(void * data, gavl_audio_frame_t * frame, int stream)
+  {
+  b_lame_t * lame = data;
+  return gavl_audio_sink_put_frame(lame->asink, frame) == GAVL_SINK_OK;
+  }
+
+static int
+writes_compressed_audio_lame(void * data, const gavl_audio_format_t * format,
+                             const gavl_compression_info_t * ci)
+  {
+  if((ci->id == GAVL_CODEC_ID_MP3) && (ci->bitrate != GAVL_BITRATE_VBR))
+    return 1;
+  else
+    return 0;
+  }
+
 
 const bg_encoder_plugin_t the_plugin =
   {
@@ -149,22 +231,24 @@ const bg_encoder_plugin_t the_plugin =
     //    .set_callbacks =       set_callbacks_lame,
     
     .open =                open_lame,
-    // .writes_compressed_audio = writes_compressed_audio_lame,
+    .writes_compressed_audio = writes_compressed_audio_lame,
     .get_audio_parameters =    get_audio_parameters_lame,
 
-    .add_audio_stream =        bg_lame_add_audio_stream,
-    // .add_audio_stream_compressed =        add_audio_stream_compressed_lame,
+    .add_audio_stream =        add_audio_stream_lame,
+    .add_audio_stream_compressed =        add_audio_stream_compressed_lame,
     
-    .set_audio_parameter =     bg_lame_set_audio_parameter,
+    .set_audio_parameter =     set_audio_parameter_lame,
 
-    .get_audio_format =        bg_lame_get_audio_format,
-    .get_audio_sink =        bg_lame_get_audio_sink,
+    .get_audio_format =      get_audio_format_lame,
+    .get_audio_sink =        get_audio_sink_lame,
+
+    .start = start_lame,
     
-    .write_audio_frame =   bg_lame_write_audio_frame,
+    .write_audio_frame =   write_audio_frame_lame,
 
     .update_metadata   =   update_metadata,
     
-    // .write_audio_packet =   write_audio_packet_lame,
+    .write_audio_packet =   write_audio_packet_lame,
     .close =               close_lame
   };
 

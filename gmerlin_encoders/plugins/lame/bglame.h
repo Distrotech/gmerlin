@@ -22,33 +22,27 @@
 #include <lame/lame.h>
 #include <gmerlin/plugin.h>
 
+typedef struct bg_lame_s bg_lame_t;
 
-typedef struct
-  {
-  uint8_t * output_buffer;
-  int output_buffer_alloc;
+bg_lame_t * bg_lame_create(void);
 
-  enum vbr_mode_e vbr_mode;
+void bg_lame_destroy(bg_lame_t *);
 
-  /* Config stuff */
-    
-  int abr_min_bitrate;
-  int abr_max_bitrate;
-  int abr_bitrate;
-  int cbr_bitrate;
-  int vbr_quality;
+void bg_lame_set_parameter(bg_lame_t *,
+                           const char * name,
+                           const bg_parameter_value_t * v);
 
-  lame_t lame;
-  gavl_audio_format_t format;
-  
-  int (*write_callback)(void * priv, uint8_t * data, int len);
-  void * write_priv;
+gavl_audio_sink_t * bg_lame_open(bg_lame_t * lame,
+                                 gavl_compression_info_t * ci,
+                                 gavl_audio_format_t * fmt,
+                                 gavl_metadata_t * m);
 
-  int64_t samples_read;
-  
-  gavl_audio_sink_t * sink;
-  
-  } lame_common_t;
+void bg_lame_set_packet_sink(bg_lame_t * lame,
+                             gavl_packet_sink_t * sink);
+
+
+
+/*
 
 void bg_lame_init(lame_common_t * com);
 void bg_lame_close(lame_common_t * com);
@@ -72,7 +66,7 @@ void bg_lame_get_audio_format(void * data, int stream,
 gavl_audio_sink_t * bg_lame_get_audio_sink(void * data, int stream);
 
 int bg_lame_flush(lame_common_t * lame);
-
+*/
 
 /* Audio parameters */
 
