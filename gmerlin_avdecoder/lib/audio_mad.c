@@ -170,11 +170,10 @@ static gavl_source_status_t decode_frame_mad(bgav_stream_t * s)
       break;
     case GAVL_SOURCE_EOF:
       flush = 1;
-      return st;
+      break;
     case GAVL_SOURCE_OK:
       break;
     }
-  
   
   got_frame = 1;
   
@@ -230,6 +229,10 @@ static gavl_source_status_t decode_frame_mad(bgav_stream_t * s)
   
   bgav_bytebuffer_remove(&priv->buf,
                          priv->stream.next_frame - priv->stream.buffer);
+
+  if(flush)
+    priv->eof = 1;
+
   return GAVL_SOURCE_OK;
   }
 
