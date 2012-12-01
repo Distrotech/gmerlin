@@ -101,9 +101,7 @@ static int find_encoder(bg_ffmpeg_codec_context_t * ctx)
     }
   
   /* Set codec deftaults */
-#if LIBAVFORMAT_VERSION_INT >= AV_VERSION_INT(53,10,0)
   avcodec_get_context_defaults3(ctx->avctx, ctx->codec);
-#endif
   return 1;
   }
 
@@ -166,9 +164,7 @@ void bg_ffmpeg_codec_set_parameter(bg_ffmpeg_codec_context_t * ctx,
                                    const bg_parameter_value_t * v)
   {
   if(!name)
-    {
     return;
-    }
   
   if(!strcmp(name, "codec"))
     {
@@ -181,7 +177,9 @@ void bg_ffmpeg_codec_set_parameter(bg_ffmpeg_codec_context_t * ctx,
       bg_log(BG_LOG_ERROR, LOG_DOMAIN,
              "Codec %s not available in your libavcodec installation",
              v->val_str);
+      return;
       }
+    find_encoder(ctx);
     }
   else if(bg_encoder_set_framerate_parameter(&ctx->fr, name, v))
     return;
@@ -196,20 +194,26 @@ static int set_compression_info(bg_ffmpeg_codec_context_t * ctx,
                                 gavl_compression_info_t * ci,
                                 gavl_metadata_t * m)
   {
-  /* Set up compression info */
-  if((ci->id = bg_codec_id_ffmpeg_2_gavl(ctx->codec->id)) == GAVL_CODEC_ID_NONE)
-    return 0;
-
-  /* Extract extradata */
-
-  if(ctx->avctx->extradata_size)
+  if(ci)
     {
-    ci->global_header_len = ctx->avctx->extradata_size;
-    ci->global_header = malloc(ci->global_header_len);
-    memcpy(ci->global_header, ctx->avctx->extradata, ci->global_header_len);
-    }
+    /* Set up compression info */
   
-  gavl_metadata_set(m, GAVL_META_SOFTWARE, LIBAVCODEC_IDENT);
+    if((ci->id = bg_codec_id_ffmpeg_2_gavl(ctx->codec->id)) == GAVL_CODEC_ID_NONE)
+      return 0;
+
+    /* Extract extradata */
+
+    if(ctx->avctx->extradata_size)
+      {
+      ci->global_header_len = ctx->avctx->extradata_size;
+      ci->global_header = malloc(ci->global_header_len);
+      memcpy(ci->global_header, ctx->avctx->extradata, ci->global_header_len);
+      }
+    }
+
+
+  if(m)
+    gavl_metadata_set(m, GAVL_META_SOFTWARE, LIBAVCODEC_IDENT);
   return 1;
   }
 
@@ -224,13 +228,13 @@ static int flush_audio(bg_ffmpeg_codec_context_t * ctx)
   AVPacket pkt;
   AVFrame * f;
   int got_packet;
-  
+
   av_init_packet(&pkt);
   gavl_packet_reset(&ctx->gp);
   
   pkt.data = ctx->gp.data;
   pkt.size = ctx->gp.data_alloc;
-
+  
   if(ctx->aframe->valid_samples)
     {
     ctx->frame->nb_samples = ctx->aframe->valid_samples;
@@ -298,8 +302,6 @@ write_audio_func(void * data, gavl_audio_frame_t * frame)
     ctx->out_pts = ctx->in_pts - ctx->avctx->delay;
     }
 
-  //  fprintf(stderr, "write_audio_func %d\n", frame->valid_samples);
-  
   while(samples_written < frame->valid_samples)
     {
     samples_copied =
@@ -329,8 +331,8 @@ gavl_audio_sink_t * bg_ffmpeg_codec_open_audio(bg_ffmpeg_codec_context_t * ctx,
                                                gavl_audio_format_t * fmt,
                                                gavl_metadata_t * m)
   {
-  if(!find_encoder(ctx))
-    return NULL;
+  //  if(!find_encoder(ctx))
+  //    return NULL;
   
   /* Set format for codec */
   ctx->avctx->sample_rate = fmt->samplerate;
@@ -414,17 +416,19 @@ gavl_audio_sink_t * bg_ffmpeg_codec_open_audio(bg_ffmpeg_codec_context_t * ctx,
 
   set_compression_info(ctx, ci, m);
 
-  switch(ctx->avctx->codec_id)
+  if(ci)
     {
-    case CODEC_ID_MP2:
-    case CODEC_ID_AC3:
-      ci->bitrate = ctx->avctx->bit_rate;
-      break;
-    default:
-      break;
+    switch(ctx->avctx->codec_id)
+      {
+      case CODEC_ID_MP2:
+      case CODEC_ID_AC3:
+        ci->bitrate = ctx->avctx->bit_rate;
+        break;
+      default:
+        break;
+      }
+    ci->pre_skip = ctx->avctx->delay;
     }
-
-  ci->pre_skip = ctx->avctx->delay;
   
   ctx->in_pts = GAVL_TIME_UNDEFINED;
   ctx->out_pts = GAVL_TIME_UNDEFINED;
@@ -505,8 +509,8 @@ static int flush_video(bg_ffmpeg_codec_context_t * ctx,
       }
     /* Write frame */
 
-    fprintf(stderr, "Put video packet\n");
-    gavl_packet_dump(&ctx->gp);
+    //    fprintf(stderr, "Put video packet\n");
+    //    gavl_packet_dump(&ctx->gp);
     
     if(gavl_packet_sink_put_packet(ctx->psink, &ctx->gp) != GAVL_SINK_OK)
       {
@@ -559,8 +563,8 @@ gavl_video_sink_t * bg_ffmpeg_codec_open_video(bg_ffmpeg_codec_context_t * ctx,
   {
   const ffmpeg_codec_info_t * info;
   
-  if(!find_encoder(ctx))
-    return NULL;
+  //  if(!find_encoder(ctx))
+  //    return NULL;
 
   info = bg_ffmpeg_get_codec_info(ctx->id,
                                   AVMEDIA_TYPE_VIDEO);
@@ -667,14 +671,19 @@ gavl_video_sink_t * bg_ffmpeg_codec_open_video(bg_ffmpeg_codec_context_t * ctx,
   /* Set up compression info */
   set_compression_info(ctx, ci, m);
 
-  if(!(info->flags & FLAG_INTRA_ONLY))
+  if(ci)
     {
-    if(ctx->avctx->gop_size > 0)
+    if(!(info->flags & FLAG_INTRA_ONLY))
       {
-      ci->flags |= GAVL_COMPRESSION_HAS_P_FRAMES;
+      if(ctx->avctx->gop_size > 0)
+        {
+        ci->flags |= GAVL_COMPRESSION_HAS_P_FRAMES;
       
-      if((info->flags & FLAG_B_FRAMES) && (ctx->avctx->max_b_frames > 0))
-        ci->flags |= GAVL_COMPRESSION_HAS_B_FRAMES;
+        }
+      if((info->flags & FLAG_B_FRAMES) &&
+         ((ctx->avctx->max_b_frames > 0) || ctx->avctx->has_b_frames))
+        ci->flags |= GAVL_COMPRESSION_HAS_B_FRAMES |
+          GAVL_COMPRESSION_HAS_P_FRAMES;
       }
     }
   
@@ -710,7 +719,7 @@ void bg_ffmpeg_codec_destroy(bg_ffmpeg_codec_context_t * ctx)
       {
       while(1)
         {
-        fprintf(stderr, "Flush audio %d\n", ctx->aframe->valid_samples);
+        // fprintf(stderr, "Flush audio %d\n", ctx->aframe->valid_samples);
         result = flush_audio(ctx);
         if(result <= 0)
           break;
@@ -725,8 +734,8 @@ void bg_ffmpeg_codec_destroy(bg_ffmpeg_codec_context_t * ctx)
     free(ctx->avctx->stats_in);
     ctx->avctx->stats_in = NULL;
     }
-  //  if(st->com.flags & STREAM_ENCODER_INITIALIZED)
-  avcodec_close(ctx->avctx);
+  if(ctx->flags & FLAG_INITIALIZED)
+    avcodec_close(ctx->avctx);
   
   /* Destroy */
 

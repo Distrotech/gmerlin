@@ -32,9 +32,6 @@
 #define guess_format(a, b, c) av_guess_format(a, b, c)
 #endif
 
-#if LIBAVFORMAT_VERSION_MAJOR >= 53
-#define NEW_METADATA
-#endif
 
 #define FLAG_CONSTANT_FRAMERATE (1<<0)
 #define FLAG_INTRA_ONLY         (1<<1)
@@ -80,9 +77,7 @@ bg_ffmpeg_create_parameters(const ffmpeg_format_info_t * format_info);
 
 void
 bg_ffmpeg_set_codec_parameter(AVCodecContext * ctx,
-#if LIBAVCODEC_VERSION_MAJOR >= 54
                               AVDictionary ** options,
-#endif
                               const char * name,
                               const bg_parameter_value_t * val);
 
@@ -159,6 +154,9 @@ typedef struct ffmpeg_priv_s ffmpeg_priv_t;
 typedef struct
   {
   AVStream * stream;
+
+  bg_ffmpeg_codec_context_t * codec;
+  
   gavl_packet_t gp;
 
   int flags;
@@ -167,47 +165,24 @@ typedef struct
   ffmpeg_priv_t * ffmpeg;
   gavl_compression_info_t ci;
 
-#if LIBAVCODEC_VERSION_MAJOR >= 54
   AVDictionary * options;
-#endif
+  
+  gavl_metadata_t m;
   } bg_ffmpeg_stream_common_t;
 
 typedef struct
   {
   bg_ffmpeg_stream_common_t com;
-  gavl_audio_format_t format;
-  
-  //  uint8_t * buffer;
-  //  int buffer_alloc;
-  
-  gavl_audio_frame_t * frame;
-  
-  int64_t samples_written;
   gavl_audio_sink_t * sink;
+  gavl_audio_format_t format;
   } bg_ffmpeg_audio_stream_t;
 
 typedef struct
   {
   bg_ffmpeg_stream_common_t com;
-  
-  gavl_video_format_t format;
-
-  //  uint8_t * buffer;
-  //  int buffer_alloc;
-  
-  AVFrame * frame;
-  
-  /* Multipass stuff */
-  char * stats_filename;
-  int pass;
-  int total_passes;
-  FILE * stats_file;
-  bg_encoder_framerate_t fr;
-  
-  int64_t frames_written;
-  int64_t dts;
-
   gavl_video_sink_t * sink;
+  gavl_video_format_t format;
+  int64_t dts;
   } bg_ffmpeg_video_stream_t;
 
 typedef struct
