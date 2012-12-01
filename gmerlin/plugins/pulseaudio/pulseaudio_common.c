@@ -233,7 +233,12 @@ void bg_pa_destroy(void * p)
   {
   bg_pa_t * priv;
   priv = p;
-  if(priv->server) free(priv->server);
-  if(priv->dev) free(priv->dev);
+
+  bg_pa_close(p);
+  
+  if(priv->server)
+    free(priv->server);
+  if(priv->dev)
+    free(priv->dev);
   free(priv);
   }
