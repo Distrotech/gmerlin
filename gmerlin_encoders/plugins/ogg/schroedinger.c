@@ -69,6 +69,7 @@ typedef struct
 
   int started;
   
+  bg_encoder_pts_cache_t * pc;
   } schro_t;
 
 static void set_packet_sink(void * data, gavl_packet_sink_t * psink)
@@ -700,6 +701,14 @@ static gavl_sink_status_t flush_data(schro_t * s)
             }
           
           pic_num = GAVL_PTR_2_32BE(buf->data + 13);
+
+          if(!bg_encoder_pts_cache_pop_packet(s->pc, out_pkt, pic_num,
+                                              GAVL_TIME_UNDEFINED))
+            {
+            bg_log(BG_LOG_ERROR, LOG_DOMAIN,
+                   "Got no packet in cache for pic num %d", pic_num);
+            return GAVL_SINK_ERROR;
+            }
           
           if(SCHRO_PARSE_CODE_IS_INTRA(parse_code))
             {
@@ -777,6 +786,13 @@ static gavl_sink_status_t put_frame(void * data, gavl_video_frame_t * f)
   {
   schro_t * s = data;
   // fprintf(stderr, "Put frame %ld\n", f->timestamp);
+
+  if(!bg_encoder_pts_cache_push_frame(s->pc, f))
+    {
+    bg_log(BG_LOG_ERROR, LOG_DOMAIN, "PTS cache full");
+    return GAVL_SINK_ERROR;
+    }
+
   schro_encoder_push_frame(s->enc, f->user_data);
   f->user_data = NULL;
   return flush_data(s);
@@ -787,6 +803,7 @@ init_schro(void * data, gavl_compression_info_t * ci,
            gavl_video_format_t * format,
            gavl_metadata_t * stream_metadata)
   {
+  int gop_structure;
   int idx;
   schro_t * s = data;
   SchroVideoFormat * fmt;
@@ -840,9 +857,26 @@ init_schro(void * data, gavl_compression_info_t * ci,
   
   ci->id = GAVL_CODEC_ID_DIRAC;
 
-  /* TODO: Figure out the true values. Currently we assume the worst */
-  ci->flags = GAVL_COMPRESSION_HAS_P_FRAMES | GAVL_COMPRESSION_HAS_B_FRAMES;
-    
+  /* Figure out the frame types */
+
+  gop_structure =
+    (int)(schro_encoder_setting_get_double(s->enc, "gop_structure") + 0.5);
+
+  switch(gop_structure)
+    {
+    case SCHRO_ENCODER_GOP_INTRA_ONLY:
+      break;
+    case SCHRO_ENCODER_GOP_BACKREF:
+    case SCHRO_ENCODER_GOP_CHAINED_BACKREF:
+      ci->flags = GAVL_COMPRESSION_HAS_P_FRAMES;
+    break;
+    case SCHRO_ENCODER_GOP_ADAPTIVE:
+    case SCHRO_ENCODER_GOP_BIREF:
+    case SCHRO_ENCODER_GOP_CHAINED_BIREF:
+      ci->flags = GAVL_COMPRESSION_HAS_P_FRAMES | GAVL_COMPRESSION_HAS_B_FRAMES;
+      break;
+    }
+  
   /* Try to get the sequence header */
   buf = schro_encoder_encode_sequence_header(s->enc);
 
@@ -867,6 +901,8 @@ init_schro(void * data, gavl_compression_info_t * ci,
                           bg_sprintf("libschroedinger"));
 #endif
   s->started = 1;
+
+  s->pc = bg_encoder_pts_cache_create();
   
 #if 0  
   if(!buf)
@@ -956,6 +992,10 @@ static int close_schro(void * data)
     if(flush_data(s) != GAVL_SINK_OK)
       ret = 0;
     }
+
+  if(s->pc)
+    bg_encoder_pts_cache_destroy(s->pc);
+  
   schro_encoder_free(s->enc);
   free(s);
   return ret;
