@@ -3,52 +3,6 @@
 
 #include <gavfprivate.h>
 
-typedef enum
-  {
-    ENC_STARTING = 0,
-    ENC_SYNCHRONOUS,
-    ENC_INTERLEAVE
-  } encoding_mode_t;
-
-struct gavf_s
-  {
-  gavf_io_t * io;
-  gavf_program_header_t ph;
-  gavf_file_index_t     fi;
-  gavf_sync_index_t     si;
-  gavf_packet_index_t   pi;
-
-  gavl_chapter_list_t * cl;
-  
-  gavf_packet_header_t  pkthdr;
-  int have_pkt_header;
-  
-  gavf_stream_t * streams;
-
-  int64_t * sync_pts;
-  
-  gavf_options_t opt;
-  
-  gavf_io_t pkt_io;
-  gavf_buffer_t pkt_buf;
-  
-  uint64_t first_sync_pos;
-  
-  int wr;
-  
-  gavl_packet_t write_pkt;
-  gavl_video_frame_t * write_vframe;
-  gavl_audio_frame_t * write_aframe;
-
-  /* Time of the last sync header */
-  gavl_time_t last_sync_time;
-  gavl_time_t sync_distance;
-
-  encoding_mode_t encoding_mode;
-  encoding_mode_t final_encoding_mode;
-
-  
-  };
 
 gavf_options_t * gavf_get_options(gavf_t * g)
   {
@@ -75,278 +29,8 @@ int gavf_extension_write(gavf_io_t * io, uint32_t key, uint32_t len,
   return 1;
   }
 
-/* Connector callbacks */
-
-static gavl_source_status_t
-read_audio_func(void * priv, gavl_audio_frame_t ** frame)
-  {
-  gavl_packet_t * p = NULL;
-  gavl_source_status_t st;
-  gavf_stream_t * s = priv;
-  
-  if((st = gavl_packet_source_read_packet(s->psrc, &p)) != GAVL_SOURCE_OK)
-    return st;
-
-  if(!s->aframe)
-    s->aframe = gavl_audio_frame_create(NULL);
-
-  gavf_packet_to_audio_frame(p, s->aframe, &s->h->format.audio);
-  *frame = s->aframe;
-  return GAVL_SOURCE_OK;
-  }
-
-static gavl_source_status_t
-read_video_func(void * priv, gavl_video_frame_t ** frame)
-  {
-  gavl_packet_t * p = NULL;
-  gavl_source_status_t st;
-  gavf_stream_t * s = priv;
-
-  if((st = gavl_packet_source_read_packet(s->psrc, &p)) != GAVL_SOURCE_OK)
-    return st;
-
-  if(!s->vframe)
-    s->vframe = gavl_video_frame_create(NULL);
-  
-  gavf_packet_to_video_frame(p, s->vframe, &s->h->format.video);
-  *frame = s->vframe;
-  return GAVL_SOURCE_OK;
-  }
-
-static gavl_source_status_t
-read_packet_func(void * priv, gavl_packet_t ** p)
-  {
-  gavf_stream_t * s = priv;
-
-  if(!s->g->have_pkt_header && !gavf_packet_read_header(s->g))
-    return GAVL_SOURCE_EOF;
-
-  if(s->g->pkthdr.stream_id != s->h->id)
-    return GAVL_SOURCE_AGAIN;
-  
-  s->g->have_pkt_header = 0;
-  
-  gavf_buffer_reset(&s->g->pkt_buf);
-  
-  if(!gavf_read_gavl_packet(s->g->io, s, *p))
-    return GAVL_SOURCE_EOF;
-  return GAVL_SOURCE_OK;
-  }
-
-static gavl_audio_frame_t *
-get_audio_frame_func(void * priv)
-  {
-  gavf_stream_t * s = priv;
-
-  s->p = gavl_packet_sink_get_packet(s->psink);
-  
-  gavl_packet_reset(s->p);
-  gavl_packet_alloc(s->p, s->h->ci.max_packet_size);
-
-  if(!s->aframe)
-    s->aframe = gavl_audio_frame_create(NULL);
-  
-  s->aframe->valid_samples = s->h->format.audio.samples_per_frame;
-  
-  gavl_audio_frame_set_channels(s->aframe,
-                                &s->h->format.audio, s->p->data);
-  s->aframe->valid_samples = 0;
-  return s->aframe;
-  }
-
-static gavl_sink_status_t
-put_audio_func(void * priv, gavl_audio_frame_t * frame)
-  {
-  gavl_sink_status_t st;
-  gavf_stream_t * s = priv;
-  gavl_audio_frame_t * tmp_frame;
-  gavl_packet_t tmp_packet;
-  
-  if(frame->valid_samples == s->h->format.audio.samples_per_frame)
-    {
-    gavf_audio_frame_to_packet_metadata(s->aframe, s->p);
-    s->p->data_len = s->h->ci.max_packet_size;
-    st = gavl_packet_sink_put_packet(s->psink, s->p);
-    s->p = NULL;
-    return st;
-    }
- 
-  /* Incomplete (hopefully last) frame */
-  gavl_packet_init(&tmp_packet);
-  gavl_packet_alloc(&tmp_packet, frame->valid_samples * s->block_align);
-  tmp_frame = gavl_audio_frame_create(NULL);
-  tmp_frame->valid_samples = frame->valid_samples;
-
-  gavl_audio_frame_set_channels(tmp_frame, &s->h->format.audio,
-                                tmp_packet.data);
-    
-  gavl_audio_frame_copy(&s->h->format.audio,
-                        tmp_frame,
-                        frame,
-                        0,
-                        0,
-                        frame->valid_samples,
-                        tmp_frame->valid_samples);
-
-  gavf_audio_frame_to_packet_metadata(frame, &tmp_packet);
-  tmp_packet.data_len = frame->valid_samples * s->block_align;
-
-  st = gavl_packet_sink_put_packet(s->psink, &tmp_packet);
-  
-  gavl_audio_frame_null(tmp_frame);
-  gavl_audio_frame_destroy(tmp_frame);
-  gavl_packet_free(&tmp_packet);
-  
-  return st;
-  }
-
-static gavl_video_frame_t *
-get_video_frame_func(void * priv)
-  {
-  gavf_stream_t * s = priv;
-
-  s->p = gavl_packet_sink_get_packet(s->psink);
-  
-  gavl_packet_reset(s->p);
-  gavl_packet_alloc(s->p, s->h->ci.max_packet_size);
-
-  if(!s->vframe)
-    s->vframe = gavl_video_frame_create(NULL);
-  s->vframe->strides[0] = 0;
-  gavl_video_frame_set_planes(s->vframe,
-                              &s->h->format.video, s->p->data);
-  return s->vframe;
-  }
-
-static gavl_sink_status_t
-put_video_func(void * priv, gavl_video_frame_t * frame)
-  {
-  gavl_sink_status_t st;
-  gavf_stream_t * s = priv;
-  gavf_video_frame_to_packet_metadata(frame, s->p);
-  s->p->data_len = s->h->ci.max_packet_size;
-  st = gavl_packet_sink_put_packet(s->psink, s->p);
-  s->p = NULL;
-  return st;
-  }
-
 /*
  */
-
-#if 0
-
-static int get_min_pts_stream(gavf_t * g, int flush_all,
-                              gavl_time_t * min_time_p)
-  {
-  int i;
-  int min_index;
-  gavl_time_t min_time;
-  gavl_time_t test_time;
-  gavf_stream_t * s;
-  
-  min_index = -1;
-  min_time = GAVL_TIME_UNDEFINED;
-    
-  for(i = 0; i < g->ph.num_streams; i++)
-    {
-    s = &g->streams[i];
-    
-    test_time =
-      gavf_packet_buffer_get_min_pts(s->pb);
-
-    if(test_time != GAVL_TIME_UNDEFINED)
-      {
-      if((min_time == GAVL_TIME_UNDEFINED) ||
-         (test_time < min_time))
-        {
-        min_time = test_time;
-        min_index = i;
-        }
-      }
-    else
-      {
-      if(!(s->flags & STREAM_FLAG_DISCONTINUOUS) &&
-         !flush_all)
-        {
-        /* Some streams without packets: stop here */
-        return -1;
-        }
-      }
-    }
-
-  *min_time_p = min_time;
-  return min_index;
-  }
-
-static int flush_packets(gavf_t * g, int flush_all)
-  {
-  gavl_packet_t * p;
-  gavl_time_t min_time;
-  int min_index;
-
-  if(!g->streams)
-    return 1;
-  
-  while(1)
-    {
-    min_index = get_min_pts_stream(g, flush_all, &min_time);
-    if(min_index < 0)
-      return 1;
-    
-    p = gavf_packet_buffer_get_read(g->streams[min_index].pb);
-    
-    if(!write_packet(g, min_index, p))
-      return 0;
-    }
-  return 1;
-  }
-
-static int gavf_write_packet(gavf_t * g, int stream, const gavl_packet_t * p)
-  {
-  gavf_stream_t * s;
-  gavl_packet_t * p1;
-  gavl_time_t min_time;
-  int min_index;
-  
-  s = &g->streams[stream];
-  
-  if(s->next_sync_pts == GAVL_TIME_UNDEFINED)
-    s->next_sync_pts = p->pts;
-
-  /* Decide whether to write a sync header */
-  
-  switch(g->encoding_mode)
-    {
-    case ENC_STARTING:
-      /* Buffer packet */
-      p1 = gavf_packet_buffer_get_write(s->pb);
-      gavl_packet_copy(p1, p);
-
-      /* Check if we are done */
-      min_index = get_min_pts_stream(g, 0, &min_time);
-      if(min_index >= 0)
-        {
-        g->encoding_mode = g->final_encoding_mode;
-        if(g->final_encoding_mode == ENC_SYNCHRONOUS)
-          return flush_packets(g, 1);
-        else
-          return flush_packets(g, 0);
-        }
-      else
-        return 1;
-      break;
-    case ENC_SYNCHRONOUS:
-      return write_packet(g, stream, p);
-      break;
-    case ENC_INTERLEAVE:
-      p1 = gavf_packet_buffer_get_write(s->pb);
-      gavl_packet_copy(p1, p);
-      return flush_packets(g, 0);
-      break;
-    }
-  return 0;
-  }
-#endif
 
 static int write_sync_header(gavf_t * g, int stream, const gavl_packet_t * p)
   {
@@ -502,7 +186,7 @@ static int write_packet(gavf_t * g, int stream, const gavl_packet_t * p)
  *  If s is NULL, flush all streams
  */
 
-static gavl_sink_status_t flush_packets(gavf_t * g, gavf_stream_t * s)
+gavl_sink_status_t gavf_flush_packets(gavf_t * g, gavf_stream_t * s)
   {
   int i;
   gavl_packet_t * p;
@@ -601,59 +285,6 @@ static gavl_sink_status_t flush_packets(gavf_t * g, gavf_stream_t * s)
   
   }
 
-static gavl_sink_status_t
-put_packet_func(void * priv, gavl_packet_t * p)
-  {
-  gavf_stream_t * s = priv;
-
-  /* Update footer */
-#if 0
-  fprintf(stderr, "put packet %d\n", s->h->id);
-  gavl_packet_dump(p);
-#endif
-  /* Fist packet */
-  if(s->h->foot.pts_start == GAVL_TIME_UNDEFINED)
-    {
-    s->h->foot.pts_start    = p->pts;
-    s->h->foot.pts_end      = p->pts + p->duration;
-    s->h->foot.duration_min = p->duration;
-    s->h->foot.duration_max = p->duration;
-    s->h->foot.size_min     = p->data_len;
-    s->h->foot.size_max     = p->data_len;
-    s->next_sync_pts = p->pts;
-    }
-  /* Subsequent packets */
-  else
-    {
-    if(s->h->foot.duration_min > p->duration)
-      s->h->foot.duration_min = p->duration;
-    
-    if(s->h->foot.duration_max < p->duration)
-      s->h->foot.duration_max = p->duration;
-
-    if(s->h->foot.size_min > p->data_len)
-      s->h->foot.size_min = p->data_len;
-
-    if(s->h->foot.size_max > p->data_len)
-      s->h->foot.size_max = p->data_len;
-    
-    if(s->h->foot.pts_end < p->pts + p->duration)
-      s->h->foot.pts_end = p->pts + p->duration;
-    }
-
-  return flush_packets(s->g, s);
-  
-  // return gavf_write_packet(s->g, (int)(s - s->g->streams), p) ?
-  //    GAVL_SINK_OK : GAVL_SINK_ERROR;
-  }
-
-static gavl_packet_t *
-get_packet_func(void * priv)
-  {
-  gavf_stream_t * s = priv;
-  return gavf_packet_buffer_get_write(s->pb);
-  }
-
 /* Streams */
 
 static void gavf_stream_init_audio(gavf_t * g, gavf_stream_t * s)
@@ -681,26 +312,13 @@ static void gavf_stream_init_audio(gavf_t * g, gavf_stream_t * s)
   
   if(g->wr)
     {
-    /* Create audio sink */
-    if(s->h->ci.id == GAVL_CODEC_ID_NONE)
-      s->asink = gavl_audio_sink_create(get_audio_frame_func,
-                                        put_audio_func, s,
-                                        &s->h->format.audio);
     /* Create packet sink */
-    s->psink = gavl_packet_sink_create(get_packet_func,
-                                       put_packet_func, s);
+    gavf_stream_create_packet_sink(g, s);
     }
   else
     {
-    /* Create audio source */
-    if(s->h->ci.id == GAVL_CODEC_ID_NONE)
-      s->asrc = gavl_audio_source_create(read_audio_func, s,
-                                         GAVL_SOURCE_SRC_ALLOC,
-                                         &s->h->format.audio);
     /* Create packet source */
-    s->psrc = gavl_packet_source_create(read_packet_func, s, 0,
-                                        &s->h->ci, &s->h->format.audio,
-                                        NULL);
+    gavf_stream_create_packet_src(g, s, &s->h->ci, &s->h->format.audio,  NULL);
     }
   }
 
@@ -724,6 +342,9 @@ static void gavf_stream_init_video(gavf_t * g, gavf_stream_t * s)
       (s->h->format.video.interlace_mode == GAVL_INTERLACE_MIXED_BOTTOM)) &&
      (s->h->ci.id == GAVL_CODEC_ID_NONE))
     s->flags |= STREAM_FLAG_HAS_INTERLACE;
+
+  if(s->h->format.video.framerate_mode == GAVL_FRAMERATE_STILL)
+    s->flags |= STREAM_FLAG_DISCONTINUOUS;
   
   if(s->h->ci.id == GAVL_CODEC_ID_NONE)
     s->h->ci.max_packet_size =
@@ -734,24 +355,14 @@ static void gavf_stream_init_video(gavf_t * g, gavf_stream_t * s)
     {
     /* Create video sink */
     if(s->h->ci.id == GAVL_CODEC_ID_NONE)
-      s->vsink = gavl_video_sink_create(get_video_frame_func,
-                                        put_video_func, s,
-                                        &s->h->format.video);
     /* Create packet sink */
-    s->psink = gavl_packet_sink_create(get_packet_func,
-                                       put_packet_func, s);
+    gavf_stream_create_packet_sink(g, s);
     }
   else
     {
-    /* Create video source */
-    if(s->h->ci.id == GAVL_CODEC_ID_NONE)
-      s->vsrc = gavl_video_source_create(read_video_func, s,
-                                         GAVL_SOURCE_SRC_ALLOC,
-                                         &s->h->format.video);
     /* Create packet source */
-    s->psrc = gavl_packet_source_create(read_packet_func, s, 0,
-                                        &s->h->ci, NULL,
-                                        &s->h->format.video);
+    gavf_stream_create_packet_src(g, s, &s->h->ci, NULL,
+                                  &s->h->format.video);
     }
   }
 
@@ -766,13 +377,12 @@ static void gavf_stream_init_text(gavf_t * g, gavf_stream_t * s)
   if(g->wr)
     {
     /* Create packet sink */
-    s->psink = gavl_packet_sink_create(get_packet_func, put_packet_func, s);
+    gavf_stream_create_packet_sink(g, s);
     }
   else
     {
     /* Create packet source */
-    s->psrc = gavl_packet_source_create(read_packet_func, s, 0,
-                                        NULL, NULL, NULL);
+    gavf_stream_create_packet_src(g, s, NULL, NULL, NULL);
     }
   }
 
@@ -1007,34 +617,41 @@ const gavf_packet_header_t * gavf_packet_read_header(gavf_t * g)
   {
   char c[8];
 
+  if(g->eof)
+    return NULL;
+  
   while(1)
     {
     if(!gavf_io_read_data(g->io, (uint8_t*)c, 1))
-      return NULL;
+      goto got_eof;
     
     if(c[0] == GAVF_TAG_PACKET_HEADER_C)
       {
       /* Got new packet */
       if(!gavf_io_read_uint32v(g->io, &g->pkthdr.stream_id))
-        return 0;
+        goto got_eof;
       g->have_pkt_header = 1;
       return &g->pkthdr;
       }
     else
       {
       if(gavf_io_read_data(g->io, (uint8_t*)&c[1], 7) < 7)
-        return 0;
+        goto got_eof;
 
       if(!strncmp(c, GAVF_TAG_SYNC_HEADER, 8))
         {
         if(!read_sync_header(g))
-          return 0;
+          goto got_eof;
         }
+      /* TODO: Inline metdata */
+      
       else
-        return 0;
+        goto got_eof;
       }
-    
     }
+  
+  got_eof:
+  g->eof = 1;
   return NULL;
   }
 
@@ -1309,7 +926,7 @@ void gavf_close(gavf_t * g)
     if(g->streams)
       {
       /* Flush packets if any */
-      flush_packets(g, NULL);
+      gavf_flush_packets(g, NULL);
     
       /* Append final sync header */
       write_sync_header(g, -1, NULL);
@@ -1395,32 +1012,9 @@ gavf_get_packet_sink(gavf_t * g, int stream)
   return g->streams[stream].psink;
   }
 
-gavl_audio_sink_t *
-gavf_get_audio_sink(gavf_t * g, int stream)
-  {
-  return g->streams[stream].asink;
-  }
-
-gavl_video_sink_t *
-gavf_get_video_sink(gavf_t * g, int stream)
-  {
-  return g->streams[stream].vsink;
-  }
-
 gavl_packet_source_t *
 gavf_get_packet_source(gavf_t * g, int stream)
   {
   return g->streams[stream].psrc;
   }
 
-gavl_audio_source_t *
-gavf_get_audio_source(gavf_t * g, int stream)
-  {
-  return g->streams[stream].asrc;
-  }
-
-gavl_video_source_t *
-gavf_get_video_source(gavf_t * g, int stream)
-  {
-  return g->streams[stream].vsrc;
-  }

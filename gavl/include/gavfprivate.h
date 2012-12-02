@@ -187,6 +187,15 @@ typedef struct
   
   } gavf_stream_t;
 
+void gavf_stream_create_packet_src(gavf_t * g, gavf_stream_t * s,
+                                   const gavl_compression_info_t * ci,
+                                   const gavl_audio_format_t * afmt,
+                                   const gavl_video_format_t * vfmt);
+
+void gavf_stream_create_packet_sink(gavf_t * g, gavf_stream_t * s);
+
+gavl_sink_status_t gavf_flush_packets(gavf_t * g, gavf_stream_t * s);
+
 /* Formats */
 
 int gavf_read_audio_format(gavf_io_t * io, gavl_audio_format_t * format);
@@ -364,3 +373,53 @@ gavl_chapter_list_t * gavf_read_chapter_list(gavf_io_t * io);
 int gavf_write_chapter_list(gavf_io_t * io,
                             const gavl_chapter_list_t * cl);
 
+
+/* Global gavf structure */
+
+typedef enum
+  {
+    ENC_STARTING = 0,
+    ENC_SYNCHRONOUS,
+    ENC_INTERLEAVE
+  } encoding_mode_t;
+
+struct gavf_s
+  {
+  gavf_io_t * io;
+  gavf_program_header_t ph;
+  gavf_file_index_t     fi;
+  gavf_sync_index_t     si;
+  gavf_packet_index_t   pi;
+
+  gavl_chapter_list_t * cl;
+  
+  gavf_packet_header_t  pkthdr;
+  int have_pkt_header;
+  
+  gavf_stream_t * streams;
+
+  int64_t * sync_pts;
+  
+  gavf_options_t opt;
+  
+  gavf_io_t pkt_io;
+  gavf_buffer_t pkt_buf;
+  
+  uint64_t first_sync_pos;
+  
+  int wr;
+  int eof;
+  
+  gavl_packet_t write_pkt;
+  gavl_video_frame_t * write_vframe;
+  gavl_audio_frame_t * write_aframe;
+
+  /* Time of the last sync header */
+  gavl_time_t last_sync_time;
+  gavl_time_t sync_distance;
+
+  encoding_mode_t encoding_mode;
+  encoding_mode_t final_encoding_mode;
+
+  
+  };
