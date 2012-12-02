@@ -11,6 +11,12 @@ AC_PROG_LIBTOOL
 CFLAGS=$SAVE_CFLAGS
 
 dnl
+dnl Endianess
+dnl
+
+AC_C_BIGENDIAN(,,AC_MSG_ERROR("Cannot detect endianess"))
+
+dnl
 dnl Check for Dependencies package
 dnl
 

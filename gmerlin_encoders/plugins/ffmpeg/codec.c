@@ -69,12 +69,22 @@ struct bg_ffmpeg_codec_context_s
   gavl_audio_format_t afmt;
   gavl_video_format_t vfmt;
 
-  /* Video frame to encode */
+  /*
+   * ffmpeg frame (same for audio and video)
+   */
+
   AVFrame * frame;
 
   /* Audio frame to encode */
   gavl_audio_frame_t * aframe;
-
+  
+  /*
+   * Video frame to encode.
+   * Used only when we need to convert formats.
+   */
+  
+  gavl_video_frame_t * vframe;
+  
   int64_t in_pts;
   int64_t out_pts;
 
@@ -82,8 +92,16 @@ struct bg_ffmpeg_codec_context_s
   
   bg_encoder_pts_cache_t * pc;
 
-  int sample_size;
+  /* Trivial pixelformat conversions because
+     we are too lazy to support all variants in gavl */
+  
+  void (*convert_frame)(bg_ffmpeg_codec_context_t * ctx, gavl_video_frame_t * f);
+  
   };
+
+static void 
+get_pixelformat_converter(bg_ffmpeg_codec_context_t * ctx, enum PixelFormat fmt,
+                          int do_convert);
 
 static int find_encoder(bg_ffmpeg_codec_context_t * ctx)
   {
@@ -347,8 +365,6 @@ gavl_audio_sink_t * bg_ffmpeg_codec_open_audio(bg_ffmpeg_codec_context_t * ctx,
   fmt->sample_format =
     bg_sample_format_ffmpeg_2_gavl(ctx->avctx->sample_fmt, &fmt->interleave_mode);
 
-  ctx->sample_size = gavl_bytes_per_sample(fmt->sample_format);
-  
   /* Set bitrate */
   switch(ctx->avctx->codec_id)
     {
@@ -556,13 +572,20 @@ write_video_func(void * data, gavl_video_frame_t * frame)
   return GAVL_SINK_OK;
   }
 
+static gavl_video_frame_t * get_video_func(void * data)
+  {
+  bg_ffmpeg_codec_context_t * ctx = data;
+  return ctx->vframe;
+  }
+
 gavl_video_sink_t * bg_ffmpeg_codec_open_video(bg_ffmpeg_codec_context_t * ctx,
                                                gavl_compression_info_t * ci,
                                                gavl_video_format_t * fmt,
                                                gavl_metadata_t * m)
   {
+  int do_convert = 0;
   const ffmpeg_codec_info_t * info;
-  
+  gavl_video_sink_get_func get_func = NULL;
   //  if(!find_encoder(ctx))
   //    return NULL;
 
@@ -581,8 +604,8 @@ gavl_video_sink_t * bg_ffmpeg_codec_open_video(bg_ffmpeg_codec_context_t * ctx,
   
   bg_ffmpeg_choose_pixelformat(ctx->codec->pix_fmts,
                                &ctx->avctx->pix_fmt,
-                               &fmt->pixelformat);
-
+                               &fmt->pixelformat, &do_convert);
+  
   /* Framerate */
   if(info->flags & FLAG_CONSTANT_FRAMERATE ||
      (ctx->format && (ctx->format->flags & FLAG_CONSTANT_FRAMERATE)))
@@ -666,8 +689,20 @@ gavl_video_sink_t * bg_ffmpeg_codec_open_video(bg_ffmpeg_codec_context_t * ctx,
   gavl_packet_alloc(&ctx->gp, fmt->image_width * fmt->image_width * 4);
   
   gavl_video_format_copy(&ctx->vfmt, fmt);
-  ctx->vsink = gavl_video_sink_create(NULL, write_video_func, ctx, &ctx->vfmt);
 
+  /* Create temporary frame if necessary */
+  if(do_convert)
+    {
+    fprintf(stderr, "Need colorspace conversion\n");
+    ctx->vframe = gavl_video_frame_create(&ctx->vfmt);
+    get_func = get_video_func;
+
+    get_pixelformat_converter(ctx, ctx->avctx->pix_fmt, do_convert);
+    
+    }
+
+  ctx->vsink = gavl_video_sink_create(get_func, write_video_func, ctx, &ctx->vfmt);
+  
   /* Set up compression info */
   set_compression_info(ctx, ci, m);
 
@@ -686,6 +721,7 @@ gavl_video_sink_t * bg_ffmpeg_codec_open_video(bg_ffmpeg_codec_context_t * ctx,
           GAVL_COMPRESSION_HAS_P_FRAMES;
       }
     }
+
   
   ctx->flags |= FLAG_INITIALIZED;
   
@@ -747,6 +783,8 @@ void bg_ffmpeg_codec_destroy(bg_ffmpeg_codec_context_t * ctx)
   
   if(ctx->aframe)
     gavl_audio_frame_destroy(ctx->aframe);
+  if(ctx->vframe)
+    gavl_video_frame_destroy(ctx->vframe);
   
   if(ctx->asink)
     gavl_audio_sink_destroy(ctx->asink);
@@ -769,3 +807,40 @@ void bg_ffmpeg_codec_destroy(bg_ffmpeg_codec_context_t * ctx)
   free(ctx);
   }
 
+/*
+ *  Pixelformat conversion stuff
+ */
+
+static void convert_frame_bgra(bg_ffmpeg_codec_context_t * ctx, gavl_video_frame_t * f)
+  {
+  int i, j;
+  uint8_t * ptr;
+  uint8_t swp;
+  
+  for(i = 0; i < ctx->vfmt.image_height; i++)
+    {
+    ptr = f->planes[0] + i * f->strides[0];
+    for(j = 0; i < ctx->vfmt.image_width; j++)
+      {
+      /* RGBA -> BGRA */
+      swp = ptr[0];
+      ptr[0] = ptr[2];
+      ptr[2] = swp;
+      ptr += 4;
+      }
+    }
+  }
+
+static void 
+get_pixelformat_converter(bg_ffmpeg_codec_context_t * ctx,
+                          enum PixelFormat fmt, int do_convert)
+  {
+  if(do_convert & CONVERT_OTHER)
+    {
+    if(fmt == PIX_FMT_BGRA)
+      {
+      ctx->convert_frame = convert_frame_bgra;
+      }
+    }
+  
+  }

@@ -323,6 +323,15 @@ static const bg_parameter_info_t parameters_libx264[] = {
   { /* End */ },
 };
 
+static const bg_parameter_info_t parameters_tga[] = {
+  {
+    .name =      "tga_rle",
+    .long_name = TRS("Use RLE compression"),
+    .type =      BG_PARAMETER_CHECKBUTTON,
+  },
+  { /* */ }
+};
+
 /* Audio */
 
 static const bg_parameter_info_t parameters_ac3[] = {
@@ -472,6 +481,13 @@ static const ffmpeg_codec_info_t video_codecs[] =
       .id         = CODEC_ID_H264,
       .parameters = parameters_libx264,
       .flags      = FLAG_B_FRAMES,
+    },
+    {
+      .name       = "tga",
+      .long_name  = TRS("Targa"),
+      .id         = CODEC_ID_TARGA,
+      .parameters = parameters_tga,
+      .flags      = FLAG_INTRA_ONLY,
     },
 #if 0
     {
@@ -1043,7 +1059,14 @@ bg_ffmpeg_set_codec_parameter(AVCodecContext * ctx,
   PARAM_DICT_STRING("libx264_tune",   "tune");
   PARAM_DICT_FLOAT("libx264_crf", "crf");
   PARAM_DICT_FLOAT("libx264_qp", "qp");
-  
+
+  if(!strcmp(name, "tga_rle"))
+    {
+    if(val->val_i)
+      ctx->coder_type = FF_CODER_TYPE_RLE;
+    else
+      ctx->coder_type = FF_CODER_TYPE_RAW;
+    }
   }
 
 /* Type conversion */
@@ -1061,52 +1084,56 @@ const bg_encoder_framerate_t bg_ffmpeg_mpeg_framerates[] =
     { /* End of framerates */ }
   };
 
+#ifdef WORDS_BIGENDIAN
+#define PIX_FMT_LE CONVERT_ENDIAN
+#define PIX_FMT_BE 0
+#else
+#define PIX_FMT_LE 0
+#define PIX_FMT_BE CONVERT_ENDIAN
+#endif
+
 static const struct
   {
   enum PixelFormat  ffmpeg_csp;
   gavl_pixelformat_t gavl_csp;
+  int convert_flags;
   }
 pixelformats[] =
   {
-    { PIX_FMT_YUV420P,       GAVL_YUV_420_P },  ///< Planar YUV 4:2:0 (1 Cr & Cb sample per 2x2 Y samples)
-#if LIBAVUTIL_VERSION_INT < (50<<16)
-    { PIX_FMT_YUV422,        GAVL_YUY2      },
-#else
-    { PIX_FMT_YUYV422,       GAVL_YUY2      },
-#endif
-    { PIX_FMT_YUV422P,       GAVL_YUV_422_P },  ///< Planar YUV 4:2:2 (1 Cr & Cb sample per 2x1 Y samples)
-    { PIX_FMT_YUV444P,       GAVL_YUV_444_P }, ///< Planar YUV 4:4:4 (1 Cr & Cb sample per 1x1 Y samples)
-    { PIX_FMT_YUV411P,       GAVL_YUV_411_P }, ///< Planar YUV 4:1:1 (1 Cr & Cb sample per 4x1 Y samples)
-    { PIX_FMT_YUVJ420P,      GAVL_YUVJ_420_P }, ///< Planar YUV 4:2:0 full scale (jpeg)
-    { PIX_FMT_YUVJ422P,      GAVL_YUVJ_422_P }, ///< Planar YUV 4:2:2 full scale (jpeg)
-    { PIX_FMT_YUVJ444P,      GAVL_YUVJ_444_P }, ///< Planar YUV 4:4:4 full scale (jpeg)
+    { PIX_FMT_YUV420P,  GAVL_YUV_420_P },  ///< Planar YUV 4:2:0 (1 Cr & Cb sample per 2x2 Y samples)
+    { PIX_FMT_YUYV422,  GAVL_YUY2      },
+    { PIX_FMT_YUV422P,  GAVL_YUV_422_P },  ///< Planar YUV 4:2:2 (1 Cr & Cb sample per 2x1 Y samples)
+    { PIX_FMT_YUV444P,  GAVL_YUV_444_P }, ///< Planar YUV 4:4:4 (1 Cr & Cb sample per 1x1 Y samples)
+    { PIX_FMT_YUV411P,  GAVL_YUV_411_P }, ///< Planar YUV 4:1:1 (1 Cr & Cb sample per 4x1 Y samples)
+    { PIX_FMT_YUVJ420P, GAVL_YUVJ_420_P }, ///< Planar YUV 4:2:0 full scale (jpeg)
+    { PIX_FMT_YUVJ422P, GAVL_YUVJ_422_P }, ///< Planar YUV 4:2:2 full scale (jpeg)
+    { PIX_FMT_YUVJ444P, GAVL_YUVJ_444_P }, ///< Planar YUV 4:4:4 full scale (jpeg)
+    { PIX_FMT_GRAY8,    GAVL_GRAY_8 },
 
+    { PIX_FMT_RGB565BE, GAVL_RGB_16, PIX_FMT_BE }, ///< packed RGB 5:6:5, 16bpp, (msb)   5R 6G 5B(lsb), big-endian
+    { PIX_FMT_RGB565LE, GAVL_RGB_16, PIX_FMT_LE }, ///< packed RGB 5:6:5, 16bpp, (msb)   5R 6G 5B(lsb), little-endian
+    { PIX_FMT_RGB555BE, GAVL_RGB_15, PIX_FMT_BE }, ///< packed RGB 5:5:5, 16bpp, (msb)1A 5R 5G 5B(lsb), big-endian, most significant bit to 0
+    { PIX_FMT_RGB555LE, GAVL_RGB_15, PIX_FMT_LE }, ///< packed RGB 5:5:5, 16bpp, (msb)1A 5R 5G 5B(lsb), little-endian, most significant bit to 0
+
+    { PIX_FMT_BGR565BE, GAVL_BGR_16, PIX_FMT_BE }, ///< packed BGR 5:6:5, 16bpp, (msb)   5B 6G 5R(lsb), big-endian
+    { PIX_FMT_BGR565LE, GAVL_BGR_16, PIX_FMT_LE }, ///< packed BGR 5:6:5, 16bpp, (msb)   5B 6G 5R(lsb), little-endian
+    { PIX_FMT_BGR555BE, GAVL_BGR_15, PIX_FMT_BE }, ///< packed BGR 5:5:5, 16bpp, (msb)1A 5B 5G 5R(lsb), big-endian, most significant bit to 1
+    { PIX_FMT_BGR555LE, GAVL_BGR_15, PIX_FMT_LE }, ///< packed BGR 5:5:5, 16bpp, (msb)1A 5B 5G 5R(lsb), little-endian, most significant bit to 1
+    { PIX_FMT_RGB24,    GAVL_RGB_24    },  ///< Packed pixel, 3 bytes per pixel, RGBRGB...
+    { PIX_FMT_BGR24,    GAVL_BGR_24    },  ///< Packed pixel, 3 bytes per pixel, BGRBGR...
+    { PIX_FMT_BGRA,     GAVL_RGBA_32, CONVERT_OTHER },
+    
 #if 0 // Not needed in the forseeable future    
-    { PIX_FMT_RGB24,         GAVL_RGB_24    },  ///< Packed pixel, 3 bytes per pixel, RGBRGB...
-    { PIX_FMT_BGR24,         GAVL_BGR_24    },  ///< Packed pixel, 3 bytes per pixel, BGRBGR...
 #if LIBAVUTIL_VERSION_INT < (50<<16)
     { PIX_FMT_RGBA32,        GAVL_RGBA_32   },  ///< Packed pixel, 4 bytes per pixel, BGRABGRA..., stored in cpu endianness
 #else
     { PIX_FMT_RGB32,         GAVL_RGBA_32   },  ///< Packed pixel, 4 bytes per pixel, BGRABGRA..., stored in cpu endianness
 #endif
     { PIX_FMT_YUV410P,       GAVL_YUV_410_P }, ///< Planar YUV 4:1:0 (1 Cr & Cb sample per 4x4 Y samples)
-    { PIX_FMT_RGB565,        GAVL_RGB_16 }, ///< always stored in cpu endianness
-    { PIX_FMT_RGB555,        GAVL_RGB_15 }, ///< always stored in cpu endianness, most significant bit to 1
-    { PIX_FMT_GRAY8,         GAVL_PIXELFORMAT_NONE },
-    { PIX_FMT_MONOWHITE,     GAVL_PIXELFORMAT_NONE }, ///< 0 is white
-    { PIX_FMT_MONOBLACK,     GAVL_PIXELFORMAT_NONE }, ///< 0 is black
-    // { PIX_FMT_PAL8,          GAVL_RGB_24     }, ///< 8 bit with RGBA palette
-    { PIX_FMT_XVMC_MPEG2_MC, GAVL_PIXELFORMAT_NONE }, ///< XVideo Motion Acceleration via common packet passing(xvmc_render.h)
-    { PIX_FMT_XVMC_MPEG2_IDCT, GAVL_PIXELFORMAT_NONE },
-#if LIBAVCODEC_BUILD >= ((51<<16)+(45<<8)+0)
-    { PIX_FMT_YUVA420P,      GAVL_YUVA_32 },
-#endif
-    
 #endif // Not needed
-    { PIX_FMT_NB, GAVL_PIXELFORMAT_NONE }
 };
 
-gavl_pixelformat_t bg_pixelformat_ffmpeg_2_gavl(enum PixelFormat p)
+static gavl_pixelformat_t bg_pixelformat_ffmpeg_2_gavl(enum PixelFormat p)
   {
   int i;
   for(i = 0; i < sizeof(pixelformats)/sizeof(pixelformats[0]); i++)
@@ -1117,20 +1144,34 @@ gavl_pixelformat_t bg_pixelformat_ffmpeg_2_gavl(enum PixelFormat p)
   return GAVL_PIXELFORMAT_NONE;
   }
 
-enum PixelFormat bg_pixelformat_gavl_2_ffmpeg(gavl_pixelformat_t p)
+static enum PixelFormat bg_pixelformat_gavl_2_ffmpeg(gavl_pixelformat_t p, int * do_convert,
+                                                     const enum PixelFormat * supported)
   {
-  int i;
+  int i, j;
   for(i = 0; i < sizeof(pixelformats)/sizeof(pixelformats[0]); i++)
     {
     if(pixelformats[i].gavl_csp == p)
-      return pixelformats[i].ffmpeg_csp;
+      {
+      j = 0;
+
+      while(supported[j] != PIX_FMT_NONE)
+        {
+        if(pixelformats[i].ffmpeg_csp == supported[j])
+          {
+          if(do_convert)
+            *do_convert = pixelformats[i].convert_flags;
+          return pixelformats[i].ffmpeg_csp;
+          }
+        j++;
+        }
+      }
     }
   return PIX_FMT_NONE;
   }
 
 void bg_ffmpeg_choose_pixelformat(const enum PixelFormat * supported,
                                   enum PixelFormat * ffmpeg_fmt,
-                                  gavl_pixelformat_t * gavl_fmt)
+                                  gavl_pixelformat_t * gavl_fmt, int * do_convert)
   {
   int i, num;
   gavl_pixelformat_t * gavl_fmts;
@@ -1160,7 +1201,7 @@ void bg_ffmpeg_choose_pixelformat(const enum PixelFormat * supported,
   gavl_fmts[num] = GAVL_PIXELFORMAT_NONE;
 
   *gavl_fmt = gavl_pixelformat_get_best(*gavl_fmt, gavl_fmts, NULL);
-  *ffmpeg_fmt = bg_pixelformat_gavl_2_ffmpeg(*gavl_fmt);
+  *ffmpeg_fmt = bg_pixelformat_gavl_2_ffmpeg(*gavl_fmt, do_convert, supported);
   free(gavl_fmts);
   }
 

@@ -17,7 +17,8 @@ c_ffmpeg_x264.la \
 c_ffmpeg_mp2.la \
 c_ffmpeg_jpeg.la \
 c_ffmpeg_mpeg1.la \
-c_ffmpeg_mpeg2.la
+c_ffmpeg_mpeg2.la \
+c_ffmpeg_tga.la
 
 common_sources = ffmpeg_common.c codecs.c codec.c
 
@@ -58,5 +59,8 @@ c_ffmpeg_mpeg1_la_LIBADD  = @GMERLIN_DEP_LIBS@ @AVFORMAT_LIBS@
 
 c_ffmpeg_mpeg2_la_SOURCES = c_ffmpeg_mpeg2.c $(codec_sources)
 c_ffmpeg_mpeg2_la_LIBADD  = @GMERLIN_DEP_LIBS@ @AVFORMAT_LIBS@
+
+c_ffmpeg_tga_la_SOURCES = c_ffmpeg_tga.c $(codec_sources)
+c_ffmpeg_tga_la_LIBADD  = @GMERLIN_DEP_LIBS@ @AVFORMAT_LIBS@
 
 noinst_HEADERS = ffmpeg_common.h params.h

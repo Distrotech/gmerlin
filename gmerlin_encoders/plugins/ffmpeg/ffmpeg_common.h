@@ -298,12 +298,12 @@ int bg_ffmpeg_write_subtitle_text(void * data,const char * text,
 
 int bg_ffmpeg_close(void * data, int do_delete);
 
-gavl_pixelformat_t bg_pixelformat_ffmpeg_2_gavl(enum PixelFormat p);
-enum PixelFormat bg_pixelformat_gavl_2_ffmpeg(gavl_pixelformat_t p);
+#define CONVERT_ENDIAN (1<<8)
+#define CONVERT_OTHER  (1<<9)
 
 void bg_ffmpeg_choose_pixelformat(const enum PixelFormat * supported,
                                   enum PixelFormat * ffmpeg_fmt,
-                                  gavl_pixelformat_t * gavl_fmt);
+                                  gavl_pixelformat_t * gavl_fmt, int * do_convert);
 
 gavl_sample_format_t bg_sample_format_ffmpeg_2_gavl(enum AVSampleFormat p,
                                                     gavl_interleave_mode_t * il);
