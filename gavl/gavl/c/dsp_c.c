@@ -715,6 +715,31 @@ static void sub_double_c(const void * _src1, const void * _src2,
     }
   }
 
+static void shift_up_16_c(void * _ptr, int num, int bits)
+  {
+  int i = num+1;
+  uint16_t * ptr  = _ptr;
+
+  while(--i)
+    {
+    *ptr <<= bits;
+    ptr++;
+    }
+  }
+
+static void shift_down_16_c(void * _ptr, int num, int bits)
+  {
+  int i = num+1;
+  uint16_t * ptr  = _ptr;
+
+  while(--i)
+    {
+    *ptr >>= bits;
+    ptr++;
+    }
+  
+  }
+
 
 void gavl_dsp_init_c(gavl_dsp_funcs_t * funcs, 
                      int quality)
@@ -761,4 +786,7 @@ void gavl_dsp_init_c(gavl_dsp_funcs_t * funcs,
   funcs->sub_float         = sub_float_c;
   funcs->sub_double        = sub_double_c;
 
+  funcs->shift_up_16       = shift_up_16_c;
+  funcs->shift_down_16     = shift_down_16_c;
+  
   }

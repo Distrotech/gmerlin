@@ -222,12 +222,17 @@ int gavl_dsp_video_frame_swap_endian(gavl_dsp_context_t * ctx,
                                       gavl_video_frame_t * frame,
                                       const gavl_video_format_t * format)
   {
-  int len[GAVL_MAX_PLANES];
   void (*do_swap)(void * data, int len) = NULL;
   int i, j, num_planes;
   uint8_t * src;
-  memset(len, 0, sizeof(len));
+  int sub_h = 1, sub_v = 1;
+  int height = format->image_height;
+  int len = format->image_width;
+  
   num_planes = 1;
+  
+  gavl_pixelformat_chroma_sub(format->pixelformat, &sub_h, &sub_v);
+  
   switch(format->pixelformat)
     {
     case GAVL_RGB_15:
@@ -235,11 +240,9 @@ int gavl_dsp_video_frame_swap_endian(gavl_dsp_context_t * ctx,
     case GAVL_RGB_16:
     case GAVL_BGR_16:
     case GAVL_GRAY_16:
-      len[0] = format->image_width;
       do_swap = ctx->funcs.bswap_16;
       break;
     case GAVL_GRAY_FLOAT:
-      len[0] = format->image_width;
 #if SIZEOF_FLOAT == 4
       do_swap = ctx->funcs.bswap_32;
 #elif SIZEOF_FLOAT == 8
@@ -247,7 +250,7 @@ int gavl_dsp_video_frame_swap_endian(gavl_dsp_context_t * ctx,
 #endif
       break;
     case GAVL_GRAYA_FLOAT:
-      len[0] = format->image_width * 2;
+      len *= 2;
 #if SIZEOF_FLOAT == 4
       do_swap = ctx->funcs.bswap_32;
 #elif SIZEOF_FLOAT == 8
@@ -255,28 +258,21 @@ int gavl_dsp_video_frame_swap_endian(gavl_dsp_context_t * ctx,
 #endif
       break;
     case GAVL_GRAYA_32:
-      len[0] = format->image_width * 2;
+      len *= 2;
       do_swap = ctx->funcs.bswap_16;
       break;
-    case GAVL_RGB_32:
-    case GAVL_BGR_32:
-    case GAVL_RGBA_32:
-    case GAVL_YUVA_32:
-      len[0] = format->image_width*4;
-      do_swap = ctx->funcs.bswap_32;
-      break;
     case GAVL_RGB_48:
-      len[0] = format->image_width*3;
+      len *= 3;
       do_swap = ctx->funcs.bswap_16;
       break;
     case GAVL_RGBA_64:
     case GAVL_YUVA_64:
-      len[0] = format->image_width*4;
+      len *= 4;
       do_swap = ctx->funcs.bswap_32;
       break;
     case GAVL_RGB_FLOAT:
     case GAVL_YUV_FLOAT:
-      len[0] = format->image_width*3;
+      len *= 3;
 #if SIZEOF_FLOAT == 4
       do_swap = ctx->funcs.bswap_32;
 #elif SIZEOF_FLOAT == 8
@@ -285,7 +281,7 @@ int gavl_dsp_video_frame_swap_endian(gavl_dsp_context_t * ctx,
       break;
     case GAVL_RGBA_FLOAT:
     case GAVL_YUVA_FLOAT:
-      len[0] = format->image_width*4;
+      len *= 4;
 #if SIZEOF_FLOAT == 4
       do_swap = ctx->funcs.bswap_32;
 #elif SIZEOF_FLOAT == 8
@@ -293,16 +289,10 @@ int gavl_dsp_video_frame_swap_endian(gavl_dsp_context_t * ctx,
 #endif
       break;
     case GAVL_YUV_422_P_16:
-      len[0] = format->image_width;
-      len[1] = format->image_width/2;
-      len[2] = format->image_width/2;
       do_swap = ctx->funcs.bswap_16;
       num_planes = 3;
       break;
     case GAVL_YUV_444_P_16:
-      len[0] = format->image_width;
-      len[1] = format->image_width;
-      len[2] = format->image_width;
       do_swap = ctx->funcs.bswap_16;
       num_planes = 3;
       break;
@@ -321,6 +311,10 @@ int gavl_dsp_video_frame_swap_endian(gavl_dsp_context_t * ctx,
     case GAVL_PIXELFORMAT_NONE:
     case GAVL_GRAY_8:
     case GAVL_GRAYA_16:
+    case GAVL_RGB_32:
+    case GAVL_BGR_32:
+    case GAVL_RGBA_32:
+    case GAVL_YUVA_32:
       return 1;
       break;
     }
@@ -330,12 +324,83 @@ int gavl_dsp_video_frame_swap_endian(gavl_dsp_context_t * ctx,
 
   for(i = 0; i < num_planes; i++)
     {
-    src = frame->planes[i];
-    for(j = 0; j < format->image_height; j++)
+    if(i == 1)
       {
-      do_swap(src, len[i]);
+      height /= sub_v;
+      len /= sub_h;
+      }
+    
+    src = frame->planes[i];
+    for(j = 0; j < height; j++)
+      {
+      do_swap(src, len);
       src += frame->strides[i];
       }
     }
   return 1;
+  }
+
+void
+gavl_dsp_video_frame_shift_bits(gavl_dsp_context_t * ctx,
+                                     gavl_video_frame_t * frame,
+                                     const gavl_video_format_t * format, int bits)
+  {
+  int i, j;
+  int sub_h = 1, sub_v = 1;
+  int len;
+  int height;
+  int channels;
+  uint8_t * src;
+
+  void (*shift_func)(void *, int, int);
+  
+  int planes;
+
+  if(!bits)
+    return;
+  
+  planes = gavl_pixelformat_num_planes(format->pixelformat);
+    
+  if(planes > 1)
+    {
+    if(gavl_pixelformat_bytes_per_component(format->pixelformat) != 2)
+      return;
+    channels = 1;
+    }
+  else
+    {
+    channels = gavl_pixelformat_num_channels(format->pixelformat);
+    if(gavl_pixelformat_bytes_per_pixel(format->pixelformat) != 2*channels)
+      return;
+    gavl_pixelformat_chroma_sub(format->pixelformat, &sub_h, &sub_v);
+    }
+
+  if(bits < 0)
+    {
+    shift_func = ctx->funcs.shift_down_16;
+    bits = -bits;
+    }
+  else
+    shift_func = ctx->funcs.shift_up_16;
+  
+  len = format->image_width * channels;
+  height = format->image_height;
+  
+  for(i = 0; i < planes; i++)
+    {
+    if(i == 1)
+      {
+      height /= sub_v;
+      len /= sub_h;
+      }
+
+    src = frame->planes[i];
+    
+    for(j = 0; j < height; j++)
+      {
+      ctx->funcs.shift_up_16(src, len, bits);
+      src += frame->strides[i];
+      }
+    }
+  
   }

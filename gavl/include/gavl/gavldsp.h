@@ -437,6 +437,19 @@ typedef struct
    */
   void (*sub_double)(const void * src1, const void * src2, void * dst, int num);
 
+  /** \brief Shift up
+   *  \param ptr Pointer
+   *  \param len Number of 16 bit elements
+   *  \param bits Number of bits to shift
+   */
+  void (*shift_up_16)(void * ptr, int num, int bits);
+
+  /** \brief Shift down
+   *  \param ptr Pointer
+   *  \param len Number of 16 bit elements
+   *  \param bits Number of bits to shift
+   */
+  void (*shift_down_16)(void * ptr, int num, int bits);
   
   } gavl_dsp_funcs_t;
 
@@ -570,6 +583,27 @@ GAVL_PUBLIC
 int gavl_dsp_video_frame_swap_endian(gavl_dsp_context_t * ctx,
                                       gavl_video_frame_t * frame,
                                       const gavl_video_format_t * format);
+
+/*!
+  \brief Shift bits in a video frame.
+  \param ctx An initialized dsp context
+  \param frame A video frame
+  \param format The format of the frame
+  \param bits Number of bits to shift each component
+
+  This shifts the bits of all components. It works only for 16 bit formats
+  right now. If bits is larger than zero, the components are shifted left
+  (resulting in larger numbers). If bits is smaller than zero, the components
+  are shifted right (resulting in smaller numbers).
+
+  Since 1.5.0
+*/
+
+void
+gavl_dsp_video_frame_shift_bits(gavl_dsp_context_t * ctx,
+                                gavl_video_frame_t * frame,
+                                const gavl_video_format_t * format, int bits);
+
 
 /**
  * @}

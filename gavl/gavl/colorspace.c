@@ -4332,6 +4332,63 @@ int gavl_pixelformat_bits_per_pixel(gavl_pixelformat_t pixelformat)
   
   }
 
+static int effective_bits_per_component(gavl_pixelformat_t fmt)
+  {
+  switch(fmt)
+    {
+    case GAVL_PIXELFORMAT_NONE:
+      return 0;
+      break;
+    case GAVL_RGB_15:
+    case GAVL_BGR_15:
+      return 5;
+      break;
+    case GAVL_RGB_16:
+    case GAVL_BGR_16:
+      return 6; // Rounded up
+      break;
+    case GAVL_GRAY_8:
+    case GAVL_GRAYA_16:
+    case GAVL_RGB_24:
+    case GAVL_BGR_24:
+    case GAVL_RGB_32:
+    case GAVL_BGR_32:
+    case GAVL_RGBA_32:
+    case GAVL_YUVA_32:
+    case GAVL_YUY2:
+    case GAVL_UYVY:
+    case GAVL_YUV_422_P:
+    case GAVL_YUVJ_422_P:
+    case GAVL_YUV_420_P:
+    case GAVL_YUVJ_420_P:
+    case GAVL_YUV_411_P:
+    case GAVL_YUV_444_P:
+    case GAVL_YUVJ_444_P:
+    case GAVL_YUV_410_P:
+      return 8;
+      break;
+    case GAVL_GRAY_16:
+    case GAVL_GRAYA_32:
+    case GAVL_RGB_48:
+    case GAVL_RGBA_64:
+    case GAVL_YUVA_64:
+    case GAVL_YUV_422_P_16:
+    case GAVL_YUV_444_P_16:
+      return 16;
+      break;
+    case GAVL_GRAY_FLOAT:
+    case GAVL_GRAYA_FLOAT:
+    case GAVL_RGB_FLOAT:
+    case GAVL_YUV_FLOAT:
+    case GAVL_RGBA_FLOAT:
+    case GAVL_YUVA_FLOAT:
+      return 8*sizeof(float);
+      break;
+    }
+  return 0;
+
+  } 
+
 int gavl_pixelformat_conversion_penalty(gavl_pixelformat_t src,
                                         gavl_pixelformat_t dst)
   {
@@ -4368,11 +4425,16 @@ int gavl_pixelformat_conversion_penalty(gavl_pixelformat_t src,
   /* Colorspace conversions aren't good either */
 
   ret <<= 1;
-  if(gavl_pixelformat_is_rgb(src) !=
-     gavl_pixelformat_is_rgb(dst))
+  if((gavl_pixelformat_is_rgb(src) && gavl_pixelformat_is_yuv(dst)) ||
+     (gavl_pixelformat_is_yuv(src) && gavl_pixelformat_is_rgb(dst)))
     ret += 1;
-
-
+  
+  /* Adding an alpha channel bloat */
+  ret <<= 1;
+  if(!gavl_pixelformat_has_alpha(src) &&
+     gavl_pixelformat_has_alpha(dst))
+    ret += 1;
+  
   /* Chroma subsampling is next */
   ret <<= 1;
   if((sub_h_src != sub_h_dst) || (sub_v_src != sub_v_dst))
@@ -4382,26 +4444,12 @@ int gavl_pixelformat_conversion_penalty(gavl_pixelformat_t src,
      (one extra bit for src_bits > dst_bits) */
   ret <<= 9;
   
-  src_bits = gavl_pixelformat_bits_per_pixel(src);
-  dst_bits = gavl_pixelformat_bits_per_pixel(dst);
+  src_bits = effective_bits_per_component(src);
+  dst_bits = effective_bits_per_component(dst);
   
   /* Increasing precision is bad... */
   if(src_bits < dst_bits)
-    {
-    /*
-     *  Special case: Conversions from e.g. RGB_24 to
-     *  RGBA_32 don't really mean changed precision.
-     *  They are, in fact, almost as cheap as RGB_24 -> RGB_32.
-     *  Thus, they get one penalty credit (for setting the
-     *  alpha value in the destination frame)
-     */
-    if(!gavl_pixelformat_has_alpha(src) &&
-       gavl_pixelformat_has_alpha(dst) &&
-       (4 * src_bits == 3 * dst_bits))
-      ret++;
-    else
-      ret += (dst_bits - src_bits);
-    }
+    ret += (dst_bits - src_bits);
   /* ... but descreasing precision is worse */
   else if(src_bits > dst_bits)
     ret += (src_bits - dst_bits) * 2;
