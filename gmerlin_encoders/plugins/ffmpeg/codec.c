@@ -554,6 +554,9 @@ write_video_func(void * data, gavl_video_frame_t * frame)
     }
   ctx->frame->pts = frame->timestamp;
 
+  if(ctx->convert_frame)
+    ctx->convert_frame(ctx, frame);
+  
   if(ctx->vfmt.framerate_mode == GAVL_FRAMERATE_CONSTANT)
     ctx->frame->pts /= ctx->vfmt.frame_duration;
   
@@ -820,7 +823,7 @@ static void convert_frame_bgra(bg_ffmpeg_codec_context_t * ctx, gavl_video_frame
   for(i = 0; i < ctx->vfmt.image_height; i++)
     {
     ptr = f->planes[0] + i * f->strides[0];
-    for(j = 0; i < ctx->vfmt.image_width; j++)
+    for(j = 0; j < ctx->vfmt.image_width; j++)
       {
       /* RGBA -> BGRA */
       swp = ptr[0];
