@@ -85,23 +85,28 @@ static gavl_source_status_t get_data(bgav_stream_t * s)
   return GAVL_SOURCE_OK;
   }
 
-static void get_format(bgav_stream_t * s)
+static int get_format(bgav_stream_t * s)
   {
   mad_priv_t * priv;
   const char * version_string;
+
+  struct mad_header h;
   
   priv = s->data.audio.decoder->priv;
 
+  mad_header_init(&h);
+  mad_header_decode(&h, &priv->stream);
+  
   /* Get audio format and create frame */
 
-  s->data.audio.format.samplerate = priv->frame.header.samplerate;
+  s->data.audio.format.samplerate = h.samplerate;
 
-  if(priv->frame.header.mode == MAD_MODE_SINGLE_CHANNEL)
+  if(h.mode == MAD_MODE_SINGLE_CHANNEL)
     s->data.audio.format.num_channels = 1;
   else
     s->data.audio.format.num_channels = 2;
     
-  s->data.audio.format.samplerate = priv->frame.header.samplerate;
+  s->data.audio.format.samplerate = h.samplerate;
   s->data.audio.format.sample_format = GAVL_SAMPLE_FLOAT;
   s->data.audio.format.interleave_mode = GAVL_INTERLEAVE_NONE;
   s->data.audio.format.samples_per_frame =
@@ -112,21 +117,21 @@ static void get_format(bgav_stream_t * s)
     if(s->container_bitrate == GAVL_BITRATE_VBR)
       s->codec_bitrate = GAVL_BITRATE_VBR;
     else
-      s->codec_bitrate = priv->frame.header.bitrate;
+      s->codec_bitrate = h.bitrate;
     }
   gavl_set_channel_setup(&s->data.audio.format);
 
-  if(priv->frame.header.flags & MAD_FLAG_MPEG_2_5_EXT)
+  if(h.flags & MAD_FLAG_MPEG_2_5_EXT)
     {
-    if(priv->frame.header.layer == 3)
+    if(h.layer == 3)
       s->data.audio.preroll = s->data.audio.format.samples_per_frame * 30;
     else
       s->data.audio.preroll = s->data.audio.format.samples_per_frame;
     version_string = "2.5";
     }
-  else if(priv->frame.header.flags & MAD_FLAG_LSF_EXT)
+  else if(h.flags & MAD_FLAG_LSF_EXT)
     {
-    if(priv->frame.header.layer == 3)
+    if(h.layer == 3)
       s->data.audio.preroll = s->data.audio.format.samples_per_frame * 30;
     else
       s->data.audio.preroll = s->data.audio.format.samples_per_frame;
@@ -134,7 +139,7 @@ static void get_format(bgav_stream_t * s)
     }
   else
     {
-    if(priv->frame.header.layer == 3)
+    if(h.layer == 3)
       s->data.audio.preroll = s->data.audio.format.samples_per_frame * 10;
     else
       s->data.audio.preroll = s->data.audio.format.samples_per_frame;
@@ -143,9 +148,10 @@ static void get_format(bgav_stream_t * s)
   
   gavl_metadata_set_nocpy(&s->m, GAVL_META_FORMAT,
                           bgav_sprintf("MPEG-%s layer %d",
-                                       version_string, priv->frame.header.layer));
+                                       version_string, h.layer));
   
   priv->audio_frame = gavl_audio_frame_create(&s->data.audio.format);
+  return 1;
   }
 
 static gavl_source_status_t decode_frame_mad(bgav_stream_t * s)
@@ -177,11 +183,16 @@ static gavl_source_status_t decode_frame_mad(bgav_stream_t * s)
   
   got_frame = 1;
   
-  mad_stream_buffer(&priv->stream, priv->buf.buffer, priv->buf.size + flush * MAD_BUFFER_GUARD);
+  mad_stream_buffer(&priv->stream, priv->buf.buffer,
+                    priv->buf.size + flush * MAD_BUFFER_GUARD);
+
+  if(priv->do_init)
+    get_format(s);
   
   if(mad_frame_decode(&priv->frame, &priv->stream) == -1)
     {
-    bgav_log(s->opt, BGAV_LOG_ERROR, LOG_DOMAIN, "Decode failed %s\n", mad_stream_errorstr(&priv->stream));
+    bgav_log(s->opt, BGAV_LOG_ERROR, LOG_DOMAIN, "Decode failed %s\n",
+             mad_stream_errorstr(&priv->stream));
     got_frame = 0;
     }
   
@@ -189,9 +200,6 @@ static gavl_source_status_t decode_frame_mad(bgav_stream_t * s)
     {
     // fprintf(stderr, "Decodes %ld bytes\n", priv->stream.next_frame - priv->stream.buffer);
     
-    if(priv->do_init)
-      get_format(s);
- 
     mad_synth_frame(&priv->synth, &priv->frame);
 
     for(i = 0; i < s->data.audio.format.num_channels; i++)
@@ -214,7 +222,8 @@ static gavl_source_status_t decode_frame_mad(bgav_stream_t * s)
   else
     gavl_audio_frame_mute(priv->audio_frame, &s->data.audio.format);
   
-  if(flush && priv->last_duration && (priv->last_duration < priv->audio_frame->valid_samples))
+  if(flush && priv->last_duration &&
+     (priv->last_duration < priv->audio_frame->valid_samples))
     priv->audio_frame->valid_samples = priv->last_duration;
   
   gavl_audio_frame_copy_ptrs(&s->data.audio.format,
