@@ -29,7 +29,7 @@
 #include <gmerlin/pluginregistry.h>
 
 #define DATABASE_FILE "nmj_database/media.db"
-#define DATABASE_VERSION "1.9.0"
+#define DATABASE_VERSION "2.0.0"
 
 /* Utilits functions */
 

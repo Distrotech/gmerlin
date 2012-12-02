@@ -157,17 +157,6 @@ int bg_nmj_album_add(bg_plugin_registry_t * plugin_reg,
         return result;
       }
     
-    /* Set Artist */
-    id = bg_nmj_get_next_id(db, "SONG_PERSONS_SONG_ALBUMS");
-    sql = sqlite3_mprintf("INSERT INTO SONG_PERSONS_SONG_ALBUMS "
-                         "( ID, PERSONS_ID, ALBUMS_ID, PERSON_TYPE ) VALUES "
-                         "( %"PRId64", %"PRId64", %"PRId64", %Q );",
-                          id, a->artist_id, a->id, "ARTIST");
-    result = bg_sqlite_exec(db, sql, NULL, NULL);
-    sqlite3_free(sql);
-    if(!result)
-      return result;
-
     /* Get group */
 
     group_id = -1;
@@ -191,6 +180,18 @@ int bg_nmj_album_add(bg_plugin_registry_t * plugin_reg,
       if(!result)
         return result;
       }
+
+    /* Set Artist (must be set after the group ID is known) */
+    id = bg_nmj_get_next_id(db, "SONG_PERSONS_SONG_ALBUMS");
+    sql = sqlite3_mprintf("INSERT INTO SONG_PERSONS_SONG_ALBUMS "
+                         "( ID, PERSONS_ID, ALBUMS_ID, PERSON_TYPE, CUSTOM1 ) VALUES "
+                         "( %"PRId64", %"PRId64", %"PRId64", %Q, '%"PRId64"' );",
+                          id, a->artist_id, a->id, "ARTIST", group_id);
+    result = bg_sqlite_exec(db, sql, NULL, NULL);
+    sqlite3_free(sql);
+    if(!result)
+      return result;
+    
     }
   else
     {
