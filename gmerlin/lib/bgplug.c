@@ -66,35 +66,18 @@ typedef struct
   gavl_packet_t * p_ext;
   
   int index; // Index inside the program header
-  
-  } stream_common_t;
 
-typedef struct
-  {
-  stream_common_t com; // Must be first
-
-  gavl_audio_frame_t * f;
-
-  gavl_audio_source_t * src;
-  gavl_audio_sink_t   * sink;
+  /* Audio stuff */
+  gavl_audio_frame_t * aframe;
+  gavl_audio_source_t * asrc;
+  gavl_audio_sink_t   * asink;
   
-  } audio_stream_t;
-
-typedef struct
-  {
-  stream_common_t com; // Must be first
+  /* Video stuff */
+  gavl_video_frame_t * vframe;
+  gavl_video_source_t * vsrc;
+  gavl_video_sink_t   * vsink;
   
-  gavl_video_frame_t * f;
-  
-  gavl_video_source_t * src;
-  gavl_video_sink_t   * sink;
-  
-  } video_stream_t;
-
-typedef struct
-  {
-  stream_common_t com; // Must be first
-  } text_stream_t;
+  } stream_t;
 
 struct bg_plug_s
   {
@@ -104,13 +87,13 @@ struct bg_plug_s
   gavf_program_header_t * ph;
   
   int num_audio_streams;
-  audio_stream_t * audio_streams;
+  stream_t * audio_streams;
 
   int num_video_streams;
-  video_stream_t * video_streams;
+  stream_t * video_streams;
 
   int num_text_streams;
-  text_stream_t * text_streams;
+  stream_t * text_streams;
   
   int is_local;  
   
@@ -139,67 +122,51 @@ bg_plug_t * bg_plug_create_writer(void)
   return ret;
   }
 
-static void free_stream_common(stream_common_t * s)
+static void free_streams(stream_t * streams, int num)
   {
-  if(s->src_ext)
-    gavl_packet_source_destroy(s->src_ext);
-  if(s->sink_ext)
-    gavl_packet_sink_destroy(s->sink_ext);
-  if(s->sp)
-    bg_shm_pool_destroy(s->sp);
+  int i;
+  stream_t * s;
+  for(i = 0; i < num; i++)
+    {
+    s = streams + i;
+    if(s->src_ext && (s->src_ext != s->src_int))
+      gavl_packet_source_destroy(s->src_ext);
+    if(s->sink_ext && (s->sink_ext != s->sink_int))
+      gavl_packet_sink_destroy(s->sink_ext);
+    if(s->sp)
+      bg_shm_pool_destroy(s->sp);
+
+    if(s->asrc)
+      gavl_audio_source_destroy(s->asrc);
+    if(s->asink)
+      gavl_audio_sink_destroy(s->asink);
+
+    if(s->vsrc)
+      gavl_video_source_destroy(s->vsrc);
+    if(s->vsink)
+      gavl_video_sink_destroy(s->vsink);
+    
+    if(s->aframe)
+      {
+      gavl_audio_frame_null(s->aframe);
+      gavl_audio_frame_destroy(s->aframe);
+      }
+    if(s->vframe)
+      {
+      gavl_video_frame_null(s->vframe);
+      gavl_video_frame_destroy(s->vframe);
+      }
+    }
+  if(streams)
+    free(streams);
   }
 
 void bg_plug_destroy(bg_plug_t * p)
   {
-  int i;
+  free_streams(p->audio_streams, p->num_audio_streams);
+  free_streams(p->video_streams, p->num_video_streams);
+  free_streams(p->text_streams, p->num_text_streams);
   gavf_close(p->g);
-
-  if(p->audio_streams)
-    {
-    for(i = 0; i < p->num_audio_streams; i++)
-      {
-      audio_stream_t * s = p->audio_streams + i;
-      if(s->src)
-        gavl_audio_source_destroy(s->src);
-      if(s->sink)
-        gavl_audio_sink_destroy(s->sink);
-      
-      if(s->f)
-        {
-        gavl_audio_frame_null(s->f);
-        gavl_audio_frame_destroy(s->f);
-        }
-      free_stream_common(&s->com);
-      }
-    }
-  if(p->video_streams)
-    {
-    for(i = 0; i < p->num_video_streams; i++)
-      {
-      video_stream_t * s = p->video_streams + i;
-      if(s->src)
-        gavl_video_source_destroy(s->src);
-      if(s->sink)
-        gavl_video_sink_destroy(s->sink);
-      
-      if(s->f)
-        {
-        gavl_video_frame_null(s->f);
-        gavl_video_frame_destroy(s->f);
-        }
-      
-      free_stream_common(&s->com);
-      }
-    }
-  if(p->text_streams)
-    {
-    for(i = 0; i < p->num_video_streams; i++)
-      {
-      text_stream_t * s = p->text_streams + i;
-      free_stream_common(&s->com);
-      }
-    }
-  
   free(p);
   }
 
@@ -229,7 +196,8 @@ static void init_streams(bg_plug_t * p)
   int audio_idx = 0;
   int video_idx = 0;
   int text_idx = 0;
-  
+  stream_t * s;
+
   for(i = 0; i < p->ph->num_streams; i++)
     {
     switch(p->ph->streams[i].type)
@@ -264,27 +232,25 @@ static void init_streams(bg_plug_t * p)
       {
       case GAVF_STREAM_AUDIO:
         {
-        audio_stream_t * s = p->audio_streams + audio_idx;
-        s->com.h = p->ph->streams + i;
-        s->com.index = i;
-        
+        s = p->audio_streams + audio_idx;
+        s->h = p->ph->streams + i;
+        s->index = i;
         audio_idx++;
         }
         break;
       case GAVF_STREAM_VIDEO:
         {
-        video_stream_t * s = p->video_streams + video_idx;
-        s->com.h = p->ph->streams + i;
-        s->com.index = i;
-        
+        s = p->video_streams + video_idx;
+        s->h = p->ph->streams + i;
+        s->index = i;
         video_idx++;
         }
         break;
       case GAVF_STREAM_TEXT:
         {
-        text_stream_t * s = p->text_streams + text_idx;
-        s->com.h = p->ph->streams + i;
-        s->com.index = i;
+        s = p->text_streams + text_idx;
+        s->h = p->ph->streams + i;
+        s->index = i;
         text_idx++;
         }
         break;
@@ -300,7 +266,7 @@ static gavl_source_status_t read_packet_shm(void * priv,
   shm_info_t si;
   gavl_source_status_t st;
   gavl_packet_t * p = NULL;
-  stream_common_t * s = priv;
+  stream_t * s = priv;
 
   if((st = gavl_packet_source_read_packet(s->src_int, &p)) !=
      GAVL_SOURCE_OK)
@@ -332,7 +298,7 @@ static gavl_source_status_t read_packet_shm(void * priv,
   }
 
 static void init_read_common(gavf_t * g,
-                            stream_common_t * s,
+                            stream_t * s,
                             const gavl_compression_info_t * ci,
                             const gavl_audio_format_t * afmt,
                             const gavl_video_format_t * vfmt)
@@ -361,15 +327,15 @@ static gavl_source_status_t read_audio_func(void * priv,
   {
   gavl_source_status_t st;
   gavl_packet_t * p = NULL;
-  audio_stream_t * s = priv;
+  stream_t * s = priv;
 
-  if((st = gavl_packet_source_read_packet(s->com.src_ext, &p))
+  if((st = gavl_packet_source_read_packet(s->src_ext, &p))
      != GAVL_SOURCE_OK)
     return st;
 
-  gavf_packet_to_audio_frame(p, s->f,
-                             &s->com.h->format.audio);
-  *f = s->f;
+  gavf_packet_to_audio_frame(p, s->aframe,
+                             &s->h->format.audio);
+  *f = s->aframe;
   return GAVL_SOURCE_OK;
   }
 
@@ -378,15 +344,15 @@ static gavl_source_status_t read_video_func(void * priv,
   {
   gavl_source_status_t st;
   gavl_packet_t * p = NULL;
-  video_stream_t * s = priv;
+  stream_t * s = priv;
   
-  if((st = gavl_packet_source_read_packet(s->com.src_ext, &p))
+  if((st = gavl_packet_source_read_packet(s->src_ext, &p))
      != GAVL_SOURCE_OK)
     return st;
   
-  gavf_packet_to_video_frame(p, s->f,
-                             &s->com.h->format.video);
-  *f = s->f;
+  gavf_packet_to_video_frame(p, s->vframe,
+                             &s->h->format.video);
+  *f = s->vframe;
   return GAVL_SOURCE_OK;
     
   }
@@ -394,49 +360,49 @@ static gavl_source_status_t read_video_func(void * priv,
 static int init_read(bg_plug_t * p)
   {
   int i; 
+  stream_t * s;
   
   init_streams(p);
 
   for(i = 0; i < p->num_audio_streams; i++)
     {
-    audio_stream_t * s;
-    s = &p->audio_streams[i];
+    s = p->audio_streams + i;
 
-    init_read_common(p->g, &s->com, &s->com.h->ci,
-                     &s->com.h->format.audio,
+    init_read_common(p->g, s, &s->h->ci,
+                     &s->h->format.audio,
                      NULL);
     
-    if(s->com.h->ci.id == GAVL_CODEC_ID_NONE)
+    if(s->h->ci.id == GAVL_CODEC_ID_NONE)
       {
-      s->src = gavl_audio_source_create(read_audio_func, s,
+      s->asrc = gavl_audio_source_create(read_audio_func, s,
                                         GAVL_SOURCE_SRC_ALLOC,
-                                        &s->com.h->format.audio);
+                                        &s->h->format.audio);
+      s->aframe = gavl_audio_frame_create(NULL);
       }
     }
 
   for(i = 0; i < p->num_video_streams; i++)
     {
-    video_stream_t * s;
-    s = &p->video_streams[i];
+    s = p->video_streams + i;
 
-    init_read_common(p->g, &s->com, &s->com.h->ci,
+    init_read_common(p->g, s, &s->h->ci,
                      NULL,
-                     &s->com.h->format.video);
+                     &s->h->format.video);
     
-    if(s->com.h->ci.id == GAVL_CODEC_ID_NONE)
+    if(s->h->ci.id == GAVL_CODEC_ID_NONE)
       {
-      s->src =
+      s->vsrc =
         gavl_video_source_create(read_video_func, s,
                                  GAVL_SOURCE_SRC_ALLOC,
-                                 &s->com.h->format.video);
+                                 &s->h->format.video);
+      s->vframe = gavl_video_frame_create(NULL);
       }
     }
   
   for(i = 0; i < p->num_text_streams; i++)
     {
-    text_stream_t * s;
-    s = &p->text_streams[i];
-    init_read_common(p->g, &s->com, NULL, NULL, NULL);
+    s = p->text_streams + i;
+    init_read_common(p->g, s, NULL, NULL, NULL);
     }
   return 1;
   }
@@ -445,45 +411,44 @@ static int init_read(bg_plug_t * p)
 
 static gavl_audio_frame_t * get_audio_func(void * priv)
   {
-  audio_stream_t * as = priv;
-  as->com.p_ext = gavl_packet_sink_get_packet(as->com.sink_ext);
-  as->f->valid_samples = as->com.h->format.audio.samples_per_frame;
-  gavl_audio_frame_set_channels(as->f, &as->com.h->format.audio,
-                                as->com.p_ext->data);
-  return as->f;
+  stream_t * as = priv;
+  as->p_ext = gavl_packet_sink_get_packet(as->sink_ext);
+  as->aframe->valid_samples = as->h->format.audio.samples_per_frame;
+  gavl_audio_frame_set_channels(as->aframe, &as->h->format.audio,
+                                as->p_ext->data);
+  return as->aframe;
   }
 
 static gavl_sink_status_t put_audio_func(void * priv,
                                          gavl_audio_frame_t * f)
   {
-  audio_stream_t * as = priv;
-  gavf_audio_frame_to_packet_metadata(f, as->com.p_ext);
-  return gavl_packet_sink_put_packet(as->com.sink_ext, as->com.p_ext);
+  stream_t * as = priv;
+  gavf_audio_frame_to_packet_metadata(f, as->p_ext);
+  return gavl_packet_sink_put_packet(as->sink_ext, as->p_ext);
   }
 
 static gavl_video_frame_t * get_video_func(void * priv)
   {
-  video_stream_t * vs = priv;
-  vs->com.p_ext = gavl_packet_sink_get_packet(vs->com.sink_ext);
-  gavl_video_frame_set_planes(vs->f, &vs->com.h->format.video,
-                              vs->com.p_ext->data);
-  
-  return NULL;
+  stream_t * vs = priv;
+  vs->p_ext = gavl_packet_sink_get_packet(vs->sink_ext);
+  gavl_video_frame_set_planes(vs->vframe, &vs->h->format.video,
+                              vs->p_ext->data);
+  return vs->vframe;
   }
 
 static gavl_sink_status_t put_video_func(void * priv,
                                          gavl_video_frame_t * f)
   {
-  video_stream_t * vs = priv;
-  gavf_video_frame_to_packet_metadata(f, vs->com.p_ext);
-  return gavl_packet_sink_put_packet(vs->com.sink_ext, vs->com.p_ext);;
+  stream_t * vs = priv;
+  gavf_video_frame_to_packet_metadata(f, vs->p_ext);
+  return gavl_packet_sink_put_packet(vs->sink_ext, vs->p_ext);;
   }
 
 /* Packet */
 
 static gavl_packet_t * get_packet_shm(void * priv)
   {
-  stream_common_t * s = priv;
+  stream_t * s = priv;
 
   s->shm_segment = bg_shm_pool_get_write(s->sp);
   
@@ -496,7 +461,7 @@ static gavl_sink_status_t put_packet_shm(void * priv, gavl_packet_t * pp)
   {
   gavl_packet_t * p;
   shm_info_t si;
-  stream_common_t * s = priv;
+  stream_t * s = priv;
 
   /* Exchange pointers */
   si.id = bg_shm_get_id(s->shm_segment);
@@ -511,14 +476,14 @@ static gavl_sink_status_t put_packet_shm(void * priv, gavl_packet_t * pp)
   return gavl_packet_sink_put_packet(s->sink_int, p);
   }
 
-static int init_write_common(bg_plug_t * p, stream_common_t * s)
+static int init_write_common(bg_plug_t * p, stream_t * s)
   {
   s->sink_int = gavf_get_packet_sink(p->g, s->index);
   
   if(p->is_local && (s->h->ci.max_packet_size > SHM_THRESHOLD))
     {
     s->shm_size = s->h->ci.max_packet_size + GAVL_PACKET_PADDING;
-    s->sp = bg_shm_pool_create(s->h->ci.max_packet_size, 1);
+    s->sp = bg_shm_pool_create(s->shm_size, 1);
     gavl_metadata_set_int(&s->h->m, META_SHM_SIZE, s->shm_size);
     
     s->sink_ext = gavl_packet_sink_create(get_packet_shm,
@@ -535,38 +500,40 @@ static int init_write_common(bg_plug_t * p, stream_common_t * s)
 static int init_write(bg_plug_t * p)
   {
   int i;
+  stream_t * s;
   init_streams(p);
 
   /* Create shared memory instances */
   for(i = 0; i < p->num_audio_streams; i++)
     {
-    audio_stream_t * s;
-    s = &p->audio_streams[i];
-
-    init_write_common(p, &s->com);
+    s = p->audio_streams + i;
+    init_write_common(p, s);
     
-    if(s->com.h->ci.id == GAVL_CODEC_ID_NONE)
-      s->sink = gavl_audio_sink_create(get_audio_func,
-                                       put_audio_func,
-                                       s, &s->com.h->format.audio);
+    if(s->h->ci.id == GAVL_CODEC_ID_NONE)
+      {
+      s->asink = gavl_audio_sink_create(get_audio_func,
+                                        put_audio_func,
+                                        s, &s->h->format.audio);
+      s->aframe = gavl_audio_frame_create(NULL);
+      }
     }
   for(i = 0; i < p->num_video_streams; i++)
     {
-    video_stream_t * s;
-    s = &p->video_streams[i];
+    s = p->video_streams + i;
+    init_write_common(p, s);
     
-    init_write_common(p, &s->com);
-    
-    if(s->com.h->ci.id == GAVL_CODEC_ID_NONE)
-      s->sink = gavl_video_sink_create(get_video_func,
+    if(s->h->ci.id == GAVL_CODEC_ID_NONE)
+      {
+      s->vsink = gavl_video_sink_create(get_video_func,
                                        put_video_func,
-                                       s, &s->com.h->format.video);
+                                       s, &s->h->format.video);
+      s->vframe = gavl_video_frame_create(NULL);
+      }
     }
   for(i = 0; i < p->num_text_streams; i++)
     {
-    text_stream_t * s;
-    s = &p->text_streams[i];
-    init_write_common(p, &s->com);
+    s = p->text_streams + i;
+    init_write_common(p, s);
     }
   
   return 1;
@@ -651,94 +618,51 @@ bg_plug_header_from_id(bg_plug_t * p, uint32_t id)
 
 /* Get stream sources */
 
+static stream_t * find_stream_by_id(stream_t * streams, int num, int id)
+  {
+  int i;
+  for(i = 0; i < num; i++)
+    {
+    if(streams[i].h->id == id)
+      return &streams[i];
+    }
+  return NULL;
+  }
+
+static stream_t * find_stream_by_id_all(bg_plug_t * p, int id)
+  {
+  stream_t * ret;
+  ret = find_stream_by_id(p->audio_streams, p->num_audio_streams, id);
+  if(ret)
+    return ret;
+  ret = find_stream_by_id(p->video_streams, p->num_video_streams, id);
+  if(ret)
+    return ret;
+  ret = find_stream_by_id(p->text_streams, p->num_text_streams, id);
+  if(ret)
+    return ret;
+  return NULL;
+  }
+  
 int bg_plug_get_stream_source(bg_plug_t * p,
                               const gavf_stream_header_t * h,
                               gavl_audio_source_t ** as,
                               gavl_video_source_t ** vs,
                               gavl_packet_source_t ** ps)
   {
-  int i;
-
-  switch(h->type)
-    {
-    case GAVF_STREAM_AUDIO:
-      {
-      audio_stream_t * s = NULL;
-      for(i = 0; i < p->num_audio_streams; i++)
-        {
-        if(p->audio_streams[i].com.h->id == h->id)
-          s = &p->audio_streams[i];
-        }
-      if(!s)
-        return 0;
-      
-      if((s->com.h->ci.id == GAVL_CODEC_ID_NONE) && as)
-        {
-        *as = s->src;
-        return 1;
-        }
-      // Compressed
-      else if(ps)
-        {
-        if(s->com.src_ext)
-          *ps = s->com.src_ext;
-        else if(s->com.src_int)
-          *ps = s->com.src_int;
-        return 1;
-        }
-      }
-      break;
-    case GAVF_STREAM_VIDEO:
-      {
-      video_stream_t * s = NULL;
-      for(i = 0; i < p->num_video_streams; i++)
-        {
-        if(p->video_streams[i].com.h->id == h->id)
-          s = &p->video_streams[i];
-        }
-      if(!s)
-        return 0;
-
-      if((s->com.h->ci.id == GAVL_CODEC_ID_NONE) && as)
-        {
-        *vs = s->src;
-        return 1;
-        }
-      // Compressed
-      else if(ps)
-        {
-        if(s->com.src_ext)
-          *ps = s->com.src_ext;
-        else if(s->com.src_int)
-          *ps = s->com.src_int;
-        return 1;
-        }
-      }
-      break;
-    case GAVF_STREAM_TEXT:
-      {
-      text_stream_t * s = NULL;
-      for(i = 0; i < p->num_text_streams; i++)
-        {
-        if(p->text_streams[i].com.h->id == h->id)
-          s = &p->text_streams[i];
-        }
-      if(!s)
-        return 0;
-      if(ps)
-        {
-        if(s->com.src_ext)
-          *ps = s->com.src_ext;
-        else if(s->com.src_int)
-          *ps = s->com.src_int;
-        return 1;
-        }
-      }
-      break;
-    default:
-      return 0;
-    }
-  return 0;
+  stream_t * s = NULL;
+  if(!(s = find_stream_by_id_all(p, h->id)))
+    return 0;
+  
+  if(s->asrc && as)
+    *as = s->asrc;
+  else if(s->vsrc && vs)
+    *vs = s->vsrc;
+  else if(ps)
+    *ps = s->src_ext;
+  else
+    return 0;
+  return 1;
   }
 
 int bg_plug_get_stream_sink(bg_plug_t * p,
@@ -747,133 +671,17 @@ int bg_plug_get_stream_sink(bg_plug_t * p,
                             gavl_video_sink_t ** vs,
                             gavl_packet_sink_t ** ps)
   {
-  int i;
-
-  switch(h->type)
-    {
-    case GAVF_STREAM_AUDIO:
-      {
-      audio_stream_t * s = NULL;
-      for(i = 0; i < p->num_audio_streams; i++)
-        {
-        if(p->audio_streams[i].com.h->id == h->id)
-          s = &p->audio_streams[i];
-        }
-      if(!s)
-        return 0;
-      
-      if((s->com.h->ci.id == GAVL_CODEC_ID_NONE) && as)
-        {
-        *as = s->sink;
-        return 1;
-        }
-      // Compressed
-      else if(ps)
-        {
-        if(s->com.sink_ext)
-          *ps = s->com.sink_ext;
-        else if(s->com.sink_int)
-          *ps = s->com.sink_int;
-        return 1;
-        }
-      }
-      break;
-    case GAVF_STREAM_VIDEO:
-      {
-      video_stream_t * s = NULL;
-      for(i = 0; i < p->num_video_streams; i++)
-        {
-        if(p->video_streams[i].com.h->id == h->id)
-          s = &p->video_streams[i];
-        }
-      if(!s)
-        return 0;
-
-      if((s->com.h->ci.id == GAVL_CODEC_ID_NONE) && as)
-        {
-        *vs = s->sink;
-        return 1;
-        }
-      // Compressed
-      else if(ps)
-        {
-        if(s->com.sink_ext)
-          *ps = s->com.sink_ext;
-        else if(s->com.sink_int)
-          *ps = s->com.sink_int;
-        return 1;
-        }
-      }
-      break;
-    case GAVF_STREAM_TEXT:
-      {
-      text_stream_t * s = NULL;
-      for(i = 0; i < p->num_text_streams; i++)
-        {
-        if(p->text_streams[i].com.h->id == h->id)
-          s = &p->text_streams[i];
-        }
-      if(!s)
-        return 0;
-      if(ps)
-        {
-        if(s->com.sink_ext)
-          *ps = s->com.sink_ext;
-        else if(s->com.sink_int)
-          *ps = s->com.sink_int;
-        return 1;
-        }
-      }
-      break;
-    default:
-      return 0;
-    }
-  return 0;
-  
-#if 0
-  for(i = 0; i < p->num_audio_streams; i++)
-    {
-    if(p->audio_streams[i].com.h->id == h->id)
-      {
-      if(p->audio_streams[i].com.h->ci.id == GAVL_CODEC_ID_NONE)
-        {
-        if(as)
-          *as = p->audio_streams[i].sink;
-        }
-      else
-        {
-        if(ps)
-          *ps = p->audio_streams[i].com.sink;
-        }
-      return 1;
-      }
-    }
-  for(i = 0; i < p->num_video_streams; i++)
-    {
-    if(p->video_streams[i].com.h->id == h->id)
-      {
-      if(p->video_streams[i].com.h->ci.id == GAVL_CODEC_ID_NONE)
-        {
-        if(vs)
-          *vs = p->video_streams[i].sink;
-        }
-      else
-        {
-        if(ps)
-          *ps = p->video_streams[i].com.sink;
-        }
-      return 1;
-      }
-    }
-  for(i = 0; i < p->num_text_streams; i++)
-    {
-    if(p->text_streams[i].com.h->id == h->id)
-      {
-      if(ps)
-        *ps = p->text_streams[i].com.sink;
-      return 1;
-      }
-    }
-  return 0;
-#endif
+  stream_t * s = NULL;
+  if(!(s = find_stream_by_id_all(p, h->id)))
+    return 0;
+     
+  if(s->asink && as)
+    *as = s->asink;
+  else if(s->vsink && vs)
+    *vs = s->vsink;
+  else if(ps)
+    *ps = s->sink_ext;
+  else
+    return 0;
+  return 1;
   }
