@@ -779,6 +779,7 @@ int gavf_open_write(gavf_t * g, gavf_io_t * io,
     {
     gavf_file_index_init(&g->fi, 8);
     gavf_file_index_write(g->io, &g->fi);
+    gavf_io_flush(g->io);
     }
   return 1;
   }
