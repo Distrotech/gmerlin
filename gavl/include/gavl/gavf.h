@@ -1,3 +1,8 @@
+
+#ifndef GAVF_H_INCLUDED
+#define GAVF_H_INCLUDED
+
+
 #include <inttypes.h>
 #include <gavl/gavl.h>
 #include <gavl/compression.h>
@@ -265,3 +270,5 @@ GAVL_PUBLIC
 int gavl_image_read_image(gavf_io_t * io,
                           gavl_video_format_t * v,
                           gavl_video_frame_t * f);
+
+#endif // GAVF_H_INCLUDED
