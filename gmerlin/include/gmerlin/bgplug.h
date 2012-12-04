@@ -19,18 +19,22 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  * *****************************************************************/
 
+#ifndef __BGPLUG_H_
+#define __BGPLUG_H_
+
 #include <gavl/gavf.h>
 #include <gavl/connectors.h>
 
 #include <gmerlin/parameter.h>
+#include <gmerlin/pluginregistry.h>
+#include <gmerlin/mediaconnector.h>
 
 /* Reader */
 
 typedef struct bg_plug_s bg_plug_t;
 
-bg_plug_t * bg_plug_create_reader(void);
-
-bg_plug_t * bg_plug_create_writer(void);
+bg_plug_t * bg_plug_create_reader(bg_plugin_registry_t * plugin_reg);
+bg_plug_t * bg_plug_create_writer(bg_plugin_registry_t * plugin_reg);
 
 void bg_plug_destroy(bg_plug_t *);
 
@@ -47,7 +51,17 @@ int bg_plug_open(bg_plug_t *, gavf_io_t * io,
                  const gavl_metadata_t * m,
                  const gavl_chapter_list_t * cl);
 
+int bg_plug_open_location(bg_plug_t * p, const char * location,
+                          const gavl_metadata_t * m,
+                          const gavl_chapter_list_t * cl);
+
+
 gavf_t * bg_plug_get_gavf(bg_plug_t*);
+
+/* Initialization function for readers and writers */
+
+int bg_plug_setup_writer(bg_plug_t*, bg_mediaconnector_t * conn);
+
 
 /* Needs to be called before any I/O is done */
 int bg_plug_start(bg_plug_t * p);
@@ -76,8 +90,10 @@ bg_plug_header_from_id(bg_plug_t * p, uint32_t id);
 
 /* Called by bg_plug_open */
 
-gavf_io_t * bg_plug_open_location(const char * location,
-                                  int wr, int * local);
+gavf_io_t * bg_plug_io_open_location(const char * location,
+                                     int wr, int * local);
 
-gavf_io_t * bg_plug_open_socket(int fd,
-                                int wr, int * local);
+gavf_io_t * bg_plug_io_open_socket(int fd,
+                                   int wr, int * local);
+
+#endif // __BGPLUG_H_

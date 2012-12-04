@@ -26,6 +26,7 @@
 #include <gmerlin/log.h>
 #include <gmerlin/translation.h>
 #include <gmerlin/bgplug.h>
+#include <gmerlin/mediaconnector.h>
 
 extern bg_plugin_registry_t * plugin_reg;
 extern bg_cfg_registry_t * cfg_reg;

@@ -91,6 +91,7 @@ language_table.c \
 lcdproc.c \
 log.c \
 md5.c \
+mediaconnector.c \
 mediafiledevice.c \
 metadata.c \
 metadata_xml.c \

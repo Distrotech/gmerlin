@@ -272,8 +272,12 @@ static gavf_io_t * open_file(const char * file, int wr, int * do_shm)
   
   if(stat(file, &st))
     {
-    bg_log(BG_LOG_ERROR, LOG_DOMAIN,
-           "Cannot stat %s: %s", file, strerror(errno));
+    if(!wr)
+      {
+      bg_log(BG_LOG_ERROR, LOG_DOMAIN,
+             "Cannot stat %s: %s", file, strerror(errno));
+      return NULL;
+      }
     }
 
   if(S_ISFIFO(st.st_mode)) /* Pipe: Use local connection */
@@ -287,18 +291,18 @@ static gavf_io_t * open_file(const char * file, int wr, int * do_shm)
   return gavf_io_create_file(f, wr, can_seek, 1);
   }
 
-gavf_io_t * bg_plug_open_location(const char * location,
-                                  int wr, int * do_shm)
+gavf_io_t * bg_plug_io_open_location(const char * location,
+                                     int wr, int * local)
   {
-  *do_shm = 0;
+  *local = 0;
   
   if(!strcmp(location, "-"))
-    return open_dash(wr, do_shm);
+    return open_dash(wr, local);
   else if(!strncmp(location, "tcp://", 6))
     return open_tcp(location, wr);
   else if(!strncmp(location, "unix://", 7))
     {
-    *do_shm = 1;
+    *local = 1;
     /* Local UNIX domain socket */
     return open_unix(location, wr);
     }
@@ -306,13 +310,13 @@ gavf_io_t * bg_plug_open_location(const char * location,
           (location[0] == '<'))
     {
     /* Pipe */
-    *do_shm = 1;
+    *local = 1;
     return open_pipe(location, wr);
     }
   else
     {
     /* Regular file */
-    return open_file(location, wr, do_shm);
+    return open_file(location, wr, local);
     }
   return NULL;
   }
@@ -333,12 +337,12 @@ static int socket_is_local(int fd)
   return 0;
   }
 
-gavf_io_t * bg_plug_open_socket(int fd,
-                                int wr, int * use_shm)
+gavf_io_t * bg_plug_io_open_socket(int fd,
+                                   int wr, int * local)
   {
   socket_t * s;
   
-  *use_shm = socket_is_local(fd);
+  *local = socket_is_local(fd);
 
   /* TODO: Handshake */
 

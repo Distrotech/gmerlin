@@ -96,7 +96,8 @@ struct bg_plug_s
   stream_t * text_streams;
   
   int is_local;  
-  
+
+  bg_plugin_registry_t * plugin_reg;
   };
 
 static bg_plug_t * create_common()
@@ -107,17 +108,17 @@ static bg_plug_t * create_common()
   return ret;
   }
   
-bg_plug_t * bg_plug_create_reader(void)
+bg_plug_t * bg_plug_create_reader(bg_plugin_registry_t * plugin_reg)
   {
   bg_plug_t * ret;
   ret = create_common();
+  ret->plugin_reg = plugin_reg;
   return ret;
   }
 
-bg_plug_t * bg_plug_create_writer(void)
+bg_plug_t * bg_plug_create_writer(bg_plugin_registry_t * plugin_reg)
   {
-  bg_plug_t * ret;
-  ret = create_common();
+  bg_plug_t * ret = bg_plug_create_reader(plugin_reg);
   ret->wr = 1;
   return ret;
   }
@@ -496,11 +497,14 @@ static int init_write_common(bg_plug_t * p, stream_t * s)
   return 1;
   }
 
-
 static int init_write(bg_plug_t * p)
   {
   int i;
   stream_t * s;
+
+  if(!gavf_start(p->g))
+    return 0;
+  
   init_streams(p);
 
   /* Create shared memory instances */
@@ -541,6 +545,13 @@ static int init_write(bg_plug_t * p)
 
 int bg_plug_start(bg_plug_t * p)
   {
+  if(!p->io)
+    {
+    bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Cannot start %s plug (call open first)",
+           (p->wr ? "output" : "input"));
+    return 0;
+    }
+  
   if(p->wr)
     return init_write(p);
   else
@@ -572,6 +583,17 @@ int bg_plug_open(bg_plug_t * p, gavf_io_t * io,
     return 0;
   
   return 1;
+  }
+
+int bg_plug_open_location(bg_plug_t * p, const char * location,
+                          const gavl_metadata_t * m,
+                          const gavl_chapter_list_t * cl)
+  {
+  gavf_io_t * io = bg_plug_io_open_location(location, p->wr, &p->is_local);
+  if(io)
+    return bg_plug_open(p, io, m, cl);
+  else
+    return 0;
   }
 
 gavf_t * bg_plug_get_gavf(bg_plug_t * p)
@@ -683,5 +705,99 @@ int bg_plug_get_stream_sink(bg_plug_t * p,
     *ps = s->sink_ext;
   else
     return 0;
+  return 1;
+  }
+
+/* Setup writer */
+
+int bg_plug_setup_writer(bg_plug_t * p, bg_mediaconnector_t * conn)
+  {
+  int i;
+  gavl_compression_info_t ci_none;
+  const gavl_audio_format_t * afmt;
+  const gavl_video_format_t * vfmt;
+  const gavl_compression_info_t * ci;
+  bg_mediaconnector_stream_t * s;
+  const gavf_stream_header_t * h;
+
+  gavl_audio_sink_t * as;
+  gavl_video_sink_t * vs;
+  gavl_packet_sink_t * ps;
+  
+  memset(&ci_none, 0, sizeof(ci_none));
+  
+  for(i = 0; i < conn->num_streams; i++)
+    {
+    s = conn->streams + i;
+    switch(s->type)
+      {
+      case GAVF_STREAM_AUDIO:
+        if(s->psrc)
+          {
+          ci = gavl_packet_source_get_ci(s->psrc);
+          afmt = gavl_packet_source_get_audio_format(s->psrc);
+          }
+        else if(s->asrc)
+          {
+          ci = &ci_none;
+          afmt = gavl_audio_source_get_src_format(s->asrc);
+          }
+        else
+          return 0;
+        
+        if(gavf_add_audio_stream(p->g, ci, afmt, &s->m) < 0)
+          return 0;
+        break;
+      case GAVF_STREAM_VIDEO:
+        if(s->psrc)
+          {
+          ci = gavl_packet_source_get_ci(s->psrc);
+          vfmt = gavl_packet_source_get_video_format(s->psrc);
+          }
+        else if(s->vsrc)
+          {
+          ci = &ci_none;
+          vfmt = gavl_video_source_get_src_format(s->vsrc);
+          }
+        else
+          return 0;
+        
+        if(gavf_add_video_stream(p->g, ci, vfmt, &s->m) < 0)
+          return 0;
+        break;
+      case GAVF_STREAM_TEXT:
+        if(gavf_add_text_stream(p->g, s->timescale, &s->m) < 0)
+          return 0;
+        break;
+      }
+    }
+
+  if(!bg_plug_start(p))
+    return 0;
+
+
+  /* Get sinks and connect them */
+
+  for(i = 0; i < conn->num_streams; i++)
+    {
+    s = conn->streams + i;
+    h = p->ph->streams + i;
+
+    as = NULL;
+    vs = NULL;
+    ps = NULL;
+    
+    if(!bg_plug_get_stream_sink(p, h, &as, &vs, &ps))
+      return 0;
+    
+    if(as && conn->streams->aconn)
+      gavl_audio_connector_connect(conn->streams->aconn, as);
+    else if(vs && conn->streams->vconn)
+      gavl_video_connector_connect(conn->streams->vconn, vs);
+    else if(ps && conn->streams->pconn)
+      gavl_packet_connector_connect(conn->streams->pconn, ps);
+    else
+      return 0;
+    }
   return 1;
   }

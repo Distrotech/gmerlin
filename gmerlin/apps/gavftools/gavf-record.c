@@ -37,6 +37,8 @@ static bg_plug_t * out_plug;
 static bg_cfg_section_t * audio_section;
 static bg_cfg_section_t * video_section;
 
+static char * outfile = NULL;
+
 /* Recorder module */
 
 static const bg_parameter_info_t audio_parameters[] =
@@ -73,52 +75,46 @@ typedef struct
   {
   bg_plugin_handle_t * h;
   bg_recorder_plugin_t * plugin;
-  gavl_audio_source_t * asrc;
-  gavl_video_source_t * vsrc;
   bg_parameter_info_t * parameters;
   gavl_metadata_t m;
-
-  gavl_audio_connector_t * aconn;
-  gavl_video_connector_t * vconn;
-  
-  int index; /* Index in the program_header structure */
-  
-  gavl_time_t time;
   } recorder_stream_t;
 
-recorder_stream_t as;
-recorder_stream_t vs;
+typedef struct
+  {
+  recorder_stream_t as;
+  recorder_stream_t vs;
+  } recorder_t;
 
-static void recorder_stream_init(recorder_stream_t * s, int type)
+static recorder_t rec;
+
+static void recorder_stream_init(recorder_stream_t * s,
+                                 const bg_parameter_info_t * parameters,
+                                 const char * name, bg_cfg_section_t ** section,
+                                 uint32_t type_mask)
   {
   memset(s, 0, sizeof(*s));
-
-  if(type == GAVF_STREAM_AUDIO)
-    {
-    s->parameters = bg_parameter_info_copy_array(audio_parameters);
-
-    if(!audio_section)
-      audio_section =
-        bg_cfg_section_create_from_parameters("audio", s->parameters);
-    
-    bg_plugin_registry_set_parameter_info(plugin_reg,
-                                          BG_PLUGIN_RECORDER_AUDIO,
-                                          BG_PLUGIN_RECORDER,
-                                          &s->parameters[0]);
-    }
-  else if(type == GAVF_STREAM_VIDEO)
-    {
-    s->parameters = bg_parameter_info_copy_array(video_parameters);
-    if(!video_section)
-      video_section =
-        bg_cfg_section_create_from_parameters("video", s->parameters);
-    
-    bg_plugin_registry_set_parameter_info(plugin_reg,
-                                          BG_PLUGIN_RECORDER_VIDEO,
-                                          BG_PLUGIN_RECORDER,
-                                          &s->parameters[0]);
-    }
+  s->parameters = bg_parameter_info_copy_array(parameters);
+  
+  if(!(*section))
+    *section = bg_cfg_section_create_from_parameters(name, s->parameters);
+  bg_plugin_registry_set_parameter_info(plugin_reg,
+                                        type_mask,
+                                        BG_PLUGIN_RECORDER,
+                                        &s->parameters[0]);
   }
+
+static void recorder_init(recorder_t * rec)
+  {
+  recorder_stream_init(&rec->as,
+                       audio_parameters,
+                       "audio", &audio_section,
+                       BG_PLUGIN_RECORDER_AUDIO);
+  recorder_stream_init(&rec->vs,
+                       video_parameters,
+                       "video", &video_section,
+                       BG_PLUGIN_RECORDER_VIDEO);
+  }
+                         
 
 static void recorder_stream_set_parameter(void * sp, const char * name,
                                           const bg_parameter_value_t * val)
@@ -151,83 +147,49 @@ static void recorder_stream_set_parameter(void * sp, const char * name,
   
   }
 
-static int recorder_stream_open(recorder_stream_t * s, int type,
-                                bg_plug_t * out_plug)
+static int recorder_stream_open(recorder_stream_t * s, int type, bg_mediaconnector_t * conn)
   {
-  gavf_t * g = bg_plug_get_gavf(out_plug);
   gavl_compression_info_t ci;
+  gavl_audio_format_t afmt;
+  gavl_video_format_t vfmt;
   
   if(!s->h)
+    {
+    bg_log(BG_LOG_WARNING, LOG_DOMAIN, "Not recording %s: No plugin set",
+           (type == GAVF_STREAM_AUDIO ? "audio" : "video"));
     return 0;
-
+    }
   memset(&ci, 0, sizeof(ci));
-  ci.id = GAVL_CODEC_ID_NONE;
+  memset(&afmt, 0, sizeof(afmt));
+  memset(&vfmt, 0, sizeof(vfmt));
+
+  if(!s->plugin->open(s->h->priv, &afmt, &vfmt))
+    return 0;
   
   if(type == GAVF_STREAM_AUDIO)
     {
-    gavl_audio_format_t afmt;
-    memset(&afmt, 0, sizeof(afmt));
-    if(!s->plugin->open(s->h->priv, &afmt, NULL))
-      return 0;
-    s->asrc = s->plugin->get_audio_source(s->h->priv);
-    s->index = gavf_add_audio_stream(g, &ci, &afmt, &s->m);
-    s->aconn = gavl_audio_connector_create(s->asrc);
+    gavl_audio_source_t * asrc;
+    asrc = s->plugin->get_audio_source(s->h->priv);
+    bg_mediaconnector_add_audio_stream(conn, NULL, asrc, NULL);
     }
   else if(type == GAVF_STREAM_VIDEO)
     {
-    gavl_video_format_t vfmt;
-    memset(&vfmt, 0, sizeof(vfmt));
-    if(!s->plugin->open(s->h->priv, NULL, &vfmt))
-      return 0;
-    s->vsrc = s->plugin->get_video_source(s->h->priv);
-    s->index = gavf_add_video_stream(g, &ci, &vfmt, &s->m);
-    s->vconn = gavl_video_connector_create(s->vsrc);
+    gavl_video_source_t * vsrc;
+    vsrc = s->plugin->get_video_source(s->h->priv);
+    bg_mediaconnector_add_video_stream(conn, NULL, vsrc, NULL);
     }
   return 1;
   }
 
-static int recorder_stream_connect(recorder_stream_t * s,
-                                   bg_plug_t * out_plug)
+static int recorder_open(recorder_t * rec, bg_mediaconnector_t * conn)
   {
-  const gavf_stream_header_t * h;
-
-  if(!s->h)
-    return 1;
-  
-  h = bg_plug_header_from_index(out_plug, s->index);
-
-  
-  if(h->type == GAVF_STREAM_AUDIO)
-    {
-    gavl_audio_sink_t * asink = NULL;
-
-    if(!bg_plug_get_stream_sink(out_plug,
-                                h,
-                                &asink,
-                                NULL,
-                                NULL))
-      return 0;
-    
-    gavl_audio_connector_connect(s->aconn, asink);
-    }
-  else if(h->type == GAVF_STREAM_VIDEO)
-    {
-    gavl_video_sink_t * vsink = NULL;
-
-    if(!bg_plug_get_stream_sink(out_plug,
-                                h,
-                                NULL,
-                                &vsink,
-                                NULL))
-      return 0;
-    
-    gavl_video_connector_connect(s->vconn, vsink);
-    }
+  if(!recorder_stream_open(&rec->as, GAVF_STREAM_AUDIO, conn) &&
+     !recorder_stream_open(&rec->vs, GAVF_STREAM_VIDEO, conn))
+    return 0;
   return 1;
   }
 
 /* Config stuff */
-
 
 static void opt_aud(void * data, int * argc, char *** _argv, int arg)
   {
@@ -238,8 +200,8 @@ static void opt_aud(void * data, int * argc, char *** _argv, int arg)
     }
   if(!bg_cmdline_apply_options(audio_section,
                                recorder_stream_set_parameter,
-                               &as,
-                               as.parameters,
+                               &rec.as,
+                               rec.as.parameters,
                                (*_argv)[arg]))
     exit(-1);
   bg_cmdline_remove_arg(argc, _argv, arg);
@@ -254,10 +216,21 @@ static void opt_vid(void * data, int * argc, char *** _argv, int arg)
     }
   if(!bg_cmdline_apply_options(video_section,
                                recorder_stream_set_parameter,
-                               &vs,
-                               vs.parameters,
+                               &rec.vs,
+                               rec.vs.parameters,
                                (*_argv)[arg]))
     exit(-1);
+  bg_cmdline_remove_arg(argc, _argv, arg);
+  }
+
+static void opt_out(void * data, int * argc, char *** _argv, int arg)
+  {
+  if(arg >= *argc)
+    {
+    fprintf(stderr, "Option -o requires an argument\n");
+    exit(-1);
+    }
+  outfile = (*_argv)[arg];
   bg_cmdline_remove_arg(argc, _argv, arg);
   }
 
@@ -274,6 +247,12 @@ static bg_cmdline_arg_t global_options[] =
       .help_arg =    "<video_options>",
       .help_string = "Set video recording options",
       .callback =    opt_vid,
+    },
+    {
+      .arg =         "-o",
+      .help_arg =    "<location>",
+      .help_string = "Set output file or location",
+      .callback =    opt_out,
     },
     {
       /* End */
@@ -302,39 +281,49 @@ const bg_cmdline_app_data_t app_data =
 
 int main(int argc, char ** argv)
   {
+  bg_mediaconnector_t conn;
+  bg_mediaconnector_init(&conn);
+  
   gavftools_init_registries();
   
-  out_plug = bg_plug_create_writer();
+  out_plug = bg_plug_create_writer(plugin_reg);
   
   /* Create plugin regsitry */
   
   /* Initialize streams */
-  recorder_stream_init(&as, GAVF_STREAM_AUDIO);
-  recorder_stream_init(&vs, GAVF_STREAM_VIDEO);
-
-  global_options[0].parameters = as.parameters;
-  global_options[1].parameters = vs.parameters;
+  recorder_init(&rec);
+  
+  global_options[0].parameters = rec.as.parameters;
+  global_options[1].parameters = rec.vs.parameters;
   
   /* Handle commandline options */
   bg_cmdline_init(&app_data);
   bg_cmdline_parse(global_options, &argc, &argv, NULL);
 
+  /* Set output file */
+  if(!outfile)
+    outfile = "-";
+  
   /* Open plugins */
-  if(!recorder_stream_open(&as, GAVF_STREAM_AUDIO, out_plug) &&
-     !recorder_stream_open(&vs, GAVF_STREAM_VIDEO, out_plug))
+  if(!recorder_open(&rec, &conn))
     {
+    bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Opening recorder plugins failed");
     return -1;
     }
 
-  /* Start plug */
-  if(!bg_plug_start(out_plug))
+  /* Open output plug */
+  if(!bg_plug_open_location(out_plug, outfile,
+                            (const gavl_metadata_t *)0,
+                            (const gavl_chapter_list_t*)0))
+    return 0;
+  
+  /* Initialize output plug */
+  if(!bg_plug_setup_writer(out_plug, &conn))
+    {
+    bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Setting up plug writer failed");
     return -1;
-
-  /* Connect streams */
-
-  if(!recorder_stream_connect(&as, out_plug) ||
-     !recorder_stream_connect(&vs, out_plug))
-    return -1;
+    }
+  fprintf(stderr, "Entering main loop");
   
   /* Main loop */
   while(1)
