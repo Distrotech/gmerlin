@@ -633,6 +633,11 @@ const gavf_packet_header_t * gavf_packet_read_header(gavf_t * g)
       g->have_pkt_header = 1;
       return &g->pkthdr;
       }
+    else if(c[0] = GAVF_TAG_METADATA_HEADER_C)
+      {
+      /* Inline metadata */
+      
+      }
     else
       {
       if(gavf_io_read_data(g->io, (uint8_t*)&c[1], 7) < 7)

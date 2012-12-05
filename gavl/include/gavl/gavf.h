@@ -113,6 +113,10 @@ GAVL_PUBLIC
 void gavf_options_set_sync_distance(gavf_options_t *,
                                     gavl_time_t sync_distance);
 
+GAVL_PUBLIC
+void gavl_options_set_metadata_callback(gavf_options_t *, 
+                                        void (*cb)(void*,const gavl_metadata_t*),
+                                        void *cb_priv);
 
 /* General functions */
 

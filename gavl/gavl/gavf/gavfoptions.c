@@ -11,3 +11,12 @@ gavf_options_set_flags(gavf_options_t * opt, int flags)
   {
   opt->flags = flags;
   }
+
+void gavl_options_set_metadata_callback(gavf_options_t * opt, 
+                                        void (*cb)(void*,const gavl_metadata_t*),
+                                        void *cb_priv)
+  {
+  opt->metadata_cb = cb;
+  opt->metadata_cb_priv = cb_priv;
+  }
+

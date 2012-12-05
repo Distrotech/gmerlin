@@ -232,9 +232,9 @@ struct gavf_options_s
   {
   uint32_t flags;
   gavl_time_t sync_distance;
+  void (*metadata_cb)(void * priv, const gavl_metadata_t * m);
+  void * metadata_cb_priv;
   };
-
-
 
 /* Extension header */
 
