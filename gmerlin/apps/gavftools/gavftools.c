@@ -40,3 +40,8 @@ void gavftools_init_registries()
   plugin_reg = bg_plugin_registry_create(cfg_section);
 
   }
+void gavftools_destroy_registries()
+  {
+  bg_plugin_registry_destroy(plugin_reg);
+  bg_cfg_registry_destroy(cfg_reg);
+  }

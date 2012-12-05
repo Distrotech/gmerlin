@@ -317,6 +317,7 @@ const bg_cmdline_app_data_t app_data =
 
 int main(int argc, char ** argv)
   {
+  int ret = 1;
   bg_mediaconnector_t conn;
   bg_mediaconnector_init(&conn);
   
@@ -344,20 +345,20 @@ int main(int argc, char ** argv)
   if(!recorder_open(&rec, &conn))
     {
     bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Opening recorder plugins failed");
-    return -1;
+    goto the_end;
     }
 
   /* Open output plug */
   if(!bg_plug_open_location(out_plug, outfile,
                             (const gavl_metadata_t *)0,
                             (const gavl_chapter_list_t*)0))
-    return 0;
+    goto the_end;
   
   /* Initialize output plug */
   if(!bg_plug_setup_writer(out_plug, &conn))
     {
     bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Setting up plug writer failed");
-    return -1;
+    goto the_end;
     }
   
   bg_mediaconnector_start(&conn);
@@ -375,7 +376,13 @@ int main(int argc, char ** argv)
   
   /* Cleanup */
 
+
+  ret = 0;
+  the_end:
+  bg_mediaconnector_free(&conn);
   bg_plug_destroy(out_plug);
-  
-  return 0;
+  gavftools_destroy_registries();
+    
+
+  return ret;
   }

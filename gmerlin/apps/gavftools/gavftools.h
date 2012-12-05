@@ -32,6 +32,7 @@ extern bg_plugin_registry_t * plugin_reg;
 extern bg_cfg_registry_t * cfg_reg;
 
 void gavftools_init_registries();
+void gavftools_destroy_registries();
 
 /* Program */
 

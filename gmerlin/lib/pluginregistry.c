@@ -879,7 +879,7 @@ scan_directory_internal(const char * directory, bg_plugin_info_t ** _file_info,
       tmp_info = tmp_info->next;
       }
 
-    dlclose(test_module);
+//    dlclose(test_module);
     ret = append_to_list(ret, new_info);
     }
   
