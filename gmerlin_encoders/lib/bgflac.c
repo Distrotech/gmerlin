@@ -482,7 +482,7 @@ void bg_flac_free(bg_flac_t * flac)
       flac->buffer[i] = NULL;
       }
     }
-  
+  gavl_compression_info_free(&flac->ci);  
   free(flac);
   }
 
