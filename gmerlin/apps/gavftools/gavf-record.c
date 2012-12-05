@@ -20,6 +20,7 @@
  * *****************************************************************/
 
 #include <string.h>
+#include <signal.h>
 
 #include "gavftools.h"
 
@@ -28,6 +29,26 @@
 #include <language_table.h>
 
 #define LOG_DOMAIN "gavf-record"
+
+int got_sigint = 0;
+static void sigint_handler(int sig)
+  {
+  fprintf(stderr, "\nCTRL+C caught\n");
+  got_sigint = 1;
+  }
+
+static void set_sigint_handler()
+  {
+  struct sigaction sa;
+  sa.sa_flags = 0;
+  sigemptyset(&sa.sa_mask);
+  sa.sa_handler = sigint_handler;
+  if (sigaction(SIGINT, &sa, NULL) == -1)
+    {
+    fprintf(stderr, "sigaction failed\n");
+    }
+  }
+
 
 /* Global stuff */
 
@@ -120,9 +141,15 @@ static void recorder_stream_set_parameter(void * sp, const char * name,
                                           const bg_parameter_value_t * val)
   {
   recorder_stream_t * s= sp;
+
+  fprintf(stderr, "recorder_stream_set_parameter %s\n", name);
   
   if(!name)
+    {
+    if(s->h && s->plugin->common.set_parameter)
+      s->plugin->common.set_parameter(s->h->priv, NULL, NULL);
     return;
+    }
   else if(!strcmp(name, "language"))
     gavl_metadata_set(&s->m, GAVL_META_LANGUAGE, val->val_str);
   else if(!strcmp(name, "plugin"))
@@ -147,7 +174,8 @@ static void recorder_stream_set_parameter(void * sp, const char * name,
   
   }
 
-static int recorder_stream_open(recorder_stream_t * s, int type, bg_mediaconnector_t * conn)
+static int recorder_stream_open(recorder_stream_t * s, int type,
+                                bg_mediaconnector_t * conn)
   {
   gavl_compression_info_t ci;
   gavl_audio_format_t afmt;
@@ -164,8 +192,11 @@ static int recorder_stream_open(recorder_stream_t * s, int type, bg_mediaconnect
   memset(&vfmt, 0, sizeof(vfmt));
 
   if(!s->plugin->open(s->h->priv, &afmt, &vfmt))
+    {
+    bg_log(BG_LOG_WARNING, LOG_DOMAIN, "Opening %s recorder failed",
+           (type == GAVF_STREAM_AUDIO ? "audio" : "video"));
     return 0;
-  
+    }
   if(type == GAVF_STREAM_AUDIO)
     {
     gavl_audio_source_t * asrc;
@@ -183,8 +214,13 @@ static int recorder_stream_open(recorder_stream_t * s, int type, bg_mediaconnect
 
 static int recorder_open(recorder_t * rec, bg_mediaconnector_t * conn)
   {
-  if(!recorder_stream_open(&rec->as, GAVF_STREAM_AUDIO, conn) &&
-     !recorder_stream_open(&rec->vs, GAVF_STREAM_VIDEO, conn))
+  int do_audio;
+  int do_video;
+
+  do_audio = recorder_stream_open(&rec->as, GAVF_STREAM_AUDIO, conn);
+  do_video = recorder_stream_open(&rec->vs, GAVF_STREAM_VIDEO, conn);
+  
+  if(!do_audio && !do_video)
     return 0;
   return 1;
   }
@@ -323,15 +359,23 @@ int main(int argc, char ** argv)
     bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Setting up plug writer failed");
     return -1;
     }
-  fprintf(stderr, "Entering main loop");
+  
+  bg_mediaconnector_start(&conn);
+
+  set_sigint_handler();
   
   /* Main loop */
   while(1)
     {
-    
+    if(got_sigint)
+      break;
+    if(!bg_mediaconnector_iteration(&conn))
+      break;
     }
-
+  
   /* Cleanup */
+
+  bg_plug_destroy(out_plug);
   
   return 0;
   }

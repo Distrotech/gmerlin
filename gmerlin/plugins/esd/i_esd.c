@@ -23,6 +23,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <unistd.h>
+#include <errno.h>
 
 #include <config.h>
 #include <gmerlin/translation.h>
@@ -124,14 +125,17 @@ static gavl_source_status_t
 read_func_esd(void * p, gavl_audio_frame_t ** f)
   {
   esd_t * priv = p;
-  
+
   (*f)->valid_samples = read(priv->esd_socket,
                              (*f)->samples.s_8,
                              ESD_BUF_SIZE);
 
   if((*f)->valid_samples < 0)
+    {
+    bg_log(BG_LOG_ERROR, LOG_DOMAIN, "reading samples failed: %s",
+           strerror(errno));
     return GAVL_SOURCE_EOF;
-  
+    }
   (*f)->valid_samples /= priv->bytes_per_frame;
   
   return ((*f)->valid_samples ? GAVL_SOURCE_OK : GAVL_SOURCE_EOF);
@@ -191,6 +195,7 @@ static int open_esd(void * data,
   else
     e->esd_socket = esd_record_stream(esd_format, format->samplerate,
                                       e->hostname, name);
+
   free(name);
   if(e->esd_socket < 0)
     {

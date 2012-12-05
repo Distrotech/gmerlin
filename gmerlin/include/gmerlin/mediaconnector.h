@@ -27,6 +27,9 @@
 #include <gavl/connectors.h>
 #include <gavl/gavf.h>
 
+#define BG_MEDIACONNECTOR_FLAG_EOF     (1<<0)
+#define BG_MEDIACONNECTOR_FLAG_DISCONT (1<<1)
+
 typedef struct
   {
   gavl_audio_source_t    * asrc;
@@ -40,8 +43,13 @@ typedef struct
 
   int timescale;
   int type;        // GAVF_STREAM_*
-
+  
+  int flags;
+  
   gavl_metadata_t m;
+  gavl_time_t time;
+
+  int64_t counter;
   } bg_mediaconnector_stream_t;
 
 typedef struct
@@ -78,5 +86,7 @@ bg_mediaconnector_start(bg_mediaconnector_t * conn);
 
 void
 bg_mediaconnector_free(bg_mediaconnector_t * conn);
+
+int bg_mediaconnector_iteration(bg_mediaconnector_t * conn);
 
 #endif // __MEDIACONNECTOR_H_

@@ -98,6 +98,7 @@ struct bg_plug_s
   int is_local;  
 
   bg_plugin_registry_t * plugin_reg;
+  gavf_options_t * opt;
   };
 
 static bg_plug_t * create_common()
@@ -105,6 +106,9 @@ static bg_plug_t * create_common()
   bg_plug_t * ret = calloc(1, sizeof(*ret));
   ret->g = gavf_create();
   ret->ph = gavf_get_program_header(ret->g);
+  ret->opt = gavf_get_options(ret->g);
+
+  gavf_options_set_flags(ret->opt, GAVF_OPT_FLAG_DUMP_HEADERS);
   return ret;
   }
   
@@ -414,6 +418,7 @@ static gavl_audio_frame_t * get_audio_func(void * priv)
   {
   stream_t * as = priv;
   as->p_ext = gavl_packet_sink_get_packet(as->sink_ext);
+  gavl_packet_alloc(as->p_ext, as->h->ci.max_packet_size);
   as->aframe->valid_samples = as->h->format.audio.samples_per_frame;
   gavl_audio_frame_set_channels(as->aframe, &as->h->format.audio,
                                 as->p_ext->data);
@@ -425,6 +430,9 @@ static gavl_sink_status_t put_audio_func(void * priv,
   {
   stream_t * as = priv;
   gavf_audio_frame_to_packet_metadata(f, as->p_ext);
+  as->p_ext->data_len = as->h->ci.max_packet_size;
+  fprintf(stderr, "Got audio packet\n");
+  gavl_packet_dump(as->p_ext);
   return gavl_packet_sink_put_packet(as->sink_ext, as->p_ext);
   }
 
@@ -432,6 +440,7 @@ static gavl_video_frame_t * get_video_func(void * priv)
   {
   stream_t * vs = priv;
   vs->p_ext = gavl_packet_sink_get_packet(vs->sink_ext);
+  gavl_packet_alloc(vs->p_ext, vs->h->ci.max_packet_size);
   gavl_video_frame_set_planes(vs->vframe, &vs->h->format.video,
                               vs->p_ext->data);
   return vs->vframe;
@@ -442,6 +451,10 @@ static gavl_sink_status_t put_video_func(void * priv,
   {
   stream_t * vs = priv;
   gavf_video_frame_to_packet_metadata(f, vs->p_ext);
+  vs->p_ext->data_len = vs->h->ci.max_packet_size;
+  
+  fprintf(stderr, "Got video packet\n");
+  gavl_packet_dump(vs->p_ext);
   return gavl_packet_sink_put_packet(vs->sink_ext, vs->p_ext);;
   }
 
@@ -790,12 +803,12 @@ int bg_plug_setup_writer(bg_plug_t * p, bg_mediaconnector_t * conn)
     if(!bg_plug_get_stream_sink(p, h, &as, &vs, &ps))
       return 0;
     
-    if(as && conn->streams->aconn)
-      gavl_audio_connector_connect(conn->streams->aconn, as);
-    else if(vs && conn->streams->vconn)
-      gavl_video_connector_connect(conn->streams->vconn, vs);
-    else if(ps && conn->streams->pconn)
-      gavl_packet_connector_connect(conn->streams->pconn, ps);
+    if(as && s->aconn)
+      gavl_audio_connector_connect(s->aconn, as);
+    else if(vs && s->vconn)
+      gavl_video_connector_connect(s->vconn, vs);
+    else if(ps && s->pconn)
+      gavl_packet_connector_connect(s->pconn, ps);
     else
       return 0;
     }
