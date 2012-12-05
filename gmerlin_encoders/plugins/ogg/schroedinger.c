@@ -995,7 +995,12 @@ static int close_schro(void * data)
 
   if(s->pc)
     bg_encoder_pts_cache_destroy(s->pc);
-  
+  if(s->gavl_frame)
+    {
+    gavl_video_frame_null(s->gavl_frame);
+    gavl_video_frame_destroy(s->gavl_frame);
+    }
+
   schro_encoder_free(s->enc);
   free(s);
   return ret;

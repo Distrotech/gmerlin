@@ -773,7 +773,7 @@ void bg_ffmpeg_codec_destroy(bg_ffmpeg_codec_context_t * ctx)
     free(ctx->avctx->stats_in);
     ctx->avctx->stats_in = NULL;
     }
-  if(ctx->flags & FLAG_INITIALIZED)
+//  if(ctx->flags & FLAG_INITIALIZED)
     avcodec_close(ctx->avctx);
   
   /* Destroy */

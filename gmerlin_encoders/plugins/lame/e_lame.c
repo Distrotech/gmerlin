@@ -79,6 +79,8 @@ static void destroy_lame(void * priv)
   {
   lame_priv_t * lame;
   lame = priv;
+  if(lame->codec)
+    bg_lame_destroy(lame->codec);
   free(lame);
   }
 

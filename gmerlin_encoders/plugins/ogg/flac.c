@@ -169,7 +169,8 @@ static int close_flacogg(void * data)
   flacogg = data;
 
   bg_flac_free(flacogg->enc);
-  
+  flacogg->enc = NULL;
+ 
   if(flacogg->frame)
     {
     free(flacogg->frame);

@@ -70,6 +70,9 @@ static void destroy_faac(void * priv)
   {
   faac_t * faac;
   faac = priv;
+  if(faac->codec)
+    bg_faac_destroy(faac->codec);
+
   
   free(faac);
   }
