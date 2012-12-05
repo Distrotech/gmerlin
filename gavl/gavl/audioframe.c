@@ -616,6 +616,7 @@ void gavl_audio_frame_set_channels(gavl_audio_frame_t * f,
   int i;
   int sample_size = gavl_bytes_per_sample(format->sample_format);
 
+  f->samples.u_8 = data;
   for(i = 0; i < format->num_channels; i++)
     f->channels.u_8[i] = data + i * sample_size * f->valid_samples;
   }

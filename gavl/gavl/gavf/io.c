@@ -17,6 +17,7 @@ void gavf_io_init(gavf_io_t * ret,
   ret->write_func = w;
   ret->seek_func = s;
   ret->close_func = c;
+  ret->flush_func = f;
   ret->priv = priv;
   }
 
