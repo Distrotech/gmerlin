@@ -289,6 +289,7 @@ int gavf_extension_write(gavf_io_t * io, uint32_t key, uint32_t len,
 #define GAVF_TAG_SYNC_INDEX     "GAVFSIDX"
 #define GAVF_TAG_PACKET_INDEX   "GAVFPIDX"
 #define GAVF_TAG_CHAPTER_LIST   "GAVFCHAP"
+#define GAVF_TAG_FOOTER         "GAVFFOOT"
 
 #define GAVF_TAG_PACKET_HEADER    "P"
 #define GAVF_TAG_PACKET_HEADER_C  'P'
@@ -404,6 +405,11 @@ struct gavf_s
   
   gavf_io_t pkt_io;
   gavf_buffer_t pkt_buf;
+
+  /* Imline metadata support */
+  gavf_io_t meta_io;
+  gavf_buffer_t meta_buf;
+  gavl_metadata_t metadata;
   
   uint64_t first_sync_pos;
   
@@ -423,3 +429,9 @@ struct gavf_s
 
   
   };
+
+/* Footer */
+
+int gavf_footer_check(gavf_t * g);
+void gavf_footer_init(gavf_t * g);
+int gavf_footer_write(gavf_t * g);

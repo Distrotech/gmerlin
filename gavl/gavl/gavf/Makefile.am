@@ -6,6 +6,7 @@ libgavf_la_SOURCES = \
 avconn.c        \
 buffer.c        \
 fileindex.c     \
+footer.c        \
 gavf.c          \
 gavfoptions.c   \
 gavi.c          \

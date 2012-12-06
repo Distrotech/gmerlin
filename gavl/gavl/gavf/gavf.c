@@ -85,13 +85,13 @@ static int write_sync_header(gavf_t * g, int stream, const gavl_packet_t * p)
   /* Write the sync header */
   if(gavf_io_write_data(g->io, (uint8_t*)GAVF_TAG_SYNC_HEADER, 8) < 8)
     return 0;
-#if 0
+#if 1
   fprintf(stderr, "Write sync header\n");
 #endif
   
   for(i = 0; i < g->ph.num_streams; i++)
     {
-#if 0
+#if 1
     fprintf(stderr, "PTS[%d]: %"PRId64"\n", i, g->sync_pts[i]);
 #endif
     if(!gavf_io_write_int64v(g->io, g->sync_pts[i]))
@@ -108,7 +108,6 @@ static int write_sync_header(gavf_t * g, int stream, const gavl_packet_t * p)
   
   return 1;
   }
-
 
 static int write_packet(gavf_t * g, int stream, const gavl_packet_t * p)
   {
@@ -143,6 +142,12 @@ static int write_packet(gavf_t * g, int stream, const gavl_packet_t * p)
     if(g->sync_distance)
       g->last_sync_time = gavl_time_unscale(s->timescale, p->pts);
     }
+
+  /* Write stored metadata if there is one */
+  if(g->meta_buf.len &&
+     (gavf_io_write_data(g->io,g->meta_buf.buf, g->meta_buf.len) < 0))
+    return 0;
+  gavf_buffer_reset(&g->meta_buf);
   
   // If a stream has B-frames, this won't be correct
   // for the next sync timestamp (it will be taken from the
@@ -468,9 +473,6 @@ static int handle_chunk(gavf_t * g, char * sig)
     {
     if(!gavf_program_header_read(g->io, &g->ph))
       return 0;
-
-    if(g->opt.flags & GAVF_OPT_FLAG_DUMP_HEADERS)
-      gavf_program_header_dump(&g->ph);
     
     init_streams(g);
     }
@@ -482,23 +484,16 @@ static int handle_chunk(gavf_t * g, char * sig)
     {
     if(gavf_sync_index_read(g->io, &g->si))
       g->opt.flags |= GAVF_OPT_FLAG_SYNC_INDEX;
-
-    if(g->opt.flags & GAVF_OPT_FLAG_DUMP_INDICES)
-      gavf_sync_index_dump(&g->si);
     }
   else if(!strncmp(sig, GAVF_TAG_PACKET_INDEX, 8))
     {
     if(gavf_packet_index_read(g->io, &g->pi))
       g->opt.flags |= GAVF_OPT_FLAG_PACKET_INDEX;
-    if(g->opt.flags & GAVF_OPT_FLAG_DUMP_INDICES)
-      gavf_packet_index_dump(&g->pi);
     }
   else if(!strncmp(sig, GAVF_TAG_CHAPTER_LIST, 8))
     {
     if(!(g->cl = gavf_read_chapter_list(g->io)))
       return 0;
-    if(g->opt.flags & GAVF_OPT_FLAG_DUMP_HEADERS)
-      gavl_chapter_list_dump(g->cl);
     }
   return 1;
   }
@@ -538,7 +533,8 @@ int gavf_open_read(gavf_t * g, gavf_io_t * io)
   
   /* Initialize packet buffer */
   gavf_io_init_buf_read(&g->pkt_io, &g->pkt_buf);
-
+  gavf_io_init_buf_read(&g->meta_io, &g->meta_buf);
+  
   /* Read up to the first sync header */
 
   while(1)
@@ -550,10 +546,7 @@ int gavf_open_read(gavf_t * g, gavf_io_t * io)
       {
       if(!gavf_file_index_read(g->io, &g->fi))
         return 0;
-
-      if(g->opt.flags & GAVF_OPT_FLAG_DUMP_HEADERS)
-        gavf_file_index_dump(&g->fi);
-      
+     
       if(g->io->seek_func)
         {
         for(i = 0; i < g->fi.num_entries; i++)
@@ -580,6 +573,31 @@ int gavf_open_read(gavf_t * g, gavf_io_t * io)
       break;
     }
 
+  gavf_footer_check(g);
+
+  /* Dump stuff */
+  
+  if(g->opt.flags & GAVF_OPT_FLAG_DUMP_HEADERS)
+    {
+    if(g->fi.num_entries)
+      gavf_file_index_dump(&g->fi);
+    
+    gavf_program_header_dump(&g->ph);
+
+    if(g->cl)
+      gavl_chapter_list_dump(g->cl);
+    }
+
+  if(g->opt.flags & GAVF_OPT_FLAG_DUMP_INDICES)
+    {
+    if((g->opt.flags & GAVF_OPT_FLAG_DUMP_INDICES) ||
+       (g->opt.flags & GAVF_OPT_FLAG_SYNC_INDEX))
+      gavf_sync_index_dump(&g->si);
+    if((g->opt.flags & GAVF_OPT_FLAG_DUMP_INDICES) ||
+       (g->opt.flags & GAVF_OPT_FLAG_PACKET_INDEX))
+      gavf_packet_index_dump(&g->pi);
+    }
+  
   gavf_reset(g);
   
   return 1;
@@ -616,7 +634,8 @@ const gavl_chapter_list_t * gavf_get_chapter_list(gavf_t * g)
 const gavf_packet_header_t * gavf_packet_read_header(gavf_t * g)
   {
   char c[8];
-
+  uint32_t len;
+  
   if(g->eof)
     return NULL;
   
@@ -633,10 +652,33 @@ const gavf_packet_header_t * gavf_packet_read_header(gavf_t * g)
       g->have_pkt_header = 1;
       return &g->pkthdr;
       }
-    else if(c[0] = GAVF_TAG_METADATA_HEADER_C)
+    else if(c[0] == GAVF_TAG_METADATA_HEADER_C)
       {
       /* Inline metadata */
-      
+      if(g->opt.metadata_cb)
+        {
+        gavl_metadata_t m;
+        gavl_metadata_init(&m);
+        
+        if(!gavf_io_read_buffer(g->io, &g->meta_buf) ||
+           !gavf_read_metadata(&g->meta_io, &m))
+          return 0;
+
+        if(!gavl_metadata_equal(&g->metadata, &m))
+          {
+          gavl_metadata_free(&g->metadata);
+          memcpy(&g->metadata, &m, sizeof(m));
+          g->opt.metadata_cb(g->opt.metadata_cb_priv, &m);
+          }
+        else
+          gavl_metadata_free(&m);
+        }
+      else
+        {
+        if(!gavf_io_read_uint32v(g->io, &len))
+          goto got_eof;
+        gavf_io_skip(g->io, len);
+        }
       }
     else
       {
@@ -658,6 +700,29 @@ const gavf_packet_header_t * gavf_packet_read_header(gavf_t * g)
   got_eof:
   g->eof = 1;
   return NULL;
+  }
+
+int gavf_update_metadata(gavf_t * g, const gavl_metadata_t * m)
+  {
+  if(gavl_metadata_equal(&g->metadata, m))
+    return 1;
+
+  gavl_metadata_free(&g->metadata);
+  gavl_metadata_init(&g->metadata);
+  gavl_metadata_copy(&g->metadata, m);
+  gavf_buffer_reset(&g->meta_buf);
+
+  /*
+   *  Write metadata to buffer.
+   *  Will be flushed after the next sync header.
+   */
+
+  if((gavf_io_write_data(&g->meta_io,
+                        (const uint8_t*)GAVF_TAG_METADATA_HEADER, 1) < 1) ||
+     !gavf_write_metadata(&g->meta_io, &g->metadata))
+    return 0;
+  
+  return 1;
   }
 
 void gavf_packet_skip(gavf_t * g)
@@ -773,6 +838,7 @@ int gavf_open_write(gavf_t * g, gavf_io_t * io,
   g->wr = 1;
   /* Initialize packet buffer */
   gavf_io_init_buf_write(&g->pkt_io, &g->pkt_buf);
+  gavf_io_init_buf_write(&g->meta_io, &g->meta_buf);
 
   if(m)
     gavl_metadata_copy(&g->ph.m, m);
@@ -820,7 +886,9 @@ int gavf_start(gavf_t * g)
   g->sync_distance = g->opt.sync_distance;
   
   init_streams(g);
-
+  
+  gavf_footer_init(g);
+  
   if(g->ph.num_streams == 1)
     {
     g->encoding_mode = ENC_SYNCHRONOUS;
@@ -964,6 +1032,9 @@ void gavf_close(gavf_t * g)
       if(!gavf_write_chapter_list(g->io, g->cl))
         return;
       }
+
+    if(!gavf_footer_write(g))
+      return;
     
     /* Rewrite file index */
     if(g->io->seek_func)
@@ -1008,6 +1079,8 @@ void gavf_close(gavf_t * g)
   gavl_packet_free(&g->write_pkt);
 
   gavf_buffer_free(&g->pkt_buf);
+  gavf_buffer_free(&g->meta_buf);
+  gavl_metadata_free(&g->metadata);
   
   free(g);
   }

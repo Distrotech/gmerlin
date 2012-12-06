@@ -110,6 +110,9 @@ GAVL_PUBLIC
 void gavf_options_set_flags(gavf_options_t *, int flags);
 
 GAVL_PUBLIC
+int gavf_options_get_flags(gavf_options_t *);
+
+GAVL_PUBLIC
 void gavf_options_set_sync_distance(gavf_options_t *,
                                     gavl_time_t sync_distance);
 
@@ -128,7 +131,6 @@ void gavf_close(gavf_t *);
 
 GAVL_PUBLIC
 gavf_options_t * gavf_get_options(gavf_t *);
-
 
 /* Read support */
 
@@ -232,7 +234,7 @@ GAVL_PUBLIC
 int gavf_write_audio_frame(gavf_t *, int stream, gavl_audio_frame_t * frame);
 
 GAVL_PUBLIC
-int gavf_update_metadata(gavf_t *, gavl_metadata_t * m);
+int gavf_update_metadata(gavf_t *, const gavl_metadata_t * m);
 
 GAVL_PUBLIC gavl_packet_sink_t *
 gavf_get_packet_sink(gavf_t *, int stream);

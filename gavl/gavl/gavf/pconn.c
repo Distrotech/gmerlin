@@ -97,7 +97,7 @@ put_packet_func(void * priv, gavl_packet_t * p)
   gavf_stream_t * s = priv;
 
   /* Update footer */
-#if 0
+#if 1
   fprintf(stderr, "put packet %d\n", s->h->id);
   gavl_packet_dump(p);
 #endif
