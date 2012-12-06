@@ -203,7 +203,9 @@ static int open_esd(void * data,
     return 0;
     }
   e->bytes_per_frame = 4;
-  e->src = gavl_audio_source_create(read_func_esd, e, 0, format);
+  e->src = gavl_audio_source_create(read_func_esd, e,
+                                    GAVL_SOURCE_SRC_FRAMESIZE_MAX,
+                                    format);
   return 1;
   }
 

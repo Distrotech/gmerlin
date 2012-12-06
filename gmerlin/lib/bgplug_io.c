@@ -46,7 +46,7 @@
 
 /* stdin / stdout */
 
-static gavf_io_t * open_dash(int wr, int * do_shm)
+static gavf_io_t * open_dash(int wr, int * flags)
   {
   struct stat st;
   int fd;
@@ -78,7 +78,7 @@ static gavf_io_t * open_dash(int wr, int * do_shm)
     return 0;
     }
   if(S_ISFIFO(st.st_mode)) /* Pipe: Use local connection */
-    *do_shm = 1;
+    *flags |= BG_PLUG_IO_IS_LOCAL;
   return gavf_io_create_file(f, wr, 0, 0);
   }
 
@@ -264,10 +264,9 @@ static gavf_io_t * open_unix(const char * addr, int wr)
 
 /* File */
 
-static gavf_io_t * open_file(const char * file, int wr, int * do_shm)
+static gavf_io_t * open_file(const char * file, int wr, int * flags)
   {
   FILE * f;
-  int can_seek = 0;
   struct stat st;
   
   if(stat(file, &st))
@@ -281,28 +280,28 @@ static gavf_io_t * open_file(const char * file, int wr, int * do_shm)
     }
 
   if(S_ISFIFO(st.st_mode)) /* Pipe: Use local connection */
-    *do_shm = 1;
+    *flags |= BG_PLUG_IO_IS_LOCAL;
   else if(S_ISREG(st.st_mode))
-    can_seek = 1;
+    *flags |= BG_PLUG_IO_CAN_SEEK;
   
   f = fopen(file, (wr ? "w" : "r"));
   if(!f)
     return NULL;
-  return gavf_io_create_file(f, wr, can_seek, 1);
+  return gavf_io_create_file(f, wr, !!(*flags & BG_PLUG_IO_CAN_SEEK), 1);
   }
 
 gavf_io_t * bg_plug_io_open_location(const char * location,
-                                     int wr, int * local)
+                                     int wr, int * flags)
   {
-  *local = 0;
+  *flags = 0;
   
   if(!strcmp(location, "-"))
-    return open_dash(wr, local);
+    return open_dash(wr, flags);
   else if(!strncmp(location, "tcp://", 6))
     return open_tcp(location, wr);
   else if(!strncmp(location, "unix://", 7))
     {
-    *local = 1;
+    *flags |= BG_PLUG_IO_IS_LOCAL;
     /* Local UNIX domain socket */
     return open_unix(location, wr);
     }
@@ -310,13 +309,13 @@ gavf_io_t * bg_plug_io_open_location(const char * location,
           (location[0] == '<'))
     {
     /* Pipe */
-    *local = 1;
+    *flags |= BG_PLUG_IO_IS_LOCAL;
     return open_pipe(location, wr);
     }
   else
     {
     /* Regular file */
-    return open_file(location, wr, local);
+    return open_file(location, wr, flags);
     }
   return NULL;
   }
@@ -338,12 +337,13 @@ static int socket_is_local(int fd)
   }
 
 gavf_io_t * bg_plug_io_open_socket(int fd,
-                                   int wr, int * local)
+                                   int wr, int * flags)
   {
   socket_t * s;
-  
-  *local = socket_is_local(fd);
 
+  if(socket_is_local(fd))
+    *flags |= BG_PLUG_IO_IS_LOCAL;
+  
   /* TODO: Handshake */
 
   /* Return */

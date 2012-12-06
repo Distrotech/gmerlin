@@ -95,7 +95,7 @@ struct bg_plug_s
   int num_text_streams;
   stream_t * text_streams;
   
-  int is_local;  
+  int io_flags;  
 
   bg_plugin_registry_t * plugin_reg;
   gavf_options_t * opt;
@@ -431,8 +431,10 @@ static gavl_sink_status_t put_audio_func(void * priv,
   stream_t * as = priv;
   gavf_audio_frame_to_packet_metadata(f, as->p_ext);
   as->p_ext->data_len = as->h->ci.max_packet_size;
+#ifdef DUMP_PACKETS
   fprintf(stderr, "Got audio packet\n");
   gavl_packet_dump(as->p_ext);
+#endif
   return gavl_packet_sink_put_packet(as->sink_ext, as->p_ext);
   }
 
@@ -452,9 +454,10 @@ static gavl_sink_status_t put_video_func(void * priv,
   stream_t * vs = priv;
   gavf_video_frame_to_packet_metadata(f, vs->p_ext);
   vs->p_ext->data_len = vs->h->ci.max_packet_size;
-  
+#ifdef DUMP_PACKETS
   fprintf(stderr, "Got video packet\n");
   gavl_packet_dump(vs->p_ext);
+#endif
   return gavl_packet_sink_put_packet(vs->sink_ext, vs->p_ext);;
   }
 
@@ -494,7 +497,8 @@ static int init_write_common(bg_plug_t * p, stream_t * s)
   {
   s->sink_int = gavf_get_packet_sink(p->g, s->index);
   
-  if(p->is_local && (s->h->ci.max_packet_size > SHM_THRESHOLD))
+  if((p->io_flags & BG_PLUG_IO_IS_LOCAL) &&
+     (s->h->ci.max_packet_size > SHM_THRESHOLD))
     {
     s->shm_size = s->h->ci.max_packet_size + GAVL_PACKET_PADDING;
     s->sp = bg_shm_pool_create(s->shm_size, 1);
@@ -579,6 +583,15 @@ int bg_plug_open(bg_plug_t * p, gavf_io_t * io,
   
   if(p->wr)
     {
+    /* Force writing at least a sync index if the output
+       is seekable */
+    if(p->io_flags & BG_PLUG_IO_CAN_SEEK)
+      {
+      int flags = gavf_options_get_flags(p->opt);
+      flags |= GAVF_OPT_FLAG_SYNC_INDEX;
+      gavf_options_set_flags(p->opt, flags);
+      }
+    
     if(!gavf_open_write(p->g, p->io, m, cl))
       {
       bg_log(BG_LOG_ERROR, LOG_DOMAIN, "gavf_open_write failed");
@@ -602,7 +615,8 @@ int bg_plug_open_location(bg_plug_t * p, const char * location,
                           const gavl_metadata_t * m,
                           const gavl_chapter_list_t * cl)
   {
-  gavf_io_t * io = bg_plug_io_open_location(location, p->wr, &p->is_local);
+  gavf_io_t * io = bg_plug_io_open_location(location, p->wr,
+                                            &p->io_flags);
   if(io)
     return bg_plug_open(p, io, m, cl);
   else

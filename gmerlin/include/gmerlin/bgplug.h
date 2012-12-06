@@ -62,7 +62,6 @@ gavf_t * bg_plug_get_gavf(bg_plug_t*);
 
 int bg_plug_setup_writer(bg_plug_t*, bg_mediaconnector_t * conn);
 
-
 /* Needs to be called before any I/O is done */
 int bg_plug_start(bg_plug_t * p);
 
@@ -90,10 +89,13 @@ bg_plug_header_from_id(bg_plug_t * p, uint32_t id);
 
 /* Called by bg_plug_open */
 
+#define BG_PLUG_IO_IS_LOCAL (1<<0)
+#define BG_PLUG_IO_CAN_SEEK (1<<1)
+
 gavf_io_t * bg_plug_io_open_location(const char * location,
-                                     int wr, int * local);
+                                     int wr, int * flags);
 
 gavf_io_t * bg_plug_io_open_socket(int fd,
-                                   int wr, int * local);
+                                   int wr, int * flags);
 
 #endif // __BGPLUG_H_
