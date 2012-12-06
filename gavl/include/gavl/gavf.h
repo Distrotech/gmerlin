@@ -190,6 +190,10 @@ GAVL_PUBLIC
 void gavf_audio_frame_to_packet_metadata(const gavl_audio_frame_t * frame,
                                          gavl_packet_t * p);
 
+GAVL_PUBLIC
+void gavf_shrink_audio_frame(gavl_audio_frame_t * f, 
+                             gavl_packet_t * p, 
+                             const gavl_audio_format_t * format);
 
 /* Write support */
 

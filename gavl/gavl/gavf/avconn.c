@@ -3,6 +3,44 @@
 #include <gavfprivate.h>
 
 /*
+ *  Utility
+ */
+
+void gavf_shrink_audio_frame(gavl_audio_frame_t * f, 
+                             gavl_packet_t * p, 
+                             const gavl_audio_format_t * format)
+  {
+  int bytes_per_sample, i;
+  if(f->valid_samples == format->samples_per_frame)
+    return;
+
+  bytes_per_sample = gavl_bytes_per_sample(f->sample_format);
+  switch(format->interleave_mode)
+    {
+    case GAVL_INTERLEAVE_ALL:
+      break;
+    case GAVL_INTERLEAVE_NONE:
+      for(i = 1; i < f->num_channels; i++)
+        memmove(p->data+bytes_per_sample*i*f->valid_samples, 
+                p->data+bytes_per_sample*i*format->samples_per_frame,
+                bytes_per_sample * f->valid_samples);
+      break;
+    case GAVL_INTERLEAVE_2:
+      for(i = 2; i < f->num_channels; i += 2)
+        memmove(p->data+bytes_per_sample*i*f->valid_samples,
+                p->data+bytes_per_sample*i*format->samples_per_frame,
+                2 * bytes_per_sample * f->valid_samples);
+      if(f->num_channels % 2)
+        memmove(p->data+bytes_per_sample*(f->num_channels-1)*f->valid_samples,    
+                p->data+bytes_per_sample*(f->num_channels-1)*format->samples_per_frame,
+                bytes_per_sample * f->valid_samples);
+      break;
+    }
+  p->data_size = f->valid_samples * f->num_channels * gavl_bytes_per_sample(f->sample_format);
+  }
+
+
+/*
  * Audio source
  */
 
