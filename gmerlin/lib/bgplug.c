@@ -431,6 +431,8 @@ static gavl_sink_status_t put_audio_func(void * priv,
   stream_t * as = priv;
   gavf_audio_frame_to_packet_metadata(f, as->p_ext);
   as->p_ext->data_len = as->h->ci.max_packet_size;
+  gavf_shrink_audio_frame(as->aframe, as->p_ext, &as->h->format.audio);
+
 #ifdef DUMP_PACKETS
   fprintf(stderr, "Got audio packet\n");
   gavl_packet_dump(as->p_ext);
