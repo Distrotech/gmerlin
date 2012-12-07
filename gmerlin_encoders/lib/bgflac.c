@@ -445,6 +445,9 @@ bg_flac_start_uncompressed(bg_flac_t * flac,
 
   /* Initialize */
 
+  /* Set vendor string: Must be done early because it's needed in the streaminfo callback */
+  gavl_metadata_set(stream_metadata, GAVL_META_SOFTWARE, FLAC__VENDOR_STRING);
+  
   flac->ci.id = GAVL_CODEC_ID_FLAC;
   
   if(FLAC__stream_encoder_init_stream(flac->enc,
@@ -460,7 +463,6 @@ bg_flac_start_uncompressed(bg_flac_t * flac,
   
   //  flac->samples_per_block =
   //    FLAC__stream_encoder_get_blocksize(flac->enc);
-  gavl_metadata_set(stream_metadata, GAVL_META_SOFTWARE, FLAC__VENDOR_STRING);
   
   gavl_compression_info_copy(ci, &flac->ci);
   return gavl_audio_sink_create(NULL, encode_audio_func, flac, flac->format);
