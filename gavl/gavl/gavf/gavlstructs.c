@@ -614,8 +614,6 @@ int gavf_read_gavl_packet(gavf_io_t * io,
     {
     if(s->packet_duration)
       p->duration = s->packet_duration;
-    else if(s->block_align)
-      p->duration = p->data_len / s->block_align;
     }
   /* p->duration can be 0 for the first packet in a vorbis stream */
   

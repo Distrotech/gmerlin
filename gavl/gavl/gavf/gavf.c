@@ -295,25 +295,25 @@ gavl_sink_status_t gavf_flush_packets(gavf_t * g, gavf_stream_t * s)
 static void gavf_stream_init_audio(gavf_t * g, gavf_stream_t * s)
   {
   int sample_size;
-  s->timescale = s->h->format.audio.samplerate;
 
-  /* Figure out the samples per frame */
-  if(gavl_compression_constant_frame_samples(s->h->ci.id))
+  
+  s->timescale = s->h->format.audio.samplerate;
+  
+  if(s->h->ci.id == GAVL_CODEC_ID_NONE)
+    sample_size = gavl_bytes_per_sample(s->h->format.audio.sample_format);
+  else
+    sample_size = gavl_compression_get_sample_size(s->h->ci.id);
+  
+  /* Figure out the packet duration */
+  if(gavl_compression_constant_frame_samples(s->h->ci.id) ||
+     sample_size)
     s->packet_duration = s->h->format.audio.samples_per_frame;
-  else if(s->h->ci.id == GAVL_CODEC_ID_NONE)
-    s->block_align =
-      gavl_bytes_per_sample(s->h->format.audio.sample_format) *
-      s->h->format.audio.num_channels;
-  else if((sample_size = gavl_compression_get_sample_size(s->h->ci.id)))
-    s->block_align =
-      sample_size * s->h->format.audio.num_channels;
   else
     s->flags |= STREAM_FLAG_HAS_DURATION;
-
-  if(s->h->ci.id == GAVL_CODEC_ID_NONE)
+  
+  if(sample_size)
     s->h->ci.max_packet_size =
-      s->block_align *
-      s->h->format.audio.samples_per_frame;
+      s->h->format.audio.samples_per_frame * s->h->format.audio.num_channels * sample_size;
   
   if(g->wr)
     {

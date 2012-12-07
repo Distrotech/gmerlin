@@ -166,8 +166,6 @@ typedef struct
   
   gavf_packet_buffer_t * pb;
   
-  int block_align;
-
   gavl_packet_source_t * psrc;
   gavl_packet_sink_t * psink;
 

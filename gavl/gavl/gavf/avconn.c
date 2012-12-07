@@ -1,4 +1,4 @@
-// #include <stdlib.h>
+#include <string.h>
 
 #include <gavfprivate.h>
 
@@ -14,29 +14,29 @@ void gavf_shrink_audio_frame(gavl_audio_frame_t * f,
   if(f->valid_samples == format->samples_per_frame)
     return;
 
-  bytes_per_sample = gavl_bytes_per_sample(f->sample_format);
+  bytes_per_sample = gavl_bytes_per_sample(format->sample_format);
   switch(format->interleave_mode)
     {
     case GAVL_INTERLEAVE_ALL:
       break;
     case GAVL_INTERLEAVE_NONE:
-      for(i = 1; i < f->num_channels; i++)
+      for(i = 1; i < format->num_channels; i++)
         memmove(p->data+bytes_per_sample*i*f->valid_samples, 
                 p->data+bytes_per_sample*i*format->samples_per_frame,
                 bytes_per_sample * f->valid_samples);
       break;
     case GAVL_INTERLEAVE_2:
-      for(i = 2; i < f->num_channels; i += 2)
+      for(i = 2; i < format->num_channels; i += 2)
         memmove(p->data+bytes_per_sample*i*f->valid_samples,
                 p->data+bytes_per_sample*i*format->samples_per_frame,
                 2 * bytes_per_sample * f->valid_samples);
-      if(f->num_channels % 2)
-        memmove(p->data+bytes_per_sample*(f->num_channels-1)*f->valid_samples,    
-                p->data+bytes_per_sample*(f->num_channels-1)*format->samples_per_frame,
+      if(format->num_channels % 2)
+        memmove(p->data+bytes_per_sample*(format->num_channels-1)*f->valid_samples,    
+                p->data+bytes_per_sample*(format->num_channels-1)*format->samples_per_frame,
                 bytes_per_sample * f->valid_samples);
       break;
     }
-  p->data_size = f->valid_samples * f->num_channels * gavl_bytes_per_sample(f->sample_format);
+  p->data_len = f->valid_samples * format->num_channels * bytes_per_sample;
   }
 
 
@@ -149,44 +149,14 @@ put_audio_func(void * priv, gavl_audio_frame_t * frame)
   {
   gavl_sink_status_t st;
   gavf_stream_t * s = priv;
-  gavl_audio_frame_t * tmp_frame;
-  gavl_packet_t tmp_packet;
   
-  if(frame->valid_samples == s->h->format.audio.samples_per_frame)
-    {
-    gavf_audio_frame_to_packet_metadata(s->aframe, s->p);
-    s->p->data_len = s->h->ci.max_packet_size;
-    st = gavl_packet_sink_put_packet(s->psink, s->p);
-    s->p = NULL;
-    return st;
-    }
- 
-  /* Incomplete (hopefully last) frame */
-  gavl_packet_init(&tmp_packet);
-  gavl_packet_alloc(&tmp_packet, frame->valid_samples * s->block_align);
-  tmp_frame = gavl_audio_frame_create(NULL);
-  tmp_frame->valid_samples = frame->valid_samples;
-
-  gavl_audio_frame_set_channels(tmp_frame, &s->h->format.audio,
-                                tmp_packet.data);
-    
-  gavl_audio_frame_copy(&s->h->format.audio,
-                        tmp_frame,
-                        frame,
-                        0,
-                        0,
-                        frame->valid_samples,
-                        tmp_frame->valid_samples);
-
-  gavf_audio_frame_to_packet_metadata(frame, &tmp_packet);
-  tmp_packet.data_len = frame->valid_samples * s->block_align;
-
-  st = gavl_packet_sink_put_packet(s->psink, &tmp_packet);
+  gavf_audio_frame_to_packet_metadata(s->aframe, s->p);
+  s->p->data_len = s->h->ci.max_packet_size;
   
-  gavl_audio_frame_null(tmp_frame);
-  gavl_audio_frame_destroy(tmp_frame);
-  gavl_packet_free(&tmp_packet);
-  
+  gavf_shrink_audio_frame(s->aframe, s->p, &s->h->format.audio);
+
+  st = gavl_packet_sink_put_packet(s->psink, s->p);
+  s->p = NULL;
   return st;
   }
 
