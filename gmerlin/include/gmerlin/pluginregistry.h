@@ -498,6 +498,41 @@ bg_plugin_registry_create_encoder_parameters(bg_plugin_registry_t * reg,
                                              uint32_t flag_mask);
 
 /** \ingroup plugin_registry
+ *  \brief Create a parameter array for compressors
+ *  \param plugin_reg A plugin registry
+ *  \param flag_mask Mask of all returned plugin flags
+ *  \returns Parameter array for setting up encoders
+ *
+ *  Free the returned parameters with
+ *  \ref bg_parameter_info_destroy_array
+ *
+ */
+
+bg_parameter_info_t *
+bg_plugin_registry_create_compressor_parameters(bg_plugin_registry_t * reg,
+                                                uint32_t flag_mask);
+
+/** \ingroup plugin_registry
+ *  \brief Set a compressor parameter
+ *  \param plugin_reg A plugin registry
+ *  \param plugin Address of a plugin handle
+ *  \param name Parameter name
+ *  \param val Value
+ *
+ *  Call this with the parameters returned by
+ *  \ref bg_plugin_registry_create_encoder_parameters and afterwards
+ *  *plugin will be a codec plugin with all parameters set.
+ */
+
+void
+bg_plugin_registry_set_compressor_parameter(bg_plugin_registry_t * plugin_reg,
+                                            bg_plugin_handle_t ** plugin,
+                                            const char * name,
+                                            const bg_parameter_value_t * val);
+
+
+
+/** \ingroup plugin_registry
  *  \brief Get the name for an encoding plugin
  *  \param plugin_reg A plugin registry
  *  \param s An encoder section (see \ref bg_plugin_registry_create_encoder_parameters)

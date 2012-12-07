@@ -3318,3 +3318,74 @@ bg_encoder_section_store_in_registry(bg_plugin_registry_t * plugin_reg,
     bg_parameter_info_destroy_array(parameters_priv);
   
   }
+
+static const bg_parameter_info_t compressor_parameters[] =
+  {
+    {
+      .name = "codec",
+      .long_name = TRS("Codec"),
+      .type = BG_PARAMETER_MULTI_MENU,
+      .flags = BG_PARAMETER_PLUGIN,
+      .multi_names = (const char *[]){ "none", NULL },
+      .multi_labels = (const char *[]){ TRS("None"), NULL },
+      .multi_descriptions = (const char *[]){ TRS("Write stream as uncompressed if possible"), NULL },
+      .multi_parameters = (const bg_parameter_info_t*[]) { NULL, NULL },
+    },
+    { /* End */ },
+  };
+
+
+bg_parameter_info_t *
+bg_plugin_registry_create_compressor_parameters(bg_plugin_registry_t * plugin_reg,
+                                                uint32_t flag_mask)
+  {
+  bg_parameter_info_t * ret = bg_parameter_info_copy_array(compressor_parameters);
+  bg_plugin_registry_set_parameter_info(plugin_reg, BG_PLUGIN_CODEC, flag_mask, ret);
+  return ret;
+  }
+
+void
+bg_plugin_registry_set_compressor_parameter(bg_plugin_registry_t * plugin_reg,
+                                            bg_plugin_handle_t ** plugin,
+                                            const char * name,
+                                            const bg_parameter_value_t * val)
+  {
+  if(!name)
+    {
+    if(*plugin && (*plugin)->plugin->set_parameter)
+      (*plugin)->plugin->set_parameter((*plugin)->priv, NULL, NULL);
+    return;
+    }
+
+  if(!strcmp(name, "codec"))
+    {
+    if(*plugin && (!val->val_str || strcmp((*plugin)->info->name, val->val_str)))
+      {
+      bg_plugin_unref(*plugin);
+      *plugin = NULL;
+      }
+
+    if(val->val_str && !strcmp(val->val_str, "none"))
+      return;
+    
+    if(val->val_str && !(*plugin))
+      {
+      const bg_plugin_info_t * info;
+      info = bg_plugin_find_by_name(plugin_reg, val->val_str);
+      if(!info)
+        {
+        bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Cannot find plugin %s",
+               val->val_str);
+        return;
+        }
+      *plugin = bg_plugin_load(plugin_reg, info);
+      }
+    
+    }
+  else
+    {
+    if(*plugin)
+      (*plugin)->plugin->set_parameter((*plugin)->priv, name, val);
+    }
+  
+  }

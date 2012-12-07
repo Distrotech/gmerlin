@@ -206,29 +206,6 @@ bg_gavf_set_parameter(void * data, const char * name,
 
 /* Codec parameters */
 
-static const bg_parameter_info_t codec_parameters[] =
-  {
-    {
-      .name = "codec",
-      .long_name = TRS("Codec"),
-      .type = BG_PARAMETER_MULTI_MENU,
-      .flags = BG_PARAMETER_PLUGIN,
-      .multi_names = (const char *[]){ "none", NULL },
-      .multi_labels = (const char *[]){ TRS("None"), NULL },
-      .multi_descriptions = (const char *[]){ TRS("Write stream as uncompressed if possible"), NULL },
-      .multi_parameters = (const bg_parameter_info_t*[]) { NULL, NULL },
-    },
-    { /* End */ },
-  };
-
-static bg_parameter_info_t * create_codec_parameters(bg_plugin_registry_t * plugin_reg,
-                                                     int flag_mask)
-  {
-  bg_parameter_info_t * ret = bg_parameter_info_copy_array(codec_parameters);
-  bg_plugin_registry_set_parameter_info(plugin_reg, BG_PLUGIN_CODEC, flag_mask, ret);
-  return ret;
-  }
-
 static const bg_parameter_info_t *
 bg_gavf_get_audio_parameters(void * data)
   {
@@ -237,7 +214,8 @@ bg_gavf_get_audio_parameters(void * data)
   if(!f->audio_parameters)
     {
     f->audio_parameters =
-      create_codec_parameters(f->plugin_reg, BG_PLUGIN_AUDIO_COMPRESSOR);
+      bg_plugin_registry_create_compressor_parameters(f->plugin_reg,
+                                                      BG_PLUGIN_AUDIO_COMPRESSOR);
     }
   return f->audio_parameters;
   }
@@ -250,62 +228,23 @@ bg_gavf_get_video_parameters(void * data)
   if(!f->video_parameters)
     {
     f->video_parameters =
-      create_codec_parameters(f->plugin_reg, BG_PLUGIN_VIDEO_COMPRESSOR);
+      bg_plugin_registry_create_compressor_parameters(f->plugin_reg,
+                                                      BG_PLUGIN_VIDEO_COMPRESSOR);
     }
   return f->video_parameters;
   }
 
 /* Set parameters */
 
-static void set_codec_parameter(bg_gavf_t * f, stream_common_t * s, const char * name,
-                                const bg_parameter_value_t * val)
-  {
-  if(!name)
-    {
-    if(s->plugin && s->plugin->plugin->set_parameter)
-      s->plugin->plugin->set_parameter(s->plugin->priv, NULL, NULL);
-    return;
-    }
-
-  if(!strcmp(name, "codec"))
-    {
-    if(s->plugin && (!val->val_str || strcmp(s->plugin->info->name, val->val_str)))
-      {
-      bg_plugin_unref(s->plugin);
-      s->plugin = NULL;
-      }
-
-    if(val->val_str && !strcmp(val->val_str, "none"))
-      return;
-    
-    if(val->val_str && !s->plugin)
-      {
-      const bg_plugin_info_t * info;
-      info = bg_plugin_find_by_name(f->plugin_reg, val->val_str);
-      if(!info)
-        {
-        bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Cannot find plugin %s",
-               val->val_str);
-        return;
-        }
-      s->plugin = bg_plugin_load(f->plugin_reg, info);
-      }
-    
-    }
-  else
-    {
-    if(s->plugin)
-      s->plugin->plugin->set_parameter(s->plugin->priv, name, val);
-    }
-  
-  }
-
 static void
 bg_gavf_set_audio_parameter(void * data, int stream, const char * name,
                             const bg_parameter_value_t * val)
   {
   bg_gavf_t * f = data;
-  set_codec_parameter(f, &f->audio_streams[stream].com, name, val);
+
+  bg_plugin_registry_set_compressor_parameter(f->plugin_reg,
+                                              &f->audio_streams[stream].com.plugin,
+                                              name, val);
   }
 
 static void
@@ -313,7 +252,9 @@ bg_gavf_set_video_parameter(void * data, int stream, const char * name,
                             const bg_parameter_value_t * val)
   {
   bg_gavf_t * f = data;
-  set_codec_parameter(f, &f->video_streams[stream].com, name, val);
+  bg_plugin_registry_set_compressor_parameter(f->plugin_reg,
+                                              &f->video_streams[stream].com.plugin,
+                                              name, val);
   }
 
 static void
@@ -824,8 +765,10 @@ bg_plugin_info_t * bg_gavfenc_info(bg_plugin_registry_t * reg)
 
   /* TODO: Create audio and video codec parameters */
 
-  ret->audio_parameters = create_codec_parameters(reg, BG_PLUGIN_AUDIO_COMPRESSOR);
-  ret->video_parameters = create_codec_parameters(reg, BG_PLUGIN_VIDEO_COMPRESSOR);
+  ret->audio_parameters =
+    bg_plugin_registry_create_compressor_parameters(reg, BG_PLUGIN_AUDIO_COMPRESSOR);
+  ret->video_parameters =
+    bg_plugin_registry_create_compressor_parameters(reg, BG_PLUGIN_VIDEO_COMPRESSOR);
 
   ret->max_audio_streams = -1;
   ret->max_video_streams = -1;
