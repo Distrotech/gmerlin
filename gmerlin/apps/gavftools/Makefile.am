@@ -10,8 +10,7 @@ noinst_LTLIBRARIES = \
 libgavftools.la
 
 libgavftools_la_SOURCES = \
-gavftools.c \
-program.c
+gavftools.c
 
 noinst_HEADERS = gavftools.h
 

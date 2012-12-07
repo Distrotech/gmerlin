@@ -86,7 +86,6 @@ int bg_plug_add_text_stream(bg_plug_t * p,
                             uint32_t timescale,
                             const gavl_metadata_t * m);
 
-
 int bg_plug_get_stream_source(bg_plug_t * p,
                               const gavf_stream_header_t * h,
                               gavl_audio_source_t ** as,
@@ -105,6 +104,13 @@ bg_plug_header_from_index(bg_plug_t * p, int index);
 
 const gavf_stream_header_t *
 bg_plug_header_from_id(bg_plug_t * p, uint32_t id);
+
+/* Set parameters */
+
+void
+bg_plug_set_compressor_config(bg_plug_t * p,
+                              const bg_parameter_info_t * ac_params,
+                              const bg_parameter_info_t * vc_params);
 
 /* Called by bg_plug_open */
 

@@ -109,9 +109,17 @@ struct bg_plug_s
   bg_plugin_registry_t * plugin_reg;
   gavf_options_t * opt;
 
-  bg_parameter_info_t * audio_compression_parameters;
-  bg_parameter_info_t * video_compression_parameters;
+  const bg_parameter_info_t * ac_params;
+  const bg_parameter_info_t * vc_params;
   };
+
+void bg_plug_set_compressor_config(bg_plug_t * p,
+                                   const bg_parameter_info_t * ac_params,
+                                   const bg_parameter_info_t * vc_params)
+  {
+  p->ac_params = ac_params;
+  p->vc_params = vc_params;
+  }
 
 static bg_plug_t * create_common()
   {
@@ -146,6 +154,11 @@ static void free_streams(stream_t * streams, int num)
   for(i = 0; i < num; i++)
     {
     s = streams + i;
+
+    /* Flush the codecs, might write some final packets */
+    if(s->codec_handle)
+      bg_plugin_unref(s->codec_handle);
+    
     if(s->src_ext && (s->src_ext != s->src_int))
       gavl_packet_source_destroy(s->src_ext);
     if(s->sink_ext && (s->sink_ext != s->sink_int))
@@ -186,12 +199,6 @@ void bg_plug_destroy(bg_plug_t * p)
   free_streams(p->video_streams, p->num_video_streams);
   free_streams(p->text_streams, p->num_text_streams);
   gavf_close(p->g);
-
-  if(p->audio_compression_parameters)
-    bg_parameter_info_destroy_array(p->audio_compression_parameters);
-  if(p->video_compression_parameters)
-    bg_parameter_info_destroy_array(p->video_compression_parameters);
-  
   
   free(p);
   }
@@ -860,18 +867,14 @@ int bg_plug_add_audio_stream(bg_plug_t * p,
   gavl_compression_info_copy(&s->ci, ci);
   gavl_audio_format_copy(&s->afmt, format);
 
-  if(encode_section && (s->ci.id == GAVL_CODEC_ID_NONE))
+  if(encode_section && (s->ci.id == GAVL_CODEC_ID_NONE) &&
+     p->ac_params)
     {
     set_codec_parameter_t sc;
-    if(!p->audio_compression_parameters)
-      p->audio_compression_parameters =
-        bg_plugin_registry_create_compressor_parameters(p->plugin_reg,
-                                                        BG_PLUGIN_AUDIO_COMPRESSOR);
-
     sc.s = s;
     sc.plugin_reg = p->plugin_reg;
     bg_cfg_section_apply(encode_section,
-                         p->audio_compression_parameters,
+                         p->vc_params,
                          set_codec_parameter,
                          &sc);
     }
@@ -889,23 +892,18 @@ int bg_plug_add_video_stream(bg_plug_t * p,
   gavl_compression_info_copy(&s->ci, ci);
   gavl_video_format_copy(&s->vfmt, format);
 
-  if(encode_section && (s->ci.id == GAVL_CODEC_ID_NONE))
+  if(encode_section && (s->ci.id == GAVL_CODEC_ID_NONE) &&
+     p->vc_params)
     {
     set_codec_parameter_t sc;
-    if(!p->video_compression_parameters)
-      p->video_compression_parameters =
-        bg_plugin_registry_create_compressor_parameters(p->plugin_reg,
-                                                        BG_PLUGIN_VIDEO_COMPRESSOR);
-
     sc.s = s;
     sc.plugin_reg = p->plugin_reg;
     bg_cfg_section_apply(encode_section,
-                         p->video_compression_parameters,
+                         p->vc_params,
                          set_codec_parameter,
                          &sc);
-    
     }
-
+  
   return p->num_video_streams-1;
   }
 

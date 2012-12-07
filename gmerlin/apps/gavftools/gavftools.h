@@ -34,34 +34,37 @@ extern bg_cfg_registry_t * cfg_reg;
 void gavftools_init_registries();
 void gavftools_destroy_registries();
 
-/* Program */
+const bg_parameter_info_t *
+gavftools_ac_params(void);
 
-typedef struct bg_program_s bg_program_t;
+const bg_parameter_info_t *
+gavftools_vc_params(void);
 
-bg_program_t * bg_program_create();
-void bg_program_destroy(bg_program_t *);
+bg_cfg_section_t *
+gavftools_ac_section(void);
 
-void bg_program_add_audio_stream(bg_program_t *,
-                                 gavl_audio_source_t * asrc,
-                                 gavl_packet_source_t * psrc,
-                                 const gavl_metadata_t * m);
+bg_cfg_section_t *
+gavftools_vc_section(void);
 
-void bg_program_add_video_stream(bg_program_t *,
-                                 gavl_video_source_t * vsrc,
-                                 gavl_packet_source_t * psrc,
-                                 const gavl_metadata_t * m);
+void
+gavftools_opt_ac(void * data, int * argc, char *** _argv, int arg);
 
-void bg_program_add_text_stream(bg_program_t *,
-                                gavl_packet_source_t * psrc,
-                                uint32_t timescale,
-                                const gavl_metadata_t * m);
+void
+gavftools_opt_vc(void * data, int * argc, char *** _argv, int arg);
 
-int bg_program_num_audio_streams(bg_program_t *);
-int bg_program_num_video_streams(bg_program_t *);
-int bg_program_num_text_streams(bg_program_t *);
 
-/* So one iteration */
-int bg_program_process(bg_program_t *);
+#define GAVFTOOLS_AUDIO_COMPRESSOR_OPTIONS \
+  { \
+    .arg =         "-ac", \
+    .help_arg =    "<compression_options>", \
+    .help_string = "Set audio compression options", \
+    .callback =    gavftools_opt_ac, \
+  }
 
-void bg_program_connect_src_plug(bg_program_t *, bg_plug_t * p);
-void bg_program_connect_dst_plug(bg_program_t *, bg_plug_t * p);
+#define GAVFTOOLS_VIDEO_COMPRESSOR_OPTIONS \
+  { \
+    .arg =         "-vc", \
+    .help_arg =    "<compression_options>", \
+    .help_string = "Set video compression options", \
+    .callback =    gavftools_opt_vc, \
+  }

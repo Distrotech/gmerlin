@@ -2348,7 +2348,7 @@ void bg_plugin_registry_set_parameter_info(bg_plugin_registry_t * reg,
     ret->multi_names_nc[start_entries+i] = bg_strdup(NULL, info->name);
 
     /* First plugin is the default one */
-    if(!i && (ret->type != BG_PARAMETER_MULTI_CHAIN)) 
+    if((ret->type != BG_PARAMETER_MULTI_CHAIN) && !ret->val_default.val_str)
       {
       ret->val_default.val_str = bg_strdup(NULL, info->name);
       }
@@ -3326,6 +3326,7 @@ static const bg_parameter_info_t compressor_parameters[] =
       .long_name = TRS("Codec"),
       .type = BG_PARAMETER_MULTI_MENU,
       .flags = BG_PARAMETER_PLUGIN,
+      .val_default = { .val_str = "none" },
       .multi_names = (const char *[]){ "none", NULL },
       .multi_labels = (const char *[]){ TRS("None"), NULL },
       .multi_descriptions = (const char *[]){ TRS("Write stream as uncompressed if possible"), NULL },
@@ -3339,8 +3340,10 @@ bg_parameter_info_t *
 bg_plugin_registry_create_compressor_parameters(bg_plugin_registry_t * plugin_reg,
                                                 uint32_t flag_mask)
   {
-  bg_parameter_info_t * ret = bg_parameter_info_copy_array(compressor_parameters);
-  bg_plugin_registry_set_parameter_info(plugin_reg, BG_PLUGIN_CODEC, flag_mask, ret);
+  bg_parameter_info_t * ret =
+    bg_parameter_info_copy_array(compressor_parameters);
+  bg_plugin_registry_set_parameter_info(plugin_reg, BG_PLUGIN_CODEC,
+                                        flag_mask, ret);
   return ret;
   }
 
