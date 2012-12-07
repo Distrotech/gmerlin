@@ -27,6 +27,9 @@
 #include <gavl/connectors.h>
 #include <gavl/gavf.h>
 
+#include <gmerlin/cfg_registry.h>
+
+
 #define BG_MEDIACONNECTOR_FLAG_EOF     (1<<0)
 #define BG_MEDIACONNECTOR_FLAG_DISCONT (1<<1)
 
@@ -50,6 +53,8 @@ typedef struct
   gavl_time_t time;
 
   int64_t counter;
+  
+  bg_cfg_section_t * encode_section;
   } bg_mediaconnector_stream_t;
 
 typedef struct
@@ -66,13 +71,15 @@ void
 bg_mediaconnector_add_audio_stream(bg_mediaconnector_t * conn,
                                    const gavl_metadata_t * m,
                                    gavl_audio_source_t * asrc,
-                                   gavl_packet_source_t * psrc);
+                                   gavl_packet_source_t * psrc,
+                                   bg_cfg_section_t * enc_section);
 
 void
 bg_mediaconnector_add_video_stream(bg_mediaconnector_t * conn,
                                    const gavl_metadata_t * m,
                                    gavl_video_source_t * vsrc,
-                                   gavl_packet_source_t * psrc);
+                                   gavl_packet_source_t * psrc,
+                                   bg_cfg_section_t * enc_section);
 
 void
 bg_mediaconnector_add_text_stream(bg_mediaconnector_t * conn,

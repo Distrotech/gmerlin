@@ -49,7 +49,8 @@ void
 bg_mediaconnector_add_audio_stream(bg_mediaconnector_t * conn,
                                    const gavl_metadata_t * m,
                                    gavl_audio_source_t * asrc,
-                                   gavl_packet_source_t * psrc)
+                                   gavl_packet_source_t * psrc,
+                                   bg_cfg_section_t * encode_section)
   {
   bg_mediaconnector_stream_t * ret = append_stream(conn, m, psrc);
   ret->type = GAVF_STREAM_AUDIO;
@@ -59,13 +60,15 @@ bg_mediaconnector_add_audio_stream(bg_mediaconnector_t * conn,
     ret->pconn = gavl_packet_connector_create(ret->psrc);
   else
     ret->aconn = gavl_audio_connector_create(ret->asrc);
+  ret->encode_section = encode_section;
   }
 
 void
 bg_mediaconnector_add_video_stream(bg_mediaconnector_t * conn,
                                    const gavl_metadata_t * m,
                                    gavl_video_source_t * vsrc,
-                                   gavl_packet_source_t * psrc)
+                                   gavl_packet_source_t * psrc,
+                                   bg_cfg_section_t * encode_section)
   {
   bg_mediaconnector_stream_t * ret = append_stream(conn, m, psrc);
   ret->type = GAVF_STREAM_VIDEO;
@@ -75,7 +78,7 @@ bg_mediaconnector_add_video_stream(bg_mediaconnector_t * conn,
     ret->pconn = gavl_packet_connector_create(ret->psrc);
   else
     ret->vconn = gavl_video_connector_create(ret->vsrc);
-
+  ret->encode_section = encode_section;
   }
 
 void

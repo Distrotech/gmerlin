@@ -68,6 +68,25 @@ int bg_plug_start(bg_plug_t * p);
 /* Return the header of the stream the next packet belongs to */
 const gavf_stream_header_t * bg_plug_next_packet_header(bg_plug_t * p);
 
+/* Add streams for encoding, on the fly compression might get applied */
+
+int bg_plug_add_audio_stream(bg_plug_t * p,
+                             const gavl_compression_info_t * ci,
+                             const gavl_audio_format_t * format,
+                             const gavl_metadata_t * m,
+                             bg_cfg_section_t * encode_section);
+
+int bg_plug_add_video_stream(bg_plug_t * p,
+                             const gavl_compression_info_t * ci,
+                             const gavl_video_format_t * format,
+                             const gavl_metadata_t * m,
+                             bg_cfg_section_t * encode_section);
+
+int bg_plug_add_text_stream(bg_plug_t * p,
+                            uint32_t timescale,
+                            const gavl_metadata_t * m);
+
+
 int bg_plug_get_stream_source(bg_plug_t * p,
                               const gavf_stream_header_t * h,
                               gavl_audio_source_t ** as,

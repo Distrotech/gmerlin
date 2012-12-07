@@ -60,6 +60,7 @@ static bg_cfg_section_t * video_section;
 
 static char * outfile = NULL;
 
+
 /* Recorder module */
 
 static const bg_parameter_info_t audio_parameters[] =
@@ -142,7 +143,7 @@ static void recorder_stream_set_parameter(void * sp, const char * name,
   {
   recorder_stream_t * s= sp;
 
-  fprintf(stderr, "recorder_stream_set_parameter %s\n", name);
+  // fprintf(stderr, "recorder_stream_set_parameter %s\n", name);
   
   if(!name)
     {
@@ -201,13 +202,13 @@ static int recorder_stream_open(recorder_stream_t * s, int type,
     {
     gavl_audio_source_t * asrc;
     asrc = s->plugin->get_audio_source(s->h->priv);
-    bg_mediaconnector_add_audio_stream(conn, NULL, asrc, NULL);
+    bg_mediaconnector_add_audio_stream(conn, NULL, asrc, NULL, NULL);
     }
   else if(type == GAVF_STREAM_VIDEO)
     {
     gavl_video_source_t * vsrc;
     vsrc = s->plugin->get_video_source(s->h->priv);
-    bg_mediaconnector_add_video_stream(conn, NULL, vsrc, NULL);
+    bg_mediaconnector_add_video_stream(conn, NULL, vsrc, NULL, NULL);
     }
   return 1;
   }

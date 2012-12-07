@@ -71,13 +71,22 @@ typedef struct
   gavl_audio_frame_t * aframe;
   gavl_audio_source_t * asrc;
   gavl_audio_sink_t   * asink;
+  gavl_audio_format_t afmt;
   
   /* Video stuff */
   gavl_video_frame_t * vframe;
   gavl_video_source_t * vsrc;
   gavl_video_sink_t   * vsink;
+  gavl_video_format_t vfmt;
+  gavl_compression_info_t ci;
+  gavl_metadata_t m;
+  uint32_t timescale;
+  
+  bg_plugin_handle_t * codec_handle;
   
   } stream_t;
+
+
 
 struct bg_plug_s
   {
@@ -99,6 +108,9 @@ struct bg_plug_s
 
   bg_plugin_registry_t * plugin_reg;
   gavf_options_t * opt;
+
+  bg_parameter_info_t * audio_compression_parameters;
+  bg_parameter_info_t * video_compression_parameters;
   };
 
 static bg_plug_t * create_common()
@@ -161,6 +173,8 @@ static void free_streams(stream_t * streams, int num)
       gavl_video_frame_null(s->vframe);
       gavl_video_frame_destroy(s->vframe);
       }
+    gavl_compression_info_free(&s->ci);
+    gavl_metadata_free(&s->m);
     }
   if(streams)
     free(streams);
@@ -172,6 +186,13 @@ void bg_plug_destroy(bg_plug_t * p)
   free_streams(p->video_streams, p->num_video_streams);
   free_streams(p->text_streams, p->num_text_streams);
   gavf_close(p->g);
+
+  if(p->audio_compression_parameters)
+    bg_parameter_info_destroy_array(p->audio_compression_parameters);
+  if(p->video_compression_parameters)
+    bg_parameter_info_destroy_array(p->video_compression_parameters);
+  
+  
   free(p);
   }
 
@@ -195,7 +216,7 @@ void bg_plug_set_parameter(void * data, const char * name,
 
 /* Read/write */
 
-static void init_streams(bg_plug_t * p)
+static void init_streams_read(bg_plug_t * p)
   {
   int i;
   int audio_idx = 0;
@@ -367,7 +388,7 @@ static int init_read(bg_plug_t * p)
   int i; 
   stream_t * s;
   
-  init_streams(p);
+  init_streams_read(p);
 
   for(i = 0; i < p->num_audio_streams; i++)
     {
@@ -512,6 +533,12 @@ static int init_write_common(bg_plug_t * p, stream_t * s)
     }
   else
     s->sink_ext = s->sink_int;
+
+  if(s->codec_handle)
+    {
+    bg_codec_plugin_t * codec = (bg_codec_plugin_t*)s->codec_handle->plugin;
+    codec->set_packet_sink(s->codec_handle->priv, s->sink_ext);
+    }
   
   return 1;
   }
@@ -521,12 +548,68 @@ static int init_write(bg_plug_t * p)
   int i;
   stream_t * s;
 
+  /* 1. Set up compressors and add gavf streams */
+  for(i = 0; i < p->num_audio_streams; i++)
+    {
+    s = p->audio_streams + i;
+
+    if(s->codec_handle)
+      {
+      bg_codec_plugin_t * codec = (bg_codec_plugin_t*)s->codec_handle->plugin;
+
+      s->asink = codec->open_encode_audio(s->codec_handle->priv,
+                                          &s->ci, &s->afmt, &s->m);
+      if(!s->asink)
+        return 0;
+      }
+
+    if((s->index = gavf_add_audio_stream(p->g, &s->ci, &s->afmt, &s->m)) < 0)
+      return 0;
+    }
+  for(i = 0; i < p->num_video_streams; i++)
+    {
+    s = p->video_streams + i;
+
+    if(s->codec_handle)
+      {
+      bg_codec_plugin_t * codec = (bg_codec_plugin_t*)s->codec_handle->plugin;
+      s->vsink = codec->open_encode_video(s->codec_handle->priv,
+                                          &s->ci, &s->vfmt, &s->m);
+      if(!s->vsink)
+        return 0;
+      }
+
+    if((s->index = gavf_add_video_stream(p->g, &s->ci, &s->vfmt, &s->m)) < 0)
+      return 0;
+    }
+  for(i = 0; i < p->num_text_streams; i++)
+    {
+    s = p->text_streams + i;
+    if((s->index = gavf_add_text_stream(p->g, s->timescale, &s->m)) < 0)
+      return 0;
+    }
+
+  /* 2. Now all streams are added, set the pointers to the stream headers */  
+  for(i = 0; i < p->num_audio_streams; i++)
+    {
+    s = p->audio_streams + i;
+    s->h = p->ph->streams + s->index;
+    }
+  for(i = 0; i < p->num_video_streams; i++)
+    {
+    s = p->video_streams + i;
+    s->h = p->ph->streams + s->index;
+    }
+  for(i = 0; i < p->num_text_streams; i++)
+    {
+    s = p->text_streams + i;
+    s->h = p->ph->streams + s->index;
+    }
+  
   if(!gavf_start(p->g))
     return 0;
   
-  init_streams(p);
-
-  /* Create shared memory instances */
+  /* Create sinks */
   for(i = 0; i < p->num_audio_streams; i++)
     {
     s = p->audio_streams + i;
@@ -737,6 +820,107 @@ int bg_plug_get_stream_sink(bg_plug_t * p,
   return 1;
   }
 
+static stream_t * append_stream(stream_t ** streams, int * num, const gavl_metadata_t * m)
+  {
+  stream_t * ret;
+  *streams = realloc(*streams, (*num + 1) * sizeof(**streams));
+  ret = (*streams) + *num;
+  memset(ret, 0, sizeof(*ret));
+  gavl_metadata_copy(&ret->m, m);
+  (*num)++;
+  return ret;
+  }
+
+/* Compression parameters */
+
+typedef struct
+  {
+  stream_t * s;
+  bg_plugin_registry_t * plugin_reg;
+  } set_codec_parameter_t;
+
+static void set_codec_parameter(void * data, const char * name,
+                                const bg_parameter_value_t * v)
+  {
+  set_codec_parameter_t * p = data;
+  bg_plugin_registry_set_compressor_parameter(p->plugin_reg,
+                                              &p->s->codec_handle,
+                                              name,
+                                              v);
+  }
+
+int bg_plug_add_audio_stream(bg_plug_t * p,
+                             const gavl_compression_info_t * ci,
+                             const gavl_audio_format_t * format,
+                             const gavl_metadata_t * m,
+                             bg_cfg_section_t * encode_section)
+  {
+  stream_t * s;
+  s = append_stream(&p->audio_streams, &p->num_audio_streams, m);
+  gavl_compression_info_copy(&s->ci, ci);
+  gavl_audio_format_copy(&s->afmt, format);
+
+  if(encode_section && (s->ci.id == GAVL_CODEC_ID_NONE))
+    {
+    set_codec_parameter_t sc;
+    if(!p->audio_compression_parameters)
+      p->audio_compression_parameters =
+        bg_plugin_registry_create_compressor_parameters(p->plugin_reg,
+                                                        BG_PLUGIN_AUDIO_COMPRESSOR);
+
+    sc.s = s;
+    sc.plugin_reg = p->plugin_reg;
+    bg_cfg_section_apply(encode_section,
+                         p->audio_compression_parameters,
+                         set_codec_parameter,
+                         &sc);
+    }
+  return p->num_audio_streams-1;
+  }
+
+int bg_plug_add_video_stream(bg_plug_t * p,
+                             const gavl_compression_info_t * ci,
+                             const gavl_video_format_t * format,
+                             const gavl_metadata_t * m,
+                             bg_cfg_section_t * encode_section)
+  {
+  stream_t * s;
+  s = append_stream(&p->video_streams, &p->num_video_streams, m);
+  gavl_compression_info_copy(&s->ci, ci);
+  gavl_video_format_copy(&s->vfmt, format);
+
+  if(encode_section && (s->ci.id == GAVL_CODEC_ID_NONE))
+    {
+    set_codec_parameter_t sc;
+    if(!p->video_compression_parameters)
+      p->video_compression_parameters =
+        bg_plugin_registry_create_compressor_parameters(p->plugin_reg,
+                                                        BG_PLUGIN_VIDEO_COMPRESSOR);
+
+    sc.s = s;
+    sc.plugin_reg = p->plugin_reg;
+    bg_cfg_section_apply(encode_section,
+                         p->video_compression_parameters,
+                         set_codec_parameter,
+                         &sc);
+    
+    }
+
+  return p->num_video_streams-1;
+  }
+
+int bg_plug_add_text_stream(bg_plug_t * p,
+                            uint32_t timescale,
+                            const gavl_metadata_t * m)
+  {
+  stream_t * s;
+  s = append_stream(&p->text_streams, &p->num_text_streams, m);
+  s->timescale = timescale;
+  return p->num_text_streams-1;
+  
+  }
+
+
 /* Setup writer */
 
 int bg_plug_setup_writer(bg_plug_t * p, bg_mediaconnector_t * conn)
@@ -774,7 +958,7 @@ int bg_plug_setup_writer(bg_plug_t * p, bg_mediaconnector_t * conn)
         else
           return 0;
         
-        if(gavf_add_audio_stream(p->g, ci, afmt, &s->m) < 0)
+        if(bg_plug_add_audio_stream(p, ci, afmt, &s->m, s->encode_section) < 0)
           return 0;
         break;
       case GAVF_STREAM_VIDEO:
@@ -791,11 +975,11 @@ int bg_plug_setup_writer(bg_plug_t * p, bg_mediaconnector_t * conn)
         else
           return 0;
         
-        if(gavf_add_video_stream(p->g, ci, vfmt, &s->m) < 0)
+        if(bg_plug_add_video_stream(p, ci, vfmt, &s->m, s->encode_section) < 0)
           return 0;
         break;
       case GAVF_STREAM_TEXT:
-        if(gavf_add_text_stream(p->g, s->timescale, &s->m) < 0)
+        if(bg_plug_add_text_stream(p, s->timescale, &s->m) < 0)
           return 0;
         break;
       }
