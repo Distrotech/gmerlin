@@ -30,6 +30,10 @@
 #include <stdlib.h>
 #include <string.h>
 
+#ifdef HAVE_ISATTY
+#include <unistd.h>
+#endif
+
 #include <avdec_private.h>
 
 static const struct
@@ -57,6 +61,78 @@ static const char * log_level_to_string(bgav_log_level_t level)
     }
   return NULL;
   }
+
+static void log_default_nocolor(bgav_log_level_t level,
+                                const char * domain, const char * msg)
+  {
+  fprintf(stderr, "[%s] %s: %s\n",
+          domain,
+          TRD(log_level_to_string(level)),
+          msg);
+  }
+
+#ifdef HAVE_ISATTY
+static int log_initialized = 0;
+static int use_color = 0;
+
+static char term_error[]  = "\33[31m";
+static char term_warn[]   = "\33[33m";
+static char term_debug[]  = "\33[32m";
+static char term_reset[]  = "\33[0m";
+
+static void log_default(bgav_log_level_t level, const char * domain, const char * msg)
+  {
+  if(!log_initialized)
+    {
+    if(isatty(fileno(stderr)) && getenv("TERM"))
+      use_color = 1;
+    else
+      use_color = 0;
+    log_initialized = 1;
+    }
+
+  if(use_color)
+    {
+    switch(level)
+      {
+      case BGAV_LOG_INFO:
+        fprintf(stderr, "[%s] %s\n",
+                domain,
+                msg);
+        break;
+      case BGAV_LOG_WARNING:
+        fprintf(stderr, "%s[%s] %s%s\n",
+                term_warn,
+                domain,
+                msg,
+                term_reset);
+        break;
+      case BGAV_LOG_ERROR:
+        fprintf(stderr, "%s[%s] %s%s\n",
+                term_error,
+                domain,
+                msg,
+                term_reset);
+        break;
+      case BGAV_LOG_DEBUG:
+        fprintf(stderr, "%s[%s] %s%s\n",
+                term_debug,
+                domain,
+                msg,
+                term_reset);
+        break;
+      }
+    
+    }
+  else
+    {
+    log_default_nocolor(level, domain, msg);
+    }
+  }
+
+#else
+#define log_default log_default_nocolor
+#endif
 
 
 void bgav_log(const bgav_options_t * opt,
@@ -89,10 +165,7 @@ void bgav_log(const bgav_options_t * opt,
   
   if(!opt || !opt->log_callback)
     {
-    fprintf(stderr, "[%s] %s: %s\n",
-            domain,
-            TRD(log_level_to_string(level)),
-            msg_string);
+    log_default(level, domain, msg_string);
     }
   else
     {

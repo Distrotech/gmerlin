@@ -43,7 +43,7 @@ AC_C_BIGENDIAN(,,AC_MSG_ERROR("Cannot detect endianess"))
 
 AC_SYS_LARGEFILE
 AC_FUNC_FSEEKO
-AC_CHECK_FUNCS(ftello vasprintf)
+AC_CHECK_FUNCS(ftello vasprintf isatty)
 
 AC_CHECK_DECLS([MSG_NOSIGNAL, SO_NOSIGPIPE],,,
                [#include <sys/types.h>
