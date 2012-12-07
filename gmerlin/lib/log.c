@@ -32,6 +32,10 @@
 #include <pthread.h>
 #include <syslog.h>
 
+#ifdef HAVE_ISATTY
+#include <unistd.h>
+#endif
+
 #include <gmerlin/log.h>
 #include <gmerlin/utils.h>
 
@@ -68,6 +72,81 @@ const char * bg_log_level_to_string(bg_log_level_t level)
   return NULL;
   }
 
+/* Default log functions */
+
+static void log_default_nocolor(bg_log_level_t level,
+                                const char * domain, const char * msg)
+  {
+  fprintf(stderr, "[%s] %s: %s\n",
+          domain,
+          bg_log_level_to_string(level),
+          msg);
+  }
+
+#ifdef HAVE_ISATTY
+static int log_initialized = 0;
+static int use_color = 0;
+
+static char term_error[]  = "\33[31m";
+static char term_warn[]   = "\33[33m";
+static char term_debug[]  = "\33[32m";
+static char term_reset[]  = "\33[0m";
+
+static void log_default(bg_log_level_t level, const char * domain, const char * msg)
+  {
+  if(!log_initialized)
+    {
+    if(isatty(fileno(stderr)) && getenv("TERM"))
+      use_color = 1;
+    else
+      use_color = 0;
+    log_initialized = 1;
+    }
+
+  if(use_color)
+    {
+    switch(level)
+      {
+      case BG_LOG_INFO:
+        fprintf(stderr, "[%s] %s\n",
+                domain,
+                msg);
+        break;
+      case BG_LOG_WARNING:
+        fprintf(stderr, "%s[%s] %s%s\n",
+                term_warn,
+                domain,
+                msg,
+                term_reset);
+        break;
+      case BG_LOG_ERROR:
+        fprintf(stderr, "%s[%s] %s%s\n",
+                term_error,
+                domain,
+                msg,
+                term_reset);
+        break;
+      case BG_LOG_DEBUG:
+        fprintf(stderr, "%s[%s] %s%s\n",
+                term_debug,
+                domain,
+                msg,
+                term_reset);
+        break;
+      }
+    
+    }
+  else
+    {
+    log_default_nocolor(level, domain, msg);
+    }
+  }
+
+#else
+#define log_default log_default_nocolor
+#endif
+
+
 
 
 static bg_msg_queue_t * log_queue = NULL;
@@ -78,7 +157,6 @@ static void logs_internal(bg_log_level_t level, const char * domain,
   bg_msg_t * msg;
   char ** lines;
   int i;
-  FILE * out = stderr;
 #ifndef DUMP_LOG
   if(!log_queue)
     {
@@ -89,10 +167,7 @@ static void logs_internal(bg_log_level_t level, const char * domain,
       i = 0;
       while(lines[i])
         {
-        fprintf(out, "[%s] %s: %s\n",
-                domain,
-                bg_log_level_to_string(level),
-                lines[i]);
+        log_default(level, domain, lines[i]);
         if(level == BG_LOG_ERROR)
           {
           pthread_mutex_lock(&last_error_mutex);
