@@ -111,6 +111,8 @@ struct bg_plug_s
 
   const bg_parameter_info_t * ac_params;
   const bg_parameter_info_t * vc_params;
+
+  pthread_mutex_t mutex;
   };
 
 void bg_plug_set_compressor_config(bg_plug_t * p,
@@ -129,9 +131,24 @@ static bg_plug_t * create_common()
   ret->opt = gavf_get_options(ret->g);
 
   gavf_options_set_flags(ret->opt, GAVF_OPT_FLAG_DUMP_HEADERS);
+
+  pthread_mutex_init(&ret->mutex, NULL);
+
   return ret;
   }
-  
+
+static void lock_func(void * priv)
+  {
+  bg_plug_t * p = priv;
+  pthread_mutex_lock(&p->mutex);
+  }
+
+static void unlock_func(void * priv)
+  {
+  bg_plug_t * p = priv;
+  pthread_mutex_unlock(&p->mutex);
+  }
+
 bg_plug_t * bg_plug_create_reader(bg_plugin_registry_t * plugin_reg)
   {
   bg_plug_t * ret;
@@ -199,7 +216,9 @@ void bg_plug_destroy(bg_plug_t * p)
   free_streams(p->video_streams, p->num_video_streams);
   free_streams(p->text_streams, p->num_text_streams);
   gavf_close(p->g);
-  
+
+  pthread_mutex_destroy(&p->mutex);
+
   free(p);
   }
 
@@ -330,13 +349,14 @@ static gavl_source_status_t read_packet_shm(void * priv,
   return GAVL_SOURCE_OK;
   }
 
-static void init_read_common(gavf_t * g,
-                            stream_t * s,
-                            const gavl_compression_info_t * ci,
-                            const gavl_audio_format_t * afmt,
-                            const gavl_video_format_t * vfmt)
+static void init_read_common(bg_plug_t * p,
+                             stream_t * s,
+                             const gavl_compression_info_t * ci,
+                             const gavl_audio_format_t * afmt,
+                             const gavl_video_format_t * vfmt)
   {
-  s->src_int = gavf_get_packet_source(g, s->index);
+  s->src_int = gavf_get_packet_source(p->g, s->index);
+  gavl_packet_source_set_lock_funcs(s->src_int, lock_func, unlock_func, p);
   
   if(gavl_metadata_get_int(&s->h->m, META_SHM_SIZE, &s->shm_size))
     {
@@ -401,7 +421,7 @@ static int init_read(bg_plug_t * p)
     {
     s = p->audio_streams + i;
 
-    init_read_common(p->g, s, &s->h->ci,
+    init_read_common(p, s, &s->h->ci,
                      &s->h->format.audio,
                      NULL);
     
@@ -418,7 +438,7 @@ static int init_read(bg_plug_t * p)
     {
     s = p->video_streams + i;
 
-    init_read_common(p->g, s, &s->h->ci,
+    init_read_common(p, s, &s->h->ci,
                      NULL,
                      &s->h->format.video);
     
@@ -435,7 +455,7 @@ static int init_read(bg_plug_t * p)
   for(i = 0; i < p->num_text_streams; i++)
     {
     s = p->text_streams + i;
-    init_read_common(p->g, s, NULL, NULL, NULL);
+    init_read_common(p, s, NULL, NULL, NULL);
     }
   return 1;
   }
@@ -526,6 +546,7 @@ static gavl_sink_status_t put_packet_shm(void * priv, gavl_packet_t * pp)
 static int init_write_common(bg_plug_t * p, stream_t * s)
   {
   s->sink_int = gavf_get_packet_sink(p->g, s->index);
+  gavl_packet_sink_set_lock_funcs(s->sink_int, lock_func, unlock_func, p);
   
   if((p->io_flags & BG_PLUG_IO_IS_LOCAL) &&
      (s->h->ci.max_packet_size > SHM_THRESHOLD))
