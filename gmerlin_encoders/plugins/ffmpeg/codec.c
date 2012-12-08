@@ -488,6 +488,8 @@ static int flush_video(bg_ffmpeg_codec_context_t * ctx,
     {
     bg_log(BG_LOG_ERROR, LOG_DOMAIN,
            "avcodec_encode_video2 failed");
+    
+    ctx->flags |= FLAG_ERROR;
     return -1;
     }
   if(got_packet)
@@ -621,7 +623,7 @@ gavl_video_sink_t * bg_ffmpeg_codec_open_video(bg_ffmpeg_codec_context_t * ctx,
       bg_encoder_set_framerate(&ctx->fr, fmt);
     }
   
-  if(ctx->vfmt.framerate_mode == GAVL_FRAMERATE_CONSTANT)
+  if(fmt->framerate_mode == GAVL_FRAMERATE_CONSTANT)
     {
     ctx->avctx->time_base.den = fmt->timescale;
     ctx->avctx->time_base.num = fmt->frame_duration;

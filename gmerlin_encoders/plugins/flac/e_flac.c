@@ -227,9 +227,6 @@ static int streaminfo_callback(void * data, uint8_t * si, int len)
     first = 0;
   else
     first = 1;
-
-  fprintf(stderr, "streaminfo_callback %d\n", first);
-  bg_hexdump(si, len, 16);
   
   if(first)
     {
