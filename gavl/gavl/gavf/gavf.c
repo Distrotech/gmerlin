@@ -85,13 +85,13 @@ static int write_sync_header(gavf_t * g, int stream, const gavl_packet_t * p)
   /* Write the sync header */
   if(gavf_io_write_data(g->io, (uint8_t*)GAVF_TAG_SYNC_HEADER, 8) < 8)
     return 0;
-#if 1
+#if 0
   fprintf(stderr, "Write sync header\n");
 #endif
   
   for(i = 0; i < g->ph.num_streams; i++)
     {
-#if 1
+#if 0
     fprintf(stderr, "PTS[%d]: %"PRId64"\n", i, g->sync_pts[i]);
 #endif
     if(!gavf_io_write_int64v(g->io, g->sync_pts[i]))
@@ -358,8 +358,6 @@ static void gavf_stream_init_video(gavf_t * g, gavf_stream_t * s)
 
   if(g->wr)
     {
-    /* Create video sink */
-    if(s->h->ci.id == GAVL_CODEC_ID_NONE)
     /* Create packet sink */
     gavf_stream_create_packet_sink(g, s);
     }
