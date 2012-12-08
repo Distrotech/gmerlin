@@ -65,6 +65,11 @@ struct gavl_audio_source_s
   int flags;
 
   int skip_samples;
+  
+  gavl_connector_lock_func_t lock_func;
+  gavl_connector_lock_func_t unlock_func;
+  void * lock_priv;
+
   };
 
 gavl_audio_source_t *
@@ -82,6 +87,18 @@ gavl_audio_source_create(gavl_audio_source_func_t func,
   ret->cnv = gavl_audio_converter_create();
   return ret;
   }
+
+void
+gavl_audio_source_set_lock_funcs(gavl_audio_source_t * src,
+                                 gavl_connector_lock_func_t lock_func,
+                                 gavl_connector_lock_func_t unlock_func,
+                                 void * priv)
+  {
+  src->lock_func = lock_func;
+  src->unlock_func = unlock_func;
+  src->lock_priv = priv;
+  }
+
 
 const gavl_audio_format_t *
 gavl_audio_source_get_src_format(gavl_audio_source_t * s)
@@ -239,6 +256,21 @@ static void process_output(gavl_audio_source_t * s,
   s->next_pts += f->valid_samples;
   }
 
+static gavl_source_status_t do_read(gavl_audio_source_t * s,
+                                    gavl_audio_frame_t ** frame)
+  {
+  gavl_source_status_t ret;
+  if(s->lock_func)
+    s->lock_func(s->lock_priv);
+
+  ret = s->func(s->priv, frame);
+  
+  if(s->unlock_func)
+    s->unlock_func(s->lock_priv);
+  return ret;
+  }
+
+
 static gavl_source_status_t
 read_frame_internal(void * sp, gavl_audio_frame_t ** frame, int num_samples)
   {
@@ -265,7 +297,7 @@ read_frame_internal(void * sp, gavl_audio_frame_t ** frame, int num_samples)
         if((*frame && !(s->src_flags & GAVL_SOURCE_SRC_ALLOC)) ||
            (!(*frame) && (s->src_flags & GAVL_SOURCE_SRC_ALLOC)))
           {
-          ret = s->func(s->priv, frame);
+          ret = do_read(s, frame);
           if(ret == GAVL_SOURCE_OK)
             {
             process_input(s, *frame);
@@ -287,7 +319,7 @@ read_frame_internal(void * sp, gavl_audio_frame_t ** frame, int num_samples)
           in_frame = s->in_frame;
           }
         
-        ret = s->func(s->priv, &in_frame);
+        ret = do_read(s, &in_frame);
         
         if(ret != GAVL_SOURCE_OK)
           break;
@@ -310,7 +342,7 @@ read_frame_internal(void * sp, gavl_audio_frame_t ** frame, int num_samples)
         if(s->src_flags & GAVL_SOURCE_SRC_ALLOC)
           {
           s->frame = NULL;
-          ret = s->func(s->priv, &s->frame);
+          ret = do_read(s, &s->frame);
           if(ret != GAVL_SOURCE_OK)
             break;
           
@@ -321,7 +353,7 @@ read_frame_internal(void * sp, gavl_audio_frame_t ** frame, int num_samples)
         else
           {
           check_out_frame(s);
-          ret = s->func(s->priv, &s->out_frame);
+          ret = do_read(s, &s->out_frame);
           if(ret != GAVL_SOURCE_OK)
             break;
           s->frame = s->out_frame;

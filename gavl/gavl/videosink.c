@@ -31,6 +31,11 @@ struct gavl_video_sink_s
   void * priv;
   gavl_video_format_t format;
   int flags;
+
+  gavl_connector_lock_func_t lock_func;
+  gavl_connector_lock_func_t unlock_func;
+  void * lock_priv;
+  
   };
 
 gavl_video_sink_t *
@@ -48,6 +53,17 @@ gavl_video_sink_create(gavl_video_sink_get_func get_func,
   return ret;
   }
 
+void
+gavl_video_sink_set_lock_funcs(gavl_video_sink_t * sink,
+                               gavl_connector_lock_func_t lock_func,
+                               gavl_connector_lock_func_t unlock_func,
+                               void * priv)
+  {
+  sink->lock_func = lock_func;
+  sink->unlock_func = unlock_func;
+  sink->lock_priv = priv;
+  }
+
 const gavl_video_format_t *
 gavl_video_sink_get_format(gavl_video_sink_t * s)
   {
@@ -57,29 +73,48 @@ gavl_video_sink_get_format(gavl_video_sink_t * s)
 gavl_video_frame_t *
 gavl_video_sink_get_frame(gavl_video_sink_t * s)
   {
+  gavl_video_frame_t * ret;
   s->flags |= FLAG_GET_CALLED;
+
+  
   if(s->get_func)
-    return s->get_func(s->priv);
+    {
+    if(s->lock_func)
+      s->lock_func(s->lock_priv);
+    ret = s->get_func(s->priv);
+    
+    if(s->unlock_func)
+      s->unlock_func(s->lock_priv);
+    }
   else
-    return NULL;
+    ret = NULL;
+  return ret;
   }
 
 gavl_sink_status_t
 gavl_video_sink_put_frame(gavl_video_sink_t * s,
                           gavl_video_frame_t * f)
   {
+  gavl_sink_status_t st;
   gavl_video_frame_t * df;
 
+  if(s->lock_func)
+    s->lock_func(s->lock_priv);
+  
   if(!(s->flags & FLAG_GET_CALLED) &&
      s->get_func &&
      (df = s->get_func(s->priv)))
     {
     gavl_video_frame_copy(&s->format, df, f);
     gavl_video_frame_copy_metadata(df, f);
-    return s->put_func(s->priv, df);
+    st = s->put_func(s->priv, df);
     }
   else
-    return s->put_func(s->priv, f);
+    st = s->put_func(s->priv, f);
+
+  if(s->unlock_func)
+    s->unlock_func(s->lock_priv);
+  return st;
   }
 
 void

@@ -43,6 +43,17 @@ extern "C" {
  * a source with one or more sinks.
  */
 
+/** \brief Prototype for locking a source or sink
+ *  \param priv Client data
+ *
+ *  This locks or unlocks something like a mutex before
+ *  one frame is read (for sources) or written (for sinks).
+ */
+
+
+typedef void (*gavl_connector_lock_func_t)(void * priv);
+
+  
 /*! \defgroup sources A/V sources
  *  \ingroup pipelines
  *
@@ -77,7 +88,7 @@ typedef enum
     GAVL_SOURCE_OK    = 1, //!< Frame available
     GAVL_SOURCE_AGAIN = 2, //!< No frame available right now, might try later
   } gavl_source_status_t;
-
+  
 /** \brief Prototype for obtaining one audio frame
  *  \param priv Client data
  *  \param frame Where to store the frame
@@ -168,6 +179,20 @@ gavl_video_source_create(gavl_video_source_func_t func,
                          void * priv, int src_flags,
                          const gavl_video_format_t * src_format);
 
+/** \brief Set lock functions
+ *  \param src A video source
+ *  \param lock_func Function called before a frame is read
+ *  \param unlock_func Function called after a frame is read
+ *  \param priv Client data (e.g. a mutex) to pass to the functions
+ */
+
+GAVL_PUBLIC void
+gavl_video_source_set_lock_funcs(gavl_video_source_t * src,
+                                 gavl_connector_lock_func_t lock_func,
+                                 gavl_connector_lock_func_t unlock_func,
+                                 void * priv);
+  
+  
 /** \brief Get coversion options of a video source
  *  \param s A video source
  *  \returns Conversion options
@@ -266,6 +291,20 @@ gavl_audio_source_create(gavl_audio_source_func_t func,
                          void * priv, int src_flags,
                          const gavl_audio_format_t * src_format);
 
+/** \brief Set lock functions
+ *  \param src An audio source
+ *  \param lock_func Function called before a frame is read
+ *  \param unlock_func Function called after a frame is read
+ *  \param priv Client data (e.g. a mutex) to pass to the functions
+ */
+  
+GAVL_PUBLIC void
+gavl_audio_source_set_lock_funcs(gavl_audio_source_t * src,
+                                 gavl_connector_lock_func_t lock_func,
+                                 gavl_connector_lock_func_t unlock_func,
+                                 void * priv);
+
+  
 /** \brief Get the native format
  *  \param s An audio source
  *  \returns The native audio format
@@ -396,6 +435,20 @@ gavl_packet_source_create(gavl_packet_source_func_t func,
                           const gavl_audio_format_t * afmt,
                           const gavl_video_format_t * vfmt);
 
+/** \brief Set lock functions
+ *  \param src A packet source
+ *  \param lock_func Function called before a packet is read
+ *  \param unlock_func Function called after a packet is read
+ *  \param priv Client data (e.g. a mutex) to pass to the functions
+ */
+
+GAVL_PUBLIC void
+gavl_packet_source_set_lock_funcs(gavl_packet_source_t * src,
+                                  gavl_connector_lock_func_t lock_func,
+                                  gavl_connector_lock_func_t unlock_func,
+                                  void * priv);
+
+  
 /** \brief Get the compression info
  *  \param s A packet source
  *  \returns The compression info or NULL
@@ -504,6 +557,20 @@ gavl_audio_sink_create(gavl_audio_sink_get_func get_func,
                        void * priv,
                        const gavl_audio_format_t * format);
 
+/** \brief Set lock functions
+ *  \param sink An audio sink
+ *  \param lock_func Function called before a packet is read
+ *  \param unlock_func Function called after a packet is read
+ *  \param priv Client data (e.g. a mutex) to pass to the functions
+ */
+
+GAVL_PUBLIC void
+gavl_audio_sink_set_lock_funcs(gavl_audio_sink_t * sink,
+                               gavl_connector_lock_func_t lock_func,
+                               gavl_connector_lock_func_t unlock_func,
+                               void * priv);
+
+  
 /** \brief Get the format
  *  \param s An audio sink
  *  \returns format in which the sink accepts data
@@ -586,6 +653,19 @@ gavl_video_sink_create(gavl_video_sink_get_func get_func,
                        void * priv,
                        const gavl_video_format_t * format);
 
+/** \brief Set lock functions
+ *  \param sink A video sink
+ *  \param lock_func Function called before a packet is read
+ *  \param unlock_func Function called after a packet is read
+ *  \param priv Client data (e.g. a mutex) to pass to the functions
+ */
+
+GAVL_PUBLIC void
+gavl_video_sink_set_lock_funcs(gavl_video_sink_t * sink,
+                               gavl_connector_lock_func_t lock_func,
+                               gavl_connector_lock_func_t unlock_func,
+                               void * priv);
+  
 /** \brief Get the format
  *  \param s A video sink
  *  \returns format in which the sink accepts data
@@ -666,6 +746,20 @@ gavl_packet_sink_create(gavl_packet_sink_get_func get_func,
                         gavl_packet_sink_put_func put_func,
                         void * priv);
 
+/** \brief Set lock functions
+ *  \param sink A packet sink
+ *  \param lock_func Function called before a packet is read
+ *  \param unlock_func Function called after a packet is read
+ *  \param priv Client data (e.g. a mutex) to pass to the functions
+ */
+
+GAVL_PUBLIC void
+gavl_packet_sink_set_lock_funcs(gavl_packet_sink_t * sink,
+                                gavl_connector_lock_func_t lock_func,
+                                gavl_connector_lock_func_t unlock_func,
+                                void * priv);
+
+  
 /** \brief Get a buffer for a packet
  *  \param s A packet sink
  *  \returns A packet buffer

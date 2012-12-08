@@ -59,6 +59,11 @@ struct gavl_video_source_s
   /* Callback set according to the configuration */
   gavl_source_status_t (*read_video)(gavl_video_source_t * s,
                                      gavl_video_frame_t ** frame);
+
+  gavl_connector_lock_func_t lock_func;
+  gavl_connector_lock_func_t unlock_func;
+  void * lock_priv;
+
   };
 
 gavl_video_source_t *
@@ -76,6 +81,18 @@ gavl_video_source_create(gavl_video_source_func_t func,
   ret->cnv = gavl_video_converter_create();
   return ret;
   }
+
+void
+gavl_video_source_set_lock_funcs(gavl_video_source_t * src,
+                                 gavl_connector_lock_func_t lock_func,
+                                 gavl_connector_lock_func_t unlock_func,
+                                 void * priv)
+  {
+  src->lock_func = lock_func;
+  src->unlock_func = unlock_func;
+  src->lock_priv = priv;
+  }
+
 
 /* Called by the destination */
 
@@ -135,6 +152,21 @@ void gavl_video_source_destroy(gavl_video_source_t * s)
     s->next_pts = next_pts;                                    \
     }
 
+static gavl_source_status_t do_read(gavl_video_source_t * s,
+                                  gavl_video_frame_t ** frame)
+  {
+  gavl_source_status_t ret;
+  if(s->lock_func)
+    s->lock_func(s->lock_priv);
+
+  ret = s->func(s->priv, frame);
+  
+  if(s->unlock_func)
+    s->unlock_func(s->lock_priv);
+  return ret;
+  }
+
+
 static gavl_source_status_t
 read_video_simple(gavl_video_source_t * s,
                   gavl_video_frame_t ** frame)
@@ -157,7 +189,7 @@ read_video_simple(gavl_video_source_t * s,
   
   if(direct)
     {
-    if((st = s->func(s->priv, frame)) != GAVL_SOURCE_OK)
+    if((st = do_read(s, frame)) != GAVL_SOURCE_OK)
       return st;
     SCALE_PTS(*frame);
     return GAVL_SOURCE_OK;
@@ -176,7 +208,7 @@ read_video_simple(gavl_video_source_t * s,
       s->dst_fp = gavl_video_frame_pool_create(NULL, &s->dst_format);
     *frame = gavl_video_frame_pool_get(s->dst_fp);
     }
-  if((st = s->func(s->priv, &in_frame)) != GAVL_SOURCE_OK)
+  if((st = do_read(s, &in_frame)) != GAVL_SOURCE_OK)
     return st;
 
   gavl_video_frame_copy(&s->src_format, *frame, in_frame);
@@ -196,7 +228,7 @@ read_video_cnv(gavl_video_source_t * s,
   if(!(s->src_flags & GAVL_SOURCE_SRC_ALLOC))
     in_frame = gavl_video_frame_pool_get(s->src_fp);
 
-  if((st = s->func(s->priv, &in_frame)) != GAVL_SOURCE_OK)
+  if((st = do_read(s, &in_frame)) != GAVL_SOURCE_OK)
     return st;
 
   if(!(*frame))
@@ -221,7 +253,7 @@ read_frame_fps(gavl_video_source_t * s,
       s->fps_frame->refcount = 0;
     s->fps_frame = gavl_video_frame_pool_get(s->src_fp);
     }
-  if((st = s->func(s->priv, &s->fps_frame)) != GAVL_SOURCE_OK)
+  if((st = do_read(s, &s->fps_frame)) != GAVL_SOURCE_OK)
     return st;
     
   s->fps_pts      = s->fps_frame->timestamp;
@@ -325,7 +357,7 @@ read_video_still(gavl_video_source_t * s,
     if(!(s->src_flags & GAVL_SOURCE_SRC_ALLOC))
       s->next_still_frame = gavl_video_frame_pool_get(s->src_fp);
     
-    st = s->func(s->priv, &s->next_still_frame);
+    st = do_read(s, &s->next_still_frame);
     
     switch(st)
       {
@@ -473,7 +505,7 @@ gavl_video_source_read_frame(void * sp, gavl_video_frame_t ** frame)
     gavl_video_source_reset(s);
     
     /* Skip one frame as cheaply as possible */
-    return s->func(s->priv, NULL);
+    return do_read(s, NULL);
     }
   else
     return s->read_video(s, frame);

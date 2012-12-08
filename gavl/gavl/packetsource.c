@@ -41,6 +41,10 @@ struct gavl_packet_source_s
   gavl_packet_source_func_t func;
   void * priv;
   int flags;
+
+  gavl_connector_lock_func_t lock_func;
+  gavl_connector_lock_func_t unlock_func;
+  void * lock_priv;
   };
 
 
@@ -77,7 +81,19 @@ gavl_packet_source_create(gavl_packet_source_func_t func,
   
   return ret;
   }
-  
+
+void
+gavl_packet_source_set_lock_funcs(gavl_packet_source_t * src,
+                                  gavl_connector_lock_func_t lock_func,
+                                  gavl_connector_lock_func_t unlock_func,
+                                  void * priv)
+  {
+  src->lock_func = lock_func;
+  src->unlock_func = unlock_func;
+  src->lock_priv = priv;
+  }
+
+
 const gavl_compression_info_t *
 gavl_packet_source_get_ci(gavl_packet_source_t * s)
   {
@@ -129,8 +145,14 @@ gavl_packet_source_read_packet(void*sp, gavl_packet_t ** p)
   else
     p_dst = &s->p;
 
+  if(s->lock_func)
+    s->lock_func(s->lock_priv);
+  
   /* Get packet */
   st = s->func(s->priv, &p_src);
+
+  if(s->unlock_func)
+    s->unlock_func(s->lock_priv);
 
   if(st != GAVL_SOURCE_OK)
     return st;

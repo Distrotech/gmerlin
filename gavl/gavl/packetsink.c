@@ -31,6 +31,10 @@ struct gavl_packet_sink_s
   gavl_packet_sink_put_func put_func;
   void * priv;
   int flags;
+  
+  gavl_connector_lock_func_t lock_func;
+  gavl_connector_lock_func_t unlock_func;
+  void * lock_priv;
   };
   
 gavl_packet_sink_t *
@@ -47,27 +51,61 @@ gavl_packet_sink_create(gavl_packet_sink_get_func get_func,
   return ret;
   }
 
+void
+gavl_packet_sink_set_lock_funcs(gavl_packet_sink_t * sink,
+                                gavl_connector_lock_func_t lock_func,
+                                gavl_connector_lock_func_t unlock_func,
+                                void * priv)
+  {
+  sink->lock_func = lock_func;
+  sink->unlock_func = unlock_func;
+  sink->lock_priv = priv;
+  }
+
+
 gavl_packet_t *
 gavl_packet_sink_get_packet(gavl_packet_sink_t * s)
   {
+  gavl_packet_t * ret;
   s->flags |= FLAG_GET_CALLED;
-  return s->get_func ? s->get_func(s->priv) : NULL;
+
+  if(s->get_func)
+    {
+    if(s->lock_func)
+      s->lock_func(s->lock_priv);
+    
+    ret = s->get_func(s->priv);
+    
+    if(s->unlock_func)
+      s->unlock_func(s->lock_priv);
+    return ret;
+    }
+  else
+    return NULL;
   }
 
 gavl_sink_status_t
 gavl_packet_sink_put_packet(gavl_packet_sink_t * s, gavl_packet_t * p)
   {
   gavl_packet_t * dp;
-
+  gavl_sink_status_t st;
+  
+  if(s->lock_func)
+    s->lock_func(s->lock_priv);
+    
   if(!(s->flags & FLAG_GET_CALLED) &&
      s->get_func &&
      (dp = s->get_func(s->priv)))
     {
     gavl_packet_copy(dp, p);
-    return s->put_func(s->priv, dp);
+    st = s->put_func(s->priv, dp);
     }
   else  
-    return s->put_func(s->priv, p);
+    st = s->put_func(s->priv, p);
+
+  if(s->unlock_func)
+    s->unlock_func(s->lock_priv);
+  return st;
   }
 
 void
