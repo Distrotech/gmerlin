@@ -316,7 +316,8 @@ static audio_stream_t * append_audio_stream(bg_gavf_t * f, const gavl_metadata_t
   f->num_audio_streams++;
   memset(ret, 0, sizeof(*ret));
   gavl_audio_format_copy(&ret->format, format);
-  gavl_metadata_copy(&ret->com.m, m);
+  if(m)
+    gavl_metadata_copy(&ret->com.m, m);
   return ret;
   }
 
@@ -333,7 +334,8 @@ static video_stream_t * append_video_stream(bg_gavf_t * f, const gavl_metadata_t
   f->num_video_streams++;
   memset(ret, 0, sizeof(*ret));
   gavl_video_format_copy(&ret->format, format);
-  gavl_metadata_copy(&ret->com.m, m);
+  if(m)
+    gavl_metadata_copy(&ret->com.m, m);
   return ret;
   }
 
@@ -349,7 +351,8 @@ append_text_stream(bg_gavf_t * f, const gavl_metadata_t * m)
   ret = f->text_streams + f->num_text_streams;
   f->num_text_streams++;
   memset(ret, 0, sizeof(*ret));
-  gavl_metadata_copy(&ret->com.m, m);
+  if(m)
+    gavl_metadata_copy(&ret->com.m, m);
   return ret;
   }
 
