@@ -175,7 +175,17 @@ static void free_streams(stream_t * streams, int num)
     /* Flush the codecs, might write some final packets */
     if(s->codec_handle)
       bg_plugin_unref(s->codec_handle);
+    else
+      {
+      /* Sinks are owned by the codec if there is one */
+      if(s->asink)
+        gavl_audio_sink_destroy(s->asink);
+      if(s->vsink)
+        gavl_video_sink_destroy(s->vsink);
+      }
     
+    if(s->asrc)
+      gavl_audio_source_destroy(s->asrc);
     if(s->src_ext && (s->src_ext != s->src_int))
       gavl_packet_source_destroy(s->src_ext);
     if(s->sink_ext && (s->sink_ext != s->sink_int))
@@ -183,15 +193,9 @@ static void free_streams(stream_t * streams, int num)
     if(s->sp)
       bg_shm_pool_destroy(s->sp);
 
-    if(s->asrc)
-      gavl_audio_source_destroy(s->asrc);
-    if(s->asink)
-      gavl_audio_sink_destroy(s->asink);
 
     if(s->vsrc)
       gavl_video_source_destroy(s->vsrc);
-    if(s->vsink)
-      gavl_video_sink_destroy(s->vsink);
     
     if(s->aframe)
       {
