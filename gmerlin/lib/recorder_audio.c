@@ -44,7 +44,7 @@ void bg_recorder_create_audio(bg_recorder_t * rec)
   bg_gavl_audio_options_init(&as->opt);
   
   as->fc = bg_audio_filter_chain_create(&as->opt, rec->plugin_reg);
-  as->th = bg_player_thread_create(rec->tc);
+  as->th = bg_thread_create(rec->tc);
 
   as->pd = gavl_peak_detector_create();
 
@@ -74,7 +74,7 @@ void bg_recorder_destroy_audio(bg_recorder_t * rec)
   gavl_audio_converter_destroy(as->output_cnv);
   gavl_audio_converter_destroy(as->enc_cnv);
   bg_audio_filter_chain_destroy(as->fc);
-  bg_player_thread_destroy(as->th);
+  bg_thread_destroy(as->th);
 
   gavl_peak_detector_destroy(as->pd);
   pthread_mutex_destroy(&as->eof_mutex);
@@ -218,11 +218,11 @@ void * bg_recorder_audio_thread(void * data)
   bg_recorder_t * rec = data;
   bg_recorder_audio_stream_t * as = &rec->as;
 
-  bg_player_thread_wait_for_start(as->th);
+  bg_thread_wait_for_start(as->th);
   
   while(1)
     {
-    if(!bg_player_thread_check(as->th))
+    if(!bg_thread_check(as->th))
       break;
 
     if(bg_recorder_audio_get_eof(as))
@@ -236,7 +236,7 @@ void * bg_recorder_audio_thread(void * data)
       {
       bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Read failed (device unplugged?)");
       bg_recorder_audio_set_eof(as, 1);
-      // Need to go to bg_player_thread_check to stop the thread cleanly
+      // Need to go to bg_thread_check to stop the thread cleanly
       continue; 
       }
     /* Peak detection */    

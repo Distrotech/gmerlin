@@ -28,6 +28,7 @@
 #include <gavl/gavf.h>
 
 #include <gmerlin/cfg_registry.h>
+#include <gmerlin/bgthread.h>
 
 
 #define BG_MEDIACONNECTOR_FLAG_EOF     (1<<0)
@@ -55,13 +56,17 @@ typedef struct
   int64_t counter;
   
   bg_cfg_section_t * encode_section;
+
+  bg_thread_t * th;
+  
   } bg_mediaconnector_stream_t;
 
 typedef struct
   {
   bg_mediaconnector_stream_t * streams;
-  
   int num_streams;
+  
+  bg_thread_common_t * tc;
   } bg_mediaconnector_t;
 
 void
@@ -86,6 +91,9 @@ bg_mediaconnector_add_text_stream(bg_mediaconnector_t * conn,
                                   const gavl_metadata_t * m,
                                   gavl_packet_source_t * psrc,
                                   int timescale);
+
+void
+bg_mediaconnector_init_threads(bg_mediaconnector_t * conn);
 
 void
 bg_mediaconnector_start(bg_mediaconnector_t * conn);

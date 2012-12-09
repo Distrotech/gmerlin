@@ -457,12 +457,12 @@ void * bg_player_ov_thread(void * data)
 
   bg_player_add_message_queue(p, s->msg_queue);
 
-  bg_player_thread_wait_for_start(s->th);
+  bg_thread_wait_for_start(s->th);
 
   
   while(1)
     {
-    if(!bg_player_thread_check(s->th))
+    if(!bg_thread_check(s->th))
       {
       break;
       }
@@ -472,7 +472,7 @@ void * bg_player_ov_thread(void * data)
     if(!bg_player_read_video(p, frame))
       {
       bg_player_video_set_eof(p);
-      if(!bg_player_thread_wait_for_start(s->th))
+      if(!bg_thread_wait_for_start(s->th))
         {
         break;
         }

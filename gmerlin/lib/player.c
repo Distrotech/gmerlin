@@ -91,7 +91,7 @@ bg_player_t * bg_player_create(bg_plugin_registry_t * plugin_reg)
   
   ret->visualizer = bg_visualizer_create(plugin_reg);
 
-  ret->thread_common = bg_player_thread_common_create();
+  ret->thread_common = bg_thread_common_create();
   
   /* Create contexts */
 
@@ -139,7 +139,7 @@ void bg_player_destroy(bg_player_t * player)
   pthread_mutex_destroy(&player->state_mutex);
   pthread_mutex_destroy(&player->config_mutex);
 
-  bg_player_thread_common_destroy(player->thread_common);
+  bg_thread_common_destroy(player->thread_common);
   
   free(player);
   }

@@ -19,7 +19,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  * *****************************************************************/
 
-#include <player_thread.h>
+#include <gmerlin/bgthread.h>
 
 #include <pthread.h>
 #include <gmerlin/bg_sem.h>
@@ -83,15 +83,15 @@ static void bin_sem_reset(bin_sem_t * s)
   pthread_mutex_unlock(&s->lock);
   }
 
-struct bg_player_thread_common_s
+struct bg_thread_common_s
   {
   pthread_cond_t start_cond;
   pthread_mutex_t start_mutex;
   };
 
-struct bg_player_thread_s
+struct bg_thread_s
   {
-  bg_player_thread_common_t * com;
+  bg_thread_common_t * com;
   
   pthread_t thread;
   bin_sem_t sem;
@@ -106,39 +106,39 @@ struct bg_player_thread_s
   };
 
 
-bg_player_thread_common_t * bg_player_thread_common_create()
+bg_thread_common_t * bg_thread_common_create()
   {
-  bg_player_thread_common_t * com = calloc(1, sizeof(*com));
+  bg_thread_common_t * com = calloc(1, sizeof(*com));
   pthread_cond_init(&com->start_cond, NULL);
   pthread_mutex_init(&com->start_mutex, NULL);
   return com;
   }
 
-void bg_player_thread_common_destroy(bg_player_thread_common_t * com)
+void bg_thread_common_destroy(bg_thread_common_t * com)
   {
   pthread_cond_destroy(&com->start_cond);
   pthread_mutex_destroy(&com->start_mutex);
   free(com);
   }
 
-bg_player_thread_t *
-bg_player_thread_create(bg_player_thread_common_t * com)
+bg_thread_t *
+bg_thread_create(bg_thread_common_t * com)
   {
-  bg_player_thread_t * th = calloc(1, sizeof(*th));
+  bg_thread_t * th = calloc(1, sizeof(*th));
   th->com = com;
   bin_sem_init(&th->sem);
   pthread_mutex_init(&th->mutex, NULL);
   return th;
   }
 
-void bg_player_thread_destroy(bg_player_thread_t * th)
+void bg_thread_destroy(bg_thread_t * th)
   {
   bin_sem_destroy(&th->sem);
   pthread_mutex_destroy(&th->mutex);
   free(th);
   }
 
-void bg_player_thread_set_func(bg_player_thread_t * th,
+void bg_thread_set_func(bg_thread_t * th,
                                void * (*func)(void*), void * arg)
   {
   th->func = func;
@@ -147,7 +147,7 @@ void bg_player_thread_set_func(bg_player_thread_t * th,
   th->do_stop = 0;
   }
 
-void bg_player_threads_init(bg_player_thread_t ** th, int num)
+void bg_threads_init(bg_thread_t ** th, int num)
   {
   int i;
 
@@ -173,7 +173,7 @@ void bg_player_threads_init(bg_player_thread_t ** th, int num)
   
   }
 
-void bg_player_threads_start(bg_player_thread_t ** th, int num)
+void bg_threads_start(bg_thread_t ** th, int num)
   {
   int i;
   /* Lock the global mutex. This will succeed after all
@@ -196,7 +196,7 @@ void bg_player_threads_start(bg_player_thread_t ** th, int num)
 
   }
 
-void bg_player_threads_pause(bg_player_thread_t ** th, int num)
+void bg_threads_pause(bg_thread_t ** th, int num)
   {
   int i;
   /* Set pause flag */
@@ -218,7 +218,7 @@ void bg_player_threads_pause(bg_player_thread_t ** th, int num)
     }
   }
 
-void bg_player_threads_join(bg_player_thread_t ** th, int num)
+void bg_threads_join(bg_thread_t ** th, int num)
   {
   int i;
   /* Set stop flag */
@@ -234,7 +234,7 @@ void bg_player_threads_join(bg_player_thread_t ** th, int num)
 
   /* Start the threads if they where paused.
      If not paused, this call does no harm */
-  bg_player_threads_start(th, num);
+  bg_threads_start(th, num);
   
   for(i = 0; i < num; i++)
     {
@@ -252,7 +252,7 @@ void bg_player_threads_join(bg_player_thread_t ** th, int num)
   }
 /* called from within the thread */
 
-int bg_player_thread_wait_for_start(bg_player_thread_t * th)
+int bg_thread_wait_for_start(bg_thread_t * th)
   {
   int ret = 1;
   pthread_mutex_lock(&th->com->start_mutex);
@@ -273,7 +273,7 @@ int bg_player_thread_wait_for_start(bg_player_thread_t * th)
   return ret;
   }
 
-int bg_player_thread_check(bg_player_thread_t * th)
+int bg_thread_check(bg_thread_t * th)
   {
   int do_pause;
   
@@ -293,7 +293,7 @@ int bg_player_thread_check(bg_player_thread_t * th)
     th->do_pause = 0;
     pthread_mutex_unlock(&th->mutex);
     
-    return bg_player_thread_wait_for_start(th);
+    return bg_thread_wait_for_start(th);
     }
   return 1;
   }

@@ -241,7 +241,7 @@ static void interrupt_cmd(bg_player_t * p, int new_state)
   if(old_state == BG_PLAYER_STATE_PAUSED)
     return;
   
-  bg_player_threads_pause(p->threads, PLAYER_MAX_THREADS);
+  bg_threads_pause(p->threads, PLAYER_MAX_THREADS);
   
   bg_player_time_stop(p);
 
@@ -276,7 +276,7 @@ static void start_playback(bg_player_t * p)
 
   p->flags &= ~(PLAYER_FREEZE_FRAME|PLAYER_FREEZE_VIS);
 
-  bg_player_threads_start(p->threads, PLAYER_MAX_THREADS);
+  bg_threads_start(p->threads, PLAYER_MAX_THREADS);
   }
 
 /* Pause command */
@@ -525,23 +525,23 @@ static void init_playback(bg_player_t * p, gavl_time_t time,
 
   if(DO_AUDIO(p->flags))
     {
-    bg_player_thread_set_func(p->audio_stream.th,
+    bg_thread_set_func(p->audio_stream.th,
                               bg_player_oa_thread, p);
     }
   else
     {
-    bg_player_thread_set_func(p->audio_stream.th,
+    bg_thread_set_func(p->audio_stream.th,
                               NULL, NULL);
     }
   
   if(DO_VIDEO(p->flags))
     {
-    bg_player_thread_set_func(p->video_stream.th,
+    bg_thread_set_func(p->video_stream.th,
                               bg_player_ov_thread, p);
     }
   else
     {
-    bg_player_thread_set_func(p->video_stream.th,
+    bg_thread_set_func(p->video_stream.th,
                               NULL, NULL);
     }
   
@@ -560,7 +560,7 @@ static void init_playback(bg_player_t * p, gavl_time_t time,
       bg_video_filter_chain_reset(p->video_stream.fc);
     }
 
-  bg_player_threads_init(p->threads, PLAYER_MAX_THREADS);
+  bg_threads_init(p->threads, PLAYER_MAX_THREADS);
   preload(p);
   
   if(flags & BG_PLAY_FLAG_INIT_THEN_PAUSE)
@@ -631,7 +631,7 @@ static void cleanup_playback(bg_player_t * player,
     case BG_PLAYER_STATE_SEEKING:
     case BG_PLAYER_STATE_BUFFERING:
     case BG_PLAYER_STATE_PLAYING:
-      bg_player_threads_join(player->threads, PLAYER_MAX_THREADS);
+      bg_threads_join(player->threads, PLAYER_MAX_THREADS);
       
       if(DO_AUDIO(player->flags))
         bg_player_oa_stop(&player->audio_stream);
@@ -1120,7 +1120,7 @@ static int process_commands(bg_player_t * player)
             if(player->finish_mode == BG_PLAYER_FINISH_CHANGE)
               {
               bg_log(BG_LOG_INFO, LOG_DOMAIN, "Detected EOF");
-              bg_player_threads_join(player->threads, PLAYER_MAX_THREADS);
+              bg_threads_join(player->threads, PLAYER_MAX_THREADS);
               player_cleanup(player);
               bg_player_set_state(player, BG_PLAYER_STATE_EOF, NULL, NULL);
               }

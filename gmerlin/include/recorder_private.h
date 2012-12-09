@@ -23,7 +23,7 @@
 #include <gmerlin/filters.h>
 #include <gmerlin/encoder.h>
 
-#include <player_thread.h>
+#include <gmerlin/bgthread.h>
 
 #include <gavl/peakdetector.h>
 
@@ -73,7 +73,7 @@ typedef struct
   gavl_audio_converter_t * enc_cnv;
   gavl_audio_frame_t     * enc_frame;
   
-  bg_player_thread_t * th;
+  bg_thread_t * th;
   
   bg_read_audio_func_t in_func;
   void * in_data;
@@ -139,7 +139,7 @@ typedef struct
   gavl_video_converter_t * monitor_cnv;
   gavl_video_converter_t * snapshot_cnv;
   
-  bg_player_thread_t * th;
+  bg_thread_t * th;
 
   bg_read_video_func_t in_func;
   void * in_data;
@@ -202,9 +202,9 @@ struct bg_recorder_s
   
   bg_plugin_registry_t * plugin_reg;
   
-  bg_player_thread_common_t * tc;
+  bg_thread_common_t * tc;
   
-  bg_player_thread_t * th[NUM_THREADS];
+  bg_thread_t * th[NUM_THREADS];
   
   char * display_string;
   

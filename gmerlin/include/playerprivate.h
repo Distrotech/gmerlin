@@ -37,7 +37,7 @@
 #include <gavl/peakdetector.h>
 
 
-#include <player_thread.h>
+#include <gmerlin/bgthread.h>
 
 /* Each thread get it's private context */
 
@@ -126,7 +126,7 @@ typedef struct
   pthread_mutex_t eof_mutex;
   int eof;
 
-  bg_player_thread_t * th;
+  bg_thread_t * th;
 
   gavl_audio_sink_t * sink_out;
   gavl_audio_sink_t * sink_intern;
@@ -213,7 +213,7 @@ typedef struct
   
   float bg_color[4];
 
-  bg_player_thread_t * th;
+  bg_thread_t * th;
 
   /* 1 if we are currently displaying a subtitle */
   int subtitle_active;
@@ -278,9 +278,9 @@ struct bg_player_s
   {
   pthread_t player_thread;
 
-  bg_player_thread_common_t * thread_common;
+  bg_thread_common_t * thread_common;
 
-  bg_player_thread_t * threads[PLAYER_MAX_THREADS];
+  bg_thread_t * threads[PLAYER_MAX_THREADS];
   
   /* Input plugin and stuff */
 

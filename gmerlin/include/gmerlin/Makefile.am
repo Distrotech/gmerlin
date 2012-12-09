@@ -5,6 +5,7 @@ bg_version.h \
 bggavl.h \
 bgplug.h \
 bgsocket.h \
+bgthread.h \
 cfg_dialog.h \
 cfg_registry.h \
 charset.h \

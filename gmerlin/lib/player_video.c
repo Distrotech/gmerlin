@@ -34,7 +34,7 @@ void bg_player_video_create(bg_player_t * p,
   {
   bg_player_video_stream_t * s = &p->video_stream;
   
-  s->th = bg_player_thread_create(p->thread_common);
+  s->th = bg_thread_create(p->thread_common);
   
   bg_gavl_video_options_init(&s->options);
 
@@ -58,7 +58,7 @@ void bg_player_video_destroy(bg_player_t * p)
   pthread_mutex_destroy(&s->eof_mutex);
   bg_gavl_video_options_free(&s->options);
   bg_video_filter_chain_destroy(s->fc);
-  bg_player_thread_destroy(s->th);
+  bg_thread_destroy(s->th);
   bg_msg_queue_destroy(s->msg_queue);
 
   bg_osd_destroy(s->osd);

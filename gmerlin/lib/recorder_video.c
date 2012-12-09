@@ -93,7 +93,7 @@ void bg_recorder_create_video(bg_recorder_t * rec)
   
   vs->fc = bg_video_filter_chain_create(&vs->opt, rec->plugin_reg);
 
-  vs->th = bg_player_thread_create(rec->tc);
+  vs->th = bg_thread_create(rec->tc);
   vs->timer = gavl_timer_create();
   pthread_mutex_init(&vs->config_mutex, NULL);
 
@@ -134,7 +134,7 @@ void bg_recorder_destroy_video(bg_recorder_t * rec)
   gavl_video_converter_destroy(vs->snapshot_cnv);
   
   bg_video_filter_chain_destroy(vs->fc);
-  bg_player_thread_destroy(vs->th);
+  bg_thread_destroy(vs->th);
   gavl_timer_destroy(vs->timer);
   pthread_mutex_destroy(&vs->config_mutex);
 
@@ -643,14 +643,14 @@ void * bg_recorder_video_thread(void * data)
   bg_recorder_video_stream_t * vs = &rec->vs;
   gavl_video_frame_t * monitor_frame = NULL;
   gavl_time_t idle_time = GAVL_TIME_SCALE / 100; // 10 ms
-  bg_player_thread_wait_for_start(vs->th);
+  bg_thread_wait_for_start(vs->th);
 
   gavl_timer_set(vs->timer, 0);
   gavl_timer_start(vs->timer);
   
   while(1)
     {
-    if(!bg_player_thread_check(vs->th))
+    if(!bg_thread_check(vs->th))
       break;
 
     if(bg_recorder_video_get_eof(vs))
@@ -676,7 +676,7 @@ void * bg_recorder_video_thread(void * data)
       {
       bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Read failed (device unplugged?)");
       bg_recorder_video_set_eof(vs, 1);
-      continue; // Need to go to bg_player_thread_check to stop the thread cleanly
+      continue; // Need to go to bg_thread_check to stop the thread cleanly
       }
     /* Check whether to make a snapshot */
     check_snapshot(rec);

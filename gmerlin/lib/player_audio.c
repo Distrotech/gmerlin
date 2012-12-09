@@ -36,7 +36,7 @@ void bg_player_audio_create(bg_player_t * p,
   
   bg_gavl_audio_options_init(&s->options);
 
-  s->th = bg_player_thread_create(p->thread_common);
+  s->th = bg_thread_create(p->thread_common);
   
   s->fc =
     bg_audio_filter_chain_create(&s->options,
@@ -76,7 +76,7 @@ void bg_player_audio_destroy(bg_player_t * p)
   if(s->plugin_handle)
     bg_plugin_unref(s->plugin_handle);
   
-  bg_player_thread_destroy(s->th); 
+  bg_thread_destroy(s->th); 
   
   }
 

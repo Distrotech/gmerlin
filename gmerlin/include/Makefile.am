@@ -20,7 +20,6 @@ language_table.h \
 md5.h \
 ovl2text.h \
 playerprivate.h \
-player_thread.h \
 recorder_private.h \
 registry_priv.h \
 treeprivate.h \

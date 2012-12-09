@@ -75,7 +75,7 @@ bg_recorder_t * bg_recorder_create(bg_plugin_registry_t * plugin_reg)
                                   BG_PLUGIN_RECORDER);
   
   ret->plugin_reg = plugin_reg;
-  ret->tc = bg_player_thread_common_create();
+  ret->tc = bg_thread_common_create();
   
   bg_recorder_create_audio(ret);
   bg_recorder_create_video(ret);
@@ -101,7 +101,7 @@ void bg_recorder_destroy(bg_recorder_t * rec)
   bg_recorder_destroy_audio(rec);
   bg_recorder_destroy_video(rec);
 
-  bg_player_thread_common_destroy(rec->tc);
+  bg_thread_common_destroy(rec->tc);
 
   free(rec->display_string);
   
@@ -159,7 +159,8 @@ static void init_encoding(bg_recorder_t * rec)
   rec->enc = bg_encoder_create(rec->plugin_reg,
                                rec->encoder_section,
                                NULL,
-                               bg_recorder_stream_mask, bg_recorder_plugin_mask);
+                               bg_recorder_stream_mask,
+                               bg_recorder_plugin_mask);
 
   if(rec->metadata_mode != BG_RECORDER_METADATA_STATIC)
     m = &rec->updated_metadata;
@@ -180,7 +181,8 @@ static int finalize_encoding(bg_recorder_t * rec)
   if(rec->vs.flags & STREAM_ACTIVE)
     bg_recorder_video_finalize_encode(rec);
   
-  bg_encoder_update_metadata(rec->enc, rec->updated_name, &rec->updated_metadata);
+  bg_encoder_update_metadata(rec->enc, rec->updated_name,
+                             &rec->updated_metadata);
   rec->encoding_finalized = 1;
   return 1;
   }
@@ -239,21 +241,21 @@ int bg_recorder_run(bg_recorder_t * rec)
     }
   
   if(rec->as.flags & STREAM_ACTIVE)
-    bg_player_thread_set_func(rec->as.th, bg_recorder_audio_thread, rec);
+    bg_thread_set_func(rec->as.th, bg_recorder_audio_thread, rec);
   else
-    bg_player_thread_set_func(rec->as.th, NULL, NULL);
+    bg_thread_set_func(rec->as.th, NULL, NULL);
 
   if(rec->vs.flags & STREAM_ACTIVE)
-    bg_player_thread_set_func(rec->vs.th, bg_recorder_video_thread, rec);
+    bg_thread_set_func(rec->vs.th, bg_recorder_video_thread, rec);
   else
-    bg_player_thread_set_func(rec->vs.th, NULL, NULL);
+    bg_thread_set_func(rec->vs.th, NULL, NULL);
   
   if(rec->flags & FLAG_DO_RECORD)
     rec->flags &= FLAG_RECORDING;
     
   
-  bg_player_threads_init(rec->th, NUM_THREADS);
-  bg_player_threads_start(rec->th, NUM_THREADS);
+  bg_threads_init(rec->th, NUM_THREADS);
+  bg_threads_start(rec->th, NUM_THREADS);
   
   rec->flags |= FLAG_RUNNING;
 
@@ -286,7 +288,7 @@ void bg_recorder_stop(bg_recorder_t * rec)
   {
   if(!(rec->flags & FLAG_RUNNING))
     return;
-  bg_player_threads_join(rec->th, NUM_THREADS);
+  bg_threads_join(rec->th, NUM_THREADS);
   bg_recorder_audio_cleanup(rec);
   bg_recorder_video_cleanup(rec);
 

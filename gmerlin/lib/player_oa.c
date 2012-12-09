@@ -168,11 +168,11 @@ void * bg_player_oa_thread(void * data)
   
   /* Wait for playback */
 
-  bg_player_thread_wait_for_start(s->th);
+  bg_thread_wait_for_start(s->th);
   
   while(1)
     {
-    if(!bg_player_thread_check(s->th))
+    if(!bg_thread_check(s->th))
       break;
 
     if(s->send_silence)
@@ -185,7 +185,7 @@ void * bg_player_oa_thread(void * data)
         {
         if(bg_player_audio_set_eof(p))
           {
-          if(!bg_player_thread_wait_for_start(s->th))
+          if(!bg_thread_wait_for_start(s->th))
             break;
           continue;
           }

@@ -27,6 +27,7 @@
 
 #include <bgshm.h>
 
+
 #include <gmerlin/bgplug.h>
 
 #include <gmerlin/translation.h>
