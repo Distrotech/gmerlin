@@ -87,6 +87,7 @@ int main(int argc, char ** argv)
   bg_cfg_section_t * cfg_section;
   bg_plugin_registry_t * plugin_reg;
   char * tmp_path;
+  gavl_metadata_t m;
   
   gavl_audio_format_t format;
   gavl_audio_frame_t * frame;
@@ -155,7 +156,8 @@ int main(int argc, char ** argv)
   /* Open input */
 
   memset(&format, 0, sizeof(format));
-
+  memset(&m, 0, sizeof(m));
+  
   format.samplerate = 44100;
   format.sample_format = GAVL_SAMPLE_S16;
   format.samples_per_frame = 2048;
@@ -163,7 +165,7 @@ int main(int argc, char ** argv)
   format.num_channels   = 2;
   gavl_set_channel_setup(&format);
 
-  if(!input_plugin->open(input_handle->priv, &format, NULL))
+  if(!input_plugin->open(input_handle->priv, &format, NULL, &m))
     {
     bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Opening input plugin failed");
     return -1;

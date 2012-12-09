@@ -35,6 +35,8 @@
 
 #define FRAMERATE_INTERVAL 10
 
+#include <gavl/metatags.h>
+
 static int create_snapshot_cb(void * data, const char * filename)
   {
   bg_recorder_t * rec = data;
@@ -756,9 +758,10 @@ int bg_recorder_video_init(bg_recorder_t * rec)
   vs->fps_frame_counter = 0;
 
   /* Open input */
-  if(!vs->input_plugin->open(vs->input_handle->priv, NULL, &vs->input_format))
+  if(!vs->input_plugin->open(vs->input_handle->priv, NULL, &vs->input_format, &vs->m))
     return 0;
-
+  bg_metadata_date_now(&vs->m, GAVL_META_DATE_CREATE);
+  
   vs->flags |= STREAM_INPUT_OPEN;
   
 
@@ -805,7 +808,7 @@ int bg_recorder_video_init(bg_recorder_t * rec)
   if(vs->flags & STREAM_ENCODE)
     {
     vs->enc_index =
-      bg_encoder_add_video_stream(rec->enc, NULL, &vs->pipe_format, 0);
+      bg_encoder_add_video_stream(rec->enc, &vs->m, &vs->pipe_format, 0);
     }
   
   /* Create frames */

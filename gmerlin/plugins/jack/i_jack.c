@@ -147,7 +147,8 @@ read_func_jack(void * p, gavl_audio_frame_t ** frame)
 
 static int open_jack(void * data,
                      gavl_audio_format_t * format,
-                     gavl_video_format_t * video_format)
+                     gavl_video_format_t * video_format,
+                     gavl_metadata_t * m)
   {
   int i;
   jack_t * priv = data;

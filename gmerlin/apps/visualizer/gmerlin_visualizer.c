@@ -137,6 +137,8 @@ typedef struct
   bg_gtk_log_window_t * log_window;
 
   bg_ov_callbacks_t cb;
+
+  gavl_metadata_t m;
   } visualizer_t;
 
 static gboolean configure_callback(GtkWidget * w, GdkEventConfigure *event,
@@ -327,7 +329,7 @@ static void open_audio(visualizer_t * v)
   /* The soundcard might be busy from last time,
      give the kernel some time to free the device */
   
-  if(!v->ra_plugin->open(v->ra_handle->priv, &v->audio_format, NULL))
+  if(!v->ra_plugin->open(v->ra_handle->priv, &v->audio_format, NULL, &v->m))
     {
     if(!was_open)
       {
@@ -340,7 +342,7 @@ static void open_audio(visualizer_t * v)
       {
       gavl_time_delay(&delay_time);
       
-      if(v->ra_plugin->open(v->ra_handle->priv, &v->audio_format, NULL))
+      if(v->ra_plugin->open(v->ra_handle->priv, &v->audio_format, NULL, &v->m))
         {
         v->audio_open = 1;
         break;
@@ -1254,6 +1256,7 @@ static void visualizer_destroy(visualizer_t * v)
   bg_cfg_registry_save(v->cfg_reg, tmp_path);
   if(tmp_path)
     free(tmp_path);
+  gavl_metadata_free(&v->m);
   free(v);
   }
 

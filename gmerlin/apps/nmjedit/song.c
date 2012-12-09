@@ -212,7 +212,7 @@ int bg_nmj_song_get_info(sqlite3 * db,
 
   if(!gavl_metadata_get(&ti->metadata, GAVL_META_TITLE))
     {
-    bg_log(BG_LOG_ERROR, "Cannot load %s: Title missing in metadata", file->path);
+    bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Cannot load %s: Title missing in metadata", file->path);
     goto fail;
     }
 

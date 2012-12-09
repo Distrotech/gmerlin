@@ -143,7 +143,8 @@ read_func_esd(void * p, gavl_audio_frame_t ** f)
 
 static int open_esd(void * data,
                     gavl_audio_format_t * format,
-                    gavl_video_format_t * video_format)
+                    gavl_video_format_t * video_format,
+                    gavl_metadata_t * m)
   {
   int esd_format;
   const char * esd_host;

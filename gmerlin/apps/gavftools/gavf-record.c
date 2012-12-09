@@ -192,24 +192,27 @@ static int recorder_stream_open(recorder_stream_t * s, int type,
   memset(&afmt, 0, sizeof(afmt));
   memset(&vfmt, 0, sizeof(vfmt));
 
-  if(!s->plugin->open(s->h->priv, &afmt, &vfmt))
+  if(!s->plugin->open(s->h->priv, &afmt, &vfmt, &s->m))
     {
     bg_log(BG_LOG_WARNING, LOG_DOMAIN, "Opening %s recorder failed",
            (type == GAVF_STREAM_AUDIO ? "audio" : "video"));
     return 0;
     }
+
+  bg_metadata_date_now(&s->m, GAVL_META_DATE_CREATE);
+  
   if(type == GAVF_STREAM_AUDIO)
     {
     gavl_audio_source_t * asrc;
     asrc = s->plugin->get_audio_source(s->h->priv);
-    bg_mediaconnector_add_audio_stream(conn, NULL, asrc, NULL,
+    bg_mediaconnector_add_audio_stream(conn, &s->m, asrc, NULL,
                                        gavftools_ac_section());
     }
   else if(type == GAVF_STREAM_VIDEO)
     {
     gavl_video_source_t * vsrc;
     vsrc = s->plugin->get_video_source(s->h->priv);
-    bg_mediaconnector_add_video_stream(conn, NULL, vsrc, NULL,
+    bg_mediaconnector_add_video_stream(conn, &s->m, vsrc, NULL,
                                        gavftools_vc_section());
     }
   return 1;

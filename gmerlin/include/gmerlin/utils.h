@@ -459,6 +459,12 @@ int bg_write_file(const char * filename, void * data, int len);
 
 const char * bg_iso639_b_to_t(const char * code);
 
+/** \brief Set a date and time field of the metadata from the lcoal time
+ *  \param m Metadata
+ *  \param field Field to set
+ */
+
+void bg_metadata_date_now(gavl_metadata_t * m, const char * key);
 
 /* @} */
 

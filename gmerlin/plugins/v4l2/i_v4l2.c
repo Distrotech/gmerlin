@@ -49,6 +49,9 @@
 #include "convert.h"
 #endif
 
+#include <gavl/metatags.h>
+
+
 /* Input module */
 
 typedef struct
@@ -730,7 +733,7 @@ static void set_parameter_v4l(void * priv, const char * name,
 
 static int open_v4l(void * priv,
                     gavl_audio_format_t * audio_format,
-                    gavl_video_format_t * format)
+                    gavl_video_format_t * format, gavl_metadata_t * m)
   {
   v4l2_t * v4l;
   struct v4l2_capability cap;
@@ -761,6 +764,8 @@ static int open_v4l(void * priv,
   
   bg_log(BG_LOG_DEBUG, LOG_DOMAIN, "Device name: %s", cap.card);
 
+  gavl_metadata_set(m, GAVL_META_DEVICE, (char*)cap.card);
+  
   if ((cap.capabilities & V4L2_CAP_STREAMING) && !v4l->force_rw)
     {
     bg_log(BG_LOG_INFO, LOG_DOMAIN, "Trying mmap i/o");

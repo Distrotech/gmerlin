@@ -22,6 +22,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <ctype.h>
+#include <time.h>
 
 #include <config.h>
 #include <gmerlin/translation.h>
@@ -456,3 +457,19 @@ char * bg_metadata_to_string(const gavl_metadata_t * m, int use_tabs)
   return ret;
   }
 
+void bg_metadata_date_now(gavl_metadata_t * m, const char * key)
+  {
+  struct tm tm;
+  time_t t = time(NULL);
+  localtime_r(&t, &tm);
+  
+  tm.tm_mon++;
+  tm.tm_year+=1900;
+  gavl_metadata_set_date_time(m, key,
+                              tm.tm_year,
+                              tm.tm_mon,
+                              tm.tm_mday,
+                              tm.tm_hour,
+                              tm.tm_min,
+                              tm.tm_sec);
+  }

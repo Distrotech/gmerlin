@@ -168,7 +168,8 @@ static gavl_source_status_t read_func_oss(void * p, gavl_audio_frame_t ** frame)
 
 static int open_oss(void * data,
                     gavl_audio_format_t * format,
-                    gavl_video_format_t * video_format)
+                    gavl_video_format_t * video_format,
+                    gavl_metadata_t * m)
   {
   gavl_sample_format_t sample_format;
   int test_value;

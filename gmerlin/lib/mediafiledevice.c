@@ -376,7 +376,7 @@ static int open_file(audiofile_t * m)
 
 static int open_audio(void * p,
                       gavl_audio_format_t * format,
-                      gavl_video_format_t * video_format)
+                      gavl_video_format_t * video_format, gavl_metadata_t * metadata)
   {
   audiofile_t * m = p;
   /* Finalize audio format */

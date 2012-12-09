@@ -27,6 +27,7 @@
 #include <gmerlin/recorder.h>
 #include <recorder_private.h>
 #include <language_table.h>
+#include <gmerlin/utils.h>
 
 #include <gmerlin/log.h>
 #define LOG_DOMAIN "recorder.audio"
@@ -298,11 +299,12 @@ int bg_recorder_audio_init(bg_recorder_t * rec)
   bg_recorder_audio_stream_t * as = &rec->as;
 
   /* Open input */
-  if(!as->input_plugin->open(as->input_handle->priv, &as->input_format, NULL))
+  if(!as->input_plugin->open(as->input_handle->priv, &as->input_format, NULL, &as->m))
     {
     return 0;
     }
 
+  bg_metadata_date_now(&as->m, GAVL_META_DATE_CREATE);
   as->flags |= STREAM_INPUT_OPEN;
   
   as->in_func   = as->input_plugin->read_audio;

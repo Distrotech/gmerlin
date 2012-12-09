@@ -58,9 +58,12 @@ int main(int argc, char ** argv)
   char * tmp_path;
   idle_data_t id;
   const bg_plugin_info_t * info;
+  gavl_metadata_t m;
   
   bg_gtk_init(&argc, &argv, NULL, NULL, NULL);
 
+  gavl_metadata_init(&m);
+  
   window = gtk_window_new(GTK_WINDOW_TOPLEVEL);
   
   id.meter = bg_gtk_vumeter_create(2, 1);
@@ -90,7 +93,7 @@ int main(int argc, char ** argv)
   /* The soundcard might be busy from last time,
      give the kernel some time to free the device */
   
-  if(!id.ra_plugin->open(id.ra_handle->priv, &id.format, NULL))
+  if(!id.ra_plugin->open(id.ra_handle->priv, &id.format, NULL, &m))
     {
     fprintf(stderr, "Couldn't open audio device");
     return -1;

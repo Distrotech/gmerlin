@@ -1030,7 +1030,7 @@ struct bg_recorder_plugin_s
 
   
   int (*open)(void * priv, gavl_audio_format_t * audio_format,
-              gavl_video_format_t * video_format);
+              gavl_video_format_t * video_format, gavl_metadata_t * m);
   
   /** \brief Read audio samples
    */

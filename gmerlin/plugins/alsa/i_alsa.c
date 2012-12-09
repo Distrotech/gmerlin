@@ -40,6 +40,8 @@
 #include <gmerlin/log.h>
 #define LOG_DOMAIN "i_alsa"
 
+#include <gavl/metatags.h>
+
 #include "alsa_common.h"
 
 static const bg_parameter_info_t static_parameters[] =
@@ -227,18 +229,42 @@ static gavl_source_status_t read_func_alsa(void * p, gavl_audio_frame_t ** frame
   return GAVL_SOURCE_EOF;
   }
 
+static char * pcm_card_name(snd_pcm_t * pcm)
+  {
+  int card;
+  snd_pcm_info_t *info;
+  char * name = NULL;
+  
+  snd_pcm_info_malloc(&info);
+  if(snd_pcm_info (pcm, info) == 0)
+    {
+    card = snd_pcm_info_get_card(info);
+    if(card >= 0)
+      {
+      if(snd_card_get_name(card, &name) &&
+         snd_card_get_longname(card, &name))
+        {
+        snd_pcm_info_free(info);
+        return NULL;
+        }
+      }
+    }
+  snd_pcm_info_free(info);
+  return name;
+  }
+
 static int open_alsa(void * data,
                      gavl_audio_format_t * format,
-                     gavl_video_format_t * video_format)
+                     gavl_video_format_t * video_format, gavl_metadata_t * m)
   {
   const char * card = NULL;
   alsa_t * priv = data;
   
   if(priv->user_device)
-  card = priv->user_device;
+    card = priv->user_device;
   else
-  card = priv->card;
-
+    card = priv->card;
+  
   priv->samples_read = 0;
   
   if(!card)
@@ -259,6 +285,10 @@ static int open_alsa(void * data,
   
   if(!priv->pcm)
     return 0;
+
+  /* Get the name of the soundcard */
+  gavl_metadata_set_nocpy(m, GAVL_META_DEVICE, pcm_card_name(priv->pcm));
+  
   gavl_audio_format_copy(&priv->format, format);
 
   if(snd_pcm_prepare(priv->pcm) < 0)

@@ -189,6 +189,7 @@ typedef struct
   int eof;
   pthread_mutex_t eof_mutex;
   
+  gavl_metadata_t m;
   } bg_recorder_video_stream_t;
 
 void bg_recorder_video_set_eof(bg_recorder_video_stream_t*, int eof);
