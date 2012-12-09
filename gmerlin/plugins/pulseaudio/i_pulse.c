@@ -51,7 +51,8 @@ static int read_samples_pulse(void * p, gavl_audio_frame_t * f, int stream,
 
 static int open_pulse(void * data,
                       gavl_audio_format_t * format,
-                      gavl_video_format_t * video_format)
+                      gavl_video_format_t * video_format,
+                      gavl_metadata_t * m)
   {
   bg_pa_t * priv;
   priv = data;

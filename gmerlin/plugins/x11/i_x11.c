@@ -70,7 +70,7 @@ static int get_parameter_x11(void * priv, const char * name,
 
 static int open_x11(void * priv,
                     gavl_audio_format_t * audio_format,
-                    gavl_video_format_t * format)
+                    gavl_video_format_t * format, gavl_metadata_t * m)
   {
   x11_t * x11 = priv;
   if(!bg_x11_grab_window_init(x11->win, format))
