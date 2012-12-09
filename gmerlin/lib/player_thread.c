@@ -139,7 +139,7 @@ void bg_thread_destroy(bg_thread_t * th)
   }
 
 void bg_thread_set_func(bg_thread_t * th,
-                               void * (*func)(void*), void * arg)
+                        void * (*func)(void*), void * arg)
   {
   th->func = func;
   th->arg = arg;

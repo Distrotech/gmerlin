@@ -327,6 +327,8 @@ int main(int argc, char ** argv)
   {
   int ret = 1;
   bg_mediaconnector_t conn;
+  gavl_time_t delay_time = GAVL_TIME_SCALE / 100;
+  
   bg_mediaconnector_init(&conn);
   
   gavftools_init_registries();
@@ -373,23 +375,29 @@ int main(int argc, char ** argv)
     bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Setting up plug writer failed");
     goto the_end;
     }
-  
-  bg_mediaconnector_start(&conn);
 
+  
   set_sigint_handler();
+
+  /* Initialize threads */
+  bg_mediaconnector_start(&conn);
+  bg_mediaconnector_create_threads(&conn);
+  bg_mediaconnector_threads_init_separate(&conn);
+
+  bg_mediaconnector_threads_start(&conn);
   
   /* Main loop */
   while(1)
     {
     if(got_sigint)
       break;
-    if(!bg_mediaconnector_iteration(&conn))
-      break;
+    gavl_time_delay(&delay_time);
     }
+
+  bg_mediaconnector_threads_stop(&conn);
   
   /* Cleanup */
-
-
+  
   ret = 0;
   the_end:
   bg_mediaconnector_free(&conn);

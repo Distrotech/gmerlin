@@ -34,7 +34,7 @@ bg_thread_create(bg_thread_common_t * com);
 void bg_thread_destroy(bg_thread_t * th);
 
 void bg_thread_set_func(bg_thread_t * th,
-                               void * (*func)(void*), void * arg);
+                        void * (*func)(void*), void * arg);
 
 void bg_threads_init(bg_thread_t ** th, int num);
 

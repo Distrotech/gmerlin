@@ -67,6 +67,8 @@ typedef struct
   int num_streams;
   
   bg_thread_common_t * tc;
+
+  bg_thread_t ** th;
   } bg_mediaconnector_t;
 
 void
@@ -93,7 +95,7 @@ bg_mediaconnector_add_text_stream(bg_mediaconnector_t * conn,
                                   int timescale);
 
 void
-bg_mediaconnector_init_threads(bg_mediaconnector_t * conn);
+bg_mediaconnector_create_threads(bg_mediaconnector_t * conn);
 
 void
 bg_mediaconnector_start(bg_mediaconnector_t * conn);
@@ -103,5 +105,16 @@ void
 bg_mediaconnector_free(bg_mediaconnector_t * conn);
 
 int bg_mediaconnector_iteration(bg_mediaconnector_t * conn);
+
+void
+bg_mediaconnector_threads_init_separate(bg_mediaconnector_t * conn);
+
+void
+bg_mediaconnector_threads_start(bg_mediaconnector_t * conn);
+
+void
+bg_mediaconnector_threads_stop(bg_mediaconnector_t * conn);
+
+
 
 #endif // __MEDIACONNECTOR_H_

@@ -109,10 +109,15 @@ bg_mediaconnector_free(bg_mediaconnector_t * conn)
         gavl_video_connector_destroy(s->vconn);
       if(s->pconn)
         gavl_packet_connector_destroy(s->pconn);
+      if(s->th)
+        bg_thread_destroy(s->th);
       }
-    
     free(conn->streams);
     }
+  if(conn->tc)
+    bg_thread_common_destroy(conn->tc);
+  if(conn->th)
+    free(conn->th);
   }
 
 void
@@ -289,5 +294,64 @@ int bg_mediaconnector_iteration(bg_mediaconnector_t * conn)
     }
   ret++;
   return ret;
+  }
+
+void
+bg_mediaconnector_create_threads(bg_mediaconnector_t * conn)
+  {
+  int i;
+  bg_mediaconnector_stream_t * s;
+  conn->tc = bg_thread_common_create();
+  conn->th = calloc(conn->num_streams, sizeof(*conn->th));
+
+  for(i = 0; i < conn->num_streams; i++)
+    {
+    s = conn->streams + i;
+    s->th = bg_thread_create(conn->tc);
+    conn->th[i] = s->th;
+    }
+  }
+
+static void * thread_func_separate(void * data)
+  {
+  bg_mediaconnector_stream_t * s = data;
+
+  if(!bg_thread_wait_for_start(s->th))
+    return NULL;
   
+  while(1)
+    {
+    if(!bg_thread_check(s->th))
+      break;
+    if(!process_stream(s))
+      break;
+    }
+  return NULL;
+  }
+
+void
+bg_mediaconnector_threads_init_separate(bg_mediaconnector_t * conn)
+  {
+  int i;
+  bg_mediaconnector_stream_t * s;
+  for(i = 0; i < conn->num_streams; i++)
+    {
+    s = conn->streams + i;
+    bg_thread_set_func(s->th,
+                       thread_func_separate, s);
+    }
+  
+  }
+
+void
+bg_mediaconnector_threads_start(bg_mediaconnector_t * conn)
+  {
+  bg_threads_init(conn->th, conn->num_streams);
+  bg_threads_start(conn->th, conn->num_streams);
+  }
+
+void
+bg_mediaconnector_threads_stop(bg_mediaconnector_t * conn)
+  {
+  bg_threads_join(conn->th, conn->num_streams);
   }
