@@ -131,7 +131,7 @@ static bg_plug_t * create_common()
   ret->ph = gavf_get_program_header(ret->g);
   ret->opt = gavf_get_options(ret->g);
 
-  gavf_options_set_flags(ret->opt, GAVF_OPT_FLAG_DUMP_HEADERS);
+  // gavf_options_set_flags(ret->opt, GAVF_OPT_FLAG_DUMP_HEADERS);
 
   pthread_mutex_init(&ret->mutex, NULL);
 

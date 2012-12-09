@@ -34,6 +34,8 @@
 #define BG_MEDIACONNECTOR_FLAG_EOF     (1<<0)
 #define BG_MEDIACONNECTOR_FLAG_DISCONT (1<<1)
 
+typedef struct bg_mediaconnector_s bg_mediaconnector_t;
+
 typedef struct
   {
   gavl_audio_source_t    * asrc;
@@ -58,10 +60,10 @@ typedef struct
   bg_cfg_section_t * encode_section;
 
   bg_thread_t * th;
-  
+  bg_mediaconnector_t * conn;
   } bg_mediaconnector_stream_t;
 
-typedef struct
+struct bg_mediaconnector_s
   {
   bg_mediaconnector_stream_t * streams;
   int num_streams;
@@ -69,7 +71,10 @@ typedef struct
   bg_thread_common_t * tc;
 
   bg_thread_t ** th;
-  } bg_mediaconnector_t;
+  
+  pthread_mutex_t time_mutex;
+  gavl_time_t time;
+  };
 
 void
 bg_mediaconnector_init(bg_mediaconnector_t * conn);
@@ -95,11 +100,17 @@ bg_mediaconnector_add_text_stream(bg_mediaconnector_t * conn,
                                   int timescale);
 
 void
+bg_mediaconnector_update_time(bg_mediaconnector_t * conn,
+                              gavl_time_t time);
+
+gavl_time_t
+bg_mediaconnector_get_time(bg_mediaconnector_t * conn);
+
+void
 bg_mediaconnector_create_threads(bg_mediaconnector_t * conn);
 
 void
 bg_mediaconnector_start(bg_mediaconnector_t * conn);
-
 
 void
 bg_mediaconnector_free(bg_mediaconnector_t * conn);

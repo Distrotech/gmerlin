@@ -21,6 +21,7 @@
 
 #include <stdlib.h>
 #include <string.h>
+#include <pthread.h>
 
 #include <gmerlin/mediaconnector.h>
 
@@ -42,8 +43,18 @@ append_stream(bg_mediaconnector_t * conn,
   if(m)
     gavl_metadata_copy(&ret->m, m);
   ret->psrc = psrc;
+  ret->conn = conn;
+  
   return ret;
   }
+
+void
+bg_mediaconnector_init(bg_mediaconnector_t * conn)
+  {
+  memset(conn, 0, sizeof(*conn));
+  pthread_mutex_init(&conn->time_mutex, NULL);
+  }
+                       
 
 void
 bg_mediaconnector_add_audio_stream(bg_mediaconnector_t * conn,
@@ -120,17 +131,13 @@ bg_mediaconnector_free(bg_mediaconnector_t * conn)
     free(conn->th);
   }
 
-void
-bg_mediaconnector_init(bg_mediaconnector_t * conn)
-  {
-  memset(conn, 0, sizeof(*conn));
-  }
 
 static void process_cb_audio(void * priv, gavl_audio_frame_t * frame)
   {
   bg_mediaconnector_stream_t * s = priv;
   s->time = gavl_time_unscale(s->timescale,
                               frame->timestamp + frame->valid_samples);
+  bg_mediaconnector_update_time(s->conn, s->time);
   }
 
 static void process_cb_video(void * priv, gavl_video_frame_t * frame)
@@ -138,6 +145,7 @@ static void process_cb_video(void * priv, gavl_video_frame_t * frame)
   bg_mediaconnector_stream_t * s = priv;
   s->time = gavl_time_unscale(s->timescale,
                               frame->timestamp + frame->duration);
+  bg_mediaconnector_update_time(s->conn, s->time);
   }
 
 static void process_cb_packet(void * priv, gavl_packet_t * p)
@@ -145,6 +153,7 @@ static void process_cb_packet(void * priv, gavl_packet_t * p)
   bg_mediaconnector_stream_t * s = priv;
   s->time = gavl_time_unscale(s->timescale,
                               p->pts + p->duration);
+  bg_mediaconnector_update_time(s->conn, s->time);
   }
 
 
@@ -153,6 +162,9 @@ bg_mediaconnector_start(bg_mediaconnector_t * conn)
   {
   int i;
   bg_mediaconnector_stream_t * s;
+  
+  conn->time = GAVL_TIME_UNDEFINED;
+  
   for(i = 0; i < conn->num_streams; i++)
     {
     s = conn->streams + i;
@@ -295,6 +307,30 @@ int bg_mediaconnector_iteration(bg_mediaconnector_t * conn)
   ret++;
   return ret;
   }
+
+void
+bg_mediaconnector_update_time(bg_mediaconnector_t * conn,
+                              gavl_time_t time)
+  {
+  pthread_mutex_lock(&conn->time_mutex);
+  if((conn->time == GAVL_TIME_UNDEFINED) ||
+     (time > conn->time))
+    conn->time = time;
+  pthread_mutex_unlock(&conn->time_mutex);
+  }
+
+gavl_time_t
+bg_mediaconnector_get_time(bg_mediaconnector_t * conn)
+  {
+  gavl_time_t ret;
+  pthread_mutex_lock(&conn->time_mutex);
+  ret = conn->time;
+  pthread_mutex_unlock(&conn->time_mutex);
+  return ret;
+  }
+
+
+/* Thread stuff */
 
 void
 bg_mediaconnector_create_threads(bg_mediaconnector_t * conn)
