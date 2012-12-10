@@ -53,13 +53,12 @@ static void set_sigint_handler()
 /* Global stuff */
 
 
-static bg_plug_t * out_plug;
+static bg_plug_t * out_plug = NULL;
 
-static bg_cfg_section_t * audio_section;
-static bg_cfg_section_t * video_section;
+static bg_cfg_section_t * audio_section = NULL;
+static bg_cfg_section_t * video_section = NULL;
 
 static char * outfile = NULL;
-
 
 /* Recorder module */
 

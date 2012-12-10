@@ -34,11 +34,10 @@ void bg_ov_set_window(bg_ov_t * ov, const char * window_id);
   
 const char * bg_ov_get_window(bg_ov_t * ov);
 
-
 void bg_ov_set_window_options(bg_ov_t * ov, const char * name, 
-                           const char * klass, 
-                           const gavl_video_frame_t * icon,
-                           const gavl_video_format_t * icon_format);
+                              const char * klass, 
+                              const gavl_video_frame_t * icon,
+                              const gavl_video_format_t * icon_format);
 
 void bg_ov_set_window_title(bg_ov_t * ov, const char * title);
 
