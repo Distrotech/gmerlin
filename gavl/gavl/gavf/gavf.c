@@ -644,11 +644,25 @@ const gavf_packet_header_t * gavf_packet_read_header(gavf_t * g)
     
     if(c[0] == GAVF_TAG_PACKET_HEADER_C)
       {
+      gavf_stream_t * s;
       /* Got new packet */
       if(!gavf_io_read_uint32v(g->io, &g->pkthdr.stream_id))
         goto got_eof;
-      g->have_pkt_header = 1;
-      return &g->pkthdr;
+      
+      /* Check whether to skip this stream */
+      if((s = gavf_find_stream_by_id(g, g->pkthdr.stream_id)) &&
+         (s->flags & STREAM_FLAG_SKIP))
+        {
+        if(s->skip_func)
+          s->skip_func(g, s->h, s->skip_priv);
+        else
+          gavf_packet_skip(g);
+        }
+      else
+        {
+        g->have_pkt_header = 1;
+        return &g->pkthdr;
+        }
       }
     else if(c[0] == GAVF_TAG_METADATA_HEADER_C)
       {
@@ -688,8 +702,6 @@ const gavf_packet_header_t * gavf_packet_read_header(gavf_t * g)
         if(!read_sync_header(g))
           goto got_eof;
         }
-      /* TODO: Inline metdata */
-      
       else
         goto got_eof;
       }
@@ -733,20 +745,11 @@ void gavf_packet_skip(gavf_t * g)
 
 int gavf_packet_read_packet(gavf_t * g, gavl_packet_t * p)
   {
-  int i;
   gavf_stream_t * s = NULL;
 
   g->have_pkt_header = 0;
-  for(i = 0; i < g->ph.num_streams; i++)
-    {
-    if(g->pkthdr.stream_id == g->streams[i].h->id)
-      {
-      s = &g->streams[i];
-      break;
-      }
-    }
 
-  if(!s)
+  if(!(s = gavf_find_stream_by_id(g, g->pkthdr.stream_id)))
     return 0;
   
   gavf_buffer_reset(&g->pkt_buf);
@@ -1095,4 +1098,26 @@ gavf_get_packet_source(gavf_t * g, int stream)
   return g->streams[stream].psrc;
   }
 
+void gavf_stream_set_skip(gavf_t * g, uint32_t id,
+                          gavf_stream_skip_func func, void * priv)
+  {
+  gavf_stream_t * s;
+  if((s = gavf_find_stream_by_id(g, id)))
+    {
+    s->flags |= STREAM_FLAG_SKIP;
+    s->skip_func = func;
+    s->skip_priv = priv;
+    }
+  }
+
+gavf_stream_t * gavf_find_stream_by_id(gavf_t * g, uint32_t id)
+  {
+  int i;
+  for(i = 0; i < g->ph.num_streams; i++)
+    {
+    if(g->streams[i].h->id == id)
+      return &g->streams[i];
+    }
+  return NULL;
+  }
 

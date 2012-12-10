@@ -143,6 +143,7 @@ void gavf_packet_buffer_destroy(gavf_packet_buffer_t *);
 #define STREAM_FLAG_HAS_INTERLACE (1<<1)
 #define STREAM_FLAG_HAS_DURATION  (1<<2)
 #define STREAM_FLAG_DISCONTINUOUS (1<<3)
+#define STREAM_FLAG_SKIP          (1<<4)
 
 typedef struct
   {
@@ -182,6 +183,9 @@ typedef struct
   gavl_video_frame_t * vframe;
   
   gavl_packet_t * p; // For sink
+
+  gavf_stream_skip_func skip_func;
+  void * skip_priv;
   
   } gavf_stream_t;
 
@@ -193,6 +197,8 @@ void gavf_stream_create_packet_src(gavf_t * g, gavf_stream_t * s,
 void gavf_stream_create_packet_sink(gavf_t * g, gavf_stream_t * s);
 
 gavl_sink_status_t gavf_flush_packets(gavf_t * g, gavf_stream_t * s);
+
+gavf_stream_t * gavf_find_stream_by_id(gavf_t * g, uint32_t id);
 
 /* Formats */
 
