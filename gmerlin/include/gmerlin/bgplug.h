@@ -60,7 +60,12 @@ gavf_t * bg_plug_get_gavf(bg_plug_t*);
 
 /* Initialization function for readers and writers */
 
+/* Set up a writer from a media connector */
 int bg_plug_setup_writer(bg_plug_t*, bg_mediaconnector_t * conn);
+
+/* Set up a media connector from a reader */
+int bg_plug_setup_reader(bg_plug_t*, bg_mediaconnector_t * conn);
+
 
 /* Needs to be called before any I/O is done */
 int bg_plug_start(bg_plug_t * p);
