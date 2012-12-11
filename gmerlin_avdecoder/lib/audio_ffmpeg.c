@@ -38,14 +38,6 @@
 #include <libavcore/avcore.h>
 #endif
 
-#if LIBAVCODEC_BUILD >= ((53<<16)+(25<<8)+0)
-#define DECODE_AUDIO4 1
-#elif LIBAVCODEC_BUILD >= ((52<<16)+(23<<8)+0)
-#define DECODE_AUDIO3 1
-#else
-#define DECODE_AUDIO2 1
-#endif
-
 // #define DUMP_DECODE
 // #define DUMP_PACKET
 // #define DUMP_EXTRADATA
@@ -68,26 +60,35 @@
 
 static const struct
   {
-  enum SampleFormat  ffmpeg_fmt;
+  enum AVSampleFormat  ffmpeg_fmt;
   gavl_sample_format_t gavl_fmt;
+  int planar;
   }
 sampleformats[] =
   {
-    { SAMPLE_FMT_U8,  GAVL_SAMPLE_U8 },
-    { SAMPLE_FMT_S16, GAVL_SAMPLE_S16 },    ///< signed 16 bits
-    { SAMPLE_FMT_S32, GAVL_SAMPLE_S32 },    ///< signed 32 bits
-    { SAMPLE_FMT_FLT, GAVL_SAMPLE_FLOAT },  ///< float
-    { SAMPLE_FMT_DBL, GAVL_SAMPLE_DOUBLE }, ///< double
+    { AV_SAMPLE_FMT_U8,   GAVL_SAMPLE_U8,     0 },
+    { AV_SAMPLE_FMT_S16,  GAVL_SAMPLE_S16,    0 },    ///< signed 16 bits
+    { AV_SAMPLE_FMT_S32,  GAVL_SAMPLE_S32,    0 },    ///< signed 32 bits
+    { AV_SAMPLE_FMT_FLT,  GAVL_SAMPLE_FLOAT,  0 },  ///< float
+    { AV_SAMPLE_FMT_DBL,  GAVL_SAMPLE_DOUBLE, 0 }, ///< double
+    { AV_SAMPLE_FMT_U8P,  GAVL_SAMPLE_U8,     1 },
+    { AV_SAMPLE_FMT_S16P, GAVL_SAMPLE_S16,    1 },    ///< signed 16 bits
+    { AV_SAMPLE_FMT_S32P, GAVL_SAMPLE_S32,    1 },    ///< signed 32 bits
+    { AV_SAMPLE_FMT_FLTP, GAVL_SAMPLE_FLOAT,  1 },  ///< float
+    { AV_SAMPLE_FMT_DBLP, GAVL_SAMPLE_DOUBLE, 1 }, ///< double
   };
 
 static gavl_sample_format_t
-sample_format_ffmpeg_2_gavl(enum SampleFormat p)
+sample_format_ffmpeg_2_gavl(enum SampleFormat p, int * planar)
   {
   int i;
   for(i = 0; i < sizeof(sampleformats)/sizeof(sampleformats[0]); i++)
     {
     if(sampleformats[i].ffmpeg_fmt == p)
+      {
+      *planar = sampleformats[i].planar;
       return sampleformats[i].gavl_fmt;
+      }
     }
   return GAVL_SAMPLE_NONE;
   }
@@ -111,18 +112,13 @@ typedef struct
   codec_info_t * info;
   
   gavl_audio_frame_t * frame;
-#ifndef DECODE_AUDIO4
-  int frame_alloc;
-#endif
   bgav_bytebuffer_t buf;
   
   /* ffmpeg changes the extradata sometimes,
      so we save them locally here */
   uint8_t * ext_data;
 
-#if (defined DECODE_AUDIO3) || (defined DECODE_AUDIO4)
   AVPacket pkt;
-#endif
   int sample_size;
   } ffmpeg_audio_priv;
 
@@ -131,6 +127,8 @@ static codec_info_t * lookup_codec(bgav_stream_t * s);
 static int init_format(bgav_stream_t * s)
   {
   ffmpeg_audio_priv * priv;
+  int planar = 0;
+
   priv= s->data.audio.decoder->priv;
 
   /* These might be set from the codec or the container */
@@ -141,7 +139,12 @@ static int init_format(bgav_stream_t * s)
   /* These come from the codec */
   
   s->data.audio.format.sample_format =
-    sample_format_ffmpeg_2_gavl(priv->ctx->sample_fmt);
+    sample_format_ffmpeg_2_gavl(priv->ctx->sample_fmt, &planar);
+
+  if(planar)
+    s->data.audio.format.interleave_mode = GAVL_INTERLEAVE_NONE;
+  else
+    s->data.audio.format.interleave_mode = GAVL_INTERLEAVE_ALL;
   
   /* If we got no sample format, initialization went wrong */
   if(s->data.audio.format.sample_format == GAVL_SAMPLE_NONE)
@@ -154,17 +157,6 @@ static int init_format(bgav_stream_t * s)
     gavl_bytes_per_sample(s->data.audio.format.sample_format);
   
   gavl_set_channel_setup(&s->data.audio.format);
-
-#ifndef DECODE_AUDIO4
-  s->data.audio.format.samples_per_frame = 2*AVCODEC_MAX_AUDIO_FRAME_SIZE;
-  priv->frame = gavl_audio_frame_create(&s->data.audio.format);
-  priv->frame_alloc =
-    priv->sample_size *
-    s->data.audio.format.num_channels *
-    s->data.audio.format.samples_per_frame;
-  s->data.audio.format.samples_per_frame = 1024;
-#endif
-
   //  fprintf(stderr, "Got format\n");
   return 1;
   }
@@ -196,131 +188,7 @@ static gavl_source_status_t fill_buffer(bgav_stream_t * s)
   }
 
 /*
- *  Old version
- */
-
-#ifndef DECODE_AUDIO4
-static gavl_source_status_t decode_frame_ffmpeg(bgav_stream_t * s)
-  {
-  int bytes_used;
-  gavl_source_status_t st;
-
-  ffmpeg_audio_priv * priv;
-  int frame_size;
-  
-  priv= s->data.audio.decoder->priv;
-
-  if((st = fill_buffer(s)) != GAVL_SOURCE_OK)
-    return st;
-
-  frame_size = priv->frame_alloc;
-  
-#ifdef DUMP_DECODE
-  bgav_dprintf("decode_audio Size: %d, Frame size: %d\n",
-               priv->buf.size, frame_size);
-  //  bgav_hexdump(priv->packet_buffer_ptr, 16, 16);
-#endif
-  
-  if(priv->frame)
-    {
-#ifdef DECODE_AUDIO3
-    priv->pkt.data = priv->buf.buffer;
-    priv->pkt.size = priv->buf.size;
-    
-    bytes_used = avcodec_decode_audio3(priv->ctx,
-                                       priv->frame->samples.s_16,
-                                       &frame_size,
-                                       &priv->pkt);
-#else
-    bytes_used = avcodec_decode_audio2(priv->ctx,
-                                       priv->frame->samples.s_16,
-                                       &frame_size,
-                                       priv->buf.buffer,
-                                       priv->buf.size);
-#endif
-    }
-  else
-    {
-    int16_t * tmp_buf = malloc(priv->frame_alloc);
-#ifdef DECODE_AUDIO3
-    priv->pkt.data = priv->buf.buffer;
-    priv->pkt.size = priv->buf.size;
-    
-    bytes_used = avcodec_decode_audio3(priv->ctx,
-                                       tmp_buf,
-                                       &frame_size,
-                                       &priv->pkt);
-#else
-    bytes_used = avcodec_decode_audio2(priv->ctx,
-                                       tmp_buf,
-                                       &frame_size,
-                                       priv->buf.buffer,
-                                       priv->buf.size);
-#endif
-
-    if(!init_format(s))
-      return 0;
-    memcpy(priv->frame->samples.s_16, tmp_buf, frame_size);
-    free(tmp_buf);
-    }
-  
-#ifdef DUMP_DECODE
-  bgav_dprintf("Used %d bytes (frame size: %d)\n", bytes_used, frame_size);
-#endif
-  
-  if(bytes_used < 0)
-    {
-    frame_size = -1;
-    }
-
-  /* Check for error */
-    
-  if(frame_size < 0)
-    {
-    //      if(f)
-    //        f->valid_samples = samples_decoded;
-    //      return samples_decoded;
-    }
-  /* Advance packet buffer */
-
-
-  if(bytes_used > 0)
-    bgav_bytebuffer_remove(&priv->buf, bytes_used);
-  else
-    {
-    //    priv->bytes_in_packet_buffer = 0;
-    }
-  
-  /* No Samples decoded, get next packet */
-
-  if(frame_size < 0)
-    return GAVL_SOURCE_OK;
-
-  /* Sometimes, frame_size is terribly wrong */
-
-  if(frame_size > AVCODEC_MAX_AUDIO_FRAME_SIZE*2)
-    {
-    frame_size = AVCODEC_MAX_AUDIO_FRAME_SIZE*2;
-    }
-  
-  frame_size /= (priv->sample_size * s->data.audio.format.num_channels);
-  priv->frame->valid_samples = frame_size;
-
-#ifdef DUMP_DECODE
-  bgav_dprintf("Got %d samples\n", priv->frame->valid_samples);
-#endif
-  
-  gavl_audio_frame_copy_ptrs(&s->data.audio.format,
-                             s->data.audio.frame, priv->frame);
-
-  s->flags |= STREAM_HAVE_FRAME;
-  
-  return GAVL_SOURCE_OK;
-  }
-#else
-
-/*
- *  New version
+ *  Decode one frame
  */
 
 static gavl_source_status_t decode_frame_ffmpeg(bgav_stream_t * s)
@@ -387,7 +255,6 @@ static gavl_source_status_t decode_frame_ffmpeg(bgav_stream_t * s)
       return GAVL_SOURCE_EOF;
     }
   
-  
   if(got_frame && f.nb_samples)
     {
     /* Detect if we need the format */
@@ -397,27 +264,30 @@ static gavl_source_status_t decode_frame_ffmpeg(bgav_stream_t * s)
       return GAVL_SOURCE_EOF;
       }
     
-    /* Allocate or enlarge frame */
-
-    if(s->data.audio.format.samples_per_frame < f.nb_samples)
-      {
-      if(priv->frame)
-        {
-        gavl_audio_frame_destroy(priv->frame);
-        priv->frame = NULL;
-        }
-      s->data.audio.format.samples_per_frame = f.nb_samples;
-      }
+    /* Allocate frame */
     
     if(!priv->frame)
-      priv->frame = gavl_audio_frame_create(&s->data.audio.format);
+      priv->frame = gavl_audio_frame_create(NULL);
     
     /* This will break with planar formats */
-    memcpy(priv->frame->samples.s_16,
-           f.extended_data[0],
-           f.nb_samples * priv->sample_size *
-           s->data.audio.format.num_channels);
+    if(s->data.audio.format.interleave_mode == GAVL_INTERLEAVE_ALL)
+      priv->frame->samples.u_8 = f.extended_data[0];
+    else
+      {
+      int i;
+      for(i = 0; i < s->data.audio.format.num_channels; i++)
+        {
+        priv->frame->channels.u_8[i] = f.extended_data[i];
+        }
+      }   
     
+    if(!s->data.audio.format.samples_per_frame)
+      s->data.audio.format.samples_per_frame = f.nb_samples;
+    else if(s->data.audio.format.samples_per_frame < f.nb_samples)
+      {
+      bgav_log(s->opt, BGAV_LOG_WARNING, LOG_DOMAIN, "frame size grew from %d to %d", 
+               s->data.audio.format.samples_per_frame, f.nb_samples);
+      }
     priv->frame->valid_samples = f.nb_samples;
     }
   
@@ -437,11 +307,6 @@ static gavl_source_status_t decode_frame_ffmpeg(bgav_stream_t * s)
   
   return GAVL_SOURCE_OK;
   }
-
-
-#endif
-
-
 
 static int init_ffmpeg_audio(bgav_stream_t * s)
   {
@@ -526,9 +391,6 @@ static int init_ffmpeg_audio(bgav_stream_t * s)
   //    }
   //  else /* Let ffmpeg find out the format */
   //    {
-#ifndef DECODE_AUDIO4
-    priv->frame_alloc = AVCODEC_MAX_AUDIO_FRAME_SIZE;
-#endif
     if(!decode_frame_ffmpeg(s))
       return 0;
   //    }
@@ -559,8 +421,10 @@ static void close_ffmpeg(bgav_stream_t * s)
     free(priv->ext_data);
   
   if(priv->frame)
+    {
+    gavl_audio_frame_null(priv->frame);
     gavl_audio_frame_destroy(priv->frame);
-
+    }
   bgav_bytebuffer_free(&priv->buf);
   
   if(priv->ctx)
