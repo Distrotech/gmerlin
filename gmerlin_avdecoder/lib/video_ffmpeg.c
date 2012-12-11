@@ -62,14 +62,6 @@
 #include SWSCALE_HEADER
 #endif
 
-/* Legacy stuff */
-
-#if LIBAVCODEC_VERSION_MAJOR >= 53
-#define CodecType AVMediaType
-#define CODEC_TYPE_VIDEO      AVMEDIA_TYPE_VIDEO
-#endif
-
-
 #define LOG_DOMAIN "ffmpeg_video"
 
 // #define DUMP_DECODE
@@ -514,37 +506,27 @@ static gavl_source_status_t decode_picture(bgav_stream_t * s)
     
     //    dump_frame(frame_buffer, frame_buffer_len);
 
-#if LIBAVCODEC_BUILD >= ((52<<16)+(26<<8)+0)
     bytes_used = avcodec_decode_video2(priv->ctx,
                                        priv->frame,
                                        &have_picture,
                                        &priv->pkt);
     
-#else
-    bytes_used = avcodec_decode_video(priv->ctx,
-                                      priv->frame,
-                                      &have_picture,
-                                      priv->pkt.data,
-                                      priv->pkt.size);
-#endif
-
-    
 #ifdef DUMP_DECODE
-      bgav_dprintf("Used %d/%d bytes, got picture: %d ",
-                   bytes_used, priv->pkt.size, have_picture);
-      if(!have_picture)
-        bgav_dprintf("\n");
-      else
-        {
-        bgav_dprintf("Interlaced: %d TFF: %d Repeat: %d, framerate: %f",
-                     priv->frame->interlaced_frame,
-                     priv->frame->top_field_first,
-                     priv->frame->repeat_pict,
-                     (float)(priv->ctx->time_base.den) / (float)(priv->ctx->time_base.num)
-                     );
+    bgav_dprintf("Used %d/%d bytes, got picture: %d ",
+                 bytes_used, priv->pkt.size, have_picture);
+    if(!have_picture)
+      bgav_dprintf("\n");
+    else
+      {
+      bgav_dprintf("Interlaced: %d TFF: %d Repeat: %d, framerate: %f",
+                   priv->frame->interlaced_frame,
+                   priv->frame->top_field_first,
+                   priv->frame->repeat_pict,
+                   (float)(priv->ctx->time_base.den) / (float)(priv->ctx->time_base.num)
+                   );
       
-        bgav_dprintf("\n");
-        }
+      bgav_dprintf("\n");
+      }
 #endif
 
     /* Ugly hack: Need to free the side data elements manually because
@@ -571,19 +553,10 @@ static gavl_source_status_t decode_picture(bgav_stream_t * s)
         bgav_hexdump(priv->pkt.data, 16, 16);
 #endif
 
-#if LIBAVCODEC_BUILD >= ((52<<16)+(26<<8)+0)
       bytes_used = avcodec_decode_video2(priv->ctx,
                                          priv->frame,
                                          &have_picture,
                                          &priv->pkt);
-#else
-      bytes_used = avcodec_decode_video(priv->ctx,
-                                        priv->frame,
-                                        &have_picture,
-                                        priv->pkt.data,
-                                        priv->pkt.size);
-#endif
-      
 #ifdef DUMP_DECODE
       bgav_dprintf("Used %d/%d bytes, got picture: %d ",
                    bytes_used, priv->pkt.size, have_picture);
@@ -836,9 +809,7 @@ static int init_ffmpeg(bgav_stream_t * s)
   
   ffmpeg_video_priv * priv;
 
-#if LIBAVCODEC_VERSION_MAJOR >= 54  
   AVDictionary * options = NULL;
-#endif
   
   //  av_log_set_level(AV_LOG_DEBUG);
   
@@ -858,11 +829,7 @@ static int init_ffmpeg(bgav_stream_t * s)
   
   priv->info = lookup_codec(s);
 
-#if LIBAVCODEC_VERSION_INT < ((53<<16)|(8<<8)|0)
-  priv->ctx = avcodec_alloc_context();
-#else
   priv->ctx = avcodec_alloc_context3(NULL);
-#endif
 
   codec = find_decoder(priv->info->ffmpeg_id, s);
   
@@ -943,7 +910,7 @@ static int init_ffmpeg(bgav_stream_t * s)
   if(s->action == BGAV_STREAM_PARSE) // FIXME: Not needed?
     return 1;
   
-  priv->ctx->codec_type = CODEC_TYPE_VIDEO;
+  priv->ctx->codec_type = AVMEDIA_TYPE_VIDEO;
   
   priv->ctx->bit_rate = 0;
 
@@ -953,9 +920,6 @@ static int init_ffmpeg(bgav_stream_t * s)
   /* Build the palette from the stream info */
   
   //  if(s->data.video.palette_size)
-#if LIBAVCODEC_VERSION_MAJOR < 54
-  priv->ctx->palctrl = &priv->palette;
-#endif
 
   /* Threads */
   priv->ctx->thread_count = s->opt->threads;
@@ -997,11 +961,7 @@ static int init_ffmpeg(bgav_stream_t * s)
       (s->fourcc == BGAV_MK_FOURCC('M','J','P','G'))) &&
      priv->ctx->extradata_size)
     {
-#if LIBAVCODEC_VERSION_MAJOR >= 54
     av_dict_set(&options, "extern_huff", "1", 0);
-#else
-    priv->ctx->flags |= CODEC_FLAG_EXTERN_HUFF;
-#endif
     }
   
   priv->ctx->workaround_bugs = FF_BUG_AUTODETECT;
@@ -1013,11 +973,7 @@ static int init_ffmpeg(bgav_stream_t * s)
 
   bgav_ffmpeg_lock();
   
-#if LIBAVCODEC_VERSION_MAJOR < 54
-  if(avcodec_open(priv->ctx, codec) != 0)
-#else
   if(avcodec_open2(priv->ctx, codec, &options) != 0)
-#endif
     {
     bgav_ffmpeg_unlock();
     return 0;
@@ -1088,9 +1044,7 @@ static int init_ffmpeg(bgav_stream_t * s)
                           &priv->field_format[1], 1);
     }
   
-#if LIBAVCODEC_VERSION_MAJOR >= 54
   av_dict_free(&options);
-#endif
 
   if(!gavl_metadata_get(&s->m, GAVL_META_FORMAT))
     gavl_metadata_set(&s->m, GAVL_META_FORMAT,
@@ -1664,34 +1618,25 @@ static codec_info_t codec_infos[] =
       (uint32_t[]){ BGAV_MK_FOURCC('F', 'L', 'V', 'S'),
                     0x00 } },
     /*     CODEC_ID_CAVS, */
-#if LIBAVCODEC_BUILD >= ((51<<16)+(11<<8)+0)
     { "FFmpeg Chinese AVS decoder", "Chinese AVS", CODEC_ID_CAVS,
       (uint32_t[]){ BGAV_MK_FOURCC('C', 'A', 'V', 'S'),
                     0x00 } },
-#endif
     /*     CODEC_ID_JPEG2000, */
 
     /*     CODEC_ID_VMNC, */
-#if LIBAVCODEC_BUILD >= ((51<<16)+(13<<8)+0)
     { "FFmpeg VMware video decoder", "VMware video", CODEC_ID_VMNC,
       (uint32_t[]){ BGAV_MK_FOURCC('V', 'M', 'n', 'c'),
                     0x00 } },
-#endif      
     /*     CODEC_ID_VP5, */
-#if LIBAVCODEC_BUILD >= ((51<<16)+(14<<8)+0)    
     { "FFmpeg VP5 decoder", "On2 VP5", CODEC_ID_VP5,
       (uint32_t[]){ BGAV_MK_FOURCC('V', 'P', '5', '0'),
                     0x00 } },
-#endif
     /*     CODEC_ID_VP6, */
 
-#if LIBAVCODEC_BUILD >= ((51<<16)+(14<<8)+0) 
     { "FFmpeg VP6.2 decoder", "On2 VP6.2", CODEC_ID_VP6,
       (uint32_t[]){ BGAV_MK_FOURCC('V', 'P', '6', '2'),
                     0x00 } },
-#endif
 
-#if LIBAVCODEC_BUILD >= ((51<<16)+(27<<8)+0)
     { "FFmpeg VP6.0 decoder", "On2 VP6.0", CODEC_ID_VP6,
       (uint32_t[]){ BGAV_MK_FOURCC('V', 'P', '6', '0'),
                     0x00 } },
@@ -1701,89 +1646,64 @@ static codec_info_t codec_infos[] =
     { "FFmpeg VP6.2 decoder (flash variant)", "On2 VP6.2 (flash variant)", CODEC_ID_VP6F,
       (uint32_t[]){ BGAV_MK_FOURCC('V', 'P', '6', 'F'),
                     0x00 } },
-#endif
     /*     CODEC_ID_TARGA, */
     /*     CODEC_ID_DSICINVIDEO, */
-#if LIBAVCODEC_BUILD >= ((51<<16)+(18<<8)+0)
     { "FFmpeg Delphine CIN video decoder", "Delphine CIN Video", CODEC_ID_DSICINVIDEO,
       (uint32_t[]){ BGAV_MK_FOURCC('d', 'c', 'i', 'n'),
                0x00 } },
-#endif      
     /*     CODEC_ID_TIERTEXSEQVIDEO, */
-#if LIBAVCODEC_BUILD >= ((51<<16)+(19<<8)+0)
     { "FFmpeg Tiertex Video Decoder", "Tiertex Video", CODEC_ID_TIERTEXSEQVIDEO,
       (uint32_t[]){ BGAV_MK_FOURCC('T', 'I', 'T', 'X'),
                     0x00 } },
-#endif
     /*     CODEC_ID_TIFF, */
     /*     CODEC_ID_GIF, */
-#if LIBAVCODEC_BUILD >= ((51<<16)+(21<<8)+0)
     { "FFmpeg GIF Video Decoder", "GIF", CODEC_ID_GIF,
       (uint32_t[]){ BGAV_MK_FOURCC('g', 'i', 'f', ' '),
                     0x00 } },
-#endif
     /*     CODEC_ID_FFH264, */
     /*     CODEC_ID_DXA, */
-#if LIBAVCODEC_BUILD >= ((51<<16)+(39<<8)+0)
     { "FFmpeg DXA decoder", "DXA", CODEC_ID_DXA,
       (uint32_t[]){ BGAV_MK_FOURCC('D', 'X', 'A', ' '),
                     0x00 } },
-#endif
     /*     CODEC_ID_DNXHD, */
-#if LIBAVCODEC_BUILD >= ((51<<16)+(40<<8)+0)
     { "FFmpeg DNxHD Video decoder", "DNxHD", CODEC_ID_DNXHD,
       (uint32_t[]){ BGAV_MK_FOURCC('A', 'V', 'd', 'n'),
                0x00 } },
-#endif
     /*     CODEC_ID_THP, */
-#if LIBAVCODEC_BUILD >= ((51<<16)+(40<<8)+4)
     { "FFmpeg THP Video decoder", "THP Video", CODEC_ID_THP,
       (uint32_t[]){ BGAV_MK_FOURCC('T', 'H', 'P', 'V'),
                0x00 } },
-#endif
     /*     CODEC_ID_SGI, */
     /*     CODEC_ID_C93, */
-#if LIBAVCODEC_BUILD >= ((51<<16)+(40<<8)+3)
     { "FFmpeg C93 decoder", "C93", CODEC_ID_C93,
       (uint32_t[]){ BGAV_MK_FOURCC('C', '9', '3', 'V'),
                     0x00 } },
-#endif
     /*     CODEC_ID_BETHSOFTVID, */
-#if LIBAVCODEC_BUILD >= ((51<<16)+(40<<8)+3)
     { "FFmpeg Bethsoft VID decoder", "Bethsoft VID",
       CODEC_ID_BETHSOFTVID,
       (uint32_t[]){ BGAV_MK_FOURCC('B','S','D','V'), 0x00 } },
-#endif
 
     /*     CODEC_ID_PTX, */
     
     /*     CODEC_ID_TXD, */
     
     /*     CODEC_ID_VP6A, */
-#if LIBAVCODEC_BUILD >= ((51<<16)+(45<<8)+0)
     { "FFmpeg VP6 yuva decoder", "On2 VP6.0 with alpha", CODEC_ID_VP6A,
       (uint32_t[]){ BGAV_MK_FOURCC('V', 'P', '6', 'A'),
                     0x00 } },
-#endif
     /*     CODEC_ID_AMV, */
     /*     CODEC_ID_VB, */
-#if LIBAVCODEC_BUILD >= ((51<<16)+(47<<8)+0)
     { "FFmpeg Beam Software VB decoder", "Beam Software VB",
       CODEC_ID_VB,
       (uint32_t[]){ BGAV_MK_FOURCC('V','B','V','1'), 0x00 } },
-#endif
 
-#if LIBAVCODEC_BUILD >= ((52<<16)+(53<<8)+0) 
     { "FFmpeg Indeo 5 decoder", "Indeo 5", CODEC_ID_INDEO5,
       (uint32_t[]){ BGAV_MK_FOURCC('I', 'V', '5', '0'),
                     0x00 } },
-#endif
 
-#if LIBAVCODEC_BUILD >= ((52<<16)+(78<<8)+0) 
     { "FFmpeg VP8 decoder", "VP8", CODEC_ID_VP8,
       (uint32_t[]){ BGAV_MK_FOURCC('V', 'P', '8', '0'),
                     0x00 } },
-#endif
 
     { "Ffmpeg MPEG-1/2 decoder", "MPEG-1/2", CODEC_ID_MPEG2VIDEO,
       (uint32_t[]){ /* Set by MPEG demuxers */
@@ -2178,9 +2098,7 @@ static const struct
     { PIX_FMT_YUVJ444P,      GAVL_YUVJ_444_P }, ///< Planar YUV 4:4:4 full scale (jpeg)
     { PIX_FMT_XVMC_MPEG2_MC, GAVL_PIXELFORMAT_NONE }, ///< XVideo Motion Acceleration via common packet passing(xvmc_render.h)
     { PIX_FMT_XVMC_MPEG2_IDCT, GAVL_PIXELFORMAT_NONE },
-#if LIBAVCODEC_BUILD >= ((51<<16)+(45<<8)+0)
     { PIX_FMT_YUVA420P,      GAVL_YUVA_32 },
-#endif
     { PIX_FMT_NB, GAVL_PIXELFORMAT_NONE }
 };
 
