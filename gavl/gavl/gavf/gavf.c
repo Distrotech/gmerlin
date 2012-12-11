@@ -1087,15 +1087,21 @@ void gavf_close(gavf_t * g)
   }
 
 gavl_packet_sink_t *
-gavf_get_packet_sink(gavf_t * g, int stream)
+gavf_get_packet_sink(gavf_t * g, uint32_t id)
   {
-  return g->streams[stream].psink;
+  gavf_stream_t * s;
+  if(!(s = gavf_find_stream_by_id(g, id)))
+    return NULL;
+  return s->psink;
   }
 
 gavl_packet_source_t *
-gavf_get_packet_source(gavf_t * g, int stream)
+gavf_get_packet_source(gavf_t * g, uint32_t id)
   {
-  return g->streams[stream].psrc;
+  gavf_stream_t * s;
+  if(!(s = gavf_find_stream_by_id(g, id)))
+    return NULL;
+  return s->psrc;
   }
 
 void gavf_stream_set_skip(gavf_t * g, uint32_t id,

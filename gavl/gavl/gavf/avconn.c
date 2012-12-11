@@ -63,12 +63,15 @@ read_audio_func(void * priv, gavl_audio_frame_t ** frame)
   }
 
 gavl_audio_source_t *
-gavf_get_audio_source(gavf_t * g, int stream)
+gavf_get_audio_source(gavf_t * g, uint32_t id)
   {
   gavf_stream_t * s;
   if(g->wr)
     return NULL;
-  s = g->streams + stream;
+
+  if(!(s = gavf_find_stream_by_id(g, id)))
+    return NULL;
+  
   if(s->h->ci.id != GAVL_CODEC_ID_NONE)
     return NULL;
 
@@ -103,12 +106,15 @@ read_video_func(void * priv, gavl_video_frame_t ** frame)
   }
 
 gavl_video_source_t *
-gavf_get_video_source(gavf_t * g, int stream)
+gavf_get_video_source(gavf_t * g, uint32_t id)
   {
   gavf_stream_t * s;
   if(g->wr)
     return NULL;
-  s = g->streams + stream;
+
+  if(!(s = gavf_find_stream_by_id(g, id)))
+    return NULL;
+
   if(s->h->ci.id != GAVL_CODEC_ID_NONE)
     return NULL;
 
@@ -161,12 +167,15 @@ put_audio_func(void * priv, gavl_audio_frame_t * frame)
   }
 
 gavl_audio_sink_t *
-gavf_get_audio_sink(gavf_t * g, int stream)
+gavf_get_audio_sink(gavf_t * g, uint32_t id)
   {
   gavf_stream_t * s;
   if(!g->wr)
     return NULL;
-  s = g->streams + stream;
+
+  if(!(s = gavf_find_stream_by_id(g, id)))
+    return NULL;
+  
   if(s->h->ci.id != GAVL_CODEC_ID_NONE)
     return NULL;
 
@@ -213,12 +222,14 @@ put_video_func(void * priv, gavl_video_frame_t * frame)
   }
 
 gavl_video_sink_t *
-gavf_get_video_sink(gavf_t * g, int stream)
+gavf_get_video_sink(gavf_t * g, uint32_t id)
   {
   gavf_stream_t * s;
   if(!g->wr)
     return NULL;
-  s = g->streams + stream;
+
+  if(!(s = gavf_find_stream_by_id(g, id)))
+    return NULL;
   if(s->h->ci.id != GAVL_CODEC_ID_NONE)
     return NULL;
 

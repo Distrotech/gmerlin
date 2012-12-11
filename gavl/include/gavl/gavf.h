@@ -250,22 +250,22 @@ GAVL_PUBLIC
 int gavf_update_metadata(gavf_t *, const gavl_metadata_t * m);
 
 GAVL_PUBLIC gavl_packet_sink_t *
-gavf_get_packet_sink(gavf_t *, int stream);
+gavf_get_packet_sink(gavf_t *, uint32_t id);
 
 GAVL_PUBLIC gavl_audio_sink_t *
-gavf_get_audio_sink(gavf_t *, int stream);
+gavf_get_audio_sink(gavf_t *, uint32_t id);
 
 GAVL_PUBLIC gavl_video_sink_t *
-gavf_get_video_sink(gavf_t *, int stream);
+gavf_get_video_sink(gavf_t *, uint32_t id);
 
 GAVL_PUBLIC gavl_packet_source_t *
-gavf_get_packet_source(gavf_t *, int stream);
+gavf_get_packet_source(gavf_t *, uint32_t id);
 
 GAVL_PUBLIC gavl_audio_source_t *
-gavf_get_audio_source(gavf_t *, int stream);
+gavf_get_audio_source(gavf_t *, uint32_t id);
 
 GAVL_PUBLIC gavl_video_source_t *
-gavf_get_video_source(gavf_t *, int stream);
+gavf_get_video_source(gavf_t *, uint32_t id);
 
 
 /* Ultra simple image format */
