@@ -43,7 +43,11 @@ typedef struct
   bg_plugin_handle_t * plugin;
   gavl_compression_info_t ci;
   gavl_metadata_t m;
+  
+  const gavf_stream_header_t * h;
   } stream_common_t;
+
+
 
 typedef struct
   {
@@ -92,6 +96,7 @@ typedef struct
   bg_parameter_info_t * audio_parameters;
   bg_parameter_info_t * video_parameters;
   
+  gavf_program_header_t * ph;
   } bg_gavf_t;
 
 void * bg_gavfenc_create(bg_plugin_registry_t * plugin_reg)
@@ -100,6 +105,8 @@ void * bg_gavfenc_create(bg_plugin_registry_t * plugin_reg)
   ret = calloc(1, sizeof(*ret));
   ret->enc = gavf_create();
 
+  ret->ph = gavf_get_program_header(ret->enc);
+  
   ret->opt = gavf_get_options(ret->enc);
   ret->plugin_reg = plugin_reg;
   
@@ -477,36 +484,39 @@ static int bg_gavf_start(void * data)
   for(i = 0; i < priv->num_audio_streams; i++)
     {
     audio_stream_t * s = priv->audio_streams + i;
+    s->com.h = priv->ph->streams + s->com.index;
     if(s->sink) // Codec present and active
       {
       bg_codec_plugin_t * p = (bg_codec_plugin_t*)s->com.plugin->plugin;
-      s->com.psink = gavf_get_packet_sink(priv->enc, s->com.index);
+      s->com.psink = gavf_get_packet_sink(priv->enc, s->com.h->id);
       p->set_packet_sink(s->com.plugin->priv,
                          s->com.psink);
       }
     else if(s->com.ci.id == GAVL_CODEC_ID_NONE) // Write uncompressed
-      s->sink = gavf_get_audio_sink(priv->enc, s->com.index);
+      s->sink = gavf_get_audio_sink(priv->enc, s->com.h->id);
     else // Write compressed
-      s->com.psink = gavf_get_packet_sink(priv->enc, s->com.index);
+      s->com.psink = gavf_get_packet_sink(priv->enc, s->com.h->id);
     }
   for(i = 0; i < priv->num_video_streams; i++)
     {
     video_stream_t * s = priv->video_streams + i;
+    s->com.h = priv->ph->streams + s->com.index;
     if(s->sink) // Codec present and active
       {
       bg_codec_plugin_t * p = (bg_codec_plugin_t*)s->com.plugin->plugin;
-      s->com.psink = gavf_get_packet_sink(priv->enc, s->com.index);
+      s->com.psink = gavf_get_packet_sink(priv->enc, s->com.h->id);
       p->set_packet_sink(s->com.plugin->priv,s->com.psink);
       }
     else if(s->com.ci.id == GAVL_CODEC_ID_NONE) // Write uncompressed
-      s->sink = gavf_get_video_sink(priv->enc, s->com.index);
+      s->sink = gavf_get_video_sink(priv->enc, s->com.h->id);
     else // Write compressed
-      s->com.psink = gavf_get_packet_sink(priv->enc, s->com.index);
+      s->com.psink = gavf_get_packet_sink(priv->enc, s->com.h->id);
     }
   for(i = 0; i < priv->num_text_streams; i++)
     {
     text_stream_t * s = priv->text_streams + i;
-    s->com.psink = gavf_get_packet_sink(priv->enc, s->com.index);
+    s->com.h = priv->ph->streams + s->com.index;
+    s->com.psink = gavf_get_packet_sink(priv->enc, s->com.h->id);
     }
   
   

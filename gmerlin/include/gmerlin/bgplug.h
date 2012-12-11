@@ -99,6 +99,10 @@ int bg_plug_get_stream_sink(bg_plug_t * p,
                             gavl_video_sink_t ** vs,
                             gavl_packet_sink_t ** ps);
 
+void bg_plug_set_stream_action(bg_plug_t * p,
+                               const gavf_stream_header_t * h,
+                               bg_stream_action_t action);
+
 const gavf_stream_header_t *
 bg_plug_header_from_index(bg_plug_t * p, int index);
 
