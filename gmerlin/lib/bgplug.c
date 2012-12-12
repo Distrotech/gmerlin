@@ -537,13 +537,12 @@ static int init_read(bg_plug_t * p)
         return 0;
 
       codec = (bg_codec_plugin_t*)s->codec_handle->plugin;
-      gavl_metadata_copy(&s->m, &s->h->m);
 
       s->asrc = codec->connect_decode_audio(s->codec_handle,
                                             s->src_ext,
                                             &s->h->ci,
                                             &s->h->format.audio,
-                                            &s->m);
+                                            &s->h->m);
       }
     }
 
@@ -574,12 +573,11 @@ static int init_read(bg_plug_t * p)
         return 0;
       codec = (bg_codec_plugin_t*)s->codec_handle->plugin;
       
-      gavl_metadata_copy(&s->m, &s->h->m);
       s->vsrc = codec->connect_decode_video(s->codec_handle,
                                             s->src_ext,
                                             &s->h->ci,
                                             &s->h->format.video,
-                                            &s->m);
+                                            &s->h->m);
       }
     }
   
@@ -978,8 +976,9 @@ int bg_plug_get_stream_sink(bg_plug_t * p,
   return 1;
   }
 
-static stream_t * append_stream(bg_plug_t * plug,
-                                stream_t ** streams, int * num, const gavl_metadata_t * m)
+static stream_t *
+append_stream(bg_plug_t * plug,
+              stream_t ** streams, int * num, const gavl_metadata_t * m)
   {
   stream_t * ret;
   *streams = realloc(*streams, (*num + 1) * sizeof(**streams));
@@ -1165,9 +1164,57 @@ int bg_plug_setup_writer(bg_plug_t * p, bg_mediaconnector_t * conn)
   return 1;
   }
 
-int bg_plug_setup_reader(bg_plug_t*, bg_mediaconnector_t * conn)
+int bg_plug_setup_reader(bg_plug_t * p, bg_mediaconnector_t * conn)
   {
-  
+  int i;
+  stream_t * s;
+  for(i = 0; i < p->num_audio_streams; i++)
+    {
+    s = p->audio_streams + i;
+
+    if(s->asrc || s->src_ext)
+      {
+      bg_mediaconnector_add_audio_stream(conn,
+                                         &s->h->m,
+                                         s->asrc,
+                                         s->src_ext,
+                                         NULL);
+      }
+    else
+      continue;
+    }
+
+  for(i = 0; i < p->num_video_streams; i++)
+    {
+    s = p->video_streams + i;
+
+    if(s->vsrc || s->src_ext)
+      {
+      bg_mediaconnector_add_video_stream(conn,
+                                         &s->h->m,
+                                         s->vsrc,
+                                         s->src_ext,
+                                         NULL);
+      }
+    else
+      continue;
+    }
+
+  for(i = 0; i < p->num_text_streams; i++)
+    {
+    s = p->video_streams + i;
+
+    if(s->src_ext)
+      {
+      bg_mediaconnector_add_text_stream(conn,
+                                        &s->h->m,
+                                        s->src_ext,
+                                        s->h->format.text.timescale);
+      }
+    else
+      continue;
+    }
+  return 1;
   }
 
 
