@@ -425,7 +425,7 @@ void bg_x11_window_handle_event(bg_x11_window_t * w, XEvent * evt)
   switch(evt->type)
     {
     case Expose:
-      if(TEST_FLAG(w, FLAG_STILL_MODE) && !still_shown)
+      if(TEST_FLAG(w, FLAG_STILL_MODE) && !still_shown && w->still_frame)
         {
         bg_x11_window_put_frame_internal(w, w->still_frame);
         still_shown = 1;
