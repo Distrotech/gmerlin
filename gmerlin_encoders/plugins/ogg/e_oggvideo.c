@@ -111,9 +111,10 @@ add_audio_stream_compressed_oggvideo(void * data,
   
   if(ci->id == GAVL_CODEC_ID_VORBIS)
     bg_ogg_encoder_init_stream(data, s, &bg_vorbis_codec);
+#ifdef HAVE_OPUS
   else if(ci->id == GAVL_CODEC_ID_OPUS)
     bg_ogg_encoder_init_stream(data, s, &bg_opus_codec);
-  
+#endif  
   return s->index;
   }
 
