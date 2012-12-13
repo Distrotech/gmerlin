@@ -110,7 +110,7 @@ static int get_format(bgav_stream_t * s)
   s->data.audio.format.sample_format = GAVL_SAMPLE_FLOAT;
   s->data.audio.format.interleave_mode = GAVL_INTERLEAVE_NONE;
   s->data.audio.format.samples_per_frame =
-    MAD_NSBSAMPLES(&priv->frame.header) * 32;
+    MAD_NSBSAMPLES(&h) * 32;
 
   if(!s->codec_bitrate)
     {
