@@ -43,7 +43,8 @@ static void * create_codec()
 static void destroy_codec(void * priv)
   {
   stream_codec_t * c = priv;
-  bg_ffmpeg_codec_destroy(c->codec);
+  if(c->codec)
+    bg_ffmpeg_codec_destroy(c->codec);
   free(c);
   }
 
