@@ -1168,6 +1168,10 @@ int bg_plug_setup_reader(bg_plug_t * p, bg_mediaconnector_t * conn)
   {
   int i;
   stream_t * s;
+
+  if(!bg_plug_start(p))
+    return 0;
+  
   for(i = 0; i < p->num_audio_streams; i++)
     {
     s = p->audio_streams + i;
