@@ -148,6 +148,12 @@ GAVL_PUBLIC
 gavf_program_header_t * gavf_get_program_header(gavf_t *);
 
 GAVL_PUBLIC
+int gavf_get_num_streams(gavf_t *, int type);
+
+GAVL_PUBLIC
+const gavf_stream_header_t * gavf_get_stream(gavf_t *, int index, int type);
+
+GAVL_PUBLIC
 const gavf_packet_header_t * gavf_packet_read_header(gavf_t * gavf);
 
 /* Mark this stream as skipable. */
