@@ -103,7 +103,7 @@ typedef void (*gavf_stream_skip_func)(gavf_t * gavf,
 #define GAVF_OPT_FLAG_SYNC_INDEX   (1<<0)
 #define GAVF_OPT_FLAG_PACKET_INDEX (1<<1)
 #define GAVF_OPT_FLAG_INTERLEAVE   (1<<2)
-#define GAVF_OPT_BUFFER_READ       (1<<3)
+#define GAVF_OPT_FLAG_BUFFER_READ  (1<<3)
 
 #define GAVF_OPT_FLAG_DUMP_HEADERS (1<<4)
 #define GAVF_OPT_FLAG_DUMP_INDICES (1<<5)

@@ -25,30 +25,32 @@ read_packet_func_nobuffer(void * priv, gavl_packet_t ** p)
 static gavl_source_status_t
 read_packet_func_buffer_cont(void * priv, gavl_packet_t ** p)
   {
-  int i;
   gavl_packet_t * read_packet;
   gavf_stream_t * read_stream;
-
   gavf_stream_t * s = priv;
-
+  gavf_t * g = s->g;
+  
   while(!(*p = gavf_packet_buffer_get_read(s->pb)))
     {
     /* Read header */
-    if(!s->g->have_pkt_header && !gavf_packet_read_header(s->g))
+    if(!g->have_pkt_header && !gavf_packet_read_header(g))
       return GAVL_SOURCE_EOF;
 
-    for(i = 0; i < s->g->ph.num_streams; i++)
+    read_stream = gavf_find_stream_by_id(g, g->pkthdr.stream_id);
+    if(!read_stream)
       {
-      if(s->g->pkthdr.stream_id != s->g->ph.streams[i].id)
-        {
-        read_stream = &s->g->streams[i];
-        read_packet = gavf_packet_buffer_get_write(read_stream->pb);
-        gavf_buffer_reset(&s->g->pkt_buf);
-        if(!gavf_read_gavl_packet(s->g->io, s, read_packet))
-          return GAVL_SOURCE_EOF;
-        break;
-        }
+      /* Should never happen */
+      return GAVL_SOURCE_EOF;
       }
+    
+    read_packet = gavf_packet_buffer_get_write(read_stream->pb);
+    gavf_buffer_reset(&g->pkt_buf);
+    if(!gavf_read_gavl_packet(s->g->io, s, read_packet))
+      return GAVL_SOURCE_EOF;
+
+    fprintf(stderr, "Got packet id: %d\n", read_stream->h->id);
+    gavl_packet_dump(read_packet);
+    
     s->g->have_pkt_header = 0;
     }
   return GAVL_SOURCE_OK;
@@ -73,7 +75,7 @@ void gavf_stream_create_packet_src(gavf_t * g, gavf_stream_t * s,
                                    const gavl_audio_format_t * afmt,
                                    const gavl_video_format_t * vfmt)
   {
-  if(!(g->opt.flags & GAVF_OPT_BUFFER_READ))
+  if(!(g->opt.flags & GAVF_OPT_FLAG_BUFFER_READ))
     s->psrc = gavl_packet_source_create(read_packet_func_nobuffer, s, 0,
                                         ci, afmt, vfmt);
   else
@@ -124,7 +126,7 @@ put_packet_func(void * priv, gavl_packet_t * p)
     if(s->h->foot.size_min > p->data_len)
       s->h->foot.size_min = p->data_len;
 
-    if(s->h->foot.size_max > p->data_len)
+    if(s->h->foot.size_max < p->data_len)
       s->h->foot.size_max = p->data_len;
     
     if(s->h->foot.pts_end < p->pts + p->duration)

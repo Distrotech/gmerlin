@@ -160,8 +160,12 @@ gavl_packet_source_read_packet(void*sp, gavl_packet_t ** p)
   /* Memcpy (if necessary) */
   if(p_src != p_dst)
     gavl_packet_copy(p_dst, p_src);
+
+  if(!*p)
+    *p = p_dst;
+
   
-  return GAVL_SOURCE_SRC_ALLOC;
+  return GAVL_SOURCE_OK;
   }
 
 void

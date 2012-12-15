@@ -1153,8 +1153,8 @@ const gavf_stream_header_t * gavf_get_stream(gavf_t * g, int index,
       {
       if(idx == index)
         return &g->ph.streams[i];
+      idx++;
       }
-    idx++;
     }
   return NULL;
   }
