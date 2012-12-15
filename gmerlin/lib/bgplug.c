@@ -1090,7 +1090,7 @@ int bg_plug_setup_writer(bg_plug_t * p, bg_mediaconnector_t * conn)
   
   for(i = 0; i < conn->num_streams; i++)
     {
-    s = conn->streams + i;
+    s = conn->streams[i];
     switch(s->type)
       {
       case GAVF_STREAM_AUDIO:
@@ -1142,7 +1142,7 @@ int bg_plug_setup_writer(bg_plug_t * p, bg_mediaconnector_t * conn)
 
   for(i = 0; i < conn->num_streams; i++)
     {
-    s = conn->streams + i;
+    s = conn->streams[i];
     h = p->ph->streams + i;
 
     as = NULL;

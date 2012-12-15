@@ -38,19 +38,40 @@ static bg_cfg_section_t * video_section = NULL;
 static int audio_stream = -1;
 static int video_stream = -1;
 
+typedef struct player_s player_t;
+
+#define FLAG_ACTIVE    (1<<0)
+#define FLAG_HAS_DELAY (1<<1) // Audio plugin reports latency
+
+static gavl_time_t player_get_time(player_t * p);
+
 typedef struct
   {
+  gavl_audio_format_t fmt;
   bg_plugin_handle_t * h;
   bg_oa_plugin_t * plugin;
   bg_parameter_info_t * parameters;
+
+  int flags;
+  
+  gavl_audio_sink_t * sink_int;
+  gavl_audio_sink_t * sink_ext;
+  int64_t samples_written;
+  
   } audio_stream_t;
 
 typedef struct
   {
+  gavl_video_format_t fmt;
   bg_plugin_handle_t * h;
   bg_ov_plugin_t * plugin;
   bg_ov_t * ov;
   bg_parameter_info_t * parameters;
+  
+  player_t * p; // For synchronizing
+
+  int flags;
+
   } video_stream_t;
 
 static const bg_parameter_info_t audio_parameters[] =
@@ -79,7 +100,6 @@ static void init_audio(audio_stream_t * as)
   {
   as->parameters =
     bg_parameter_info_copy_array(audio_parameters);
-  
   bg_plugin_registry_set_parameter_info(plugin_reg,
                                         BG_PLUGIN_OUTPUT_AUDIO,
                                         BG_PLUGIN_PLAYBACK,
@@ -90,11 +110,94 @@ static void init_video(video_stream_t * vs)
   {
   vs->parameters =
     bg_parameter_info_copy_array(video_parameters);
-  
   bg_plugin_registry_set_parameter_info(plugin_reg,
                                         BG_PLUGIN_OUTPUT_VIDEO,
                                         BG_PLUGIN_PLAYBACK,
                                         &vs->parameters[0]);
+  }
+
+static gavl_audio_frame_t * get_audio_frame(void * priv)
+  {
+  audio_stream_t * as = priv;
+  return gavl_audio_sink_get_frame(as->sink_int);
+  }
+
+static gavl_sink_status_t put_audio_frame(void * priv,
+                                          gavl_audio_frame_t * f)
+  {
+  gavl_sink_status_t ret;
+  audio_stream_t * as = priv;
+
+  bg_plugin_lock(as->h);
+  if((ret = gavl_audio_sink_put_frame(as->sink_int, f)) != GAVL_SINK_OK)
+    {
+    bg_plugin_unlock(as->h);
+    return ret;
+    }
+  as->samples_written += f->valid_samples;
+  bg_plugin_unlock(as->h);
+  return ret;
+  }
+
+static void open_audio(audio_stream_t * as,
+                       bg_mediaconnector_stream_t * s)
+  {
+  as->flags |= FLAG_ACTIVE;
+  gavl_audio_format_copy(&as->fmt,
+                         gavl_audio_source_get_src_format(s->asrc));
+  as->plugin->open(as->h->priv, &as->fmt);
+
+  if(as->plugin->get_delay)
+    {
+    as->flags |= FLAG_HAS_DELAY;
+    as->sink_int = as->plugin->get_sink(as->h->priv);
+    as->sink_ext = gavl_audio_sink_create(get_audio_frame,
+                                          put_audio_frame, as,
+                                          gavl_audio_sink_get_format(as->sink_int));
+    gavl_audio_connector_connect(s->aconn, as->sink_ext);
+    }
+  else
+    gavl_audio_connector_connect(s->aconn, as->plugin->get_sink(as->h->priv));
+  }
+
+static gavl_time_t audio_stream_get_time(audio_stream_t * as)
+  {
+  gavl_time_t ret;
+  bg_plugin_lock(as->h);
+  ret = gavl_time_unscale(as->fmt.samplerate,
+                          as->samples_written - as->plugin->get_delay(as->h->priv));
+  bg_plugin_unlock(as->h);
+  return ret;
+  }
+
+static void
+process_cb_video(void * priv, gavl_video_frame_t * frame)
+  {
+  gavl_time_t frame_time, cur_time, diff_time;
+  player_t * p;
+  video_stream_t * vs = priv;
+  p = vs->p;
+  frame_time = gavl_time_unscale(vs->fmt.timescale,
+                                 frame->timestamp);
+  cur_time = player_get_time(p);
+
+  diff_time = frame_time - cur_time;
+
+  if(diff_time > 0)
+    gavl_time_delay(&diff_time);
+  }
+
+static void open_video(video_stream_t * vs,
+                       bg_mediaconnector_stream_t * s)
+  {
+  vs->flags |= FLAG_ACTIVE;
+  gavl_video_format_copy(&vs->fmt,
+                         gavl_video_source_get_src_format(s->vsrc));
+
+  vs->ov = bg_ov_create(vs->h);
+  bg_ov_open(vs->ov, &vs->fmt, 1);
+  gavl_video_connector_connect(s->vconn, bg_ov_get_sink(vs->ov));
+  gavl_video_connector_set_process_func(s->vconn, process_cb_video, vs);
   }
 
 static void set_audio_parameter(void * data,
@@ -123,8 +226,6 @@ static void set_audio_parameter(void * data,
     // if(s->input_plugin->set_callbacks)
     // s->input_plugin->set_callbacks(s->h->priv, &rec->recorder_cb);
     }
-
-
   }
 
 static void set_video_parameter(void * data,
@@ -155,19 +256,52 @@ static void set_video_parameter(void * data,
     }
   }
 
-typedef struct
+struct player_s
   {
   audio_stream_t as;
   video_stream_t vs;
-  } player_t;
+  gavl_timer_t * timer;
+  };
 
 static player_t player;
 
 static void player_init(player_t * p)
   {
+  memset(p, 0, sizeof(*p));
+  
+  p->vs.p = p;
   init_audio(&p->as);
   init_video(&p->vs);
   }
+
+static void player_open(player_t * p, bg_mediaconnector_t * conn)
+  {
+  int i;
+
+  for(i = 0; i < conn->num_streams; i++)
+    {
+    if(conn->streams[i]->asrc)
+      open_audio(&p->as, conn->streams[i]);
+    else if(conn->streams[i]->vsrc)
+      open_video(&p->vs, conn->streams[i]);
+    }
+  if(!(p->as.flags & FLAG_HAS_DELAY))
+    p->timer = gavl_timer_create();
+  }
+
+static gavl_time_t player_get_time(player_t * p)
+  {
+  if(p->timer)
+    return gavl_timer_get(p->timer);
+  else
+    {
+    return audio_stream_get_time(&p->as);
+    }
+  
+  return GAVL_TIME_UNDEFINED;
+  }
+
+/* Option processing */
 
 static void opt_aud(void * data, int * argc, char *** _argv, int arg)
   {
@@ -379,37 +513,34 @@ int main(int argc, char ** argv)
     else
       bg_plug_set_stream_action(in_plug, &ph->streams[i],
                                 BG_STREAM_ACTION_OFF);
-    }
+   }
   
   
-  /* Start plug and set up media converter */
+  /* Start plug and set up media connector */
   
   if(!bg_plug_setup_reader(in_plug, &conn))
     return ret;
 
+  bg_mediaconnector_create_threads(&conn);
+  bg_mediaconnector_threads_init_separate(&conn);
+  
   /* Initialize output plugins */
 
-  if(as)
-    {
-    
-    }
-  if(vs)
-    {
-    
-    }
+  player_open(&player, &conn);
   
   /* Start media connector */
-
   
-
+  bg_mediaconnector_threads_start(&conn);
+  
   /* Main loop */
   while(1)
     {
-    
+    /* TODO: Check for end */
     }
 
   /* Cleanup */
-
+  bg_mediaconnector_threads_stop(&conn);
+  
   ret = 0;
   return ret;
   }
