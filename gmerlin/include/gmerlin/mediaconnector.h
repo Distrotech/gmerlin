@@ -65,7 +65,7 @@ typedef struct
 
 struct bg_mediaconnector_s
   {
-  bg_mediaconnector_stream_t * streams;
+  bg_mediaconnector_stream_t ** streams;
   int num_streams;
   
   bg_thread_common_t * tc;
