@@ -116,12 +116,12 @@ static void recorder_stream_init(recorder_stream_t * s,
   memset(s, 0, sizeof(*s));
   s->parameters = bg_parameter_info_copy_array(parameters);
   
-  if(!(*section))
-    *section = bg_cfg_section_create_from_parameters(name, s->parameters);
   bg_plugin_registry_set_parameter_info(plugin_reg,
                                         type_mask,
                                         BG_PLUGIN_RECORDER,
                                         &s->parameters[0]);
+  if(!(*section))
+    *section = bg_cfg_section_create_from_parameters(name, s->parameters);
   }
 
 static void recorder_init(recorder_t * rec)

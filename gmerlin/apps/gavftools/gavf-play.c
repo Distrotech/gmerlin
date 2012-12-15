@@ -104,6 +104,10 @@ static void init_audio(audio_stream_t * as)
                                         BG_PLUGIN_OUTPUT_AUDIO,
                                         BG_PLUGIN_PLAYBACK,
                                         &as->parameters[0]);
+
+  audio_section = bg_cfg_section_create_from_parameters("audio",
+                                                        as->parameters);
+
   }
 
 static void init_video(video_stream_t * vs)
@@ -114,6 +118,8 @@ static void init_video(video_stream_t * vs)
                                         BG_PLUGIN_OUTPUT_VIDEO,
                                         BG_PLUGIN_PLAYBACK,
                                         &vs->parameters[0]);
+  video_section = bg_cfg_section_create_from_parameters("video",
+                                                        vs->parameters);
   }
 
 static gavl_audio_frame_t * get_audio_frame(void * priv)
@@ -160,6 +166,13 @@ static void open_audio(audio_stream_t * as,
     gavl_audio_connector_connect(s->aconn, as->plugin->get_sink(as->h->priv));
   }
 
+static void start_audio(audio_stream_t * as)
+  {
+  if(as->plugin->start)
+    as->plugin->start(as->h->priv);
+  }
+
+
 static gavl_time_t audio_stream_get_time(audio_stream_t * as)
   {
   gavl_time_t ret;
@@ -180,9 +193,12 @@ process_cb_video(void * priv, gavl_video_frame_t * frame)
   frame_time = gavl_time_unscale(vs->fmt.timescale,
                                  frame->timestamp);
   cur_time = player_get_time(p);
-
+  
   diff_time = frame_time - cur_time;
 
+  fprintf(stderr, "cur: %ld, frame: %ld, frame (unscaled): %ld\n",
+          cur_time, frame_time, frame->timestamp);
+  
   if(diff_time > 0)
     gavl_time_delay(&diff_time);
   }
@@ -198,6 +214,11 @@ static void open_video(video_stream_t * vs,
   bg_ov_open(vs->ov, &vs->fmt, 1);
   gavl_video_connector_connect(s->vconn, bg_ov_get_sink(vs->ov));
   gavl_video_connector_set_process_func(s->vconn, process_cb_video, vs);
+  }
+
+static void start_video(video_stream_t * vs)
+  {
+  bg_ov_show_window(vs->ov, 1);
   }
 
 static void set_audio_parameter(void * data,
@@ -287,6 +308,15 @@ static void player_open(player_t * p, bg_mediaconnector_t * conn)
     }
   if(!(p->as.flags & FLAG_HAS_DELAY))
     p->timer = gavl_timer_create();
+  
+  }
+
+static void player_start(player_t * p)
+  {
+  if(p->as.flags & FLAG_ACTIVE)
+    start_audio(&p->as);
+  if(p->vs.flags & FLAG_ACTIVE)
+    start_video(&p->vs);
   }
 
 static gavl_time_t player_get_time(player_t * p)
@@ -433,7 +463,7 @@ find_stream(gavf_t * g, int type, int index)
     ret = gavf_get_stream(g, 0, type);
   else
     {
-    ret = gavf_get_stream(g, audio_stream, type);
+    ret = gavf_get_stream(g, index, type);
     if(!ret)
       {
       bg_log(BG_LOG_ERROR, LOG_DOMAIN, "No %s stream %d",
@@ -529,6 +559,10 @@ int main(int argc, char ** argv)
   player_open(&player, &conn);
   
   /* Start media connector */
+
+  bg_mediaconnector_start(&conn);
+
+  player_start(&player);
   
   bg_mediaconnector_threads_start(&conn);
   

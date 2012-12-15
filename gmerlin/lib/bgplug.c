@@ -509,7 +509,7 @@ static int init_read(bg_plug_t * p)
   int i; 
   stream_t * s;
   
-  init_streams_read(p);
+  //  init_streams_read(p);
 
   for(i = 0; i < p->num_audio_streams; i++)
     {
@@ -523,8 +523,8 @@ static int init_read(bg_plug_t * p)
     if(s->h->ci.id == GAVL_CODEC_ID_NONE)
       {
       s->asrc = gavl_audio_source_create(read_audio_func, s,
-                                        GAVL_SOURCE_SRC_ALLOC,
-                                        &s->h->format.audio);
+                                         GAVL_SOURCE_SRC_ALLOC,
+                                         &s->h->format.audio);
       s->aframe = gavl_audio_frame_create(NULL);
       }
     else if(s->action == BG_STREAM_ACTION_DECODE)
@@ -822,6 +822,8 @@ int bg_plug_open(bg_plug_t * p, gavf_io_t * io,
                  const gavl_metadata_t * m,
                  const gavl_chapter_list_t * cl)
   {
+  int flags;
+  
   p->io = io;
   
   if(p->wr)
@@ -830,7 +832,7 @@ int bg_plug_open(bg_plug_t * p, gavf_io_t * io,
        is seekable */
     if(p->io_flags & BG_PLUG_IO_CAN_SEEK)
       {
-      int flags = gavf_options_get_flags(p->opt);
+      flags = gavf_options_get_flags(p->opt);
       flags |= GAVF_OPT_FLAG_SYNC_INDEX;
       gavf_options_set_flags(p->opt, flags);
       }
@@ -842,6 +844,11 @@ int bg_plug_open(bg_plug_t * p, gavf_io_t * io,
       }
     return 1;
     }
+
+  flags = gavf_options_get_flags(p->opt);
+  flags |= GAVF_OPT_FLAG_BUFFER_READ;
+  gavf_options_set_flags(p->opt, flags);
+  
   if(!gavf_open_read(p->g, p->io))
     {
     bg_log(BG_LOG_ERROR, LOG_DOMAIN, "gavf_open_read failed");

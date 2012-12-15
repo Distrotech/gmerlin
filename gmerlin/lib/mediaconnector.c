@@ -95,19 +95,19 @@ bg_mediaconnector_add_audio_stream(bg_mediaconnector_t * conn,
   ret->type = GAVF_STREAM_AUDIO;
   ret->asrc = asrc;
 
-  if(ret->psrc)
-    {
-    ret->pconn = gavl_packet_connector_create(ret->psrc);
-    gavl_packet_connector_set_process_func(ret->pconn,
-                                           process_cb_packet,
-                                           ret);
-    }
-  else
+  if(ret->asrc)
     {
     ret->aconn = gavl_audio_connector_create(ret->asrc);
     gavl_audio_connector_set_process_func(ret->aconn,
                                           process_cb_audio,
                                           ret);
+    }
+  else
+    {
+    ret->pconn = gavl_packet_connector_create(ret->psrc);
+    gavl_packet_connector_set_process_func(ret->pconn,
+                                           process_cb_packet,
+                                           ret);
     }
   ret->encode_section = encode_section;
   }
@@ -123,19 +123,19 @@ bg_mediaconnector_add_video_stream(bg_mediaconnector_t * conn,
   ret->type = GAVF_STREAM_VIDEO;
   ret->vsrc = vsrc;
 
-  if(ret->psrc)
-    {
-    ret->pconn = gavl_packet_connector_create(ret->psrc);
-    gavl_packet_connector_set_process_func(ret->pconn,
-                                           process_cb_packet,
-                                           ret);
-    }
-  else
+  if(ret->vsrc)
     {
     ret->vconn = gavl_video_connector_create(ret->vsrc);
     gavl_video_connector_set_process_func(ret->vconn,
                                           process_cb_video,
                                           ret);
+    }
+  else
+    {
+    ret->pconn = gavl_packet_connector_create(ret->psrc);
+    gavl_packet_connector_set_process_func(ret->pconn,
+                                           process_cb_packet,
+                                           ret);
     }
   ret->encode_section = encode_section;
   }
