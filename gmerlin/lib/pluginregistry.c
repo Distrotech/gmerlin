@@ -388,6 +388,7 @@ bg_plugin_find_by_compression(bg_plugin_registry_t * reg,
       continue;
       }
 
+    i = 0;
     while(info->compressions[i] != GAVL_CODEC_ID_NONE)
       {
       if(info->compressions[i] == id)

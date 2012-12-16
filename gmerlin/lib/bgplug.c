@@ -541,7 +541,7 @@ static int init_read(bg_plug_t * p)
 
       codec = (bg_codec_plugin_t*)s->codec_handle->plugin;
 
-      s->asrc = codec->connect_decode_audio(s->codec_handle,
+      s->asrc = codec->connect_decode_audio(s->codec_handle->priv,
                                             s->src_ext,
                                             &s->h->ci,
                                             &s->h->format.audio,
@@ -576,7 +576,7 @@ static int init_read(bg_plug_t * p)
         return 0;
       codec = (bg_codec_plugin_t*)s->codec_handle->plugin;
       
-      s->vsrc = codec->connect_decode_video(s->codec_handle,
+      s->vsrc = codec->connect_decode_video(s->codec_handle->priv,
                                             s->src_ext,
                                             &s->h->ci,
                                             &s->h->format.video,
