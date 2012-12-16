@@ -194,7 +194,9 @@ static gavl_sink_status_t put_video(bg_ov_t * ov, gavl_video_frame_t*frame)
   LOCK(ov);
   ret = gavl_video_sink_put_frame(ov->sink_int, frame);
   UNLOCK(ov);
-    
+
+  bg_ov_handle_events(ov);
+  
   return ret;
   }
 
@@ -222,6 +224,8 @@ static gavl_sink_status_t put_still(bg_ov_t * ov, gavl_video_frame_t*frame)
   LOCK(ov);
   ret = gavl_video_sink_put_frame(ov->sink_int, frame);
   UNLOCK(ov);
+
+  bg_ov_handle_events(ov);
   
   return ret;
   }

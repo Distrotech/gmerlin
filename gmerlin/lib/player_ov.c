@@ -335,7 +335,6 @@ void bg_player_ov_update_still(bg_player_t * p)
 
   frame->duration = -1;
   bg_ov_put_frame(s->ov, frame);
-  bg_ov_handle_events(s->ov);
   }
 
 void bg_player_ov_cleanup(bg_player_video_stream_t * s)
@@ -515,7 +514,6 @@ void * bg_player_ov_thread(void * data)
       }
     
     bg_ov_put_frame(s->ov, frame);
-    bg_ov_handle_events(s->ov);
     s->frames_written++;
     }
   

@@ -462,7 +462,7 @@ static gavl_source_status_t read_video_func(void * priv,
   gavl_source_status_t st;
   gavl_packet_t * p = NULL;
   stream_t * s = priv;
-  
+  // fprintf(stderr, "Read video func\n");
   if((st = gavl_packet_source_read_packet(s->src_ext, &p))
      != GAVL_SOURCE_OK)
     return st;
@@ -470,6 +470,9 @@ static gavl_source_status_t read_video_func(void * priv,
   gavf_packet_to_video_frame(p, s->vframe,
                              &s->h->format.video);
   *f = s->vframe;
+
+  // fprintf(stderr, "Read video func done\n");
+  
   return GAVL_SOURCE_OK;
     
   }

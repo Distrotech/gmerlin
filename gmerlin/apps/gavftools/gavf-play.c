@@ -131,6 +131,7 @@ static gavl_audio_frame_t * get_audio_frame(void * priv)
 static gavl_sink_status_t put_audio_frame(void * priv,
                                           gavl_audio_frame_t * f)
   {
+  gavl_time_t wait_time;
   gavl_sink_status_t ret;
   audio_stream_t * as = priv;
 
@@ -142,6 +143,10 @@ static gavl_sink_status_t put_audio_frame(void * priv,
     }
   as->samples_written += f->valid_samples;
   bg_plugin_unlock(as->h);
+
+  wait_time = gavl_time_unscale(as->fmt.samplerate,
+                                f->valid_samples / 2);
+  gavl_time_delay(&wait_time);
   return ret;
   }
 
@@ -189,6 +194,9 @@ process_cb_video(void * priv, gavl_video_frame_t * frame)
   gavl_time_t frame_time, cur_time, diff_time;
   player_t * p;
   video_stream_t * vs = priv;
+
+  //  fprintf(stderr, "Process video\n");
+
   p = vs->p;
   frame_time = gavl_time_unscale(vs->fmt.timescale,
                                  frame->timestamp);
@@ -196,11 +204,12 @@ process_cb_video(void * priv, gavl_video_frame_t * frame)
   
   diff_time = frame_time - cur_time;
 
-  fprintf(stderr, "cur: %ld, frame: %ld, frame (unscaled): %ld\n",
-          cur_time, frame_time, frame->timestamp);
+  //  fprintf(stderr, "cur: %ld, frame: %ld, diff: %ld\n",
+  //          cur_time, frame_time, diff_time);
   
   if(diff_time > 0)
     gavl_time_delay(&diff_time);
+  //  fprintf(stderr, "Process video done\n");
   }
 
 static void open_video(video_stream_t * vs,
@@ -479,6 +488,7 @@ int main(int argc, char ** argv)
   const gavf_stream_header_t * as;
   const gavf_stream_header_t * vs;
   const gavf_program_header_t * ph;
+  gavl_time_t delay_time = GAVL_TIME_SCALE / 100; // 10 ms
   
   gavf_t * g;
   int ret = 1;
@@ -569,9 +579,13 @@ int main(int argc, char ** argv)
   /* Main loop */
   while(1)
     {
-    /* TODO: Check for end */
-    }
+    /* Check for end */
+    if(bg_mediaconnector_done(&conn))
+      break;
 
+    gavl_time_delay(&delay_time);
+    }
+  
   /* Cleanup */
   bg_mediaconnector_threads_stop(&conn);
   

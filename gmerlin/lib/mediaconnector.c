@@ -56,6 +56,7 @@ bg_mediaconnector_init(bg_mediaconnector_t * conn)
   {
   memset(conn, 0, sizeof(*conn));
   pthread_mutex_init(&conn->time_mutex, NULL);
+  pthread_mutex_init(&conn->running_threads_mutex, NULL);
   }
                        
 
@@ -181,6 +182,9 @@ bg_mediaconnector_free(bg_mediaconnector_t * conn)
     bg_thread_common_destroy(conn->tc);
   if(conn->th)
     free(conn->th);
+
+  pthread_mutex_destroy(&conn->time_mutex);
+  pthread_mutex_destroy(&conn->running_threads_mutex);
   }
 
 void
@@ -374,6 +378,11 @@ static void * thread_func_separate(void * data)
     if(!process_stream(s))
       break;
     }
+  
+  pthread_mutex_lock(&s->conn->running_threads_mutex);
+  s->conn->running_threads--;
+  pthread_mutex_unlock(&s->conn->running_threads_mutex);
+  bg_thread_wait_for_start(s->th);
   return NULL;
   }
 
@@ -388,7 +397,7 @@ bg_mediaconnector_threads_init_separate(bg_mediaconnector_t * conn)
     bg_thread_set_func(s->th,
                        thread_func_separate, s);
     }
-  
+  conn->running_threads = conn->num_streams;
   }
 
 void
@@ -403,3 +412,16 @@ bg_mediaconnector_threads_stop(bg_mediaconnector_t * conn)
   {
   bg_threads_join(conn->th, conn->num_streams);
   }
+
+int bg_mediaconnector_done(bg_mediaconnector_t * conn)
+  {
+  int ret;
+  pthread_mutex_lock(&conn->running_threads_mutex);
+  if(conn->running_threads == 0)
+    ret = 1;
+  else
+    ret = 0;
+  pthread_mutex_unlock(&conn->running_threads_mutex);
+  return ret;
+  }
+  

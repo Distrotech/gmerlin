@@ -74,6 +74,9 @@ struct bg_mediaconnector_s
   
   pthread_mutex_t time_mutex;
   gavl_time_t time;
+
+  pthread_mutex_t running_threads_mutex;
+  int running_threads;
   };
 
 void
@@ -126,6 +129,7 @@ bg_mediaconnector_threads_start(bg_mediaconnector_t * conn);
 void
 bg_mediaconnector_threads_stop(bg_mediaconnector_t * conn);
 
+int bg_mediaconnector_done(bg_mediaconnector_t * conn);
 
 
 #endif // __MEDIACONNECTOR_H_
