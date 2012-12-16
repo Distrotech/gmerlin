@@ -40,7 +40,6 @@ struct bgav_stream_decoder_s
 bgav_stream_decoder_t * bgav_stream_decoder_create()
   {
   bgav_stream_decoder_t * ret = calloc(1, sizeof(*ret));
-
   bgav_options_set_defaults(&ret->opt);
 
   ret->s.opt = &ret->opt;
@@ -135,7 +134,8 @@ bgav_stream_decoder_connect_audio(bgav_stream_decoder_t * dec,
   {
   dec->s.type = BGAV_STREAM_AUDIO;
   bgav_stream_set_from_gavl(&dec->s, ci, fmt, NULL, m);
-
+  
+  
   if(!init_common(dec, src, ci, m))
     return NULL;
 
