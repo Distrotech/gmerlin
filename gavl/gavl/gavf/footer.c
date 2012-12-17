@@ -57,6 +57,9 @@ int gavf_footer_check(gavf_t * g)
        !gavf_io_read_int64v(g->io, &s->foot.pts_start) ||
        !gavf_io_read_int64v(g->io, &s->foot.pts_end))
       goto end;
+
+    /* Set some useful values from the footer */
+    gavf_stream_header_apply_footer(s);
     }
   
   ret = 1;

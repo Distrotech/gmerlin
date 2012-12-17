@@ -101,6 +101,7 @@ void gavf_stream_header_init_audio(gavf_stream_header_t * h);
 void gavf_stream_header_init_video(gavf_stream_header_t * h);
 void gavf_stream_header_init_text(gavf_stream_header_t * h);
 void gavf_stream_header_dump(gavf_stream_header_t * h);
+void gavf_stream_header_apply_footer(gavf_stream_header_t * h);
 
 /* Program header */
 

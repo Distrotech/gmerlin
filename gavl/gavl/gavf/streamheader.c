@@ -29,6 +29,27 @@ int gavf_stream_header_read(gavf_io_t * io, gavf_stream_header_t * h)
   return 1;
   }
 
+void gavf_stream_header_apply_footer(gavf_stream_header_t * h)
+  {
+  /* Set maximum packet size */
+  if(!h->ci.max_packet_size)
+    h->ci.max_packet_size = f->foot.size_max;
+
+  switch(h->type)
+    {
+    case GAVF_STREAM_AUDIO:
+      break;
+    case GAVF_STREAM_VIDEO:
+      /* Detect constant framerate */
+      if((s->foot.duration_min == s->foot.duration_max) &&
+         (h->format.video.framerate_mode == GAVL_FRAMERATE_VARIABLE))
+        h->format.video.framerate_mode = GAVL_FRAMERATE_CONSTANT;
+      break;
+    case GAVF_STREAM_TEXT:
+      break;
+    }
+  }
+
 int gavf_stream_header_write(gavf_io_t * io, const gavf_stream_header_t * h)
   {
   if(!gavf_io_write_uint32v(io, h->type) ||

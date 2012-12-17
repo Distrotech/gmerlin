@@ -45,11 +45,11 @@ read_packet_func_buffer_cont(void * priv, gavl_packet_t ** p)
     
     read_packet = gavf_packet_buffer_get_write(read_stream->pb);
     gavf_buffer_reset(&g->pkt_buf);
-    if(!gavf_read_gavl_packet(s->g->io, s, read_packet))
+    if(!gavf_read_gavl_packet(s->g->io, read_stream, read_packet))
       return GAVL_SOURCE_EOF;
 
-    fprintf(stderr, "Got packet id: %d\n", read_stream->h->id);
-    gavl_packet_dump(read_packet);
+    //    fprintf(stderr, "Got packet id: %d\n", read_stream->h->id);
+    //    gavl_packet_dump(read_packet);
     
     s->g->have_pkt_header = 0;
     }
