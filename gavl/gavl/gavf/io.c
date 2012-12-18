@@ -45,10 +45,11 @@ void gavf_io_destroy(gavf_io_t * io)
   free(io);
   }
 
-void gavf_io_flush(gavf_io_t * io)
+int gavf_io_flush(gavf_io_t * io)
   {
   if(io->flush_func)
-    io->flush_func(io->priv);
+    return io->flush_func(io->priv);
+  return 1;
   }
 
 int gavf_io_read_data(gavf_io_t * io, uint8_t * buf, int len)

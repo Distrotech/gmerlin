@@ -24,7 +24,11 @@ static int read_file(void * priv, uint8_t * data, int len)
 
 static int write_file(void * priv, const uint8_t * data, int len)
   {
-  return fwrite(data, 1, len, (FILE*)priv);
+  int ret;
+  ret =  fwrite(data, 1, len, (FILE*)priv);
+  //  if(ret < len)
+  //    fprintf(stderr, "write failed: %d < %d\n", ret, len);
+  return ret;
   }
 
 static int64_t seek_file(void * priv, int64_t pos, int whence)
@@ -33,9 +37,12 @@ static int64_t seek_file(void * priv, int64_t pos, int whence)
   return GAVL_FTELL((FILE*)priv);
   }
 
-static void flush_file(void * priv)
+static int flush_file(void * priv)
   {
-  fflush((FILE*)priv);
+  if(!fflush((FILE*)priv))
+    return 1;
+  //  fprintf(stderr, "flush failed\n");
+  return 0;
   }
 
 static void close_file(void * priv)

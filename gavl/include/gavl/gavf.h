@@ -22,7 +22,7 @@ typedef int (*gavf_read_func)(void * priv, uint8_t * data, int len);
 typedef int (*gavf_write_func)(void * priv, const uint8_t * data, int len);
 typedef int64_t (*gavf_seek_func)(void * priv, int64_t pos, int whence);
 typedef void (*gavf_close_func)(void * priv);
-typedef void (*gavf_flush_func)(void * priv);
+typedef int (*gavf_flush_func)(void * priv);
 
 typedef struct gavl_io_s gavf_io_t;
 
@@ -38,7 +38,7 @@ GAVL_PUBLIC
 void gavf_io_destroy(gavf_io_t *);
 
 GAVL_PUBLIC
-void gavf_io_flush(gavf_io_t *);
+int gavf_io_flush(gavf_io_t *);
 
 GAVL_PUBLIC
 gavf_io_t * gavf_io_create_file(FILE * f, int wr, int can_seek, int close);
@@ -272,6 +272,17 @@ gavf_get_audio_source(gavf_t *, uint32_t id);
 
 GAVL_PUBLIC gavl_video_source_t *
 gavf_get_video_source(gavf_t *, uint32_t id);
+
+/* Utility functions */
+
+GAVL_PUBLIC 
+int gavf_get_max_audio_packet_size(const gavl_audio_format_t * fmt,
+                                   const gavl_compression_info_t * ci);
+
+GAVL_PUBLIC 
+int gavf_get_max_video_packet_size(const gavl_video_format_t * fmt,
+                                   const gavl_compression_info_t * ci);
+
 
 
 /* Ultra simple image format */

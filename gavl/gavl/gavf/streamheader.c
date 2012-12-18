@@ -33,7 +33,7 @@ void gavf_stream_header_apply_footer(gavf_stream_header_t * h)
   {
   /* Set maximum packet size */
   if(!h->ci.max_packet_size)
-    h->ci.max_packet_size = f->foot.size_max;
+    h->ci.max_packet_size = h->foot.size_max;
 
   switch(h->type)
     {
@@ -41,7 +41,7 @@ void gavf_stream_header_apply_footer(gavf_stream_header_t * h)
       break;
     case GAVF_STREAM_VIDEO:
       /* Detect constant framerate */
-      if((s->foot.duration_min == s->foot.duration_max) &&
+      if((h->foot.duration_min == h->foot.duration_max) &&
          (h->format.video.framerate_mode == GAVL_FRAMERATE_VARIABLE))
         h->format.video.framerate_mode = GAVL_FRAMERATE_CONSTANT;
       break;

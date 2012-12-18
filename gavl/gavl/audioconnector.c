@@ -259,9 +259,9 @@ int gavl_audio_connector_process(gavl_audio_connector_t * c)
           s->sink_frame->timestamp = c->in_frame->timestamp;
           }
         sink_st = gavl_audio_sink_put_frame(s->sink, s->sink_frame);
-        if(sink_st != GAVL_SINK_OK)
-          return 0;
         }
+      if(sink_st != GAVL_SINK_OK)
+        return 0;
       }
     else
       {

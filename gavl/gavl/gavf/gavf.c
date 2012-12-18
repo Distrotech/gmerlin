@@ -104,12 +104,10 @@ static int write_sync_header(gavf_t * g, int stream, const gavl_packet_t * p)
     if(g->sync_pts[i] != GAVL_TIME_UNDEFINED)
       g->streams[i].last_sync_pts = g->sync_pts[i];
     }
-  gavf_io_flush(g->io);
-  
-  return 1;
+  return gavf_io_flush(g->io);
   }
 
-static int write_packet(gavf_t * g, int stream, const gavl_packet_t * p)
+static gavl_sink_status_t write_packet(gavf_t * g, int stream, const gavl_packet_t * p)
   {
   int write_sync = 0;
   gavf_stream_t * s = &g->streams[stream];
@@ -138,15 +136,15 @@ static int write_packet(gavf_t * g, int stream, const gavl_packet_t * p)
   if(write_sync)
     {
     if(!write_sync_header(g, stream, p))
-      return 0;
+      return GAVL_SINK_ERROR;
     if(g->sync_distance)
       g->last_sync_time = gavl_time_unscale(s->timescale, p->pts);
     }
 
   /* Write stored metadata if there is one */
   if(g->meta_buf.len &&
-     (gavf_io_write_data(g->io,g->meta_buf.buf, g->meta_buf.len) < 0))
-    return 0;
+     (gavf_io_write_data(g->io,g->meta_buf.buf, g->meta_buf.len) < g->meta_buf.len))
+    return GAVL_SINK_ERROR;
   gavf_buffer_reset(&g->meta_buf);
   
   // If a stream has B-frames, this won't be correct
@@ -168,7 +166,7 @@ static int write_packet(gavf_t * g, int stream, const gavl_packet_t * p)
   if((gavf_io_write_data(g->io,
                          (const uint8_t*)GAVF_TAG_PACKET_HEADER, 1) < 1) ||
      (!gavf_io_write_uint32v(g->io, s->h->id)))
-    return 0;
+    return GAVL_SINK_ERROR;
 
   gavf_buffer_reset(&g->pkt_buf);
 
@@ -176,13 +174,14 @@ static int write_packet(gavf_t * g, int stream, const gavl_packet_t * p)
      !gavf_io_write_uint32v(g->io, g->pkt_buf.len + p->data_len) ||
      (gavf_io_write_data(g->io, g->pkt_buf.buf, g->pkt_buf.len) < g->pkt_buf.len) ||
      (gavf_io_write_data(g->io, p->data, p->data_len) < p->data_len))
-    return 0;
+    return GAVL_SINK_ERROR;
   
-  gavf_io_flush(g->io);
-
+  if(!gavf_io_flush(g->io))
+    return GAVL_SINK_ERROR;
+  
   s->packets_since_sync++;
 
-  return 1;
+  return GAVL_SINK_OK;
   }
 
 
@@ -290,19 +289,41 @@ gavl_sink_status_t gavf_flush_packets(gavf_t * g, gavf_stream_t * s)
   
   }
 
+static int get_audio_sample_size(const gavl_audio_format_t * fmt,
+                                 const gavl_compression_info_t * ci)
+  {
+  if(ci->id == GAVL_CODEC_ID_NONE)
+    return gavl_bytes_per_sample(fmt->sample_format);
+  else
+    return gavl_compression_get_sample_size(ci->id);
+  }
+
+int gavf_get_max_audio_packet_size(const gavl_audio_format_t * fmt,
+                                   const gavl_compression_info_t * ci)
+  {
+  int sample_size = 0;
+
+  if(ci->max_packet_size)
+    return ci->max_packet_size;
+
+  sample_size =
+    get_audio_sample_size(fmt, ci);
+  
+  return fmt->samples_per_frame * fmt->num_channels * sample_size;
+  }
+
 /* Streams */
 
 static void gavf_stream_init_audio(gavf_t * g, gavf_stream_t * s)
   {
   int sample_size;
-
-  
   s->timescale = s->h->format.audio.samplerate;
   
-  if(s->h->ci.id == GAVL_CODEC_ID_NONE)
-    sample_size = gavl_bytes_per_sample(s->h->format.audio.sample_format);
-  else
-    sample_size = gavl_compression_get_sample_size(s->h->ci.id);
+  s->h->ci.max_packet_size =
+    gavf_get_max_audio_packet_size(&s->h->format.audio, &s->h->ci);
+
+  sample_size =
+    get_audio_sample_size(&s->h->format.audio, &s->h->ci);
   
   /* Figure out the packet duration */
   if(gavl_compression_constant_frame_samples(s->h->ci.id) ||
@@ -311,9 +332,6 @@ static void gavf_stream_init_audio(gavf_t * g, gavf_stream_t * s)
   else
     s->flags |= STREAM_FLAG_HAS_DURATION;
   
-  if(sample_size)
-    s->h->ci.max_packet_size =
-      s->h->format.audio.samples_per_frame * s->h->format.audio.num_channels * sample_size;
   
   if(g->wr)
     {
@@ -326,6 +344,18 @@ static void gavf_stream_init_audio(gavf_t * g, gavf_stream_t * s)
     gavf_stream_create_packet_src(g, s, &s->h->ci, &s->h->format.audio,  NULL);
     }
   }
+
+GAVL_PUBLIC 
+int gavf_get_max_video_packet_size(const gavl_video_format_t * fmt,
+                                   const gavl_compression_info_t * ci)
+  {
+  if(ci->max_packet_size)
+    return ci->max_packet_size;
+  if(ci->id == GAVL_CODEC_ID_NONE)
+    return gavl_video_format_get_image_size(fmt);
+  return 0;
+  }
+
 
 static void gavf_stream_init_video(gavf_t * g, gavf_stream_t * s)
   {
@@ -351,11 +381,10 @@ static void gavf_stream_init_video(gavf_t * g, gavf_stream_t * s)
   if(s->h->format.video.framerate_mode == GAVL_FRAMERATE_STILL)
     s->flags |= STREAM_FLAG_DISCONTINUOUS;
   
-  if(s->h->ci.id == GAVL_CODEC_ID_NONE)
-    s->h->ci.max_packet_size =
-      gavl_video_format_get_image_size(&s->h->format.video);
-
-
+  s->h->ci.max_packet_size =
+    gavf_get_max_video_packet_size(&s->h->format.video,
+                                   &s->h->ci);
+  
   if(g->wr)
     {
     /* Create packet sink */
@@ -851,7 +880,8 @@ int gavf_open_write(gavf_t * g, gavf_io_t * io,
     {
     gavf_file_index_init(&g->fi, 8);
     gavf_file_index_write(g->io, &g->fi);
-    gavf_io_flush(g->io);
+    if(!gavf_io_flush(g->io))
+      return 0; 
     }
   return 1;
   }
@@ -913,9 +943,7 @@ int gavf_start(gavf_t * g)
   if(!gavf_program_header_write(g->io, &g->ph))
     return 0;
   
-  gavf_io_flush(g->io);
-  
-  return 1;
+  return gavf_io_flush(g->io);
   }
 
 

@@ -252,6 +252,8 @@ int gavl_video_connector_process(gavl_video_connector_t * c)
           }
         sink_st = gavl_video_sink_put_frame(s->sink, s->sink_frame);
         }
+      if(sink_st != GAVL_SINK_OK)
+        return 0;
       }
     else
       {
