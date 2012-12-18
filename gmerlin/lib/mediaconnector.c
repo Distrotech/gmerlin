@@ -378,6 +378,8 @@ static void * thread_func_separate(void * data)
     if(!process_stream(s))
       break;
     }
+
+  fprintf(stderr, "Thread done\n");
   
   pthread_mutex_lock(&s->conn->running_threads_mutex);
   s->conn->running_threads--;

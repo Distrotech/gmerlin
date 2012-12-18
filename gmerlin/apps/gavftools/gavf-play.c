@@ -322,6 +322,9 @@ static void player_open(player_t * p, bg_mediaconnector_t * conn)
 
 static void player_start(player_t * p)
   {
+  if(p->timer)
+    gavl_timer_start(p->timer);
+  
   if(p->as.flags & FLAG_ACTIVE)
     start_audio(&p->as);
   if(p->vs.flags & FLAG_ACTIVE)

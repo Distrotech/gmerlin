@@ -68,3 +68,5 @@ gavftools_opt_vc(void * data, int * argc, char *** _argv, int arg);
     .help_string = "Set video compression options", \
     .callback =    gavftools_opt_vc, \
   }
+
+void gavftools_block_sigpipe(void);

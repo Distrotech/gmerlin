@@ -19,6 +19,9 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  * *****************************************************************/
 
+#include <pthread.h>
+#include <signal.h>
+
 #include "gavftools.h"
 
 bg_plugin_registry_t * plugin_reg;
@@ -143,4 +146,18 @@ gavftools_opt_vc(void * data, int * argc, char *** _argv, int arg)
                                (*_argv)[arg]))
     exit(-1);
   bg_cmdline_remove_arg(argc, _argv, arg);
+  }
+
+
+void
+gavftools_block_sigpipe(void)
+  {
+  signal(SIGPIPE, SIG_IGN);
+#if 0
+  sigset_t newset;
+  /* Block SIGPIPE */
+  sigemptyset(&newset);
+  sigaddset(&newset, SIGPIPE);
+  pthread_sigmask(SIG_BLOCK, &newset, NULL);
+#endif
   }

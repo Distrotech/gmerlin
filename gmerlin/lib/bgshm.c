@@ -118,7 +118,7 @@ bg_shm_t * bg_shm_alloc_write(int size)
   ret->addr = addr;
   ret->size = size;
   ret->id = id;
-
+  ret->wr = 1;
   ret->rc = (refcounter_t*)(ret->addr + align_size(size));
 
   /* Initialize process shared mutex */
@@ -168,7 +168,7 @@ bg_shm_t * bg_shm_alloc_read(int id, int size)
   ret->addr = addr;
   ret->size = size;
   ret->rc = (refcounter_t*)(ret->addr + align_size(size));
-  
+  ret->id = id;
   fail:
   if(shm_fd >= 0)
     close(shm_fd);
@@ -193,13 +193,16 @@ void bg_shm_ref(bg_shm_t * s)
   {
   pthread_mutex_lock(&s->rc->mutex);
   s->rc->refcount++;
+  // fprintf(stderr, "bg_shm_ref %d %d\n", s->id, s->rc->refcount);
   pthread_mutex_unlock(&s->rc->mutex);
+
   }
 
 void bg_shm_unref(bg_shm_t * s)
   {
   pthread_mutex_lock(&s->rc->mutex);
   s->rc->refcount--;
+  // fprintf(stderr, "bg_shm_unref %d %d\n", s->id, s->rc->refcount);
   pthread_mutex_unlock(&s->rc->mutex);
   }
 

@@ -410,6 +410,7 @@ static int init_read_common(bg_plug_t * p,
                             const gavl_audio_format_t * afmt,
                             const gavl_video_format_t * vfmt)
   {
+  
   gavl_metadata_get_int(&s->h->m, META_SHM_SIZE, &s->shm_size);
 
   if(s->shm_size)
@@ -418,6 +419,9 @@ static int init_read_common(bg_plug_t * p,
     s->sp = bg_shm_pool_create(s->shm_size, 0);
     /* Clear metadata tags */
     gavl_metadata_set(&s->h->m, META_SHM_SIZE, NULL);
+
+    bg_log(BG_LOG_INFO, LOG_DOMAIN, "Using shm for reading (segment size: %d)",
+           s->shm_size);
     }
   
   if(s->action == BG_STREAM_ACTION_OFF)
@@ -676,18 +680,26 @@ static gavl_sink_status_t put_packet_shm(void * priv, gavl_packet_t * pp)
   return gavl_packet_sink_put_packet(s->sink_int, p);
   }
 
+static void check_shm_write(bg_plug_t * p, stream_t * s)
+  {
+  if((p->io_flags & BG_PLUG_IO_IS_LOCAL) &&
+     (s->ci.max_packet_size > SHM_THRESHOLD))
+    {
+    s->shm_size = s->ci.max_packet_size + GAVL_PACKET_PADDING;
+    s->sp = bg_shm_pool_create(s->shm_size, 1);
+    gavl_metadata_set_int(&s->m, META_SHM_SIZE, s->shm_size);
+    bg_log(BG_LOG_INFO, LOG_DOMAIN, "Using shm for writing (segment size: %d)",
+           s->shm_size);
+    }
+  }
+
 static int init_write_common(bg_plug_t * p, stream_t * s)
   {
   s->sink_int = gavf_get_packet_sink(p->g, s->h->id);
   gavl_packet_sink_set_lock_funcs(s->sink_int, lock_func, unlock_func, p);
   
-  if((p->io_flags & BG_PLUG_IO_IS_LOCAL) &&
-     (s->h->ci.max_packet_size > SHM_THRESHOLD))
+  if(s->shm_size)
     {
-    s->shm_size = s->h->ci.max_packet_size + GAVL_PACKET_PADDING;
-    s->sp = bg_shm_pool_create(s->shm_size, 1);
-    gavl_metadata_set_int(&s->h->m, META_SHM_SIZE, s->shm_size);
-    
     s->sink_ext = gavl_packet_sink_create(get_packet_shm,
                                           put_packet_shm,
                                           s);
@@ -724,6 +736,9 @@ static int init_write(bg_plug_t * p)
         return 0;
       }
 
+    s->ci.max_packet_size = gavf_get_max_audio_packet_size(&s->afmt, &s->ci);
+    check_shm_write(p, s);
+    
     if((s->index = gavf_add_audio_stream(p->g, &s->ci, &s->afmt, &s->m)) < 0)
       return 0;
     }
@@ -740,12 +755,16 @@ static int init_write(bg_plug_t * p)
         return 0;
       }
 
+    s->ci.max_packet_size = gavf_get_max_video_packet_size(&s->vfmt, &s->ci);
+    check_shm_write(p, s);
+
     if((s->index = gavf_add_video_stream(p->g, &s->ci, &s->vfmt, &s->m)) < 0)
       return 0;
     }
   for(i = 0; i < p->num_text_streams; i++)
     {
     s = p->text_streams + i;
+    check_shm_write(p, s);
     if((s->index = gavf_add_text_stream(p->g, s->timescale, &s->m)) < 0)
       return 0;
     }

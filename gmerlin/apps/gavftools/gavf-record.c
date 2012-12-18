@@ -327,6 +327,9 @@ int main(int argc, char ** argv)
   int ret = 1;
   bg_mediaconnector_t conn;
   gavl_time_t delay_time = GAVL_TIME_SCALE / 100;
+
+  gavftools_block_sigpipe();
+
   
   bg_mediaconnector_init(&conn);
   
@@ -388,7 +391,7 @@ int main(int argc, char ** argv)
   /* Main loop */
   while(1)
     {
-    if(got_sigint)
+    if(got_sigint || bg_mediaconnector_done(&conn))
       break;
     gavl_time_delay(&delay_time);
     }
@@ -399,10 +402,11 @@ int main(int argc, char ** argv)
   
   ret = 0;
   the_end:
+  bg_log(BG_LOG_INFO, LOG_DOMAIN, "Cleaning up");
+
   bg_mediaconnector_free(&conn);
   bg_plug_destroy(out_plug);
   gavftools_destroy_registries();
-    
-
+  
   return ret;
   }
