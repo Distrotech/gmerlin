@@ -378,7 +378,8 @@ static void gavf_stream_init_video(gavf_t * g, gavf_stream_t * s)
      (s->h->ci.id == GAVL_CODEC_ID_NONE))
     s->flags |= STREAM_FLAG_HAS_INTERLACE;
 
-  if(s->h->format.video.framerate_mode == GAVL_FRAMERATE_STILL)
+  if((s->h->format.video.framerate_mode == GAVL_FRAMERATE_STILL) ||
+     (s->h->type == GAVF_STREAM_OVERLAY))
     s->flags |= STREAM_FLAG_DISCONTINUOUS;
   
   s->h->ci.max_packet_size =
@@ -443,6 +444,7 @@ static void init_streams(gavf_t * g)
         gavf_stream_init_audio(g, &g->streams[i]);
         break;
       case GAVF_STREAM_VIDEO:
+      case GAVF_STREAM_OVERLAY:
         gavf_stream_init_video(g, &g->streams[i]);
         break;
       case GAVF_STREAM_TEXT:
@@ -909,6 +911,16 @@ int gavf_add_text_stream(gavf_t * g,
   return gavf_program_header_add_text_stream(&g->ph, timescale, m);
   }
 
+
+int gavf_add_overlay_stream(gavf_t * g,
+                            const gavl_compression_info_t * ci,
+                            const gavl_video_format_t * format,
+                            const gavl_metadata_t * m)
+  {
+  return gavf_program_header_add_overlay_stream(&g->ph, ci, format, m);
+  }
+
+
 int gavf_start(gavf_t * g)
   {
   if(!g->wr || g->streams)
@@ -954,6 +966,10 @@ void gavf_video_frame_to_packet_metadata(const gavl_video_frame_t * frame,
   pkt->duration = frame->duration;
   pkt->timecode = frame->timecode;
   pkt->interlace_mode = frame->interlace_mode;
+
+  gavl_rectangle_i_copy(&pkt->src_rect, &frame->src_rect);
+  pkt->dst_x = frame->dst_x;
+  pkt->dst_y = frame->dst_y;
   }
 
 /* LEGACY */
@@ -973,6 +989,10 @@ void gavf_packet_to_video_frame(gavl_packet_t * p, gavl_video_frame_t * frame,
   frame->timestamp = p->pts;
   frame->interlace_mode = p->interlace_mode;
   frame->duration = p->duration;
+
+  gavl_rectangle_i_copy(&frame->src_rect, &p->src_rect);
+  frame->dst_x = p->dst_x;
+  frame->dst_y = p->dst_y;
   
   frame->strides[0] = 0;
   gavl_video_frame_set_planes(frame, format, p->data);

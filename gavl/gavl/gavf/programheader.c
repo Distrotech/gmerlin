@@ -131,6 +131,23 @@ int gavf_program_header_add_video_stream(gavf_program_header_t * ph,
   return ph->num_streams-1;
   }
 
+int gavf_program_header_add_overlay_stream(gavf_program_header_t * ph,
+                                           const gavl_compression_info_t * ci,
+                                           const gavl_video_format_t * format,
+                                           const gavl_metadata_t * m)
+  {
+  gavf_stream_header_t * h = add_stream(ph, m);
+  h->type = GAVF_STREAM_OVERLAY;
+  
+  gavl_compression_info_copy(&h->ci, ci);
+  gavl_video_format_copy(&h->format.video, format);
+  if(h->ci.id == GAVL_CODEC_ID_NONE)
+    gavl_video_format_set_frame_size(&h->format.video, 0, 0);
+
+  return ph->num_streams-1;
+  }
+
+
 int gavf_program_header_add_text_stream(gavf_program_header_t * ph,
                                         uint32_t timescale,
                                         const gavl_metadata_t * m)

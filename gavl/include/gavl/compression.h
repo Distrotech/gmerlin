@@ -286,6 +286,9 @@ typedef struct
   gavl_interlace_mode_t interlace_mode; //!< Interlace mode for mixed interlacing
   gavl_timecode_t timecode; //!< Timecode
   
+  gavl_rectangle_i_t src_rect;  //!< Rectangle to take from a video frame
+  int32_t dst_x;             //!< X-coordinate in the destination frame (for overlays)
+  int32_t dst_y;             //!< Y-coordinate in the destination frame (for overlays)
   } gavl_packet_t;
 
 /** \brief Initialize a packet

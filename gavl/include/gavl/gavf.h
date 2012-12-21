@@ -45,9 +45,13 @@ gavf_io_t * gavf_io_create_file(FILE * f, int wr, int can_seek, int close);
 
 /* Stream information */
 
-#define GAVF_STREAM_AUDIO 0
-#define GAVF_STREAM_VIDEO 1
-#define GAVF_STREAM_TEXT  2
+typedef enum
+  {
+    GAVF_STREAM_AUDIO   = 0,
+    GAVF_STREAM_VIDEO   = 1,
+    GAVF_STREAM_TEXT    = 2,
+    GAVF_STREAM_OVERLAY = 3,
+  } gavf_stream_type_t;
 
 typedef struct
   {
@@ -61,7 +65,7 @@ typedef struct
 
 typedef struct
   {
-  uint32_t type;
+  gavf_stream_type_t type;
   uint32_t id;
   
   gavl_compression_info_t ci;
@@ -69,13 +73,13 @@ typedef struct
   union
     {
     gavl_audio_format_t audio;
-    gavl_video_format_t video;
+    gavl_video_format_t video; // Video and overlay streams
 
     struct
       {
       uint32_t timescale;
       } text;
-
+    
     } format;
 
   gavl_metadata_t m;
@@ -238,6 +242,13 @@ GAVL_PUBLIC
 int gavf_add_text_stream(gavf_t * g,
                          uint32_t timescale,
                          const gavl_metadata_t * m);
+
+GAVL_PUBLIC
+int gavf_add_overlay_stream(gavf_t * g,
+                            const gavl_compression_info_t * ci,
+                            const gavl_video_format_t * format,
+                            const gavl_metadata_t * m);
+
 
 /* Call this after adding all streams and before writing the first packet */
 GAVL_PUBLIC

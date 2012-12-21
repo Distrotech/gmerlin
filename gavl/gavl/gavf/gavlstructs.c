@@ -8,7 +8,7 @@
 
 #define MAX_EXT_SIZE_AF 16
 #define MAX_EXT_SIZE_VF 32
-#define MAX_EXT_SIZE_PK 16
+#define MAX_EXT_SIZE_PK 32
 #define MAX_EXT_SIZE_CI 16
 
 int gavf_read_audio_format(gavf_io_t * io, gavl_audio_format_t * format)
@@ -593,6 +593,18 @@ int gavf_read_gavl_packet(gavf_io_t * io,
           if(!gavf_io_read_uint64f(io, &p->timecode))
             return 0;
           break;
+        case GAVF_EXT_PK_SRC_RECT:
+          if(!gavf_io_read_int32v(io, &p->src_rect.x) ||
+             !gavf_io_read_int32v(io, &p->src_rect.y) ||
+             !gavf_io_read_int32v(io, &p->src_rect.w) ||
+             !gavf_io_read_int32v(io, &p->src_rect.h))
+            return 0;
+          break;
+        case GAVF_EXT_PK_DST_COORDS:
+          if(!gavf_io_read_int32v(io, &p->dst_x) ||
+             !gavf_io_read_int32v(io, &p->dst_y))
+            return 0;
+          break;
         default:
           /* Skip */
           gavf_io_skip(io, eh.len);
@@ -649,7 +661,12 @@ int gavf_write_gavl_packet_header(gavf_io_t * io,
 
   if(p->timecode != GAVL_TIMECODE_UNDEFINED)
     num_extensions++;
-    
+
+  if(p->src_rect.w && p->src_rect.h)
+    num_extensions++;
+
+  if(p->dst_x || p->dst_y)
+    num_extensions++;
   
   /* Flags */
 
@@ -733,6 +750,28 @@ int gavf_write_gavl_packet_header(gavf_io_t * io,
       
       }
 
+    if(p->src_rect.w && p->src_rect.h)
+      {
+      buf.len = 0;
+      
+      if(!gavf_io_write_int32v(&bufio, p->src_rect.x) ||
+         !gavf_io_write_int32v(&bufio, p->src_rect.y) ||
+         !gavf_io_write_int32v(&bufio, p->src_rect.w) ||
+         !gavf_io_write_int32v(&bufio, p->src_rect.h) ||
+         !gavf_extension_write(io, GAVF_EXT_PK_SRC_RECT,
+                               buf.len, buf.buf))
+        return 0;
+      }
+
+    if(p->dst_x || p->dst_y)
+      {
+      buf.len = 0;
+      if(!gavf_io_write_int32v(&bufio, p->dst_x) ||
+         !gavf_io_write_int32v(&bufio, p->dst_y) ||
+         !gavf_extension_write(io, GAVF_EXT_PK_SRC_RECT,
+                               buf.len, buf.buf))
+        return 0;
+      }
     }
   
   /* Payload */

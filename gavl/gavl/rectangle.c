@@ -90,8 +90,9 @@ void gavl_rectangle_crop_to_format_noscale(gavl_rectangle_i_t * src_rect,
 
 #undef GAVL_MIN
 
-static void crop_dimension_scale(double * src_off, double * src_len, int src_size,
-                                 int   * dst_off, int   * dst_len, int dst_size)
+static void
+crop_dimension_scale(double * src_off, double * src_len, uint32_t src_size,
+                     int32_t * dst_off, int32_t * dst_len, uint32_t dst_size)
   {
   double scale_factor;
   double dst_off_f, dst_len_f;

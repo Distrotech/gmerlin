@@ -113,6 +113,10 @@ int gavf_program_header_add_video_stream(gavf_program_header_t * ph,
                                          const gavl_compression_info_t * ci,
                                          const gavl_video_format_t * format,
                                          const gavl_metadata_t * m);
+int gavf_program_header_add_overlay_stream(gavf_program_header_t * ph,
+                                           const gavl_compression_info_t * ci,
+                                           const gavl_video_format_t * format,
+                                           const gavl_metadata_t * m);
 int gavf_program_header_add_text_stream(gavf_program_header_t * ph,
                                         uint32_t timescale,
                                         const gavl_metadata_t * m);
@@ -285,6 +289,8 @@ int gavf_extension_write(gavf_io_t * io, uint32_t key, uint32_t len,
 #define GAVF_EXT_PK_HEADER_SIZE      1
 #define GAVF_EXT_PK_SEQ_END          2
 #define GAVF_EXT_PK_TIMECODE         3
+#define GAVF_EXT_PK_SRC_RECT         4
+#define GAVF_EXT_PK_DST_COORDS       5
 
 /* File index */
 

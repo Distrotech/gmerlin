@@ -17,6 +17,7 @@ int gavf_stream_header_read(gavf_io_t * io, gavf_stream_header_t * h)
         return 0;
       break;
     case GAVF_STREAM_VIDEO:
+    case GAVF_STREAM_OVERLAY:
       if(!gavf_read_compression_info(io, &h->ci) ||
          !gavf_read_video_format(io, &h->format.video))
         return 0;
@@ -37,15 +38,15 @@ void gavf_stream_header_apply_footer(gavf_stream_header_t * h)
 
   switch(h->type)
     {
-    case GAVF_STREAM_AUDIO:
-      break;
     case GAVF_STREAM_VIDEO:
       /* Detect constant framerate */
       if((h->foot.duration_min == h->foot.duration_max) &&
          (h->format.video.framerate_mode == GAVL_FRAMERATE_VARIABLE))
         h->format.video.framerate_mode = GAVL_FRAMERATE_CONSTANT;
       break;
+    case GAVF_STREAM_OVERLAY:
     case GAVF_STREAM_TEXT:
+    case GAVF_STREAM_AUDIO:
       break;
     }
   }
@@ -67,6 +68,7 @@ int gavf_stream_header_write(gavf_io_t * io, const gavf_stream_header_t * h)
         return 0;
       break;
     case GAVF_STREAM_VIDEO:
+    case GAVF_STREAM_OVERLAY:
       if(!gavf_write_compression_info(io, &h->ci) ||
          !gavf_write_video_format(io, &h->format.video))
         return 0;
@@ -92,9 +94,10 @@ static const struct
   }
 type_names[] =
   {
-    { GAVF_STREAM_AUDIO, "Audio" },
-    { GAVF_STREAM_VIDEO, "Video" },
-    { GAVF_STREAM_TEXT,  "Text" },
+    { GAVF_STREAM_AUDIO,   "Audio"   },
+    { GAVF_STREAM_VIDEO,   "Video"   },
+    { GAVF_STREAM_TEXT,    "Text"    },
+    { GAVF_STREAM_OVERLAY, "Overlay" },
     { /* End */ },
   };
 
@@ -122,6 +125,7 @@ void gavf_stream_header_dump(gavf_stream_header_t * h)
       gavl_audio_format_dump(&h->format.audio);
       break;
     case GAVF_STREAM_VIDEO:
+    case GAVF_STREAM_OVERLAY:
       gavl_compression_info_dump(&h->ci);
       gavl_video_format_dump(&h->format.video);
       break;

@@ -1298,10 +1298,10 @@ void gavl_volume_control_apply(gavl_volume_control_t *ctrl,
   
 typedef struct
   {
-  int x; /*!< Horizontal offset from the left border of the frame */
-  int y; /*!< Vertical offset from the top border of the frame */
-  int w; /*!< Width */
-  int h; /*!< Height */
+  int32_t x; /*!< Horizontal offset from the left border of the frame */
+  int32_t y; /*!< Vertical offset from the top border of the frame */
+  int32_t w; /*!< Width */
+  int32_t h; /*!< Height */
   } gavl_rectangle_i_t;
 
 /*! \brief Floating point rectangle
@@ -2345,8 +2345,8 @@ typedef struct gavl_video_frame_s
   void * destroy_priv;      /*!< Private data to pass to destroy() (since 1.5.0) */
   
   gavl_rectangle_i_t src_rect;   //!< Valid rectangle in this frame (since 1.5.0)      */
-  int dst_x;                     //!< x offset in the destination frame. (since 1.5.0) */
-  int dst_y;                     //!< y offset in the destination frame. (since 1.5.0) */
+  int32_t dst_x;                     //!< x offset in the destination frame. (since 1.5.0) */
+  int32_t dst_y;                     //!< y offset in the destination frame. (since 1.5.0) */
   
   } gavl_video_frame_t;
 
