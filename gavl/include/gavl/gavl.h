@@ -2344,6 +2344,9 @@ typedef struct gavl_video_frame_s
   void (*destroy)(struct gavl_video_frame_s*, void*priv); /*!< Function for destroying this frame (since 1.5.0) */
   void * destroy_priv;      /*!< Private data to pass to destroy() (since 1.5.0) */
   
+  gavl_rectangle_i_t src_rect;   //!< Valid rectangle in this frame (since 1.5.0)      */
+  int dst_x;                     //!< x offset in the destination frame. (since 1.5.0) */
+  int dst_y;                     //!< y offset in the destination frame. (since 1.5.0) */
   
   } gavl_video_frame_t;
 
@@ -3596,13 +3599,7 @@ void gavl_video_deinterlacer_deinterlace(gavl_video_deinterlacer_t * deinterlace
  *  rectangles differ, the smaller one will be used.
  */
  
-typedef struct
-  {
-  gavl_video_frame_t * frame;    //!< Video frame in an alpha capable format */
-  gavl_rectangle_i_t ovl_rect;   //!< Rectangle in the source frame     */
-  int dst_x;                     //!< x offset in the destination frame. */
-  int dst_y;                     //!< y offset in the destination frame. */
-  } gavl_overlay_t;
+typedef gavl_video_frame_t gavl_overlay_t;
 
 /*! \ingroup video_blend
  *  \brief Opaque blend context.

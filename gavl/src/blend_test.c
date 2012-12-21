@@ -274,8 +274,6 @@ static gavl_video_frame_t * read_png(const char * filename,
 
 int main(int argc, char ** argv)
   {
-  gavl_overlay_t ovl;
-  
   char filename_buffer[1024];
   int i, j, imax;
   gavl_overlay_blend_context_t *blend;
@@ -327,16 +325,14 @@ int main(int argc, char ** argv)
       frame     = read_png(argv[1], &frame_format, frame_csp);
       overlay   = read_png(argv[2], &overlay_format, overlay_csp);
     
-      ovl.dst_x = 3;
-      ovl.dst_y = 3;
+      overlay->dst_x = 3;
+      overlay->dst_y = 3;
     
-      ovl.ovl_rect.w = overlay_format.image_width;
-      ovl.ovl_rect.h = overlay_format.image_height;
-      ovl.ovl_rect.x = 0;
-      ovl.ovl_rect.y = 0;
-    
-      ovl.frame = overlay;
-
+      overlay->src_rect.w = overlay_format.image_width;
+      overlay->src_rect.h = overlay_format.image_height;
+      overlay->src_rect.x = 0;
+      overlay->src_rect.y = 0;
+      
     
       //      gavl_video_options_set_defaults(opt);
     
@@ -359,7 +355,7 @@ int main(int argc, char ** argv)
         continue;
         }
       
-      gavl_overlay_blend_context_set_overlay(blend, &ovl);
+      gavl_overlay_blend_context_set_overlay(blend, overlay);
     
       gavl_overlay_blend(blend, frame);
     
