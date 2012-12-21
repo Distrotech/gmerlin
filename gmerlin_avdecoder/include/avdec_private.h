@@ -1816,7 +1816,7 @@ struct bgav_subtitle_reader_context_s
   char * info; /* Derived from filename difference */
   char * filename; /* Name of the subtitle file */
   //  bgav_packet_t * p;
-  gavl_overlay_t  ovl;
+  gavl_overlay_t * ovl;
 
   int64_t time_offset;
 

@@ -95,7 +95,7 @@ void bgav_seek_audio(bgav_t * bgav, int stream, int64_t sample)
   bgav_stream_t * s;
   s = &bgav->tt->cur->audio_streams[stream];
 
-  fprintf(stderr, "Seek audio: %ld\n", sample);
+  // fprintf(stderr, "Seek audio: %ld\n", sample);
   
   if(sample >= s->duration) /* EOF */
     {

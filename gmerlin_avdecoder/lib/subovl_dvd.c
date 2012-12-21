@@ -332,40 +332,40 @@ static gavl_source_status_t decode_dvdsub(bgav_stream_t * s, gavl_overlay_t * ov
   /* Decode the image */
   
   decode_field(priv->buffer + offset1, offset2 - offset1,
-               ovl->frame->planes[0],
+               ovl->planes[0],
                x2 - x1 + 1,
-               2 * ovl->frame->strides[0],
+               2 * ovl->strides[0],
                local_palette, priv->field_height);
   
   decode_field(priv->buffer + offset2, ctrl_start - offset2,
-               ovl->frame->planes[0] + ovl->frame->strides[0],
+               ovl->planes[0] + ovl->strides[0],
                x2 - x1 + 1,
-               2 * ovl->frame->strides[0],
+               2 * ovl->strides[0],
                local_palette, priv->field_height);
 
   /* Set rest of overlay structure */
 
-  ovl->frame->timestamp = priv->pts + start_date * priv->pts_mult;
-  ovl->frame->duration = priv->pts_mult * (end_date - start_date);
+  ovl->timestamp = priv->pts + start_date * priv->pts_mult;
+  ovl->duration = priv->pts_mult * (end_date - start_date);
 #if 0
   fprintf(stderr, "Got overlay ");
   fprintf(stderr, " %f %f\n",
           ovl->frame->timestamp / 90000.0, 
           (ovl->frame->timestamp + ovl->frame->duration) / 90000.0);
 #endif
-  ovl->ovl_rect.x = 0;
-  ovl->ovl_rect.y = 0;
-  ovl->ovl_rect.w = x2 - x1 + 1;
-  ovl->ovl_rect.h = y2 - y1 + 1;
+  ovl->src_rect.x = 0;
+  ovl->src_rect.y = 0;
+  ovl->src_rect.w = x2 - x1 + 1;
+  ovl->src_rect.h = y2 - y1 + 1;
   ovl->dst_x = x1;
   ovl->dst_y = y1;
 
   /* Shift the overlays (can happen in some pathological cases) */
-  if(ovl->dst_x + ovl->ovl_rect.w > priv->vs_format.image_width)
-    ovl->dst_x = priv->vs_format.image_width - ovl->ovl_rect.w;
+  if(ovl->dst_x + ovl->src_rect.w > priv->vs_format.image_width)
+    ovl->dst_x = priv->vs_format.image_width - ovl->src_rect.w;
 
-  if(ovl->dst_y + ovl->ovl_rect.h > priv->vs_format.image_height)
-    ovl->dst_y = priv->vs_format.image_height - ovl->ovl_rect.h;
+  if(ovl->dst_y + ovl->src_rect.h > priv->vs_format.image_height)
+    ovl->dst_y = priv->vs_format.image_height - ovl->src_rect.h;
   
   /* If we reach this point, we have a complete subtitle packet */
   //  bgav_hexdump(priv->buffer, priv->packet_size, 16);

@@ -489,14 +489,14 @@ static int read_spumux(bgav_stream_t * s)
     return 0;
     }
 
-  if(!bgav_png_reader_read_image(priv->reader, ctx->ovl.frame))
+  if(!bgav_png_reader_read_image(priv->reader, ctx->ovl))
     return 0;
   
-  ctx->ovl.frame->timestamp =
+  ctx->ovl->timestamp =
     parse_time_spumux(start_time, s->data.subtitle.format.timescale,
                       s->data.subtitle.format.frame_duration);
   
-  if(ctx->ovl.frame->timestamp == GAVL_TIME_UNDEFINED)
+  if(ctx->ovl->timestamp == GAVL_TIME_UNDEFINED)
     {
     bgav_log(s->opt, BGAV_LOG_ERROR, LOG_DOMAIN,
              "Parsing time string %s failed", start_time);
@@ -505,36 +505,36 @@ static int read_spumux(bgav_stream_t * s)
   tmp = bgav_yml_get_attribute_i(priv->cur, "end");
   if(tmp)
     {
-    ctx->ovl.frame->duration =
+    ctx->ovl->duration =
       parse_time_spumux(tmp,
                         s->data.subtitle.format.timescale,
                         s->data.subtitle.format.frame_duration);
-    if(ctx->ovl.frame->duration == GAVL_TIME_UNDEFINED)
+    if(ctx->ovl->duration == GAVL_TIME_UNDEFINED)
       return 0;
-    ctx->ovl.frame->duration -= ctx->ovl.frame->timestamp;
+    ctx->ovl->duration -= ctx->ovl->timestamp;
     }
   else
     {
-    ctx->ovl.frame->duration = -1;
+    ctx->ovl->duration = -1;
     }
 
   tmp = bgav_yml_get_attribute_i(priv->cur, "xoffset");
   if(tmp)
-    ctx->ovl.dst_x = atoi(tmp);
+    ctx->ovl->dst_x = atoi(tmp);
   else
-    ctx->ovl.dst_x = 0;
+    ctx->ovl->dst_x = 0;
 
   tmp = bgav_yml_get_attribute_i(priv->cur, "yoffset");
   if(tmp)
-    ctx->ovl.dst_y = atoi(tmp);
+    ctx->ovl->dst_y = atoi(tmp);
   else
-    ctx->ovl.dst_y = 0;
+    ctx->ovl->dst_y = 0;
   
-  ctx->ovl.ovl_rect.x = 0;
-  ctx->ovl.ovl_rect.y = 0;
+  ctx->ovl->src_rect.x = 0;
+  ctx->ovl->src_rect.y = 0;
 
-  ctx->ovl.ovl_rect.w = priv->format.image_width;
-  ctx->ovl.ovl_rect.h = priv->format.image_height;
+  ctx->ovl->src_rect.w = priv->format.image_width;
+  ctx->ovl->src_rect.h = priv->format.image_height;
   
   priv->have_header = 0;
   advance_current_spumux(s);
@@ -899,10 +899,10 @@ void bgav_subtitle_reader_stop(bgav_stream_t * s)
   if(ctx->reader->close)
     ctx->reader->close(s);
 
-  if(ctx->ovl.frame)
+  if(ctx->ovl)
     {
-    gavl_video_frame_destroy(ctx->ovl.frame);
-    ctx->ovl.frame = NULL;
+    gavl_video_frame_destroy(ctx->ovl);
+    ctx->ovl = NULL;
     }
   
   if(ctx->input)
@@ -949,7 +949,7 @@ int bgav_subtitle_reader_start(bgav_stream_t * s)
 
   if(s->type == BGAV_STREAM_SUBTITLE_OVERLAY)
     {
-    ctx->ovl.frame = gavl_video_frame_create(&s->data.subtitle.format);
+    ctx->ovl = gavl_video_frame_create(&s->data.subtitle.format);
     }
   return 1;
   }
@@ -987,7 +987,7 @@ void bgav_subtitle_reader_seek(bgav_stream_t * s,
       {
       while(ctx->reader->read_subtitle_overlay(s))
         {
-        if(ctx->ovl.frame->timestamp + ctx->ovl.frame->duration < time)
+        if(ctx->ovl->timestamp + ctx->ovl->duration < time)
           continue;
         else
           break;
@@ -1010,17 +1010,17 @@ int bgav_subtitle_reader_read_overlay(bgav_stream_t * s, gavl_overlay_t * ovl)
     {
     ctx->has_subtitle = 0;
     gavl_video_format_copy(&copy_format, &s->data.subtitle.format);
-    copy_format.image_width = ctx->ovl.ovl_rect.w;
-    copy_format.frame_width = ctx->ovl.ovl_rect.w;
+    copy_format.image_width = ctx->ovl->src_rect.w;
+    copy_format.frame_width = ctx->ovl->src_rect.w;
 
-    copy_format.image_height = ctx->ovl.ovl_rect.h;
-    copy_format.frame_height = ctx->ovl.ovl_rect.h;
-    gavl_video_frame_copy(&copy_format, ovl->frame, ctx->ovl.frame);
-    ovl->frame->timestamp     = ctx->ovl.frame->timestamp;
-    ovl->frame->duration = ctx->ovl.frame->duration;
-    ovl->dst_x = ctx->ovl.dst_x;
-    ovl->dst_y = ctx->ovl.dst_y;
-    gavl_rectangle_i_copy(&ovl->ovl_rect, &ctx->ovl.ovl_rect);
+    copy_format.image_height = ctx->ovl->src_rect.h;
+    copy_format.frame_height = ctx->ovl->src_rect.h;
+    gavl_video_frame_copy(&copy_format, ovl, ctx->ovl);
+    ovl->timestamp     = ctx->ovl->timestamp;
+    ovl->duration = ctx->ovl->duration;
+    ovl->dst_x = ctx->ovl->dst_x;
+    ovl->dst_y = ctx->ovl->dst_y;
+    gavl_rectangle_i_copy(&ovl->src_rect, &ctx->ovl->src_rect);
     return 1;
     }
   else
