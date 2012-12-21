@@ -36,7 +36,7 @@ int main(int argc, char ** argv)
   bg_cfg_section_t     * cfg_section;
   bg_plugin_registry_t * plugin_reg;
   
-  gavl_overlay_t ovl;
+  gavl_overlay_t * ovl;
   
   bg_parameter_value_t val;
   bg_text_renderer_t * r;
@@ -91,11 +91,11 @@ int main(int argc, char ** argv)
   
   bg_text_renderer_init(r, &frame_format, &ovl_format);
 
-  ovl.frame = gavl_video_frame_create(&ovl_format);
+  ovl = gavl_video_frame_create(&ovl_format);
   
   /* Render */
 
-  bg_text_renderer_render(r, argv[2], &ovl);
+  bg_text_renderer_render(r, argv[2], ovl);
   
   /* Save png */
 
@@ -109,13 +109,13 @@ int main(int argc, char ** argv)
   cfg_section = bg_cfg_registry_find_section(cfg_reg, "plugins");
   plugin_reg = bg_plugin_registry_create(cfg_section);
 
-  bg_plugin_registry_save_image(plugin_reg, "text.png", ovl.frame,
+  bg_plugin_registry_save_image(plugin_reg, "text.png", ovl,
                                 &ovl_format, NULL);
   
   bg_plugin_registry_destroy(plugin_reg);
   bg_cfg_registry_destroy(cfg_reg);
 
-  gavl_video_frame_destroy(ovl.frame);
+  gavl_video_frame_destroy(ovl);
   
   /* Cleanup */
     

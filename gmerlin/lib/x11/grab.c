@@ -176,7 +176,7 @@ struct bg_x11_grab_window_s
   int cursor_changed;
 #endif
 
-  gavl_overlay_t      cursor;
+  gavl_overlay_t      * cursor;
   gavl_video_format_t cursor_format;
   
   int cursor_off_x;
@@ -350,7 +350,7 @@ static void create_cursor_static(bg_x11_grab_window_t * win)
   uint16_t white;
   uint8_t * ptr;
   
-  gavl_video_frame_fill(win->cursor.frame,
+  gavl_video_frame_fill(win->cursor,
                         &win->cursor_format,
                         cursor_transparent);
   
@@ -358,8 +358,8 @@ static void create_cursor_static(bg_x11_grab_window_t * win)
     {
     black = cursor_black[i];
     white = cursor_white[i];
-    ptr = win->cursor.frame->planes[0] +
-      i * win->cursor.frame->strides[0];
+    ptr = win->cursor->planes[0] +
+      i * win->cursor->strides[0];
     
     for(j = 0; j < CURSOR_WIDTH; j++)
       {
@@ -382,8 +382,8 @@ static void create_cursor_static(bg_x11_grab_window_t * win)
       white >>= 1;
       }
     }
-  win->cursor.ovl_rect.w = CURSOR_WIDTH;
-  win->cursor.ovl_rect.h = CURSOR_HEIGHT;
+  win->cursor->src_rect.w = CURSOR_WIDTH;
+  win->cursor->src_rect.h = CURSOR_HEIGHT;
   }
 
 static void create_window(bg_x11_grab_window_t * ret)
@@ -525,8 +525,8 @@ bg_x11_grab_window_t * bg_x11_grab_window_create()
   // Fixme: This will break for > 8 bit/channel RGB visuals
   //        and other 8bit / channel RGBA formats
   ret->cursor_format.pixelformat = GAVL_RGBA_32; 
-
-  ret->cursor.frame = gavl_video_frame_create(&ret->cursor_format);
+  
+  ret->cursor = gavl_video_frame_create(&ret->cursor_format);
   
   return ret;
   }
@@ -544,7 +544,7 @@ void bg_x11_grab_window_destroy(bg_x11_grab_window_t * win)
   if(win->ft)
     bg_frame_timer_destroy(win->ft);
   gavl_overlay_blend_context_destroy(win->blend);
-  gavl_video_frame_destroy(win->cursor.frame);
+  gavl_video_frame_destroy(win->cursor);
   free(win);
   }
 
@@ -788,33 +788,33 @@ static void get_cursor_xfixes(bg_x11_grab_window_t * win)
   XFixesCursorImage *im;
   im = XFixesGetCursorImage(win->dpy);
 
-  win->cursor.ovl_rect.w = im->width;
-  win->cursor.ovl_rect.h = im->height;
+  win->cursor->src_rect.w = im->width;
+  win->cursor->src_rect.h = im->height;
 
-  if(win->cursor.ovl_rect.w > MAX_CURSOR_SIZE)
+  if(win->cursor->src_rect.w > MAX_CURSOR_SIZE)
     {
     bg_log(BG_LOG_ERROR, LOG_DOMAIN,
            "Cursor too wide, increase MAX_CURSOR_SIZE in grab.c to %d",
-           win->cursor.ovl_rect.w);
-    win->cursor.ovl_rect.w = MAX_CURSOR_SIZE;
+           win->cursor->src_rect.w);
+    win->cursor->src_rect.w = MAX_CURSOR_SIZE;
     }
-  if(win->cursor.ovl_rect.h > MAX_CURSOR_SIZE)
+  if(win->cursor->src_rect.h > MAX_CURSOR_SIZE)
     {
     bg_log(BG_LOG_ERROR, LOG_DOMAIN,
            "Cursor too high, increase MAX_CURSOR_SIZE in grab.c to %d",
-           win->cursor.ovl_rect.h);
-    win->cursor.ovl_rect.h = MAX_CURSOR_SIZE;
+           win->cursor->src_rect.h);
+    win->cursor->src_rect.h = MAX_CURSOR_SIZE;
     }
   
   win->cursor_off_x = im->xhot;
   win->cursor_off_y = im->yhot;
 
-  for(i = 0; i < win->cursor.ovl_rect.h; i++)
+  for(i = 0; i < win->cursor->src_rect.h; i++)
     {
     src = (im->pixels) + i * im->width;
-    dst = win->cursor.frame->planes[0] + i * win->cursor.frame->strides[0];
+    dst = win->cursor->planes[0] + i * win->cursor->strides[0];
 
-    for(j = 0; j < win->cursor.ovl_rect.w; j++)
+    for(j = 0; j < win->cursor->src_rect.w; j++)
       {
       dst[3] = *src >> 24;          // A
       dst[0] = (*src >> 16) & 0xff; // R
@@ -861,11 +861,11 @@ static void draw_cursor(bg_x11_grab_window_t * win, gavl_rectangle_i_t * rect,
   if(root_y + MAX_CURSOR_SIZE < rect->y)
     return;
 
-  win->cursor.dst_x = root_x - rect->x - win->cursor_off_x;
-  win->cursor.dst_y = root_y - rect->y - win->cursor_off_y;
+  win->cursor->dst_x = root_x - rect->x - win->cursor_off_x;
+  win->cursor->dst_y = root_y - rect->y - win->cursor_off_y;
 
-  if((win->cursor.dst_x != win->cursor_x) ||
-     (win->cursor.dst_y != win->cursor_y))
+  if((win->cursor->dst_x != win->cursor_x) ||
+     (win->cursor->dst_y != win->cursor_y))
     init_blend = 1;
 
 #ifdef HAVE_XFIXES
@@ -879,14 +879,14 @@ static void draw_cursor(bg_x11_grab_window_t * win, gavl_rectangle_i_t * rect,
   if(init_blend)
     {
     gavl_overlay_blend_context_set_overlay(win->blend,
-                                           &win->cursor);
+                                           win->cursor);
     }
   
   gavl_overlay_blend(win->blend, frame);
-  // fprintf(stderr, "Cursor 2: %d %d\n", win->cursor.dst_x, win->cursor.dst_y);
+  // fprintf(stderr, "Cursor 2: %d %d\n", win->cursor->dst_x, win->cursor->dst_y);
 
-  win->cursor_x = win->cursor.dst_x;
-  win->cursor_x = win->cursor.dst_y;
+  win->cursor_x = win->cursor->dst_x;
+  win->cursor_x = win->cursor->dst_y;
   }
 
 gavl_source_status_t bg_x11_grab_window_grab(void * win_p,

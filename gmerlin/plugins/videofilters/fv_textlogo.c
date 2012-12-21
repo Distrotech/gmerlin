@@ -41,7 +41,7 @@ typedef struct
   gavl_video_format_t format;
   gavl_video_format_t ovl_format;
   
-  gavl_overlay_t ovl;
+  gavl_overlay_t * ovl;
   
   bg_text_renderer_t * renderer;
   gavl_overlay_blend_context_t * blender;
@@ -239,9 +239,9 @@ static void set_format(void * priv,
                                   &vp->format,
                                   &vp->ovl_format);
 
-  if(vp->ovl.frame)
-    gavl_video_frame_destroy(vp->ovl.frame);
-  vp->ovl.frame = gavl_video_frame_create(&vp->ovl_format);
+  if(vp->ovl)
+    gavl_video_frame_destroy(vp->ovl);
+  vp->ovl = gavl_video_frame_create(&vp->ovl_format);
 
   vp->need_overlay = 1;
 
@@ -260,12 +260,12 @@ read_func(void * priv, gavl_video_frame_t ** frame)
   
   if(vp->need_overlay)
     {
-    gavl_video_frame_clear(vp->ovl.frame, &vp->ovl_format);
+    gavl_video_frame_clear(vp->ovl, &vp->ovl_format);
 
     if(vp->textlogo)
-      bg_text_renderer_render(vp->renderer, vp->textlogo, &vp->ovl);
+      bg_text_renderer_render(vp->renderer, vp->textlogo, vp->ovl);
     
-    gavl_overlay_blend_context_set_overlay(vp->blender, &vp->ovl);
+    gavl_overlay_blend_context_set_overlay(vp->blender, vp->ovl);
     
     vp->need_overlay = 0;
     }

@@ -1682,9 +1682,9 @@ void bg_text_renderer_render(bg_text_renderer_t * r, const char * string,
   r->bbox.ymax = 0;
 
 #ifdef FT_STROKER_H
-  gavl_video_frame_fill(ovl->frame, &r->overlay_format, r->color_stroke);
+  gavl_video_frame_fill(ovl, &r->overlay_format, r->color_stroke);
 #else
-  gavl_video_frame_fill(ovl->frame, &r->overlay_format, r->color);
+  gavl_video_frame_fill(ovl, &r->overlay_format, r->color);
 #endif
   
   /* Convert string */
@@ -1745,7 +1745,7 @@ void bg_text_renderer_render(bg_text_renderer_t * r, const char * string,
         }
       /* Render the line */
       
-      flush_line(r, ovl->frame,
+      flush_line(r, ovl,
                  &glyphs[line_start], line_end - line_start,
                  &pos_y);
       
@@ -1766,33 +1766,33 @@ void bg_text_renderer_render(bg_text_renderer_t * r, const char * string,
     }
   if(len - line_start)
     {
-    flush_line(r, ovl->frame,
+    flush_line(r, ovl,
                &glyphs[line_start], len - line_start,
                &pos_y);
     }
   
-  ovl->ovl_rect.x = r->bbox.xmin;
-  ovl->ovl_rect.y = r->bbox.ymin;
+  ovl->src_rect.x = r->bbox.xmin;
+  ovl->src_rect.y = r->bbox.ymin;
 
-  ovl->ovl_rect.w = r->bbox.xmax - r->bbox.xmin;
-  ovl->ovl_rect.h = r->bbox.ymax - r->bbox.ymin;
+  ovl->src_rect.w = r->bbox.xmax - r->bbox.xmin;
+  ovl->src_rect.h = r->bbox.ymax - r->bbox.ymin;
 
   /* Align to subsampling */
-  ovl->ovl_rect.w += r->sub_h - (ovl->ovl_rect.w % r->sub_h);
-  ovl->ovl_rect.h += r->sub_v - (ovl->ovl_rect.h % r->sub_v);
+  ovl->src_rect.w += r->sub_h - (ovl->src_rect.w % r->sub_h);
+  ovl->src_rect.h += r->sub_v - (ovl->src_rect.h % r->sub_v);
   
   switch(r->justify_h)
     {
     case JUSTIFY_LEFT:
     case JUSTIFY_CENTER:
-      ovl->dst_x = ovl->ovl_rect.x + r->border_left;
+      ovl->dst_x = ovl->src_rect.x + r->border_left;
       
       if(ovl->dst_x % r->sub_h)
         ovl->dst_x += r->sub_h - (ovl->dst_x % r->sub_h);
       
       break;
     case JUSTIFY_RIGHT:
-      ovl->dst_x = r->overlay_format.image_width - r->border_right - ovl->ovl_rect.w;
+      ovl->dst_x = r->overlay_format.image_width - r->border_right - ovl->src_rect.w;
       ovl->dst_x -= (ovl->dst_x % r->sub_h);
       break;
     }
@@ -1806,14 +1806,14 @@ void bg_text_renderer_render(bg_text_renderer_t * r, const char * string,
       break;
     case JUSTIFY_CENTER:
       ovl->dst_y = r->border_top +
-        ((r->overlay_format.image_height - ovl->ovl_rect.h)>>1);
+        ((r->overlay_format.image_height - ovl->src_rect.h)>>1);
 
       if(ovl->dst_y % r->sub_v)
         ovl->dst_y += r->sub_v - (ovl->dst_y % r->sub_v);
 
       break;
     case JUSTIFY_BOTTOM:
-      ovl->dst_y = r->overlay_format.image_height - r->border_bottom - ovl->ovl_rect.h;
+      ovl->dst_y = r->overlay_format.image_height - r->border_bottom - ovl->src_rect.h;
       ovl->dst_y -= (ovl->dst_y % r->sub_v);
       break;
     }

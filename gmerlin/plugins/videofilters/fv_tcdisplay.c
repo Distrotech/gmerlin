@@ -41,7 +41,7 @@ typedef struct
   gavl_video_format_t format;
   gavl_video_format_t ovl_format;
   
-  gavl_overlay_t ovl;
+  gavl_overlay_t * ovl;
   
   bg_text_renderer_t * renderer;
   gavl_overlay_blend_context_t * blender;
@@ -245,9 +245,9 @@ static void set_format(void * priv,
                                   &vp->format,
                                   &vp->ovl_format);
 
-  if(vp->ovl.frame)
-    gavl_video_frame_destroy(vp->ovl.frame);
-  vp->ovl.frame = gavl_video_frame_create(&vp->ovl_format);
+  if(vp->ovl)
+    gavl_video_frame_destroy(vp->ovl);
+  vp->ovl = gavl_video_frame_create(&vp->ovl_format);
   vp->last_timecode = GAVL_TIMECODE_UNDEFINED;
   }
 
@@ -295,9 +295,9 @@ read_func(void * priv, gavl_video_frame_t ** frame)
   
   //  fprintf(stderr, "Got timecode: %s\n", str);
   
-  bg_text_renderer_render(vp->renderer, str, &vp->ovl);
+  bg_text_renderer_render(vp->renderer, str, vp->ovl);
   // bg_text_renderer_render(vp->renderer, "Blah", &vp->ovl);
-  gavl_overlay_blend_context_set_overlay(vp->blender, &vp->ovl);
+  gavl_overlay_blend_context_set_overlay(vp->blender, vp->ovl);
   
   gavl_overlay_blend(vp->blender, *frame);
   

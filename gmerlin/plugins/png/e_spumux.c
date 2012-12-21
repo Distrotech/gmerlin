@@ -140,12 +140,12 @@ static int write_subtitle_overlay_spumux(void * priv, gavl_overlay_t * ovl, int 
   gavl_video_format_t tmp_format;
   gavl_video_format_copy(&tmp_format, (&spumux->format));
 
-  tmp_format.image_width  = ovl->ovl_rect.w;
-  tmp_format.image_height = ovl->ovl_rect.h;
+  tmp_format.image_width  = ovl->src_rect.w;
+  tmp_format.image_height = ovl->src_rect.h;
   tmp_format.frame_width  = tmp_format.image_width;
   tmp_format.frame_height = tmp_format.image_height;
   
-  gavl_video_frame_get_subframe(spumux->format.pixelformat, ovl->frame, spumux->subframe, &ovl->ovl_rect);
+  gavl_video_frame_get_subframe(spumux->format.pixelformat, ovl, spumux->subframe, &ovl->src_rect);
 
   image_filename = bg_sprintf(spumux->filename_template, spumux->subtitles_written);
 
@@ -163,10 +163,10 @@ static int write_subtitle_overlay_spumux(void * priv, gavl_overlay_t * ovl, int 
     return 0;
   
   fprintf(spumux->xml_file, "    <spu start=\"");
-  print_time(spumux->xml_file, ovl->frame->timestamp, &spumux->format);
+  print_time(spumux->xml_file, ovl->timestamp, &spumux->format);
 
   fprintf(spumux->xml_file, "\" end=\"");
-  print_time(spumux->xml_file, ovl->frame->timestamp+ovl->frame->duration, &spumux->format);
+  print_time(spumux->xml_file, ovl->timestamp+ovl->duration, &spumux->format);
   fprintf(spumux->xml_file, "\" xoffset=\"%d\" yoffset=\"%d\" image=\"%s\"/>\n", ovl->dst_x, ovl->dst_y,
           image_filename);
   

@@ -322,9 +322,8 @@ gavl_overlay_t * bg_ov_create_overlay(bg_ov_t * ov, int id)
     }
   else
     {
-    ret = calloc(1, sizeof(*ret));
-    ret->frame = gavl_video_frame_create(&ov->ovl_str[id].format);
-    gavl_video_frame_clear(ret->frame, &ov->ovl_str[id].format);
+    ret = gavl_video_frame_create(&ov->ovl_str[id].format);
+    gavl_video_frame_clear(ret, &ov->ovl_str[id].format);
     return ret;
     }
   }
@@ -350,7 +349,7 @@ void bg_ov_destroy_overlay(bg_ov_t * ov, int id, gavl_overlay_t * ovl)
   {
   if(ov->flags & FLAG_EMULATE_OVL)
     {
-    gavl_video_frame_destroy(ovl->frame);
+    gavl_video_frame_destroy(ovl);
     free(ovl);
     }
   else

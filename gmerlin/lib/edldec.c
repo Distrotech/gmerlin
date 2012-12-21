@@ -79,7 +79,7 @@ typedef struct
   source_common_t com;
   /* Rest is only for overlays */
   gavl_video_converter_t * cnv;
-  gavl_overlay_t ovl;
+  gavl_overlay_t * ovl;
   int (*read_func)(void * priv, gavl_overlay_t*ovl, int stream);
   gavl_video_format_t * format;
   } subtitle_source_t;
@@ -658,24 +658,24 @@ static int read_subtitle_overlay_convert(void * priv, gavl_overlay_t*ovl, int st
   subtitle_source_t * sosrc;
   sosrc = (subtitle_source_t*)priv;
 
-  if(!sosrc->ovl.frame)
-    sosrc->ovl.frame = gavl_video_frame_create(sosrc->format);
+  if(!sosrc->ovl)
+    sosrc->ovl = gavl_video_frame_create(sosrc->format);
   
   if(!sosrc->com.plugin->read_subtitle_overlay(sosrc->com.handle->priv,
-                                               &sosrc->ovl,
+                                               sosrc->ovl,
                                                sosrc->com.stream))
     return 0;
   
-  gavl_video_convert(sosrc->cnv, sosrc->ovl.frame, ovl->frame);
+  gavl_video_convert(sosrc->cnv, sosrc->ovl, ovl);
 
   /* TODO: Scale coordinates if source- and destination  sizes are different */
-  gavl_rectangle_i_copy(&ovl->ovl_rect, &sosrc->ovl.ovl_rect);
-  ovl->dst_x = sosrc->ovl.dst_x;
-  ovl->dst_y = sosrc->ovl.dst_y;
+  gavl_rectangle_i_copy(&ovl->src_rect, &sosrc->ovl->src_rect);
+  ovl->dst_x = sosrc->ovl->dst_x;
+  ovl->dst_y = sosrc->ovl->dst_y;
 
   /* Need to undo the timescale and duration scaling */
-  ovl->frame->timestamp = sosrc->ovl.frame->timestamp;
-  ovl->frame->duration  = sosrc->ovl.frame->duration;
+  ovl->timestamp = sosrc->ovl->timestamp;
+  ovl->duration  = sosrc->ovl->duration;
   
   return 1;
   }
@@ -1127,8 +1127,8 @@ static int read_subtitle_overlay_edl(void * priv,
   dec = (edl_dec_t*)priv;
   
   d.ovl = ovl;
-  d.start_time = &ovl->frame->timestamp;
-  d.duration   = &ovl->frame->duration;
+  d.start_time = &ovl->timestamp;
+  d.duration   = &ovl->duration;
 
   d.s =
     &dec->tracks[dec->current_track].subtitle_overlay_streams[stream -

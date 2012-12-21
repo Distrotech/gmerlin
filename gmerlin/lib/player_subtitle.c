@@ -100,7 +100,7 @@ int bg_player_subtitle_init(bg_player_t * player, int subtitle_stream)
   return 1;
   }
 
-#define FREE_OVERLAY(ovl) if(ovl.frame) { gavl_video_frame_destroy(ovl.frame); ovl.frame = NULL; }
+#define FREE_OVERLAY(ovl) if(ovl) { gavl_video_frame_destroy(ovl); ovl = NULL; }
 
 void bg_player_subtitle_cleanup(bg_player_t * player)
   {
@@ -175,7 +175,7 @@ void bg_player_subtitle_init_converter(bg_player_t * player)
                               &s->input_format,
                               &s->output_format);
   if(s->do_convert)
-    s->input_subtitle.frame = gavl_video_frame_create(&s->input_format);
+    s->input_subtitle = gavl_video_frame_create(&s->input_format);
   }
 
 int bg_player_has_subtitle(bg_player_t * p)
@@ -209,35 +209,35 @@ int bg_player_read_subtitle(bg_player_t * p, gavl_overlay_t * ovl)
     bg_plugin_unlock(p->input_handle);
     if(s->do_convert)
       {
-      bg_text_renderer_render(s->renderer, s->buffer, &s->input_subtitle);
-      gavl_video_convert(s->cnv, s->input_subtitle.frame, ovl->frame);
-      gavl_rectangle_i_copy(&ovl->ovl_rect, &s->input_subtitle.ovl_rect);
-      ovl->dst_x = s->input_subtitle.dst_x;
-      ovl->dst_y = s->input_subtitle.dst_y;
+      bg_text_renderer_render(s->renderer, s->buffer, s->input_subtitle);
+      gavl_video_convert(s->cnv, s->input_subtitle, ovl);
+      gavl_rectangle_i_copy(&ovl->src_rect, &s->input_subtitle->src_rect);
+      ovl->dst_x = s->input_subtitle->dst_x;
+      ovl->dst_y = s->input_subtitle->dst_y;
       }
     else
       {
       bg_text_renderer_render(s->renderer, s->buffer, ovl);
       }
-    ovl->frame->timestamp = start;
-    ovl->frame->duration = duration;
+    ovl->timestamp = start;
+    ovl->duration = duration;
     }
   else
     {
     if(s->do_convert)
       {
       bg_plugin_lock(p->input_handle);
-      if(!p->input_plugin->read_subtitle_overlay(p->input_priv, &s->input_subtitle,
+      if(!p->input_plugin->read_subtitle_overlay(p->input_priv, s->input_subtitle,
                                                  p->current_subtitle_stream))
         {
         bg_plugin_unlock(p->input_handle);
         return 0;
         }
       bg_plugin_unlock(p->input_handle);
-      gavl_video_convert(s->cnv, s->input_subtitle.frame, ovl->frame);
-      gavl_rectangle_i_copy(&ovl->ovl_rect, &s->input_subtitle.ovl_rect);
-      ovl->dst_x = s->input_subtitle.dst_x;
-      ovl->dst_y = s->input_subtitle.dst_y;
+      gavl_video_convert(s->cnv, s->input_subtitle, ovl);
+      gavl_rectangle_i_copy(&ovl->src_rect, &s->input_subtitle->src_rect);
+      ovl->dst_x = s->input_subtitle->dst_x;
+      ovl->dst_y = s->input_subtitle->dst_y;
       }
     else
       {
@@ -250,17 +250,17 @@ int bg_player_read_subtitle(bg_player_t * p, gavl_overlay_t * ovl)
     }
 
   /* Unscale the overlay times */
-  ovl->frame->timestamp =
-    gavl_time_unscale(s->input_format.timescale, ovl->frame->timestamp) +
+  ovl->timestamp =
+    gavl_time_unscale(s->input_format.timescale, ovl->timestamp) +
     s->time_offset;
-  ovl->frame->duration  =
-    gavl_time_unscale(s->input_format.timescale, ovl->frame->duration);
+  ovl->duration  =
+    gavl_time_unscale(s->input_format.timescale, ovl->duration);
 #ifdef DUMP_SUBTITLE
   bg_dprintf("Got subtitle %f -> %f (%f)\n",
-             gavl_time_to_seconds(ovl->frame->timestamp),
-             gavl_time_to_seconds(ovl->frame->timestamp +
-                                  ovl->frame->duration),
-             gavl_time_to_seconds(ovl->frame->duration));
+             gavl_time_to_seconds(ovl->timestamp),
+             gavl_time_to_seconds(ovl->timestamp +
+                                  ovl->duration),
+             gavl_time_to_seconds(ovl->duration));
   
 #endif
   

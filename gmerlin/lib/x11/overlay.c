@@ -72,10 +72,10 @@ bg_x11_window_create_overlay(bg_x11_window_t * w, int stream)
   gavl_overlay_t * ret;
   ret = calloc(1, sizeof(*ret));
   if(w->current_driver->driver->create_overlay)
-    ret->frame = w->current_driver->driver->create_overlay(w->current_driver,
+    ret = w->current_driver->driver->create_overlay(w->current_driver,
                                                            stream);
   else
-    ret->frame = gavl_video_frame_create(&w->overlay_streams[stream].format);
+    ret = gavl_video_frame_create(&w->overlay_streams[stream].format);
   return ret;
   }
 
@@ -84,8 +84,8 @@ void bg_x11_window_destroy_overlay(bg_x11_window_t * w, int stream,
   {
   if(w->current_driver->driver->destroy_overlay)
     w->current_driver->driver->destroy_overlay(w->current_driver,
-                                               stream, ovl->frame);
+                                               stream, ovl);
   else
-    gavl_video_frame_destroy(ovl->frame);
+    gavl_video_frame_destroy(ovl);
   free(ovl);
   }

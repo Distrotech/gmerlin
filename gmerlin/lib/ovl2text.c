@@ -120,12 +120,12 @@ static int write_subtitle_overlay_ovl2text(void * priv, gavl_overlay_t * ovl, in
   char * str = NULL;
   ovl2text_t * e = priv;
   
-  bg_ocr_run(e->ocr, &e->format, ovl->frame, &str);
+  bg_ocr_run(e->ocr, &e->format, ovl, &str);
   
   if(str)
     ret = e->enc_plugin->write_subtitle_text(e->enc_handle->priv,
-                                             str, ovl->frame->timestamp,
-                                             ovl->frame->duration, stream);
+                                             str, ovl->timestamp,
+                                             ovl->duration, stream);
   return ret;
   }
 

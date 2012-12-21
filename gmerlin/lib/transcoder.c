@@ -299,7 +299,8 @@ struct subtitle_stream_s
   gavl_video_converter_t * cnv;
   int do_convert;
 
-  gavl_overlay_t ovl1, ovl2;
+  gavl_overlay_t * ovl1;
+  gavl_overlay_t * ovl2;
 
   gavl_overlay_t * current_ovl;
   gavl_overlay_t * next_ovl;
@@ -1413,8 +1414,8 @@ static int decode_subtitle_overlay(subtitle_stream_t * s, bg_transcoder_t * t,
     correct_subtitle_timestamp(&st->com, &st->subtitle_start,
                                &st->subtitle_duration, t);
     
-    ovl->frame->timestamp     = st->subtitle_start;
-    ovl->frame->duration = st->subtitle_duration;
+    ovl->timestamp     = st->subtitle_start;
+    ovl->duration = st->subtitle_duration;
     
     bg_text_renderer_render(st->textrenderer, st->text, ovl);
     }
@@ -1425,13 +1426,13 @@ static int decode_subtitle_overlay(subtitle_stream_t * s, bg_transcoder_t * t,
     
     if(!result ||
        ((t->end_time != GAVL_TIME_UNDEFINED) &&
-        (gavl_time_unscale(s->in_format.timescale, ovl->frame->timestamp) >= t->end_time)))
+        (gavl_time_unscale(s->in_format.timescale, ovl->timestamp) >= t->end_time)))
       {
       s->eof = 1;
       return 0;
       }
-    correct_subtitle_timestamp(s, &ovl->frame->timestamp,
-                               &ovl->frame->duration, t);
+    correct_subtitle_timestamp(s, &ovl->timestamp,
+                               &ovl->duration, t);
     }
   return 1;
   }
@@ -1487,8 +1488,8 @@ static int check_video_blend(video_stream_t * vs,
     if(ss->has_current)
       {
       if(bg_overlay_too_old(time,
-                            ss->current_ovl->frame->timestamp,
-                            ss->current_ovl->frame->duration))
+                            ss->current_ovl->timestamp,
+                            ss->current_ovl->duration))
         {
         tmp_ovl = ss->current_ovl;
         ss->current_ovl = ss->next_ovl;
@@ -1506,7 +1507,7 @@ static int check_video_blend(video_stream_t * vs,
     if(ss->has_next)
       {
       if(!bg_overlay_too_new(time,
-                             ss->next_ovl->frame->timestamp))
+                             ss->next_ovl->timestamp))
         {
         tmp_ovl = ss->current_ovl;
         ss->current_ovl = ss->next_ovl;
@@ -1517,8 +1518,8 @@ static int check_video_blend(video_stream_t * vs,
         ss->has_next = 0;
         
         if(bg_overlay_too_old(time,
-                              ss->current_ovl->frame->timestamp,
-                              ss->current_ovl->frame->duration))
+                              ss->current_ovl->timestamp,
+                              ss->current_ovl->duration))
           ss->has_current = 0;
         else
           current_changed = 1;
@@ -1543,7 +1544,7 @@ static int check_video_blend(video_stream_t * vs,
     
     if(ss->has_current &&
        !bg_overlay_too_new(time,
-                           ss->current_ovl->frame->timestamp))
+                           ss->current_ovl->timestamp))
       {
       ss->do_blend = 1;
       ret = 1;
@@ -1714,14 +1715,14 @@ static int subtitle_iteration(bg_transcoder_t * t)
       else if(st->com.com.action == STREAM_ACTION_TRANSCODE_OVERLAY)
         {
         st->com.has_current =
-          decode_subtitle_overlay((subtitle_stream_t*)st, t, &st->com.ovl1);
+          decode_subtitle_overlay((subtitle_stream_t*)st, t, st->com.ovl1);
         
         if(st->com.has_current && st->com.do_convert)
           {
-          gavl_video_convert(st->com.cnv, st->com.ovl1.frame, st->com.ovl2.frame);
-          tmp_frame = st->com.ovl1.frame;
-          st->com.ovl1.frame = st->com.ovl2.frame;
-          st->com.ovl2.frame = tmp_frame;
+          gavl_video_convert(st->com.cnv, st->com.ovl1, st->com.ovl2);
+          tmp_frame = st->com.ovl1;
+          st->com.ovl1 = st->com.ovl2;
+          st->com.ovl2 = tmp_frame;
           }
         }
       }
@@ -1758,10 +1759,10 @@ static int subtitle_iteration(bg_transcoder_t * t)
           {
           ret =
             bg_encoder_write_subtitle_overlay(t->enc,
-                                              &st->com.ovl1,
+                                              st->com.ovl1,
                                               st->com.com.out_index);
           st->com.com.time = gavl_time_unscale(st->com.out_format.timescale,
-                                               st->com.ovl1.frame->timestamp);
+                                               st->com.ovl1->timestamp);
           
           if(st->com.com.time > t->time)
             t->time = st->com.com.time;
@@ -1793,13 +1794,13 @@ static int subtitle_iteration(bg_transcoder_t * t)
     /* Check for decoding */
     if(!ss->has_current)
       {
-      ss->has_current = decode_subtitle_overlay(ss, t, &ss->ovl1);
+      ss->has_current = decode_subtitle_overlay(ss, t, ss->ovl1);
       if(ss->has_current && ss->do_convert)
         {
-        gavl_video_convert(ss->cnv, ss->ovl1.frame, ss->ovl2.frame);
-        tmp_frame = ss->ovl1.frame;
-        ss->ovl1.frame = ss->ovl2.frame;
-        ss->ovl2.frame = tmp_frame;
+        gavl_video_convert(ss->cnv, ss->ovl1, ss->ovl2);
+        tmp_frame = ss->ovl1;
+        ss->ovl1 = ss->ovl2;
+        ss->ovl2 = tmp_frame;
         }
       }
 
@@ -1812,10 +1813,10 @@ static int subtitle_iteration(bg_transcoder_t * t)
           SUBTITLE_TIME_OFFSET))
         {
         ret = bg_encoder_write_subtitle_overlay(t->enc,
-                                                &ss->ovl1,
+                                                ss->ovl1,
                                                 ss->com.out_index);
         ss->com.time = gavl_time_unscale(ss->out_format.timescale,
-                                         ss->ovl1.frame->timestamp);
+                                         ss->ovl1->timestamp);
           
         if(ss->com.time > t->time)
           t->time = ss->com.time;
@@ -2782,11 +2783,11 @@ static void subtitle_init_blend(subtitle_stream_t * ss, video_stream_t * vs)
                           &vs->out_format,
                           &ss->in_format);
     }
-  if(!ss->ovl1.frame) ss->ovl1.frame = gavl_video_frame_create(&ss->in_format);
-  if(!ss->ovl2.frame) ss->ovl2.frame = gavl_video_frame_create(&ss->in_format);
+  if(!ss->ovl1) ss->ovl1 = gavl_video_frame_create(&ss->in_format);
+  if(!ss->ovl2) ss->ovl2 = gavl_video_frame_create(&ss->in_format);
 
-  ss->current_ovl = &ss->ovl1;
-  ss->next_ovl    = &ss->ovl2;
+  ss->current_ovl = ss->ovl1;
+  ss->next_ovl    = ss->ovl2;
 
   
   gavl_overlay_blend_context_init(ss->blend_context,
@@ -2827,13 +2828,13 @@ static void subtitle_init_encode_overlay(subtitle_stream_t * ss,
   ss->do_convert = gavl_video_converter_init(ss->cnv, &ss->in_format,
                                              &ss->out_format);
   
-  if(!ss->ovl1.frame)
-    ss->ovl1.frame = gavl_video_frame_create(&ss->in_format);
+  if(!ss->ovl1)
+    ss->ovl1 = gavl_video_frame_create(&ss->in_format);
 
   if(ss->do_convert)
     {
-    if(!ss->ovl2.frame)
-      ss->ovl2.frame = gavl_video_frame_create(&ss->out_format);
+    if(!ss->ovl2)
+      ss->ovl2 = gavl_video_frame_create(&ss->out_format);
     }
   }
 
@@ -3118,10 +3119,10 @@ static void cleanup_subtitle_stream(subtitle_stream_t * s)
   {
   subtitle_text_stream_t * ts;
   cleanup_stream(&s->com);
-  if(s->ovl1.frame)
-    gavl_video_frame_destroy(s->ovl1.frame);
-  if(s->ovl2.frame)
-    gavl_video_frame_destroy(s->ovl2.frame);
+  if(s->ovl1)
+    gavl_video_frame_destroy(s->ovl1);
+  if(s->ovl2)
+    gavl_video_frame_destroy(s->ovl2);
   if(s->blend_context)
     gavl_overlay_blend_context_destroy(s->blend_context);
   if(s->com.type == STREAM_TYPE_SUBTITLE_TEXT)

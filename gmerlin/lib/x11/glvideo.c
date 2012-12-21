@@ -438,11 +438,11 @@ static void set_overlay_gl(driver_data_t* d, int stream, gavl_overlay_t * ovl)
                     w->overlay_streams[stream].format.image_height,
                     priv->overlays[stream].type,
                     priv->overlays[stream].format,
-                    ovl->frame->planes[0]);
+                    ovl->planes[0]);
     priv->overlays[stream].active = 1;
     bg_x11_window_unset_gl(w);
 
-    gavl_rectangle_i_copy(&priv->overlays[stream].src_rect, &ovl->ovl_rect);
+    gavl_rectangle_i_copy(&priv->overlays[stream].src_rect, &ovl->src_rect);
     priv->overlays[stream].dst_x = ovl->dst_x;
     priv->overlays[stream].dst_y = ovl->dst_y;
     }

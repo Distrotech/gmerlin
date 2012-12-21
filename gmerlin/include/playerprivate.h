@@ -148,7 +148,7 @@ typedef struct
   char * buffer;
   int buffer_alloc;
   
-  gavl_overlay_t input_subtitle;
+  gavl_overlay_t * input_subtitle;
   
   gavl_overlay_t * current_subtitle;
   gavl_overlay_t * next_subtitle;
