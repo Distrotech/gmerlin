@@ -83,11 +83,10 @@ static const bg_parameter_info_t * get_audio_parameters_lame(void * data)
 
 
 static void update_metadata(void * data,
-                            const char * name,
                             const gavl_metadata_t * m)
   {
   b_lame_t * enc = data;
-  bg_shout_update_metadata(enc->shout, name, m);
+  bg_shout_update_metadata(enc->shout, m);
   }
 
 static int open_lame(void * data, const char * filename,

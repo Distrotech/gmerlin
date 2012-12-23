@@ -131,11 +131,10 @@ static int open_callback(void * data)
   }
 
 static void update_metadata(void * data,
-                            const char * name,
                             const gavl_metadata_t * m)
   {
   bg_ogg_encoder_t * enc = data;
-  bg_shout_update_metadata(enc->write_callback_data, name, m);
+  bg_shout_update_metadata(enc->write_callback_data, m);
   }
 
 static void * create_b_ogg()
@@ -170,7 +169,7 @@ open_b_ogg(void * data, const char * file,
                           NULL))
     return 0;
   if(metadata)
-    bg_shout_update_metadata(enc->write_callback_data, NULL, metadata);
+    bg_shout_update_metadata(enc->write_callback_data, metadata);
   return 1;
   }
 

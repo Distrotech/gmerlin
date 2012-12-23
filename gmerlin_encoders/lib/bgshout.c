@@ -230,11 +230,12 @@ static void metadata_add(bg_shout_t * s,
     }
   }
 
-void bg_shout_update_metadata(bg_shout_t * s, const char * name,
+void bg_shout_update_metadata(bg_shout_t * s,
                               const gavl_metadata_t * m)
   {
   const char * artist = NULL;
   const char * title = NULL;
+  const char * label = NULL;
   
   if(s->met)
     shout_metadata_free(s->met);
@@ -245,6 +246,7 @@ void bg_shout_update_metadata(bg_shout_t * s, const char * name,
     {
     artist = gavl_metadata_get(m, GAVL_META_ARTIST);
     title = gavl_metadata_get(m, GAVL_META_TITLE);
+    label = gavl_metadata_get(m, GAVL_META_LABEL);
     }
   
   if(artist && title)
@@ -252,9 +254,9 @@ void bg_shout_update_metadata(bg_shout_t * s, const char * name,
     metadata_add(s, "artist", artist);
     metadata_add(s, "title",  title);
     }
-  else if(name)
+  else if(label)
     {
-    metadata_add(s, "song", name);
+    metadata_add(s, "song", label);
     }
   else /* Clear everything */
     {

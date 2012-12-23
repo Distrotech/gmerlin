@@ -34,8 +34,7 @@ void bg_shout_set_metadata(bg_shout_t * s, const gavl_metadata_t * m);
 
 int bg_shout_open(bg_shout_t *);
 
-void bg_shout_update_metadata(bg_shout_t *, const char * name,
-                              const gavl_metadata_t * m);
+void bg_shout_update_metadata(bg_shout_t *, const gavl_metadata_t * m);
 
 void bg_shout_destroy(bg_shout_t *);
 
