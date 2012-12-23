@@ -61,17 +61,9 @@ gavl_metadata_copy(gavl_metadata_t * dst,
   if(!src->tags_alloc)
     return;
 
-  dst->tags = calloc(src->tags_alloc, sizeof(*dst->tags));
-  
   for(i = 0; i < src->num_tags; i++)
-    {
-    dst->tags[i].key = my_strdup(src->tags[i].key);
-    dst->tags[i].val = my_strdup(src->tags[i].val);
-    }
-  dst->tags_alloc = src->tags_alloc;
-  dst->num_tags = src->num_tags;
+    gavl_metadata_set(dst, src->tags[i].key, src->tags[i].val); 
   }
-
 
 void
 gavl_metadata_init(gavl_metadata_t * m)
