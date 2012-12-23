@@ -799,7 +799,7 @@ scan_directory_internal(const char * directory, bg_plugin_info_t ** _file_info,
     
     if(!(*changed))
       {
-      fprintf(stderr, "Registry changed %s\n", filename);
+      // fprintf(stderr, "Registry changed %s\n", filename);
       *changed = 1;
       closedir(dir);
       if(_file_info)

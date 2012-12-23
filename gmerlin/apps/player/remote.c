@@ -114,14 +114,6 @@ void gmerlin_handle_remote(gmerlin_t * g, bg_msg_t * msg)
     case PLAYER_COMMAND_PREV_CHAPTER:
       bg_player_prev_chapter(g->player);
       break;
-
-    case PLAYER_COMMAND_GET_NAME:
-      msg = bg_remote_server_get_msg_write(g->remote);
-      bg_msg_set_id(msg, PLAYER_RESPONSE_GET_NAME);
-      /* Set name */
-      bg_msg_set_arg_string(msg, 0, g->remote_data.name);
-      bg_remote_server_done_msg_write(g->remote);
-      break;
     case PLAYER_COMMAND_GET_METADATA:
       msg = bg_remote_server_get_msg_write(g->remote);
       bg_msg_set_id(msg, PLAYER_RESPONSE_GET_METADATA);

@@ -52,6 +52,18 @@ gavftools_opt_ac(void * data, int * argc, char *** _argv, int arg);
 void
 gavftools_opt_vc(void * data, int * argc, char *** _argv, int arg);
 
+void
+gavftools_opt_as(void * data, int * argc, char *** _argv, int arg);
+
+void
+gavftools_opt_vs(void * data, int * argc, char *** _argv, int arg);
+
+void
+gavftools_opt_os(void * data, int * argc, char *** _argv, int arg);
+
+void
+gavftools_opt_ts(void * data, int * argc, char *** _argv, int arg);
+
 
 #define GAVFTOOLS_AUDIO_COMPRESSOR_OPTIONS \
   { \
@@ -68,5 +80,40 @@ gavftools_opt_vc(void * data, int * argc, char *** _argv, int arg);
     .help_string = "Set video compression options", \
     .callback =    gavftools_opt_vc, \
   }
+
+#define GAVFTOOLS_AUDIO_STREAM_OPTIONS \
+  { \
+    .arg =         "-as", \
+    .help_arg =    "<stream_selector>", \
+    .help_string = "", \
+    .callback =    gavftools_opt_as, \
+  }
+
+#define GAVFTOOLS_VIDEO_STREAM_OPTIONS          \
+  { \
+    .arg =         "-vs", \
+    .help_arg =    "<stream_selector>", \
+    .help_string = "", \
+    .callback =    gavftools_opt_vs, \
+  }
+
+#define GAVFTOOLS_TEXT_STREAM_OPTIONS          \
+  { \
+    .arg =         "-ts", \
+    .help_arg =    "<stream_selector>", \
+    .help_string = "", \
+    .callback =    gavftools_opt_ts, \
+  }
+
+#define GAVFTOOLS_OVERLAY_STREAM_OPTIONS           \
+  { \
+    .arg =         "-os", \
+    .help_arg =    "<stream_selector>", \
+    .help_string = "", \
+    .callback =    gavftools_opt_os, \
+  }
+
+bg_stream_action_t * gavftools_get_stream_action(gavf_stream_type_t type,
+                                                 int num);
 
 void gavftools_block_sigpipe(void);

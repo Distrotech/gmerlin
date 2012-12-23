@@ -298,7 +298,10 @@ static int do_connect(bg_lcdproc_t* l)
 static int set_name(bg_lcdproc_t * l, const char * name)
   {
   char * command;
-
+  
+  if(!name)
+    return 1;
+  
   if(strlen(name) > l->width)
     command = bg_sprintf("widget_set %s %s 1 2 %d 3 m 1 {%s *** }",
                        name_time_name, name_name, l->width, name);
@@ -700,7 +703,6 @@ static void * thread_func(void * data)
   int result = 1;
   
   int arg_i_1;
-  char * arg_str_1;
   
   int id;
   gavl_time_t time;
@@ -781,12 +783,14 @@ static void * thread_func(void * data)
               break;
             }
           break;
-        case BG_PLAYER_MSG_TRACK_NAME:
+        case BG_PLAYER_MSG_METADATA:
           if(l->have_name_time)
             {
-            arg_str_1 = bg_msg_get_arg_string(msg, 0);
-            result = set_name(l, arg_str_1);
-            free(arg_str_1);
+            gavl_metadata_t m;
+            gavl_metadata_init(&m);
+            bg_msg_get_arg_metadata(msg, 0, &m);
+            result = set_name(l, gavl_metadata_get(&m, GAVL_META_LABEL));
+            gavl_metadata_free(&m);
             }
           break;
         case BG_PLAYER_MSG_AUDIO_STREAM_INFO:

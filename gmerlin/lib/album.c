@@ -2298,7 +2298,7 @@ bg_album_entry_t * bg_album_load_url(bg_album_t * album,
     
     bg_album_common_set_auth_info(album->com, new_entry);
     bg_album_update_entry(album, new_entry, track_info, 0, 1);
-    
+
     new_entry->plugin = bg_strdup(new_entry->plugin, plugin_name);
     
     if(ret)

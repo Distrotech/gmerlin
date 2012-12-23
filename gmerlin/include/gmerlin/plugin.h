@@ -365,16 +365,7 @@ struct bg_input_callbacks_s
    */
   
   void (*duration_changed)(void * data, gavl_time_t duration);
-
-  /** \brief Name changed
-   *  \param data The data member of this bg_input_callbacks_s struct
-   *  \param time The new name
-   *
-   *  This is for web-radio stations, which send song-names.
-   */
   
-  void (*name_changed)(void * data, const char * name);
-
   /** \brief Metadata changed
    *  \param data The data member of this bg_input_callbacks_s struct
    *  \param m The new metadata

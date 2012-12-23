@@ -663,7 +663,6 @@ static int handle_message(bg_player_t * player,
                           bg_msg_t * message)
   {
   int arg_i1;
-  char * arg_str1;
   gavl_time_t t;
   gavl_audio_format_t audio_format;
   gavl_video_format_t video_format;
@@ -680,15 +679,6 @@ static int handle_message(bg_player_t * player,
       break;
     case BG_PLAYER_MSG_TRACK_DURATION:
       total_time = bg_msg_get_arg_time(message, 0);
-      break;
-    case BG_PLAYER_MSG_TRACK_NAME:
-      arg_str1 = bg_msg_get_arg_string(message, 0);
-      if(arg_str1)
-        {
-        if(time_active) { putc('\n', stderr); time_active = 0; }
-        bg_log(BG_LOG_INFO, LOG_DOMAIN, "Name: %s", arg_str1);
-        free(arg_str1);
-        }
       break;
     case BG_PLAYER_MSG_TRACK_NUM_STREAMS:
       arg_i1 = bg_msg_get_arg_int(message, 0);

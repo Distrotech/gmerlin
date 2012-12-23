@@ -451,8 +451,6 @@ void gmerlin_destroy(gmerlin_t * g)
   
   free(g->skin_dir);
 
-  if(g->remote_data.name)
-    free(g->remote_data.name);
   gavl_metadata_free(&g->remote_data.metadata);
   
   free(g);

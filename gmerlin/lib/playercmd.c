@@ -124,20 +124,6 @@ void bg_player_set_subtitle_stream(bg_player_t * p, int index)
   bg_msg_queue_unlock_write(p->command_queue);
   }
 
-static void msg_name(bg_msg_t * msg,
-                     const void * data)
-  {
-  const char * name = (const char*)(data);
-  bg_msg_set_id(msg, BG_PLAYER_MSG_TRACK_NAME);
-  bg_msg_set_arg_string(msg, 0, name);
-  }
-
-void bg_player_set_track_name(bg_player_t * p, const char * name)
-  {
-  bg_msg_queue_list_send(p->message_queues,
-                         msg_name, name);
-  }
-
 typedef struct
   {
   gavl_time_t duration;

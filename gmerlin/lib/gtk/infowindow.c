@@ -54,27 +54,26 @@ enum
   NUM_COLUMNS
 };
 
-#define PATH_NAME             0
-#define PATH_INPUT_PLUGIN     1
-#define PATH_LOCATION         2
-#define PATH_TRACK            3
-#define PATH_METADATA         4
-#define PATH_AUDIO            5
-#define PATH_AUDIO_DESC       6
-#define PATH_AUDIO_FORMAT_I   7
-#define PATH_AUDIO_FORMAT_O   8
+#define PATH_INPUT_PLUGIN     0
+#define PATH_LOCATION         1
+#define PATH_TRACK            2
+#define PATH_METADATA         3
+#define PATH_AUDIO            4
+#define PATH_AUDIO_DESC       5
+#define PATH_AUDIO_FORMAT_I   6
+#define PATH_AUDIO_FORMAT_O   7
 
-#define PATH_VIDEO            9
-#define PATH_VIDEO_DESC      10
-#define PATH_VIDEO_FORMAT_I  11
-#define PATH_VIDEO_FORMAT_O  12
+#define PATH_VIDEO            8
+#define PATH_VIDEO_DESC       9
+#define PATH_VIDEO_FORMAT_I  10
+#define PATH_VIDEO_FORMAT_O  11
 
-#define PATH_SUBTITLE          13
-#define PATH_SUBTITLE_DESC     14
-#define PATH_SUBTITLE_FORMAT_I 15
-#define PATH_SUBTITLE_FORMAT_O 16
+#define PATH_SUBTITLE          12
+#define PATH_SUBTITLE_DESC     13
+#define PATH_SUBTITLE_FORMAT_I 14
+#define PATH_SUBTITLE_FORMAT_O 15
 
-#define PATH_NUM             17
+#define PATH_NUM             16
 
 /* Delay between update calls in Milliseconds */
 
@@ -178,8 +177,8 @@ static const bg_parameter_info_t parameters[] =
     EXPANDED_PARAM("exp_13"),
     EXPANDED_PARAM("exp_14"),
     EXPANDED_PARAM("exp_15"),
-    EXPANDED_PARAM("exp_16"),
-    EXPANDED_PARAM("exp_17"),
+    // EXPANDED_PARAM("exp_16"),
+    // EXPANDED_PARAM("exp_17"),
     { /* End of parameters */ }
   };
 
@@ -440,18 +439,15 @@ static void set_line_multi(bg_gtk_info_window_t * w,
   if(w->expanded[parent_index])
     gtk_tree_view_expand_row(GTK_TREE_VIEW(w->treeview), w->paths[parent_index], 0);
 
-  
   if(tmp_strings)
     bg_strbreak_free(tmp_strings);
-  
   }
-     
+
 static void set_audio_format(bg_gtk_info_window_t * w,
                              int parent_index,
                              gavl_audio_format_t * format)
   {
   char * tmp_string;
-  
   tmp_string = bg_audio_format_to_string(format, 1);
   set_line_multi(w, parent_index, tmp_string);
   free(tmp_string);
@@ -505,18 +501,6 @@ static gboolean idle_callback(gpointer data)
             break;
           default:
             break;
-          }
-        break;
-      case BG_PLAYER_MSG_TRACK_NAME:
-
-        arg_str = bg_msg_get_arg_string(msg, 0);
-        
-        if(arg_str)
-          {
-          tmp_string = bg_sprintf(TR("Name:\t%s"), arg_str);
-          set_line_index(w, PATH_NAME, tmp_string, 1);
-          free(tmp_string);
-          free(arg_str);
           }
         break;
       case BG_PLAYER_MSG_INPUT:
@@ -632,14 +616,11 @@ static gboolean idle_callback(gpointer data)
       case BG_PLAYER_MSG_METADATA:
         gavl_metadata_init(&arg_m);
         bg_msg_get_arg_metadata(msg, 0, &arg_m);
-                
+
         tmp_string = bg_metadata_to_string(&arg_m, 1);
-        
         if(tmp_string)
-          {
           set_line_multi(w, PATH_METADATA, tmp_string);
-          free(tmp_string);
-          }
+        
         gavl_metadata_free(&arg_m);
         break;
       }
@@ -682,7 +663,7 @@ static void reset_tree(bg_gtk_info_window_t * w)
   {
   GtkTreeModel * model;
   GtkTreeIter iter;
-
+  
   g_signal_handler_block(w->treeview, w->collapse_id);
 
   model = gtk_tree_view_get_model(GTK_TREE_VIEW(w->treeview));
@@ -760,12 +741,7 @@ static void init_tree(bg_gtk_info_window_t * w)
   GtkTreeModel * model;
 
   model = gtk_tree_view_get_model(GTK_TREE_VIEW(w->treeview));
-
-  /* Name */
-  gtk_tree_store_append(GTK_TREE_STORE(model), &iter, NULL);
-  w->paths[PATH_NAME] = gtk_tree_model_get_path(model, &iter);
-  set_line(w, &iter, TR("Name"), 0);
-
+  
   /* Plugin */
   gtk_tree_store_append(GTK_TREE_STORE(model), &iter, NULL);
   w->paths[PATH_INPUT_PLUGIN] = gtk_tree_model_get_path(model, &iter);
@@ -1145,7 +1121,6 @@ bg_gtk_info_window_create(bg_player_t * player,
   gtk_tree_selection_set_mode(selection, GTK_SELECTION_SINGLE);
   
   /* Set callbacks */
-  
   ret->idle_id = g_timeout_add(DELAY_TIME, idle_callback, (gpointer)ret);
   g_signal_connect(G_OBJECT(ret->window), "delete_event",
                    G_CALLBACK(delete_callback), (gpointer)ret);

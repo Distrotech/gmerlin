@@ -52,6 +52,18 @@ static bg_cfg_section_t * vc_section = NULL;
 static bg_parameter_info_t * ac_parameters = NULL;
 static bg_parameter_info_t * vc_parameters = NULL;
 
+static bg_stream_action_t * a_actions = NULL;
+static int num_a_actions = 0;
+
+static bg_stream_action_t * v_actions = NULL;
+static int num_v_actions = 0;
+
+static bg_stream_action_t * t_actions = NULL;
+static int num_t_actions = 0;
+
+static bg_stream_action_t * o_actions = NULL;
+static int num_o_actions = 0;
+
 void gavftools_destroy_registries()
   {
   bg_plugin_registry_destroy(plugin_reg);
@@ -163,3 +175,85 @@ gavftools_block_sigpipe(void)
   pthread_sigmask(SIG_BLOCK, &newset, NULL);
 #endif
   }
+
+/* Stream actions */
+
+static bg_stream_action_t * stream_actions_from_arg(const char * arg, int * num_p)
+  {
+  int i;
+  char ** actions_c;
+  bg_stream_action_t * ret;
+  int num;
+
+  actions_c = bg_strbreak(arg, ',');
+  num = 0;
+  while(actions_c[num])
+    num++;
+
+  ret = calloc(num, sizeof(*ret));
+
+  for(i = 0; i < num; i++)
+    {
+    if(*(actions_c[i]) == 'd')
+      ret[i] = BG_STREAM_ACTION_DECODE;
+    else if(*(actions_c[i]) == 'm')
+      ret[i] = BG_STREAM_ACTION_OFF;
+    else if(*(actions_c[i]) == 'c')
+      ret[i] = BG_STREAM_ACTION_READRAW;
+    }
+  *num_p = num;
+  return ret;
+  }
+
+void
+gavftools_opt_as(void * data, int * argc, char *** _argv, int arg)
+  {
+  if(arg >= *argc)
+    {
+    fprintf(stderr, "Option -as requires an argument\n");
+    exit(-1);
+    }
+
+  a_actions = stream_actions_from_arg((*_argv)[arg], &num_a_actions);
+  bg_cmdline_remove_arg(argc, _argv, arg);
+  
+  }
+
+void
+gavftools_opt_vs(void * data, int * argc, char *** _argv, int arg)
+  {
+  if(arg >= *argc)
+    {
+    fprintf(stderr, "Option -vs requires an argument\n");
+    exit(-1);
+    }
+  v_actions = stream_actions_from_arg((*_argv)[arg], &num_v_actions);
+  bg_cmdline_remove_arg(argc, _argv, arg);
+  
+  }
+
+void
+gavftools_opt_os(void * data, int * argc, char *** _argv, int arg)
+  {
+  if(arg >= *argc)
+    {
+    fprintf(stderr, "Option -os requires an argument\n");
+    exit(-1);
+    }
+  o_actions = stream_actions_from_arg((*_argv)[arg], &num_o_actions);
+  bg_cmdline_remove_arg(argc, _argv, arg);
+
+  }
+
+void
+gavftools_opt_ts(void * data, int * argc, char *** _argv, int arg)
+  {
+  if(arg >= *argc)
+    {
+    fprintf(stderr, "Option -ts requires an argument\n");
+    exit(-1);
+    }
+  t_actions = stream_actions_from_arg((*_argv)[arg], &num_t_actions);
+  bg_cmdline_remove_arg(argc, _argv, arg);
+  }
+

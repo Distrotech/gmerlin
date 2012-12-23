@@ -32,29 +32,6 @@
 #include <gmerlin/log.h>
 #define LOG_DOMAIN "gmerlin_remote"
 
-static void cmd_get_name(void * data, int * argc, char *** _argv, int arg)
-  {
-  bg_msg_t * msg;
-  bg_remote_client_t * remote;
-  char * str;
-  
-  remote = (bg_remote_client_t *)data;
-  msg = bg_remote_client_get_msg_write(remote);
-  bg_msg_set_id(msg, PLAYER_COMMAND_GET_NAME);
-  bg_remote_client_done_msg_write(remote);
-
-  msg = bg_remote_client_get_msg_read(remote);
-  if(!msg)
-    return;
-
-  str = bg_msg_get_arg_string(msg, 0);
-  if(str)
-    {
-    printf("Name: %s\n", str);
-    free(str);
-    }
-  }
-
 static void cmd_get_metadata(void * data, int * argc, char *** _argv, int arg)
   {
   char * str;
@@ -461,11 +438,6 @@ bg_cmdline_arg_t commands[] =
       .help_arg =    "[num|+|-]",
       .help_string = TRS("Go to the specified chapter. Use '+' and '-' to go to the next or previous chapter respectively"),
       .callback =    cmd_chapter,
-    },
-    {
-      .arg =         "-get-name",
-      .help_string = TRS("Print name of the current track"),
-      .callback =    cmd_get_name,
     },
     {
       .arg =         "-get-metadata",

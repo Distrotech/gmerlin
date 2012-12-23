@@ -844,10 +844,11 @@ void display_get_coords(display_t * d, int * x, int * y)
   *y = d->skin->y;
   }
 
-void display_set_track_name(display_t * d, char * name)
+void display_set_track_name(display_t * d, const char * name)
   {
   d->track_name = bg_strdup(d->track_name, name);
   d->error_active = 0;
+  
   bg_gtk_scrolltext_set_text(d->scrolltext,
                              d->track_name,
                              d->foreground_normal, d->background);

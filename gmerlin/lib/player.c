@@ -39,12 +39,6 @@ static void duration_changed(void * data, gavl_time_t duration)
   bg_player_set_duration(p, duration, p->can_seek);
   }
 
-static void name_changed(void * data, const char * name)
-  {
-  bg_player_t * p = data;
-  bg_player_set_track_name(p, name);
-  }
-
 static void metadata_changed(void * data, const gavl_metadata_t * m)
   {
   bg_player_t * p = data;
@@ -77,7 +71,6 @@ bg_player_t * bg_player_create(bg_plugin_registry_t * plugin_reg)
 
   /* Callbacks */
   ret->input_callbacks.data = ret;
-  ret->input_callbacks.name_changed     = name_changed;
   ret->input_callbacks.duration_changed = duration_changed;
   ret->input_callbacks.metadata_changed = metadata_changed;
   ret->input_callbacks.buffer_notify    = buffer_notify;

@@ -289,7 +289,8 @@ int bg_player_input_init(bg_player_t * p,
     }
   
   p->track_info = p->input_plugin->get_track_info(p->input_priv,
-                                            track_index);
+                                                  track_index);
+  
   
   if(p->input_plugin->seek &&
      (p->track_info->flags & BG_TRACK_SEEKABLE) &&

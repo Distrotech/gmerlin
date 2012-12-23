@@ -25,6 +25,9 @@
 
 #include <config.h>
 
+#include <gavl/metatags.h>
+
+
 #include "gmerlin.h"
 #include <gmerlin/utils.h>
 #include <gmerlin/xmlutils.h>
@@ -448,14 +451,6 @@ static void handle_message(player_window_t * win,
           break;
         }
       break;
-    case BG_PLAYER_MSG_TRACK_NAME:
-      arg_str_1 = bg_msg_get_arg_string(msg, 0);
-      display_set_track_name(win->display, arg_str_1);
-      win->gmerlin->remote_data.name =
-        bg_strdup(win->gmerlin->remote_data.name,
-                  arg_str_1);
-      free(arg_str_1);
-      break;
     case BG_PLAYER_MSG_TRACK_NUM_STREAMS:
       arg_i_1 = bg_msg_get_arg_int(msg, 0);
       arg_i_2 = bg_msg_get_arg_int(msg, 1);
@@ -551,6 +546,9 @@ static void handle_message(player_window_t * win,
       gavl_metadata_free(&win->gmerlin->remote_data.metadata);
       bg_msg_get_arg_metadata(msg, 0,
                               &win->gmerlin->remote_data.metadata);
+      display_set_track_name(win->display,
+                             gavl_metadata_get(&win->gmerlin->remote_data.metadata,
+                                               GAVL_META_LABEL));
       break;
     case BG_PLAYER_MSG_AUDIO_STREAM:
       arg_i_1 = bg_msg_get_arg_int(msg, 0);

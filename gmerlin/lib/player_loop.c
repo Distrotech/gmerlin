@@ -30,14 +30,6 @@
 
 #define LOG_DOMAIN "player"
 
-/* Metadata */
-
-static void msg_metadata(bg_msg_t * msg, const void * data)
-  {
-  gavl_metadata_t * m = (gavl_metadata_t *)data;
-  bg_msg_set_id(msg, BG_PLAYER_MSG_METADATA);
-  bg_msg_set_arg_metadata(msg, 0, m);
-  }
 
 static void msg_time(bg_msg_t * msg,
                      const void * data)
@@ -406,6 +398,9 @@ static void init_playback(bg_player_t * p, gavl_time_t time,
 
   bg_player_set_state(p, BG_PLAYER_STATE_STARTING, NULL, NULL);
 
+  /* Do metadata callback as early as possible */
+  bg_player_set_metadata(p, &p->track_info->metadata);
+  
   /* Close previous visualization before we init the streams
      because it might close the ov_plugin as well */
   
@@ -440,13 +435,6 @@ static void init_playback(bg_player_t * p, gavl_time_t time,
   /* Send input messages */
   bg_player_input_send_messages(p);
   
-  /* Send metadata */
-
-  bg_msg_queue_list_send(p->message_queues,
-                         msg_metadata,
-                         &p->track_info->metadata);
-
-
   bg_player_set_duration(p, p->track_info->duration, p->can_seek);
   
   bg_msg_queue_list_send(p->message_queues,
@@ -590,14 +578,13 @@ static void init_playback(bg_player_t * p, gavl_time_t time,
 
 static void play_cmd(bg_player_t * p,
                      bg_plugin_handle_t * handle,
-                     int track_index, char * track_name, int flags)
+                     int track_index, int flags)
   {
   /* Shut down from last playback if necessary */
   
   if(p->input_handle)
     player_cleanup(p);
   
-  bg_player_set_track_name(p, track_name);
   
   p->input_handle = handle;
   
@@ -879,7 +866,6 @@ static int process_commands(bg_player_t * player)
   float arg_f1;
   int state;
   void * arg_ptr1;
-  char * arg_str1;
   gavl_time_t time;
   gavl_time_t current_time;
   bg_msg_t * command;
@@ -948,7 +934,6 @@ static int process_commands(bg_player_t * player)
           }
         
         arg_i1   = bg_msg_get_arg_int(command, 1);
-        arg_str1 = bg_msg_get_arg_string(command, 3);
       
         if((state == BG_PLAYER_STATE_PLAYING) ||
            (state == BG_PLAYER_STATE_PAUSED))
@@ -961,12 +946,8 @@ static int process_commands(bg_player_t * player)
                               "No Track selected", NULL);
           }
         else
-          play_cmd(player, arg_ptr1, arg_i1, arg_str1, play_flags);
+          play_cmd(player, arg_ptr1, arg_i1, play_flags);
         
-        if(arg_str1)
-          free(arg_str1);
-      
-                  
         break;
       case BG_PLAYER_CMD_STOP:
         state = bg_player_get_state(player);

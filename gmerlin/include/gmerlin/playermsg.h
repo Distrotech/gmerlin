@@ -193,7 +193,7 @@
  *  sent multiple times for one URL.
  */
 
-#define BG_PLAYER_MSG_TRACK_NAME              3
+// #define BG_PLAYER_MSG_TRACK_NAME              3
 
 /** \brief Duration changed
  *

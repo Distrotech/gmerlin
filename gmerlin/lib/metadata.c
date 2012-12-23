@@ -457,8 +457,7 @@ char * bg_metadata_to_string(const gavl_metadata_t * m, int use_tabs)
 
   for(i = 0; i < m->num_tags; i++)
     {
-    tmp = bg_sprintf(TR("%s%s%s\n"),
-                     m->tags[i].key, sep, m->tags[i].val);
+    tmp = bg_sprintf("%s%s%s\n", m->tags[i].key, sep, m->tags[i].val);
     META_STRCAT();
     }
   /* Remove trailing '\n' */

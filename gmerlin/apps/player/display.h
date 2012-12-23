@@ -70,7 +70,7 @@ void display_set_state(display_t *, int state,
 
 /* Set track name to be displayed */
 
-void display_set_track_name(display_t * d, char * name);
+void display_set_track_name(display_t * d, const char * name);
 
 void display_set_error_msg(display_t * d, char * msg);
 

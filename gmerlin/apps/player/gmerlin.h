@@ -168,7 +168,6 @@ struct gmerlin_s
   struct
     {
     gavl_metadata_t metadata;
-    char * name;
     gavl_time_t time;
     gavl_time_t duration;
     } remote_data;
