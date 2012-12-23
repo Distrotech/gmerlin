@@ -1466,8 +1466,6 @@ int bg_input_plugin_load_edl(bg_plugin_registry_t * reg,
     ti    = &priv->track_info[i];
     t     = &priv->tracks[i];
     
-    ti->name = bg_strdup(ti->name, track->name);
-
     gavl_metadata_copy(&ti->metadata, &track->metadata);
     
     ti->flags |= (BG_TRACK_SEEKABLE|BG_TRACK_PAUSABLE);

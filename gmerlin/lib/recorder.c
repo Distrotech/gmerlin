@@ -42,23 +42,26 @@ BG_STREAM_AUDIO | BG_STREAM_VIDEO;
 const uint32_t bg_recorder_plugin_mask = BG_PLUGIN_FILE | BG_PLUGIN_BROADCAST;
 
 static void
-metadata_changed_callback(void * priv, const char * name,
-                          const gavl_metadata_t * m)
+metadata_changed_callback(void * priv, const gavl_metadata_t * m)
   {
+  int i;
+  
   bg_recorder_t * rec = priv;
   if(rec->metadata_mode != BG_RECORDER_METADATA_INPUT)
     return;
 
-  bg_log(BG_LOG_INFO, LOG_DOMAIN, "New track: %s", name);
+  bg_log(BG_LOG_INFO, LOG_DOMAIN, "New track");
+
+  for(i = 0; i < m->num_tags; i++)
+    bg_log(BG_LOG_INFO, LOG_DOMAIN, "  %s: %s", m->tags[i].key, m->tags[i].val);
   
   if(rec->enc && rec->encoding_finalized)
     {
-    bg_encoder_update_metadata(rec->enc, name, m);
+    bg_encoder_update_metadata(rec->enc, m);
     }
   else
     {
     gavl_metadata_copy(&rec->updated_metadata, m);
-    rec->updated_name = bg_strdup(rec->updated_name, name);
     }
   }
 
@@ -117,8 +120,6 @@ void bg_recorder_destroy(bg_recorder_t * rec)
 
   gavl_metadata_free(&rec->m);
   gavl_metadata_free(&rec->updated_metadata);
-  if(rec->updated_name)
-    free(rec->updated_name);
   
   pthread_mutex_destroy(&rec->time_mutex);
   pthread_mutex_destroy(&rec->snapshot_mutex);
@@ -181,8 +182,7 @@ static int finalize_encoding(bg_recorder_t * rec)
   if(rec->vs.flags & STREAM_ACTIVE)
     bg_recorder_video_finalize_encode(rec);
   
-  bg_encoder_update_metadata(rec->enc, rec->updated_name,
-                             &rec->updated_metadata);
+  bg_encoder_update_metadata(rec->enc, &rec->updated_metadata);
   rec->encoding_finalized = 1;
   return 1;
   }
@@ -713,24 +713,17 @@ static void update_metadata(bg_recorder_t * rec)
     }
   bg_subprocess_close(sp);
 
-  if(!gavl_metadata_equal(&m, &rec->updated_metadata) ||
-     (!rec->updated_name && name) ||
-     (name && rec->updated_name && strcmp(name, rec->updated_name)))
+  if(!gavl_metadata_equal(&m, &rec->updated_metadata))
     {
     /* Metadata changed */
 
     if(rec->enc)
-      bg_encoder_update_metadata(rec->enc, name, &m);
-    
-    if(rec->updated_name)
-      free(rec->updated_name);
-    rec->updated_name = name;
+      bg_encoder_update_metadata(rec->enc, &m);
     
     gavl_metadata_free(&rec->updated_metadata);
     memcpy(&rec->updated_metadata, &m, sizeof(m));
-
-    if(name)
-      bg_log(BG_LOG_INFO, LOG_DOMAIN, "New track %s", name);
+    
+    bg_log(BG_LOG_INFO, LOG_DOMAIN, "New track");
     }
   else
     {

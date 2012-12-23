@@ -25,6 +25,8 @@
 #include <stdio.h>
 
 #include <gavl/gavl.h>
+#include <gavl/metatags.h>
+
 #include <gmerlin/edl.h>
 #include <gmerlin/utils.h>
 
@@ -132,10 +134,6 @@ static bg_edl_track_t * copy_tracks(const bg_edl_track_t * src, int len)
     {
     /* Copy pointers */
 
-    ret[i].name = bg_strdup(NULL, src[i].name);
-
-    memset(&ret[i].metadata, 0, sizeof(ret[i].metadata));
-    
     gavl_metadata_copy(&ret[i].metadata, &src[i].metadata);
     
     ret[i].audio_streams = copy_streams(src[i].audio_streams,
@@ -187,8 +185,6 @@ static void free_streams(bg_edl_stream_t * s, int len)
 static void free_tracks(bg_edl_track_t * s, int len)
   {
   int i;
-  if(s->name)
-    free(s->name);
   for(i = 0; i < len; i++)
     {
     gavl_metadata_free(&s[i].metadata);
@@ -243,7 +239,8 @@ static void dump_stream(const bg_edl_stream_t* s)
 static void dump_track(const bg_edl_track_t * t)
   {
   int i;
-  bg_diprintf(2, "Track: %s\n", t->name);
+  bg_diprintf(2, "Track:\n");
+  gavl_metadata_dump(&t->metadata, 4);
   bg_diprintf(4, "Audio streams: %d\n", t->num_audio_streams);
   for(i = 0; i < t->num_audio_streams; i++)
     {
@@ -292,15 +289,17 @@ void bg_edl_append_track_info(bg_edl_t * e, const bg_track_info_t * info,
   bg_edl_stream_t * s;
   bg_edl_segment_t * seg;
   int i;
+  char * real_name;
   
   t = bg_edl_add_track(e);
 
   if(name)
-    t->name = bg_strdup(t->name, name);
-  else if(info->name)
-    t->name = bg_strdup(t->name, info->name);
+    real_name = bg_strdup(NULL, name);
   else
-    t->name = bg_get_track_name_default(url, index, total_tracks);
+    real_name = bg_get_track_name_default(url, index, total_tracks);
+  
+  gavl_metadata_copy(&t->metadata, &info->metadata);
+  gavl_metadata_set_nocpy(&t->metadata, GAVL_META_LABEL, real_name);
   
   for(i = 0; i < info->num_audio_streams; i++)
     {

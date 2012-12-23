@@ -110,6 +110,22 @@ static void init_audio(audio_stream_t * as)
 
   }
 
+static void cleanup_audio(audio_stream_t * as)
+  {
+  bg_parameter_info_destroy_array(as->parameters);
+  if(as->h)
+    bg_plugin_unref(as->h);
+  if(as->sink_ext)
+    gavl_audio_sink_destroy(as->sink_ext);
+  }
+
+static void cleanup_video(video_stream_t * vs)
+  {
+  bg_parameter_info_destroy_array(vs->parameters);
+  if(vs->h)
+    bg_plugin_unref(vs->h);
+  }
+
 static void init_video(video_stream_t * vs)
   {
   vs->parameters =
@@ -302,6 +318,14 @@ static void player_init(player_t * p)
   p->vs.p = p;
   init_audio(&p->as);
   init_video(&p->vs);
+  }
+
+static void player_cleanup(player_t * p)
+  {
+  cleanup_audio(&p->as);
+  cleanup_video(&p->vs);
+  if(p->timer)
+    gavl_timer_destroy(p->timer);
   }
 
 static void player_open(player_t * p, bg_mediaconnector_t * conn)
@@ -591,7 +615,19 @@ int main(int argc, char ** argv)
   
   /* Cleanup */
   bg_mediaconnector_threads_stop(&conn);
+  bg_mediaconnector_free(&conn);
+
+  bg_plug_destroy(in_plug);
+
+  player_cleanup(&player);
   
+  gavftools_destroy_registries();
+
+  if(audio_section)
+    bg_cfg_section_destroy(audio_section);
+  if(video_section)
+    bg_cfg_section_destroy(video_section);
+    
   ret = 0;
   return ret;
   }

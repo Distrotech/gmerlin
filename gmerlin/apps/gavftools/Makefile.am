@@ -22,6 +22,7 @@ AM_LDFLAGS = @GMERLIN_EXE_LDFLAGS@
 # dist_man_MANS = gmerlin-record.1
 
 bin_PROGRAMS = \
+gavf-decode \
 gavf-record \
 gavf-play
 

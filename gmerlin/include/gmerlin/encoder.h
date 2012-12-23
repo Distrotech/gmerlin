@@ -133,5 +133,4 @@ gavl_video_sink_t * bg_encoder_get_video_sink(bg_encoder_t *, int stream);
 /* Update metadata */
 
 void bg_encoder_update_metadata(bg_encoder_t *,
-                                const char * name,
                                 const gavl_metadata_t * m);

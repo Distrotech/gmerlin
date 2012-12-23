@@ -31,6 +31,8 @@
 #include <gmerlin/player.h>
 #include <gmerlin/pluginregistry.h>
 #include <gavl/gavl.h>
+#include <gavl/metatags.h>
+
 #include <gmerlin/utils.h>
 #include <gmerlin/cmdline.h>
 #include <gmerlin/log.h>
@@ -610,9 +612,9 @@ static int play_track(bg_player_t * player, const char * gml,
     return result;
     }
   
-  if(!track_info->name)
-    bg_set_track_name_default(track_info, gml);
-  bg_player_play(player, input_handle, current_track, 0, track_info->name);
+  bg_set_track_name_default(track_info, gml);
+  bg_player_play(player, input_handle, current_track, 0, gavl_metadata_get(&track_info->metadata,
+                                                                           GAVL_META_LABEL));
   
   return 1;
   }

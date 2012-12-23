@@ -754,7 +754,7 @@ void bg_x11_grab_window_close(bg_x11_grab_window_t * win)
     {
     gavl_video_frame_null(win->frame);
     gavl_video_frame_destroy(win->frame);
-
+    
     XShmDetach(win->dpy, &win->shminfo);
     shmdt(win->shminfo.shmaddr);
     shmctl(win->shminfo.shmid, IPC_RMID, NULL);
@@ -763,10 +763,12 @@ void bg_x11_grab_window_close(bg_x11_grab_window_t * win)
   else
     {
     gavl_video_frame_destroy(win->frame);
-    win->image->data = NULL;
     XDestroyImage(win->image);
     }
 
+  win->frame = NULL;
+  win->image = NULL;
+  
   if(!(win->flags & GRAB_ROOT))
     {
     XUnmapWindow(win->dpy, win->win);

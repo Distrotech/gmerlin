@@ -25,6 +25,7 @@
 #include <ctype.h>
 
 #include <gavl/gavl.h>
+#include <gavl/metatags.h>
 #include <gmerlin/parameter.h>
 #include <gmerlin/streaminfo.h>
 #include <gmerlin/utils.h>
@@ -80,7 +81,6 @@ void bg_track_info_free(bg_track_info_t * info)
   if(info->chapter_list)
     gavl_chapter_list_destroy(info->chapter_list);
   
-  MY_FREE(info->name);
   MY_FREE(info->url);
   memset(info, 0, sizeof(*info));
   }
@@ -88,25 +88,28 @@ void bg_track_info_free(bg_track_info_t * info)
 void bg_set_track_name_default(bg_track_info_t * info,
                                const char * location)
   {
+  char * name;
   const char * start_pos;
   const char * end_pos;
+
+  if(gavl_metadata_get(&info->metadata, GAVL_META_LABEL))
+    return;
   
   if(bg_string_is_url(location))
-    {
-    info->name = bg_strdup(info->name, location);
-    return;
-    }
-  
-  start_pos = strrchr(location, '/');
-  if(start_pos)
-    start_pos++;
+    name = bg_strdup(NULL, location);
   else
-    start_pos = location;
-  end_pos = strrchr(start_pos, '.');
-  if(!end_pos)
-    end_pos = &start_pos[strlen(start_pos)];
-  info->name = bg_strndup(info->name, start_pos, end_pos);
-  
+    {
+    start_pos = strrchr(location, '/');
+    if(start_pos)
+      start_pos++;
+    else
+      start_pos = location;
+    end_pos = strrchr(start_pos, '.');
+    if(!end_pos)
+      end_pos = &start_pos[strlen(start_pos)];
+    name = bg_strndup(NULL, start_pos, end_pos);
+    }
+  gavl_metadata_set_nocpy(&info->metadata, GAVL_META_LABEL, name);
   }
 
 char * bg_get_track_name_default(const char * location, int track, int num_tracks)

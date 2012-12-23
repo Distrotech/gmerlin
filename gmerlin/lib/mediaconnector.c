@@ -142,6 +142,34 @@ bg_mediaconnector_add_video_stream(bg_mediaconnector_t * conn,
   }
 
 void
+bg_mediaconnector_add_overlay_stream(bg_mediaconnector_t * conn,
+                                     const gavl_metadata_t * m,
+                                     gavl_video_source_t * vsrc,
+                                     gavl_packet_source_t * psrc,
+                                     bg_cfg_section_t * enc_section)
+  {
+  bg_mediaconnector_stream_t * ret = append_stream(conn, m, psrc);
+  ret->type = GAVF_STREAM_OVERLAY;
+  ret->vsrc = vsrc;
+
+  if(ret->vsrc)
+    {
+    ret->vconn = gavl_video_connector_create(ret->vsrc);
+    gavl_video_connector_set_process_func(ret->vconn,
+                                          process_cb_video,
+                                          ret);
+    }
+  else
+    {
+    ret->pconn = gavl_packet_connector_create(ret->psrc);
+    gavl_packet_connector_set_process_func(ret->pconn,
+                                           process_cb_packet,
+                                           ret);
+    }
+  ret->encode_section = enc_section;
+  }
+
+void
 bg_mediaconnector_add_text_stream(bg_mediaconnector_t * conn,
                                   const gavl_metadata_t * m,
                                   gavl_packet_source_t * psrc,
@@ -174,6 +202,7 @@ bg_mediaconnector_free(bg_mediaconnector_t * conn)
         gavl_packet_connector_destroy(s->pconn);
       if(s->th)
         bg_thread_destroy(s->th);
+      gavl_metadata_free(&s->m);
       free(s);
       }
     free(conn->streams);
@@ -230,6 +259,21 @@ bg_mediaconnector_start(bg_mediaconnector_t * conn)
         if(vfmt->framerate_mode == GAVL_FRAMERATE_STILL)
           s->flags |= BG_MEDIACONNECTOR_FLAG_DISCONT;
         
+        s->timescale = vfmt->timescale;
+        }
+        break;
+      case GAVF_STREAM_OVERLAY:
+        {
+        const gavl_video_format_t * vfmt;
+        if(s->vconn)
+          {
+          gavl_video_connector_start(s->vconn);
+          vfmt = gavl_video_connector_get_process_format(s->vconn);
+          }
+        else
+          vfmt = gavl_packet_source_get_video_format(s->psrc);
+
+        s->flags |= BG_MEDIACONNECTOR_FLAG_DISCONT;
         s->timescale = vfmt->timescale;
         }
         break;
@@ -376,15 +420,15 @@ static void * thread_func_separate(void * data)
     if(!bg_thread_check(s->th))
       break;
     if(!process_stream(s))
+      {
+      pthread_mutex_lock(&s->conn->running_threads_mutex);
+      s->conn->running_threads--;
+      pthread_mutex_unlock(&s->conn->running_threads_mutex);
+      bg_thread_wait_for_start(s->th);
       break;
+      }
     }
-
-  fprintf(stderr, "Thread done\n");
-  
-  pthread_mutex_lock(&s->conn->running_threads_mutex);
-  s->conn->running_threads--;
-  pthread_mutex_unlock(&s->conn->running_threads_mutex);
-  bg_thread_wait_for_start(s->th);
+  //  fprintf(stderr, "Thread done\n");
   return NULL;
   }
 

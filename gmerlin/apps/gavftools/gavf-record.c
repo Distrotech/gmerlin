@@ -124,6 +124,15 @@ static void recorder_stream_init(recorder_stream_t * s,
     *section = bg_cfg_section_create_from_parameters(name, s->parameters);
   }
 
+static void recorder_stream_cleanup(recorder_stream_t * s)
+  {
+  if(s->parameters)
+    bg_parameter_info_destroy_array(s->parameters);
+  gavl_metadata_free(&s->m);
+  if(s->h)
+    bg_plugin_unref(s->h);
+  }
+
 static void recorder_init(recorder_t * rec)
   {
   recorder_stream_init(&rec->as,
@@ -135,7 +144,12 @@ static void recorder_init(recorder_t * rec)
                        "video", &video_section,
                        BG_PLUGIN_RECORDER_VIDEO);
   }
-                         
+
+static void recorder_cleanup(recorder_t * rec)
+  {
+  recorder_stream_cleanup(&rec->as);
+  recorder_stream_cleanup(&rec->vs);
+  }
 
 static void recorder_stream_set_parameter(void * sp, const char * name,
                                           const bg_parameter_value_t * val)
@@ -329,8 +343,6 @@ int main(int argc, char ** argv)
   gavl_time_t delay_time = GAVL_TIME_SCALE / 100;
 
   gavftools_block_sigpipe();
-
-  
   bg_mediaconnector_init(&conn);
   
   gavftools_init_registries();
@@ -406,7 +418,15 @@ int main(int argc, char ** argv)
 
   bg_mediaconnector_free(&conn);
   bg_plug_destroy(out_plug);
+
+  recorder_cleanup(&rec);
+  
   gavftools_destroy_registries();
+
+  if(audio_section)
+    bg_cfg_section_destroy(audio_section);
+  if(video_section)
+    bg_cfg_section_destroy(video_section);
   
   return ret;
   }

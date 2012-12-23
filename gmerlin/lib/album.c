@@ -56,6 +56,8 @@
 #include <sys/inotify.h>
 #endif
 
+#include <gavl/metatags.h>
+
 /*
  *  This must be called, whenever the tracks in an album
  *  change.
@@ -156,10 +158,9 @@ static void entry_from_track_info(bg_album_common_t * com,
     
     if(!name_set)
       {
-      if(track_info->name)
-        {
-        entry->name = bg_strdup(entry->name, track_info->name);
-        }
+      const char * name = gavl_metadata_get(&track_info->metadata, GAVL_META_LABEL);
+      if(name)
+        entry->name = bg_strdup(entry->name, name);
       /* Take filename minus extension */
       else
         {
@@ -625,7 +626,7 @@ static int open_device(bg_album_t * a)
 
     new_entry->index = i;
     new_entry->total_tracks = num_tracks;
-    new_entry->name   = bg_strdup(NULL, track_info->name);
+    new_entry->name   = bg_strdup(NULL, gavl_metadata_get(&track_info->metadata, GAVL_META_LABEL));
     new_entry->plugin = bg_strdup(NULL, a->handle->info->name);
     
     new_entry->location = bg_strdup(new_entry->location,

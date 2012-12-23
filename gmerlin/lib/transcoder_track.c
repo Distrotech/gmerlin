@@ -170,12 +170,6 @@ static void create_sections(bg_transcoder_track_t * t,
 static const bg_parameter_info_t parameters_general[] =
   {
     {
-      .name =      "name",
-      .long_name = TRS("Name"),
-      .type =      BG_PARAMETER_STRING,
-      .flags =     BG_PARAMETER_HIDE_DIALOG,
-    },
-    {
       .name =      "location",
       .long_name = TRS("Location"),
       .type =      BG_PARAMETER_STRING,
@@ -528,8 +522,7 @@ void bg_transcoder_track_create_parameters(bg_transcoder_track_t * track,
     
     while(track->general_parameters[i].name)
       {
-      if(!strcmp(track->general_parameters[i].name, "name") ||
-         !strcmp(track->general_parameters[i].name, "set_end_time") ||
+      if(!strcmp(track->general_parameters[i].name, "set_end_time") ||
          !strcmp(track->general_parameters[i].name, "end_time"))
         track->general_parameters[i].flags &= ~BG_PARAMETER_HIDE_DIALOG;
       i++;
@@ -584,18 +577,7 @@ static void set_track(bg_transcoder_track_t * track,
   i = 0;
   while(track->general_parameters[i].name)
     {
-    if(!strcmp(track->general_parameters[i].name, "name"))
-      {
-      if(track_info->name)
-        track->general_parameters[i].val_default.val_str =
-          bg_strdup(NULL, track_info->name);
-      else
-        track->general_parameters[i].val_default.val_str =
-          bg_get_track_name_default(location, track_index, total_tracks);
-      track->general_parameters[i].flags &= ~BG_PARAMETER_HIDE_DIALOG;
-      }
-    
-    else if(!strcmp(track->general_parameters[i].name, "duration"))
+    if(!strcmp(track->general_parameters[i].name, "duration"))
       track->general_parameters[i].val_default.val_time = track_info->duration;
     else if(!strcmp(track->general_parameters[i].name, "subdir"))
       {
@@ -857,7 +839,9 @@ bg_transcoder_track_create(const char * url,
     track_info = input->get_track_info(plugin_handle->priv, track);
     
     if(name)
-      track_info->name = bg_strdup(track_info->name, name);
+      gavl_metadata_set(&track_info->metadata, GAVL_META_LABEL, name);
+    else
+      bg_set_track_name_default(track_info, url);
     
     new_track = calloc(1, sizeof(*new_track));
     ret = new_track;
@@ -895,7 +879,9 @@ bg_transcoder_track_create(const char * url,
       track_info = input->get_track_info(plugin_handle->priv, i);
 
       if(name)
-        track_info->name = bg_strdup(track_info->name, name);
+        gavl_metadata_set(&track_info->metadata, GAVL_META_LABEL, name);
+      else
+        bg_set_track_name_default(track_info, url);
       
       new_track = calloc(1, sizeof(*new_track));
       
@@ -1452,9 +1438,9 @@ char * bg_transcoder_track_get_name(bg_transcoder_track_t * t)
 
   memset(&val, 0, sizeof(val));
   memset(&info, 0, sizeof(info));
-  info.name = "name";
-    
-  bg_cfg_section_get_parameter(t->general_section, &info, &val);
+  info.name = "label";
+  
+  bg_cfg_section_get_parameter(t->metadata_section, &info, &val);
   return val.val_str;
   }
 

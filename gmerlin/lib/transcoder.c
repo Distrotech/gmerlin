@@ -1906,7 +1906,7 @@ set_parameter_general(void * data, const char * name,
     
     return;
     }
-  SP_STR(name);
+  // SP_STR(name);
   SP_STR(location);
   SP_STR(plugin);
   SP_STR(subdir);
@@ -2978,6 +2978,8 @@ int bg_transcoder_init(bg_transcoder_t * ret,
                        bg_metadata_set_parameter,
                        &ret->metadata);
 
+  ret->name = bg_strdup(ret->name, bg_transcoder_track_get_name(track));
+  
   /* Postprocess only: Send messages and return */
   if(ret->pp_only)
     {

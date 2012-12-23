@@ -95,8 +95,6 @@ typedef struct
 
 typedef struct
   {
-  char * name; //!< Optional name of that track
-
   gavl_metadata_t metadata; //!< Metadata
   
   int num_audio_streams;             //!< Number of logical audio streams

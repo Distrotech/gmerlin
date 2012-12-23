@@ -87,6 +87,12 @@ int bg_plug_add_video_stream(bg_plug_t * p,
                              const gavl_metadata_t * m,
                              bg_cfg_section_t * encode_section);
 
+int bg_plug_add_overlay_stream(bg_plug_t * p,
+                               const gavl_compression_info_t * ci,
+                               const gavl_video_format_t * format,
+                               const gavl_metadata_t * m,
+                               bg_cfg_section_t * encode_section);
+
 int bg_plug_add_text_stream(bg_plug_t * p,
                             uint32_t timescale,
                             const gavl_metadata_t * m);

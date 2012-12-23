@@ -43,6 +43,8 @@ static const char * const src_time_key     = "stime";
 static const char * const dst_time_key     = "dtime";
 static const char * const dst_duration_key = "duration";
 static const char * const speed_key        = "speed";
+static const char * const metadata_key     = "metadata";
+
 
 static void load_segments(xmlDocPtr doc, 
                           xmlNodePtr node,
@@ -183,16 +185,8 @@ static void load_track(xmlDocPtr doc, xmlNodePtr node,
                        bg_edl_t * ret)
   {
   bg_edl_track_t * et;
-  char * tmp_string;
-
-  et = bg_edl_add_track(ret);
   
-  tmp_string = BG_XML_GET_PROP(node, "name");
-  if(tmp_string)
-    {
-    et->name = bg_strdup(et->name, tmp_string);
-    xmlFree(tmp_string);
-    }
+  et = bg_edl_add_track(ret);
   
   node = node->children;
   
@@ -212,6 +206,8 @@ static void load_track(xmlDocPtr doc, xmlNodePtr node,
       load_streams(doc, node, bg_edl_add_subtitle_text_stream, et);
     else if(!BG_XML_STRCMP(node->name, subtitle_overlay_streams_key))
       load_streams(doc, node, bg_edl_add_subtitle_overlay_stream, et);
+    else if(!BG_XML_STRCMP(node->name, metadata_key))
+      bg_xml_2_metadata(doc, node, &et->metadata);
     
     node = node->next;
     }
@@ -382,8 +378,8 @@ void bg_edl_save(const bg_edl_t * edl, const char * filename)
   xmlDocPtr  xml_doc;
   xmlNodePtr xml_edl;
   xmlNodePtr node;
+  xmlNodePtr track_node;
   xmlNodePtr child_node;
-  xmlNodePtr streams_node;
   
   xml_doc = xmlNewDoc((xmlChar*)"1.0");
   xml_edl = xmlNewDocRawNode(xml_doc, NULL, (xmlChar*)edl_key, NULL);
@@ -404,49 +400,49 @@ void bg_edl_save(const bg_edl_t * edl, const char * filename)
     xmlAddChild(node, BG_XML_NEW_TEXT("\n"));
     for(i = 0; i < edl->num_tracks; i++)
       {
-      child_node = xmlNewTextChild(node, NULL, (xmlChar*)track_key, NULL);
-      xmlAddChild(child_node, BG_XML_NEW_TEXT("\n"));
+      track_node = xmlNewTextChild(node, NULL, (xmlChar*)track_key, NULL);
+      xmlAddChild(track_node, BG_XML_NEW_TEXT("\n"));
       xmlAddChild(node, BG_XML_NEW_TEXT("\n"));
-
-      if(edl->tracks[i].name)
-        BG_XML_SET_PROP(child_node, "name", edl->tracks[i].name);
+      
+      child_node = xmlNewTextChild(track_node, NULL, (xmlChar*)metadata_key, NULL);
+      bg_metadata_2_xml(child_node, &edl->tracks[i].metadata);
       
       if(edl->tracks[i].num_audio_streams)
         {
-        streams_node = xmlNewTextChild(child_node, NULL, (xmlChar*)audio_streams_key, NULL);
-        xmlAddChild(streams_node, BG_XML_NEW_TEXT("\n"));
+        child_node = xmlNewTextChild(track_node, NULL, (xmlChar*)audio_streams_key, NULL);
         xmlAddChild(child_node, BG_XML_NEW_TEXT("\n"));
+        xmlAddChild(track_node, BG_XML_NEW_TEXT("\n"));
 
-        save_streams(streams_node, edl->tracks[i].audio_streams,
+        save_streams(child_node, edl->tracks[i].audio_streams,
                      edl->tracks[i].num_audio_streams);
         }
       if(edl->tracks[i].num_video_streams)
         {
-        streams_node = xmlNewTextChild(child_node, NULL, (xmlChar*)video_streams_key, NULL);
-        xmlAddChild(streams_node, BG_XML_NEW_TEXT("\n"));
+        child_node = xmlNewTextChild(track_node, NULL, (xmlChar*)video_streams_key, NULL);
         xmlAddChild(child_node, BG_XML_NEW_TEXT("\n"));
+        xmlAddChild(track_node, BG_XML_NEW_TEXT("\n"));
 
-        save_streams(streams_node, edl->tracks[i].video_streams,
+        save_streams(child_node, edl->tracks[i].video_streams,
                      edl->tracks[i].num_video_streams);
 
         }
       if(edl->tracks[i].num_subtitle_text_streams)
         {
-        streams_node = xmlNewTextChild(child_node, NULL, (xmlChar*)subtitle_text_streams_key, NULL);
-        xmlAddChild(streams_node, BG_XML_NEW_TEXT("\n"));
+        child_node = xmlNewTextChild(track_node, NULL, (xmlChar*)subtitle_text_streams_key, NULL);
         xmlAddChild(child_node, BG_XML_NEW_TEXT("\n"));
+        xmlAddChild(track_node, BG_XML_NEW_TEXT("\n"));
 
-        save_streams(streams_node, edl->tracks[i].subtitle_text_streams,
+        save_streams(child_node, edl->tracks[i].subtitle_text_streams,
                      edl->tracks[i].num_subtitle_text_streams);
 
         }
       if(edl->tracks[i].num_subtitle_overlay_streams)
         {
-        streams_node = xmlNewTextChild(child_node, NULL, (xmlChar*)subtitle_overlay_streams_key, NULL);
-        xmlAddChild(streams_node, BG_XML_NEW_TEXT("\n"));
+        child_node = xmlNewTextChild(track_node, NULL, (xmlChar*)subtitle_overlay_streams_key, NULL);
         xmlAddChild(child_node, BG_XML_NEW_TEXT("\n"));
+        xmlAddChild(track_node, BG_XML_NEW_TEXT("\n"));
 
-        save_streams(streams_node, edl->tracks[i].subtitle_overlay_streams,
+        save_streams(child_node, edl->tracks[i].subtitle_overlay_streams,
                      edl->tracks[i].num_subtitle_overlay_streams);
         }
       

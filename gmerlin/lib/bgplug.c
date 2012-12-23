@@ -104,6 +104,10 @@ struct bg_plug_s
 
   int num_text_streams;
   stream_t * text_streams;
+
+  int num_overlay_streams;
+  stream_t * overlay_streams;
+
   
   int io_flags;  
 
@@ -222,8 +226,10 @@ void bg_plug_destroy(bg_plug_t * p)
   free_streams(p->audio_streams, p->num_audio_streams);
   free_streams(p->video_streams, p->num_video_streams);
   free_streams(p->text_streams, p->num_text_streams);
+  free_streams(p->overlay_streams, p->num_overlay_streams);
   gavf_close(p->g);
-  
+  gavf_io_destroy(p->io);
+
   gavl_packet_free(&p->skip_packet);
   
   pthread_mutex_destroy(&p->mutex);
@@ -257,6 +263,7 @@ static void init_streams_read(bg_plug_t * p)
   int audio_idx = 0;
   int video_idx = 0;
   int text_idx = 0;
+  int overlay_idx = 0;
   stream_t * s;
 
   for(i = 0; i < p->ph->num_streams; i++)
@@ -271,6 +278,9 @@ static void init_streams_read(bg_plug_t * p)
         break;
       case GAVF_STREAM_TEXT:
         p->num_text_streams++;
+        break;
+      case GAVF_STREAM_OVERLAY:
+        p->num_overlay_streams++;
         break;
       }
     }
@@ -287,6 +297,11 @@ static void init_streams_read(bg_plug_t * p)
     p->text_streams =
       calloc(p->num_text_streams, sizeof(*p->text_streams));
 
+  if(p->num_overlay_streams)
+    p->overlay_streams =
+      calloc(p->num_overlay_streams, sizeof(*p->overlay_streams));
+  
+  
   /* Initialize streams for a reader, the action can be changed
      later on */
   
@@ -336,6 +351,21 @@ static void init_streams_read(bg_plug_t * p)
           s->action = BG_STREAM_ACTION_READRAW;
         
         text_idx++;
+        }
+        break;
+      case GAVF_STREAM_OVERLAY:
+        {
+        s = p->overlay_streams + overlay_idx;
+        s->h = p->ph->streams + i;
+        s->index = i;
+        s->plug = p;
+
+        if(s->h->ci.id == GAVL_CODEC_ID_NONE)
+          s->action = BG_STREAM_ACTION_DECODE;
+        else
+          s->action = BG_STREAM_ACTION_READRAW;
+        
+        overlay_idx++;
         }
         break;
       }
@@ -761,6 +791,25 @@ static int init_write(bg_plug_t * p)
     if((s->index = gavf_add_video_stream(p->g, &s->ci, &s->vfmt, &s->m)) < 0)
       return 0;
     }
+  for(i = 0; i < p->num_overlay_streams; i++)
+    {
+    s = p->overlay_streams + i;
+
+    if(s->codec_handle)
+      {
+      bg_codec_plugin_t * codec = (bg_codec_plugin_t*)s->codec_handle->plugin;
+      s->vsink = codec->open_encode_video(s->codec_handle->priv,
+                                          &s->ci, &s->vfmt, &s->m);
+      if(!s->vsink)
+        return 0;
+      }
+
+    s->ci.max_packet_size = gavf_get_max_video_packet_size(&s->vfmt, &s->ci);
+    check_shm_write(p, s);
+
+    if((s->index = gavf_add_overlay_stream(p->g, &s->ci, &s->vfmt, &s->m)) < 0)
+      return 0;
+    }
   for(i = 0; i < p->num_text_streams; i++)
     {
     s = p->text_streams + i;
@@ -783,6 +832,11 @@ static int init_write(bg_plug_t * p)
   for(i = 0; i < p->num_text_streams; i++)
     {
     s = p->text_streams + i;
+    s->h = p->ph->streams + s->index;
+    }
+  for(i = 0; i < p->num_overlay_streams; i++)
+    {
+    s = p->overlay_streams + i;
     s->h = p->ph->streams + s->index;
     }
   
@@ -813,6 +867,19 @@ static int init_write(bg_plug_t * p)
       s->vsink = gavl_video_sink_create(get_video_func,
                                        put_video_func,
                                        s, &s->h->format.video);
+      s->vframe = gavl_video_frame_create(NULL);
+      }
+    }
+  for(i = 0; i < p->num_overlay_streams; i++)
+    {
+    s = p->overlay_streams + i;
+    init_write_common(p, s);
+    
+    if(s->h->ci.id == GAVL_CODEC_ID_NONE)
+      {
+      s->vsink = gavl_video_sink_create(get_video_func,
+                                        put_video_func,
+                                        s, &s->h->format.video);
       s->vframe = gavl_video_frame_create(NULL);
       }
     }
@@ -960,6 +1027,9 @@ static stream_t * find_stream_by_id_all(bg_plug_t * p, int id)
   ret = find_stream_by_id(p->text_streams, p->num_text_streams, id);
   if(ret)
     return ret;
+  ret = find_stream_by_id(p->overlay_streams, p->num_overlay_streams, id);
+  if(ret)
+    return ret;
   return NULL;
   }
   
@@ -1088,6 +1158,32 @@ int bg_plug_add_video_stream(bg_plug_t * p,
   return p->num_video_streams-1;
   }
 
+int bg_plug_add_overlay_stream(bg_plug_t * p,
+                             const gavl_compression_info_t * ci,
+                             const gavl_video_format_t * format,
+                             const gavl_metadata_t * m,
+                             bg_cfg_section_t * encode_section)
+  {
+  stream_t * s;
+  s = append_stream(p, &p->overlay_streams, &p->num_overlay_streams, m);
+  gavl_compression_info_copy(&s->ci, ci);
+  gavl_video_format_copy(&s->vfmt, format);
+
+  if(encode_section && (s->ci.id == GAVL_CODEC_ID_NONE) &&
+     p->vc_params)
+    {
+    set_codec_parameter_t sc;
+    sc.s = s;
+    sc.plugin_reg = p->plugin_reg;
+    bg_cfg_section_apply(encode_section,
+                         p->vc_params,
+                         set_codec_parameter,
+                         &sc);
+    }
+  
+  return p->num_overlay_streams-1;
+  }
+
 int bg_plug_add_text_stream(bg_plug_t * p,
                             uint32_t timescale,
                             const gavl_metadata_t * m)
@@ -1154,6 +1250,23 @@ int bg_plug_setup_writer(bg_plug_t * p, bg_mediaconnector_t * conn)
           return 0;
         
         if(bg_plug_add_video_stream(p, ci, vfmt, &s->m, s->encode_section) < 0)
+          return 0;
+        break;
+      case GAVF_STREAM_OVERLAY:
+        if(s->psrc)
+          {
+          ci = gavl_packet_source_get_ci(s->psrc);
+          vfmt = gavl_packet_source_get_video_format(s->psrc);
+          }
+        else if(s->vsrc)
+          {
+          ci = &ci_none;
+          vfmt = gavl_video_source_get_src_format(s->vsrc);
+          }
+        else
+          return 0;
+        
+        if(bg_plug_add_overlay_stream(p, ci, vfmt, &s->m, s->encode_section) < 0)
           return 0;
         break;
       case GAVF_STREAM_TEXT:
@@ -1235,7 +1348,7 @@ int bg_plug_setup_reader(bg_plug_t * p, bg_mediaconnector_t * conn)
 
   for(i = 0; i < p->num_text_streams; i++)
     {
-    s = p->video_streams + i;
+    s = p->text_streams + i;
 
     if(s->src_ext)
       {
@@ -1247,6 +1360,23 @@ int bg_plug_setup_reader(bg_plug_t * p, bg_mediaconnector_t * conn)
     else
       continue;
     }
+
+  for(i = 0; i < p->num_overlay_streams; i++)
+    {
+    s = p->overlay_streams + i;
+
+    if(s->vsrc || s->src_ext)
+      {
+      bg_mediaconnector_add_overlay_stream(conn,
+                                           &s->h->m,
+                                           s->vsrc,
+                                           s->src_ext,
+                                           NULL);
+      }
+    else
+      continue;
+    }
+
   return 1;
   }
 

@@ -41,12 +41,6 @@ static void * create_x11()
   return x11;
   }
 
-static void destroy_x11(void * priv)
-  {
-  x11_t * x11 = priv;
-  bg_x11_grab_window_destroy(x11->win);
-  free(priv);  
-  }
 
 static const bg_parameter_info_t * get_parameters_x11(void * priv)
   {
@@ -87,6 +81,18 @@ static void close_x11(void * priv)
   gavl_video_source_destroy(x11->src);
   x11->src = NULL;
   }
+
+static void destroy_x11(void * priv)
+  {
+  x11_t * x11 = priv;
+
+  if(x11->src)
+    close_x11(priv);
+
+  bg_x11_grab_window_destroy(x11->win);
+  free(priv);  
+  }
+
 
 static int read_frame_x11(void * priv, gavl_video_frame_t * frame, int stream)
   {

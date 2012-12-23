@@ -319,7 +319,9 @@ static int open_cdaudio(void * data, const char * arg)
         {
         j = cd->index->tracks[i].index;
         if(cd->index->tracks[i].is_audio)
-          cd->track_info[j].name = bg_sprintf(TR("Audio CD track %02d"), j+1);
+          gavl_metadata_set_nocpy(&cd->track_info[j].metadata,
+                                  GAVL_META_LABEL,
+                                  bg_sprintf(TR("Audio CD track %02d"), j+1));
         }
       }
     }
@@ -331,9 +333,10 @@ static int open_cdaudio(void * data, const char * arg)
         {
         j = cd->index->tracks[i].index;
         if(cd->index->tracks[i].is_audio)
-          cd->track_info[j].name =
-            bg_create_track_name(&cd->track_info[j].metadata,
-                                 cd->trackname_template);
+          gavl_metadata_set_nocpy(&cd->track_info[j].metadata,
+                                  GAVL_META_LABEL,
+                                  bg_create_track_name(&cd->track_info[j].metadata,
+                                                       cd->trackname_template));
         }
       }
     cd->disc_name = gavl_metadata_get(&cd->track_info[0].metadata, GAVL_META_ALBUM);

@@ -978,14 +978,12 @@ struct bg_recorder_callbacks_s
   {
   /** \brief Name changed
    *  \param data The data member of this bg_input_callbacks_s struct
-   *  \param name The new name
    *  \param metadata The new metadata
    *
    *  This is for web-radio stations, which send song-names.
    */
   
-  void (*metadata_changed)(void * data, const char * name,
-                           const gavl_metadata_t * m);
+  void (*metadata_changed)(void * data, const gavl_metadata_t * m);
   
   void * data; //!< Application specific data passed as the first argument to all callbacks.
   
@@ -1858,16 +1856,13 @@ struct bg_encoder_plugin_s
   
   /** \brief Update metadata
    *  \param priv The handle returned by the create() method
-   *  \param name Name
    *  \param m Metadata
    *
    *  Update metadata for broadcasting plugins.
-   *  Either name or m can be NULL.
    */
   
-  void (*update_metadata)(void * priv, const char * name,
-                          const gavl_metadata_t * m);
-
+  void (*update_metadata)(void * priv, const gavl_metadata_t * m);
+  
   /** \brief Close encoder
    *  \param priv The handle returned by the create() method
    *  \param do_delete Set this to 1 to delete all created files

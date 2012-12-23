@@ -1264,7 +1264,6 @@ bg_encoder_get_video_sink(bg_encoder_t * enc, int stream)
   }
 
 void bg_encoder_update_metadata(bg_encoder_t * enc,
-                                const char * name,
                                 const gavl_metadata_t * m)
   {
   int i;
@@ -1275,7 +1274,7 @@ void bg_encoder_update_metadata(bg_encoder_t * enc,
     if(encoder->update_metadata)
       {
       bg_plugin_lock(enc->plugins[i]);
-      encoder->update_metadata(enc->plugins[i]->priv, name, m);
+      encoder->update_metadata(enc->plugins[i]->priv, m);
       bg_plugin_unlock(enc->plugins[i]);
       }
     }

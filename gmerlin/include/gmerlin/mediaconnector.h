@@ -48,7 +48,7 @@ typedef struct
   gavl_packet_connector_t * pconn;
 
   int timescale;
-  int type;        // GAVF_STREAM_*
+  gavf_stream_type_t type;        // GAVF_STREAM_*
   
   int flags;
   
@@ -95,6 +95,13 @@ bg_mediaconnector_add_video_stream(bg_mediaconnector_t * conn,
                                    gavl_video_source_t * vsrc,
                                    gavl_packet_source_t * psrc,
                                    bg_cfg_section_t * enc_section);
+
+void
+bg_mediaconnector_add_overlay_stream(bg_mediaconnector_t * conn,
+                                     const gavl_metadata_t * m,
+                                     gavl_video_source_t * vsrc,
+                                     gavl_packet_source_t * psrc,
+                                     bg_cfg_section_t * enc_section);
 
 void
 bg_mediaconnector_add_text_stream(bg_mediaconnector_t * conn,

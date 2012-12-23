@@ -26,6 +26,7 @@
 #include <sys/stat.h>
 #include <unistd.h>
 
+#include <gavl/metatags.h>
 
 #include <gmerlin/translation.h>
 #include <gmerlin/converters.h>
@@ -337,16 +338,14 @@ static int open_file(audiofile_t * m)
 
   if(m->callbacks && m->callbacks->metadata_changed)
     {
-    if(ti->name)
-      m->callbacks->metadata_changed(m->callbacks->data, ti->name, &ti->metadata);
-    else
+    if(!gavl_metadata_get(&ti->metadata, GAVL_META_LABEL))
       {
-      char * tmp_string = bg_get_track_name_default(m->files[idx].location,
-                                                    m->files[idx].track,
-                                                    num_tracks);
-      m->callbacks->metadata_changed(m->callbacks->data, tmp_string, &ti->metadata);
-      free(tmp_string);
+      gavl_metadata_set_nocpy(&ti->metadata, GAVL_META_LABEL,
+                              bg_get_track_name_default(m->files[idx].location,
+                                                        m->files[idx].track,
+                                                        num_tracks));
       }
+    m->callbacks->metadata_changed(m->callbacks->data, &ti->metadata);
     }
   
   if(!m->plugin->start(m->h->priv))

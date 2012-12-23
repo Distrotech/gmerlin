@@ -79,6 +79,9 @@ static const bg_accelerator_t accels[] =
     { BG_KEY_NONE,                     0,  0                      },
   };
 
+static void close_x11(void * data);
+
+
 typedef struct
   {
   bg_x11_window_t * win;
@@ -586,6 +589,8 @@ static void * create_x11()
 static void destroy_x11(void * data)
   {
   x11_t * priv = data;
+
+  close_x11(data);
   
   if(priv->parameters)
     bg_parameter_info_destroy_array(priv->parameters);

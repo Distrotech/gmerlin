@@ -33,6 +33,14 @@
 
 #include <gavl/metatags.h>
 
+#define PARAM_LABEL \
+    { \
+      .name =      "label", \
+      .long_name = TRS("Label"), \
+      .type =      BG_PARAMETER_STRING, \
+      .help_string = TRS("Used for generation of output file names"),   \
+    }
+
 #define PARAM_ARTIST \
     { \
       .name =      "artist", \
@@ -105,6 +113,7 @@
 
 static const bg_parameter_info_t parameters[] =
   {
+    PARAM_LABEL,
     PARAM_ARTIST,
     PARAM_TITLE,
     PARAM_ALBUM,
@@ -159,6 +168,7 @@ bg_parameter_info_t * get_parameters(gavl_metadata_t * m, int common)
   i = 0;
   while(ret[i].name)
     {
+    SP_STR("label", GAVL_META_LABEL);
     SP_STR("artist", GAVL_META_ARTIST);
     SP_STR("albumartist", GAVL_META_ALBUMARTIST);
     SP_STR("title" , GAVL_META_TITLE);

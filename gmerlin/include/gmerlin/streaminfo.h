@@ -244,7 +244,6 @@ gavl_chapter_list_t * bg_chapter_list_load(const char * filename);
 typedef struct
   {
   int flags;             //!< 1 if track is seekable (duration must be > 0 then)
-  char * name;           //!< Name of the track (can be NULL)
   int64_t duration;      //!< Duration
   
   int num_audio_streams;   //!< Number of audio streams

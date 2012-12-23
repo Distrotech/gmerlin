@@ -230,7 +230,7 @@ struct bg_shm_pool_s
 
 bg_shm_pool_t * bg_shm_pool_create(int seg_size, int wr)
   {
-  bg_shm_pool_t * ret = calloc(1, sizeof(ret));
+  bg_shm_pool_t * ret = calloc(1, sizeof(*ret));
   ret->wr = wr;
   ret->segment_size = seg_size;
   return ret;

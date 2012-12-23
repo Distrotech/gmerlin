@@ -235,7 +235,6 @@ struct bg_recorder_s
   bg_recoder_metadata_mode_t metadata_mode;
 
   gavl_metadata_t updated_metadata;
-  char * updated_name;
   
   bg_recorder_callbacks_t recorder_cb;
   

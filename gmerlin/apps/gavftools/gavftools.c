@@ -36,12 +36,14 @@ void gavftools_init_registries()
   cfg_reg = bg_cfg_registry_create();
   tmp_path =  bg_search_file_read("generic", "config.xml");
   bg_cfg_registry_load(cfg_reg, tmp_path);
-  if(tmp_path)
-    free(tmp_path);
   
   cfg_section = bg_cfg_registry_find_section(cfg_reg, "plugins");
   plugin_reg = bg_plugin_registry_create(cfg_section);
 
+  bg_cfg_registry_save(cfg_reg, tmp_path);
+
+  if(tmp_path)
+    free(tmp_path);
   }
 
 static bg_cfg_section_t * ac_section = NULL;

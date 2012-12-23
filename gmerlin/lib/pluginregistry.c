@@ -771,7 +771,7 @@ scan_directory_internal(const char * directory, bg_plugin_info_t ** _file_info,
     sprintf(filename, "%s/%s", directory, entry->d_name);
     if(stat(filename, &st))
       continue;
-
+    
     /* Check if the plugin is already in the registry */
 
     new_info = find_by_dll(file_info, filename);
@@ -796,8 +796,10 @@ scan_directory_internal(const char * directory, bg_plugin_info_t ** _file_info,
         }
       }
 
+    
     if(!(*changed))
       {
+      fprintf(stderr, "Registry changed %s\n", filename);
       *changed = 1;
       closedir(dir);
       if(_file_info)
