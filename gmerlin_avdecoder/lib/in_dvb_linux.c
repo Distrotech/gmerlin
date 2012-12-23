@@ -1091,8 +1091,7 @@ static void check_eit(bgav_input_context_t* ctx)
             
             tmp = *pos; pos++;// event_name_length
             
-            if(ctx->opt->name_change_callback ||
-               ctx->opt->metadata_change_callback)
+            if(ctx->opt->metadata_change_callback)
               {
               gavl_metadata_set_nocpy(m, GAVL_META_TITLE, 
                                       decode_eit_string(ctx->opt, pos, tmp));
@@ -1131,13 +1130,6 @@ static void check_eit(bgav_input_context_t* ctx)
     
     }
 
-  if(ctx->opt->name_change_callback && priv->name_changed)
-    {
-    ctx->opt->name_change_callback(ctx->opt->name_change_callback_data,
-                                   gavl_metadata_get(&ctx->tt->cur->metadata,
-                                                     GAVL_META_TITLE));
-    priv->name_changed = 0;
-    }
   if(ctx->opt->metadata_change_callback && priv->metadata_changed)
     {
     ctx->opt->metadata_change_callback(ctx->opt->metadata_change_callback_data,

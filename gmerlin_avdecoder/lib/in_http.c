@@ -289,7 +289,7 @@ static int read_data(bgav_input_context_t* ctx,
 
 static int read_shoutcast_metadata(bgav_input_context_t* ctx, int block)
   {
-  char * meta_buffer, *meta_name;
+  char * meta_buffer;
   
   const char * pos, *end_pos;
   uint8_t icy_len;
@@ -312,7 +312,7 @@ static int read_shoutcast_metadata(bgav_input_context_t* ctx, int block)
     if(read_data(ctx, (uint8_t*)meta_buffer, meta_bytes, 1) < meta_bytes)
       return 0;
     
-    if(ctx->opt->name_change_callback)
+    if(ctx->opt->metadata_change_callback)
       {
       pos = meta_buffer;
       
@@ -335,14 +335,14 @@ static int read_shoutcast_metadata(bgav_input_context_t* ctx, int block)
         
         if(end_pos > pos)
           {
-          meta_name = bgav_convert_string(priv->charset_cnv ,
-                                          pos, end_pos - pos,
-                                          NULL);
-        
-          ctx->opt->name_change_callback(ctx->opt->name_change_callback_data,
-                                         meta_name);
-        
-          free(meta_name);
+          gavl_metadata_set_nocpy(&ctx->tt->cur->metadata,
+                                  GAVL_META_LABEL,
+                                  bgav_convert_string(priv->charset_cnv ,
+                                                      pos, end_pos - pos,
+                                                      NULL));
+          
+          ctx->opt->metadata_change_callback(ctx->opt->metadata_change_callback_data,
+                                             &ctx->tt->cur->metadata);
           }
         }
       }

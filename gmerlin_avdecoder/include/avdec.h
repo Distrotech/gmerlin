@@ -732,29 +732,6 @@ bgav_options_set_log_level(bgav_options_t* opt,
 /* Set callbacks */
 
 /** \ingroup options
- *  \brief Function to be called if the track name changes
- *  \param data The data you passed to \ref bgav_options_set_name_change_callback.
- *  \param name The new name of the track
- *
- *  This function will be called whenever the name of the track changed. Such changes
- *  can have different reasons, the most obvious one is a song change in a webradio stream.
- */
- 
-typedef void (*bgav_name_change_callback)(void*data, const char * name);
-
-/** \ingroup options
- *  \brief Set the callback for name change events
- *  \param opt Option container
- *  \param callback The callback
- *  \param data Some data you want to get passed to the callback
- */
-
-BGAV_PUBLIC void
-bgav_options_set_name_change_callback(bgav_options_t* opt,
-                                      bgav_name_change_callback callback,
-                                      void * data);
-
-/** \ingroup options
  *  \brief Function to be called if the metadata change
  *  \param data The data you passed to \ref bgav_options_set_metadata_change_callback.
  *  \param metadata The new metadata of the track

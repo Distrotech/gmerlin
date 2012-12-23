@@ -437,11 +437,16 @@ static void metadata_change_callback(void * priv,
   {
   avdec_priv * avdec;
   avdec = priv;
+
+  /* Merge metadata */
+
+  gavl_metadata_copy(&avdec->current_track->metadata,
+                     metadata);
   
   if(avdec->bg_callbacks && avdec->bg_callbacks->metadata_changed)
     {
     avdec->bg_callbacks->metadata_changed(avdec->bg_callbacks->data,
-                                          metadata);
+                                          &avdec->current_track->metadata);
     }
   }
 
@@ -457,9 +462,6 @@ void bg_avdec_set_callbacks(void * priv,
   if(!callbacks)
     return;
   
-  bgav_options_set_name_change_callback(avdec->opt,
-                                avdec->bg_callbacks->name_changed,
-                                avdec->bg_callbacks->data);
   
   bgav_options_set_buffer_callback(avdec->opt,
                            avdec->bg_callbacks->buffer_notify,

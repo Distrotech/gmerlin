@@ -340,9 +340,7 @@ void bgav_options_copy(bgav_options_t * dst, const bgav_options_t * src)
   
   /* Callbacks */
   
-  CP_INT(name_change_callback);
-  CP_INT(name_change_callback_data);
-
+  
   CP_INT(log_callback);
   CP_INT(log_callback_data);
 
@@ -368,14 +366,6 @@ void bgav_options_copy(bgav_options_t * dst, const bgav_options_t * src)
 #undef CP_INT
 #undef CP_STR
 
-void
-bgav_options_set_name_change_callback(bgav_options_t * opt,
-                                      bgav_name_change_callback callback,
-                                      void * data)
-  {
-  opt->name_change_callback      = callback;
-  opt->name_change_callback_data = data;
-  }
 
 void
 bgav_options_set_metadata_change_callback(bgav_options_t * opt,

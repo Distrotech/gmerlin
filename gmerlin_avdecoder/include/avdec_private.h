@@ -893,10 +893,7 @@ struct bgav_options_s
 
   bgav_log_callback log_callback;
   void * log_callback_data;
-  
-  bgav_name_change_callback name_change_callback;
-  void * name_change_callback_data;
-  
+    
   bgav_metadata_change_callback metadata_change_callback;
   void * metadata_change_callback_data;
   

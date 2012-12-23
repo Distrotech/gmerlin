@@ -147,6 +147,13 @@ int bgav_init(bgav_t * ret)
         }
       }
     }
+
+  if(!ret->input->tt)
+    {
+    ret->input->tt = ret->tt;
+    bgav_track_table_ref(ret->input->tt);
+    }
+  
   return 1;
     
   fail:
