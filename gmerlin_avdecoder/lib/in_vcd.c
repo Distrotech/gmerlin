@@ -209,12 +209,14 @@ static void toc_2_tt(bgav_input_context_t * ctx)
     stream->timescale = 90000;
     if(priv->tracks[i].mode == TRACK_SVCD)
       {
-      track->name = bgav_sprintf("SVCD Track %d", i);
+      gavl_metadata_set_nocpy(&track->metadata, GAVL_META_LABEL,
+                              bgav_sprintf("SVCD Track %d", i));
       track->duration = GAVL_TIME_UNDEFINED;
       }
     else if(priv->tracks[i].mode == TRACK_CVD)
       {
-      track->name = bgav_sprintf("CVD Track %d", i);
+      gavl_metadata_set_nocpy(&track->metadata, GAVL_META_LABEL,
+                              bgav_sprintf("CVD Track %d", i));
       track->duration = GAVL_TIME_UNDEFINED;
       }
     else

@@ -277,7 +277,7 @@ gavl_time_t bgav_get_duration(bgav_t * bgav, int track)
 
 const char * bgav_get_track_name(bgav_t * b, int track)
   {
-  return b->tt->tracks[track].name;
+  return gavl_metadata_get(&b->tt->tracks[track].metadata, GAVL_META_LABEL);
   }
 
 void bgav_stop(bgav_t * b)

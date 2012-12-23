@@ -1544,21 +1544,22 @@ static int open_ogg(bgav_demuxer_context_t * ctx)
          metadata */
       if(ctx->tt->num_tracks > 1)
         {
+        char * name;
         const char * artist;
         const char * title;
         
         artist = gavl_metadata_get(&ctx->tt->tracks[i].metadata, GAVL_META_ARTIST);
         title = gavl_metadata_get(&ctx->tt->tracks[i].metadata, GAVL_META_TITLE);
         
-        
         if(artist && title)
-          ctx->tt->tracks[i].name = bgav_sprintf("%s - %s",
+          name = bgav_sprintf("%s - %s",
                                                  artist,
                                                  title);
         else if(title)
-          ctx->tt->tracks[i].name = bgav_sprintf("%s", title);
+          name = bgav_sprintf("%s", title);
         else
-          ctx->tt->tracks[i].name = bgav_sprintf("Track %d", i+1);
+          name = bgav_sprintf("Track %d", i+1);
+        gavl_metadata_set_nocpy(&ctx->tt->tracks[i].metadata, GAVL_META_LABEL, name);
         }
       }
     }
@@ -1567,7 +1568,7 @@ static int open_ogg(bgav_demuxer_context_t * ctx)
     const char * title =
       gavl_metadata_get(&ctx->tt->tracks[0].metadata, GAVL_META_TITLE);
     if(title)
-      ctx->tt->tracks[0].name = bgav_strdup(title);
+      gavl_metadata_set(&ctx->tt->tracks[0].metadata, GAVL_META_LABEL, title);
     get_metadata(&ctx->tt->tracks[0]);
 
     /* Set end position to -1 */

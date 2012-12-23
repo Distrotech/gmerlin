@@ -704,7 +704,7 @@ int bgav_stream_skipto(bgav_stream_t * s, int64_t * time, int scale);
 
 struct bgav_track_s
   {
-  char * name;
+  // char * name;
   gavl_time_t duration;
   bgav_metadata_t metadata;
 

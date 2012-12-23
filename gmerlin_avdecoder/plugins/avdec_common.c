@@ -366,10 +366,7 @@ int bg_avdec_init(avdec_priv * avdec)
                sizeof(*avdec->track_info[i].subtitle_streams));
       }
     avdec->track_info[i].duration = bgav_get_duration(avdec->dec, i);
-    avdec->track_info[i].name =
-      bg_strdup(avdec->track_info[i].name,
-                bgav_get_track_name(avdec->dec, i));
-
+    
     /* Get metadata */
     
     m = bgav_get_metadata(avdec->dec, i);
@@ -565,8 +562,6 @@ static bg_edl_track_t * copy_tracks(const bgav_edl_track_t * src, int len)
     /* Metadata */
     if(src[i].metadata)
       gavl_metadata_copy(&ret[i].metadata, src[i].metadata);
-    
-    ret[i].name = bg_strdup(ret[i].name, src[i].name);
     
     /* Copy pointers */
     ret[i].audio_streams = copy_streams(src[i].audio_streams,

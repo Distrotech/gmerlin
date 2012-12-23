@@ -24,6 +24,9 @@
 #include <string.h>
 
 #include <config.h>
+
+#include <gavl/metatags.h>
+
 #include <gmerlin/translation.h>
 
 #include <gmerlin/plugin.h>
@@ -42,6 +45,8 @@ static int open_common(avdec_priv * avdec)
     avdec->track_info = calloc(avdec->num_tracks, sizeof(*(avdec->track_info)));
     for(i = 0; i < avdec->num_tracks; i++)
       {
+      const char * name;
+      
       str = bgav_redirector_get_url(avdec->dec, i);
 
       avdec->track_info[i].url = bg_strdup(avdec->track_info[i].url, str);
@@ -49,10 +54,12 @@ static int open_common(avdec_priv * avdec)
       str = bgav_redirector_get_name(avdec->dec, i);
 
       if(str)
-        avdec->track_info[i].name = bg_strdup(avdec->track_info[i].name, str);
+        name = str;
       else
-        avdec->track_info[i].name = bg_strdup(avdec->track_info[i].name,
-                                              avdec->track_info[i].url);
+        name = avdec->track_info[i].url;
+
+      gavl_metadata_set(&avdec->track_info[i].metadata,
+                        GAVL_META_LABEL, name);
       }
     return 1;
     }

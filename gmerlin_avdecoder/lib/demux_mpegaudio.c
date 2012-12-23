@@ -420,15 +420,20 @@ static bgav_track_table_t * albw_2_track(bgav_demuxer_context_t* ctx,
     {
     s = bgav_track_add_audio_stream(&ret->tracks[i], ctx->opt);
     s->fourcc = BGAV_MK_FOURCC('.', 'm', 'p', '3');
-    end_pos = strrchr(albw->tracks[i].filename, '.');
-    ret->tracks[i].name = bgav_strndup(albw->tracks[i].filename, end_pos);
-
+    
     get_metadata_albw(ctx->input,
                       &albw->tracks[i].start_pos,
                       &albw->tracks[i].end_pos,
                       &track_metadata);
+    
     gavl_metadata_merge(&ret->tracks[i].metadata,
                         &track_metadata, global_metadata);
+
+    end_pos = strrchr(albw->tracks[i].filename, '.');
+    if(end_pos)
+      gavl_metadata_set_nocpy(&ret->tracks[i].metadata, GAVL_META_LABEL,
+                              bgav_strndup(albw->tracks[i].filename, end_pos));
+    
     gavl_metadata_free(&track_metadata);
     
     ret->tracks[i].duration = get_duration(ctx,
@@ -450,7 +455,6 @@ static int open_mpegaudio(bgav_demuxer_context_t * ctx)
   
   mpegaudio_priv_t * priv;
   int64_t oldpos;
-  const char * title;
   
   memset(&metadata_v1, 0, sizeof(metadata_v1));
   memset(&metadata_v2, 0, sizeof(metadata_v2));
@@ -519,11 +523,6 @@ static int open_mpegaudio(bgav_demuxer_context_t * ctx)
   if(ctx->input->input->seek_byte)
     ctx->flags |= BGAV_DEMUXER_CAN_SEEK;
 
-  if(!ctx->tt->tracks[0].name &&
-     (title = gavl_metadata_get(&ctx->input->metadata, GAVL_META_TITLE)))
-    {
-    ctx->tt->tracks[0].name = bgav_strdup(title);
-    }
 
   /* Set the format for each track */
 

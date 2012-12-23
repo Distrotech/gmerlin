@@ -394,7 +394,6 @@ static int open_nsv(bgav_demuxer_context_t * ctx)
   uint32_t fourcc;
   int done = 0;
   bgav_input_context_t * input_save = NULL;
-  const char * title;
   
   //  test_framerate();
   
@@ -521,12 +520,6 @@ static int open_nsv(bgav_demuxer_context_t * ctx)
   ctx->data_start = ctx->input->position;
   ctx->flags |= BGAV_DEMUXER_HAS_DATA_START;
   
-  if(!ctx->tt->tracks[0].name &&
-     (title = gavl_metadata_get(&ctx->input->metadata, GAVL_META_TITLE)))
-    {
-    ctx->tt->tracks[0].name = bgav_strdup(title);
-    }
-
   gavl_metadata_set(&ctx->tt->cur->metadata, 
                     GAVL_META_FORMAT, "NSV");
 

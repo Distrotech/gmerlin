@@ -538,8 +538,8 @@ static int load_channel_cache(bgav_input_context_t * ctx)
         goto fail;
       priv->channels[channel_index].extra_pcr_pid = atoi(attr);
 
-      ctx->tt->tracks[channel_index].name =
-        bgav_strdup(priv->channels[channel_index].name);
+      gavl_metadata_set(&ctx->tt->tracks[channel_index].metadata,
+                        GAVL_META_LABEL, priv->channels[channel_index].name);
       
       while(channel_child)
         {
@@ -807,7 +807,8 @@ static int open_dvb(bgav_input_context_t * ctx, const char * url, char ** redire
     ctx->tt = bgav_track_table_create(priv->num_channels);
     for(i = 0; i < priv->num_channels; i++)
       {
-      ctx->tt->tracks[i].name = bgav_strdup(priv->channels[i].name);
+      gavl_metadata_set(&ctx->tt->tracks[i].metadata,
+                        GAVL_META_LABEL, priv->channels[i].name);
       if(!get_streams(ctx, &priv->channels[i]))
         return 0;
       }

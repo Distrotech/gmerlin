@@ -781,7 +781,6 @@ int bgav_demux_rm_open_with_header(bgav_demuxer_context_t * ctx,
   bgav_rmff_mdpr_t * mdpr;
   uint32_t header = 0;
   bgav_track_t * track;
-  const char * title;
   
   bgav_charset_converter_t * cnv;
 
@@ -795,10 +794,7 @@ int bgav_demux_rm_open_with_header(bgav_demuxer_context_t * ctx,
   /* Create track */
   ctx->tt = bgav_track_table_create(1);
   track = ctx->tt->cur;
-
-  if((title = gavl_metadata_get(&ctx->input->metadata, GAVL_META_TITLE)))
-    track->name = bgav_strdup(title);
-    
+  
   /* Create streams */
 
   for(i = 0; i < h->num_streams; i++)

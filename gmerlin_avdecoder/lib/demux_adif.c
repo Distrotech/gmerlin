@@ -68,7 +68,7 @@ static int open_adif(bgav_demuxer_context_t * ctx)
   bgav_stream_t * s;
   bgav_id3v1_tag_t * id3v1 = NULL;
   gavl_metadata_t id3v1_metadata, id3v2_metadata;
-  const char * title;
+  //  const char * title;
   
   uint8_t buf[ADIF_SIZE];
   int skip_size;
@@ -157,10 +157,11 @@ static int open_adif(bgav_demuxer_context_t * ctx)
       (ctx->tt->cur->audio_streams[0].container_bitrate);
     }
 
+#if 0 // Name is moved to metadata 
   if(!ctx->tt->tracks[0].name &&
      (title = gavl_metadata_get(&ctx->input->metadata, GAVL_META_TITLE)))
     ctx->tt->tracks[0].name =  bgav_strdup(title);
-  
+#endif
   //  ctx->stream_description = bgav_sprintf("AAC");
   return 1;
   

@@ -339,8 +339,6 @@ void bgav_track_dump(bgav_t * b, bgav_track_t * t)
   
   char duration_string[GAVL_TIME_STRING_LEN];
   
-  bgav_dprintf( "Name:     %s\n", t->name);
-
   description = bgav_get_description(b);
   
   bgav_dprintf( "Format:   %s\n", (description ? description : 
@@ -407,8 +405,6 @@ void bgav_track_free(bgav_track_t * t)
       bgav_stream_free(&t->subtitle_streams[i]);
     free(t->subtitle_streams);
     }
-  if(t->name)
-    free(t->name);
   }
 
 static void remove_stream(bgav_stream_t * stream_array, int index, int num)

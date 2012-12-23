@@ -315,10 +315,11 @@ static int setup_track(bgav_input_context_t * ctx,
     {
 #endif
     if(ttsrpt->title[title].nr_of_angles > 1)
-      new_track->name = bgav_sprintf("Title %02d Angle %d",
-                                     title+1, angle+1);
+      gavl_metadata_set_nocpy(&new_track->metadata, GAVL_META_LABEL,
+                              bgav_sprintf("Title %02d Angle %d", title+1, angle+1));
     else
-      new_track->name = bgav_sprintf("Title %02d", title+1);
+      gavl_metadata_set_nocpy(&new_track->metadata, GAVL_META_LABEL,
+                              bgav_sprintf("Title %02d", title+1));
     
     /* Set up chapters */
     track_priv->num_chapters = ttsrpt->title[title].nr_of_ptts;
