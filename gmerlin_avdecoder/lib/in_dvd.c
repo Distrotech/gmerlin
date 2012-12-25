@@ -532,7 +532,7 @@ static int setup_track(bgav_input_context_t * ctx,
     if(!(pgc->subp_control[i] & 0x80000000))
       continue;
 
-    s = bgav_track_add_subtitle_stream(new_track, ctx->opt, 0, NULL);
+    s = bgav_track_add_overlay_stream(new_track, ctx->opt);
     s->fourcc = BGAV_MK_FOURCC('D', 'V', 'D', 'S');
 
     /*  there are several streams for one spu */
@@ -1014,9 +1014,9 @@ static int select_track_dvd(bgav_input_context_t * ctx, int track)
   dvd->state = CELL_START;
   dvd->start_sector = dvd->pgc->cell_playback[dvd->next_cell].first_sector;
   /* Set the subtitle palettes */
-  for(i = 0; i < ctx->tt->cur->num_subtitle_streams; i++)
+  for(i = 0; i < ctx->tt->cur->num_overlay_streams; i++)
     {
-    bgav_stream_set_extradata(&ctx->tt->cur->subtitle_streams[i],
+    bgav_stream_set_extradata(&ctx->tt->cur->overlay_streams[i],
                               (uint8_t*)dvd->pgc->palette,
                               sizeof(dvd->pgc->palette));
     }

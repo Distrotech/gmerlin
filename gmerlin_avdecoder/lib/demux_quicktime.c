@@ -1329,7 +1329,7 @@ static void quicktime_init(bgav_demuxer_context_t * ctx)
         charset = bgav_qt_get_charset(trak->mdia.mdhd.language);
         
         bg_ss =
-          bgav_track_add_subtitle_stream(track, ctx->opt, 1, charset);
+          bgav_track_add_text_stream(track, ctx->opt, charset);
 
         if(trak_has_edl(trak))
           priv->has_edl = 1;
@@ -1365,7 +1365,7 @@ static void quicktime_init(bgav_demuxer_context_t * ctx)
       else
         {
         bg_ss =
-          bgav_track_add_subtitle_stream(track, ctx->opt, 1, "bgav_unicode");
+          bgav_track_add_text_stream(track, ctx->opt, "bgav_unicode");
 
         if(trak_has_edl(trak))
           priv->has_edl = 1;
@@ -1413,7 +1413,7 @@ static void quicktime_init(bgav_demuxer_context_t * ctx)
                  stsd->entries[0].desc.esds.decoderConfigLen);
         continue;
         }
-      bg_ss = bgav_track_add_subtitle_stream(track, ctx->opt, 0, NULL);
+      bg_ss = bgav_track_add_overlay_stream(track, ctx->opt);
 
       gavl_metadata_set(&bg_ss->m, GAVL_META_FORMAT, "DVD subtitles");
       bg_ss->fourcc = stsd->entries[0].desc.fourcc;
@@ -1600,10 +1600,15 @@ static void build_edl(bgav_demuxer_context_t * ctx)
     es = bgav_edl_add_video_stream(t);
     set_stream_edl(priv, &ctx->tt->cur->video_streams[i], es);
     }
-  for(i = 0; i < ctx->tt->cur->num_subtitle_streams; i++)
+  for(i = 0; i < ctx->tt->cur->num_text_streams; i++)
     {
     es = bgav_edl_add_subtitle_text_stream(t);
-    set_stream_edl(priv, &ctx->tt->cur->subtitle_streams[i], es);
+    set_stream_edl(priv, &ctx->tt->cur->text_streams[i], es);
+    }
+  for(i = 0; i < ctx->tt->cur->num_overlay_streams; i++)
+    {
+    es = bgav_edl_add_subtitle_overlay_stream(t);
+    set_stream_edl(priv, &ctx->tt->cur->overlay_streams[i], es);
     }
   
   }

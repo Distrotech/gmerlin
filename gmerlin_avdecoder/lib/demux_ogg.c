@@ -853,8 +853,7 @@ static int setup_track(bgav_demuxer_context_t * ctx, bgav_track_t * track,
 
         break;
       case FOURCC_OGM_TEXT:
-        s = bgav_track_add_subtitle_stream(track, ctx->opt, 1,
-                                           NULL);
+        s = bgav_track_add_text_stream(track, ctx->opt, NULL);
 
         init_stream(s, serialno, FOURCC_OGM_TEXT, ogg_stream);
         
@@ -1039,11 +1038,11 @@ static int setup_track(bgav_demuxer_context_t * ctx, bgav_track_t * track,
 
     if(done)
       {
-      for(i = 0; i < track->num_subtitle_streams; i++)
+      for(i = 0; i < track->num_text_streams; i++)
         {
-        if(track->subtitle_streams[i].flags & STREAM_SUBREADER)
+        if(track->text_streams[i].flags & STREAM_SUBREADER)
           continue;
-        ogg_stream = track->subtitle_streams[i].priv;
+        ogg_stream = track->text_streams[i].priv;
         if(ogg_stream->header_packets_read < ogg_stream->header_packets_needed)
           done = 0;
         }
@@ -1527,13 +1526,13 @@ static int open_ogg(bgav_demuxer_context_t * ctx)
            (ctx->tt->tracks[i].duration < stream_duration))
           ctx->tt->tracks[i].duration = stream_duration;
         }
-      for(j = 0; j < ctx->tt->tracks[i].num_subtitle_streams; j++)
+      for(j = 0; j < ctx->tt->tracks[i].num_text_streams; j++)
         {
-        if(ctx->tt->tracks[i].subtitle_streams[j].flags & STREAM_SUBREADER)
+        if(ctx->tt->tracks[i].text_streams[j].flags & STREAM_SUBREADER)
           continue;
     
         stream_priv =
-          ctx->tt->tracks[i].subtitle_streams[j].priv;
+          ctx->tt->tracks[i].text_streams[j].priv;
 
         ogg_stream_reset(&stream_priv->os);
         }
@@ -2252,14 +2251,14 @@ static void reset_track(bgav_track_t * track, int bos)
 
     }
   
-  for(i = 0; i < track->num_subtitle_streams; i++)
+  for(i = 0; i < track->num_text_streams; i++)
     {
-    if(track->subtitle_streams[i].flags & STREAM_SUBREADER)
+    if(track->text_streams[i].flags & STREAM_SUBREADER)
       continue;
-    stream_priv = track->subtitle_streams[i].priv;
+    stream_priv = track->text_streams[i].priv;
     ogg_stream_reset(&stream_priv->os);
     if(bos)
-      STREAM_SET_SYNC(&track->subtitle_streams[i], 0);
+      STREAM_SET_SYNC(&track->text_streams[i], 0);
     }
   }
 
@@ -2414,11 +2413,11 @@ static void init_track(bgav_track_t * track)
     ogg_stream_reset(&stream_priv->os);
     }
   
-  for(i = 0; i < track->num_subtitle_streams; i++)
+  for(i = 0; i < track->num_text_streams; i++)
     {
-    if(track->subtitle_streams[i].flags & STREAM_SUBREADER)
+    if(track->text_streams[i].flags & STREAM_SUBREADER)
       continue;
-    stream_priv = track->subtitle_streams[i].priv;
+    stream_priv = track->text_streams[i].priv;
     ogg_stream_reset(&stream_priv->os);
     }
   }

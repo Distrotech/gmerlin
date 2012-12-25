@@ -519,7 +519,7 @@ static int init_subtitle(bgav_demuxer_context_t * ctx,
   if(!strcmp(track->CodecID, "S_TEXT/UTF8"))
     {
     // fprintf(stderr, "UTF-8 subtitles\n");
-    s = bgav_track_add_subtitle_stream(ctx->tt->cur, ctx->opt, 1, BGAV_UTF8);
+    s = bgav_track_add_text_stream(ctx->tt->cur, ctx->opt, BGAV_UTF8);
     gavl_metadata_set(&s->m, GAVL_META_FORMAT, "SRT");
     }
   else if(!strcmp(track->CodecID, "S_VOBSUB"))
@@ -590,7 +590,7 @@ static int init_subtitle(bgav_demuxer_context_t * ctx,
 
     if(pal)
       {
-      s = bgav_track_add_subtitle_stream(ctx->tt->cur, ctx->opt, 0, NULL);
+      s = bgav_track_add_overlay_stream(ctx->tt->cur, ctx->opt);
 
       gavl_metadata_set(&s->m, GAVL_META_FORMAT, "DVD subtitles");
       s->fourcc = BGAV_MK_FOURCC('D', 'V', 'D', 'S');

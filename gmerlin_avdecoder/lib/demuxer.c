@@ -385,18 +385,34 @@ static void init_superindex(bgav_demuxer_context_t * ctx)
     }
 
   i = 0;
-  while(i < ctx->tt->cur->num_subtitle_streams)
+  while(i < ctx->tt->cur->num_text_streams)
     {
-    if(ctx->tt->cur->subtitle_streams[i].last_index_position < 0)
-      bgav_track_remove_subtitle_stream(ctx->tt->cur, i);
+    if(ctx->tt->cur->text_streams[i].last_index_position < 0)
+      bgav_track_remove_text_stream(ctx->tt->cur, i);
     else
       {
-      bgav_superindex_set_durations(ctx->si, &ctx->tt->cur->subtitle_streams[i]);
-      ctx->tt->cur->subtitle_streams[i].start_time =
-        ctx->si->entries[ctx->tt->cur->subtitle_streams[i].first_index_position].pts;
+      bgav_superindex_set_durations(ctx->si, &ctx->tt->cur->text_streams[i]);
+      ctx->tt->cur->text_streams[i].start_time =
+        ctx->si->entries[ctx->tt->cur->text_streams[i].first_index_position].pts;
       i++;
       }
     }
+
+  i = 0;
+  while(i < ctx->tt->cur->num_overlay_streams)
+    {
+    if(ctx->tt->cur->overlay_streams[i].last_index_position < 0)
+      bgav_track_remove_overlay_stream(ctx->tt->cur, i);
+    else
+      {
+      bgav_superindex_set_durations(ctx->si, &ctx->tt->cur->overlay_streams[i]);
+      ctx->tt->cur->overlay_streams[i].start_time =
+        ctx->si->entries[ctx->tt->cur->overlay_streams[i].first_index_position].pts;
+      i++;
+      }
+    }
+
+
   if(ctx->tt->cur->duration == GAVL_TIME_UNDEFINED)
     bgav_track_calc_duration(ctx->tt->cur);
   }
@@ -410,7 +426,8 @@ static void check_interleave(bgav_demuxer_context_t * ctx)
   num_streams =
     ctx->tt->cur->num_audio_streams +
     ctx->tt->cur->num_video_streams +
-    ctx->tt->cur->num_subtitle_streams;
+    ctx->tt->cur->num_text_streams +
+    ctx->tt->cur->num_overlay_streams;
 
   streams = malloc(num_streams * sizeof(*streams));
 
@@ -422,8 +439,11 @@ static void check_interleave(bgav_demuxer_context_t * ctx)
   for(i = 0; i < ctx->tt->cur->num_video_streams; i++)
     streams[index++] = &ctx->tt->cur->video_streams[i];
   
-  for(i = 0; i < ctx->tt->cur->num_subtitle_streams; i++)
-    streams[index++] = &ctx->tt->cur->subtitle_streams[i];
+  for(i = 0; i < ctx->tt->cur->num_text_streams; i++)
+    streams[index++] = &ctx->tt->cur->text_streams[i];
+
+  for(i = 0; i < ctx->tt->cur->num_overlay_streams; i++)
+    streams[index++] = &ctx->tt->cur->overlay_streams[i];
   
   /* If sample accurate decoding was requested, use non-interleaved mode */
   if((ctx->opt->sample_accurate == 1) || (ctx->flags & BGAV_DEMUXER_BUILD_INDEX))

@@ -92,13 +92,22 @@ static void seek_si(bgav_t * b, bgav_demuxer_context_t * ctx,
     seek_time = time;
     bgav_superindex_seek(ctx->si, &track->audio_streams[j], &seek_time, scale);
     }
-  for(j = 0; j < track->num_subtitle_streams; j++)
+  for(j = 0; j < track->num_text_streams; j++)
     {
-    if(track->subtitle_streams[j].action == BGAV_STREAM_MUTE)
+    if(track->text_streams[j].action == BGAV_STREAM_MUTE)
       continue;
     seek_time = time;
-    if(!(track->subtitle_streams[j].flags & STREAM_SUBREADER))
-      bgav_superindex_seek(ctx->si, &track->subtitle_streams[j],
+    if(!(track->text_streams[j].flags & STREAM_SUBREADER))
+      bgav_superindex_seek(ctx->si, &track->text_streams[j],
+                           &seek_time, scale);
+    }
+  for(j = 0; j < track->num_overlay_streams; j++)
+    {
+    if(track->overlay_streams[j].action == BGAV_STREAM_MUTE)
+      continue;
+    seek_time = time;
+    if(!(track->overlay_streams[j].flags & STREAM_SUBREADER))
+      bgav_superindex_seek(ctx->si, &track->overlay_streams[j],
                            &seek_time, scale);
     }
   
@@ -175,12 +184,22 @@ static void seek_sa(bgav_t * b, int64_t * time, int scale)
         }
       }
     }
-  for(i = 0; i < b->tt->cur->num_subtitle_streams; i++)
+
+  for(i = 0; i < b->tt->cur->num_text_streams; i++)
     {
-    if(b->tt->cur->subtitle_streams[i].action != BGAV_STREAM_MUTE)
+    if(b->tt->cur->text_streams[i].action != BGAV_STREAM_MUTE)
       {
-      s = &b->tt->cur->subtitle_streams[i];
-      bgav_seek_subtitle(b, i, gavl_time_rescale(scale, s->timescale, *time));
+      s = &b->tt->cur->text_streams[i];
+      bgav_seek_text(b, i, gavl_time_rescale(scale, s->timescale, *time));
+      }
+    }
+
+  for(i = 0; i < b->tt->cur->num_overlay_streams; i++)
+    {
+    if(b->tt->cur->overlay_streams[i].action != BGAV_STREAM_MUTE)
+      {
+      s = &b->tt->cur->overlay_streams[i];
+      bgav_seek_overlay(b, i, gavl_time_rescale(scale, s->timescale, *time));
       }
     }
   return;
@@ -385,10 +404,30 @@ static void seek_iterative(bgav_t * b, int64_t * time, int scale)
 #endif  
   }
 
+typedef struct
+  {
+  int64_t time;
+  int scale;
+  } seek_subreader_t;
+
+static int seek_subreader(void * data, bgav_stream_t * s)
+  {
+  seek_subreader_t * d = data;
+
+  if((s->flags & STREAM_SUBREADER) &&
+     (s->action != BGAV_STREAM_MUTE))
+    {
+    /* Clear EOF state */
+    s->flags &= ~(STREAM_EOF_C|STREAM_EOF_D);
+    bgav_subtitle_reader_seek(s, d->time, d->scale);
+    }
+  return 1;
+  }
+
 void
 bgav_seek_scaled(bgav_t * b, int64_t * time, int scale)
   {
-  int i;
+  seek_subreader_t ss;
   bgav_track_t * track = b->tt->cur;
   
   //  fprintf(stderr, "bgav_seek_scaled: %f\n",
@@ -425,23 +464,12 @@ bgav_seek_scaled(bgav_t * b, int64_t * time, int scale)
     {
     seek_iterative(b, time, scale);
     }
-  
-  /* Let the subtitle readers seek */
-  for(i = 0; i < track->num_subtitle_streams; i++)
-    {
-    if((track->subtitle_streams[i].flags & STREAM_SUBREADER) &&
-       (track->subtitle_streams[i].action != BGAV_STREAM_MUTE))
-      {
-      /* Clear EOF state */
-      track->subtitle_streams[i].flags &= ~(STREAM_EOF_C|STREAM_EOF_D);
-      bgav_subtitle_reader_seek(&track->subtitle_streams[i],
-                                *time, scale);
-      }
-    }
-  
-  //  fprintf(stderr, "bgav_seeked to: %f\n",
-  //          gavl_time_to_seconds(gavl_time_unscale(scale, *time)));
 
+  ss.time = *time;
+  ss.scale = scale;
+  
+  bgav_streams_foreach(track->text_streams, track->num_text_streams, seek_subreader, &ss);
+  bgav_streams_foreach(track->overlay_streams, track->num_overlay_streams, seek_subreader, &ss);
   }
 
 void

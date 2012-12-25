@@ -1236,8 +1236,8 @@ static int open_mpegps(bgav_demuxer_context_t * ctx)
       {
       ctx->tt->tracks[i].video_streams[j].flags |= (STREAM_PARSE_FULL|STREAM_NEED_START_TIME);
       }
-    for(j = 0; j < ctx->tt->tracks[i].num_subtitle_streams; j++)
-      ctx->tt->tracks[i].subtitle_streams[j].flags |= (STREAM_PARSE_FULL|STREAM_NEED_START_TIME);
+    for(j = 0; j < ctx->tt->tracks[i].num_overlay_streams; j++)
+      ctx->tt->tracks[i].overlay_streams[j].flags |= (STREAM_PARSE_FULL|STREAM_NEED_START_TIME);
     }
 
   ctx->index_mode = INDEX_MODE_MIXED;

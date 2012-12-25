@@ -93,8 +93,12 @@ static int init_track(bgav_track_t * track,
         vfmt = &ph->streams[i].format.video;
         break;
       case GAVF_STREAM_TEXT:
-        s = bgav_track_add_subtitle_stream(track, opt, 1, BGAV_UTF8);
+        s = bgav_track_add_text_stream(track, opt, BGAV_UTF8);
         s->timescale = ph->streams[i].format.text.timescale;
+        break;
+      case GAVF_STREAM_OVERLAY:
+        s = bgav_track_add_overlay_stream(track, opt);
+        vfmt = &ph->streams[i].format.video;
         break;
       }
 

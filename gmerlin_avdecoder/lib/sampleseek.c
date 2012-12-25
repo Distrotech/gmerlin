@@ -75,7 +75,18 @@ int64_t bgav_video_duration(bgav_t * bgav, int stream)
 
 int64_t bgav_subtitle_duration(bgav_t * bgav, int stream)
   {
-  return bgav->tt->cur->subtitle_streams[stream].duration;
+  bgav_stream_t * s = bgav_track_get_subtitle_stream(bgav->tt->cur, stream);
+  return s->duration;
+  }
+
+int64_t bgav_text_duration(bgav_t * bgav, int stream)
+  {
+  return bgav->tt->cur->text_streams[stream].duration;
+  }
+
+int64_t bgav_overlay_duration(bgav_t * bgav, int stream)
+  {
+  return bgav->tt->cur->overlay_streams[stream].duration;
   }
 
 int64_t bgav_audio_start_time(bgav_t * bgav, int stream)
@@ -326,10 +337,8 @@ int64_t bgav_video_keyframe_after(bgav_t * bgav, int stream, int64_t time)
   return bgav_video_stream_keyframe_after(&bgav->tt->cur->video_streams[stream], time);
   }
 
-void bgav_seek_subtitle(bgav_t * bgav, int stream, int64_t time)
+static void seek_subtitle(bgav_t * bgav, bgav_stream_t * s, int64_t time)
   {
-  bgav_stream_t * s;
-  s = &bgav->tt->cur->subtitle_streams[stream];
   bgav_stream_clear(s);
 
   s->flags &= ~(STREAM_EOF_C|STREAM_EOF_D);
@@ -339,8 +348,6 @@ void bgav_seek_subtitle(bgav_t * bgav, int stream, int64_t time)
     bgav_subtitle_reader_seek(s, time, s->timescale);
     return;
     }
-
-  
   
   bgav_stream_clear(s);
 
@@ -365,7 +372,27 @@ void bgav_seek_subtitle(bgav_t * bgav, int stream, int64_t time)
     if(bgav->demuxer->demuxer->resync)
       bgav->demuxer->demuxer->resync(bgav->demuxer, s);
     }
-  
+  }
+
+void bgav_seek_subtitle(bgav_t * bgav, int stream, int64_t time)
+  {
+  bgav_stream_t * s;
+  s = bgav_track_get_subtitle_stream(bgav->tt->cur, stream);
+  seek_subtitle(bgav, s, time);
+  }
+
+void bgav_seek_text(bgav_t * bgav, int stream, int64_t time)
+  {
+  bgav_stream_t * s;
+  s = bgav->tt->cur->text_streams + stream;
+  seek_subtitle(bgav, s, time);
+  }
+
+void bgav_seek_overlay(bgav_t * bgav, int stream, int64_t time)
+  {
+  bgav_stream_t * s;
+  s = bgav->tt->cur->overlay_streams + stream;
+  seek_subtitle(bgav, s, time);
   }
 
 int bgav_set_sample_accurate(bgav_t * b)

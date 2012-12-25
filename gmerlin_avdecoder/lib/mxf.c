@@ -2882,8 +2882,10 @@ bgav_stream_t * bgav_mxf_find_stream(mxf_file_t * f, bgav_demuxer_context_t * t,
       ret = t->tt->cur->audio_streams;
     if(t->tt->cur->num_video_streams)
       ret = t->tt->cur->video_streams;
-    if(t->tt->cur->num_subtitle_streams)
-      ret = t->tt->cur->subtitle_streams;
+    if(t->tt->cur->num_text_streams)
+      ret = t->tt->cur->text_streams;
+    if(t->tt->cur->num_overlay_streams)
+      ret = t->tt->cur->overlay_streams;
     if(ret && ret->action == BGAV_STREAM_MUTE)
       return NULL;
     return ret;

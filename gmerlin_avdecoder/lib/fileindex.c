@@ -156,18 +156,31 @@ void bgav_file_index_dump(bgav_t * b)
                    s->file_index->num_entries);
       dump_index(&b->tt->tracks[i].video_streams[j]);
       }
-    for(j = 0; j < b->tt->tracks[i].num_subtitle_streams; j++)
+    for(j = 0; j < b->tt->tracks[i].num_text_streams; j++)
       {
-      s = &b->tt->tracks[i].subtitle_streams[j];
+      s = &b->tt->tracks[i].text_streams[j];
       if(!s->file_index)
         continue;
-      bgav_dprintf("   Subtitle stream %d [ID: %08x, Timescale: %d, PTS offset: %"PRId64"]\n", j+1,
+      bgav_dprintf("   Text stream %d [ID: %08x, Timescale: %d, PTS offset: %"PRId64"]\n", j+1,
                    s->stream_id, s->timescale,
                    s->start_time);
       bgav_dprintf("   Maximum packet size: %d\n",
-                   b->tt->tracks[i].subtitle_streams[j].max_packet_size);
-      bgav_dprintf("   Duration: %"PRId64"\n", b->tt->tracks[i].subtitle_streams[j].duration);
-      dump_index(&b->tt->tracks[i].subtitle_streams[j]);
+                   s->max_packet_size);
+      bgav_dprintf("   Duration: %"PRId64"\n", s->duration);
+      dump_index(s);
+      }
+    for(j = 0; j < b->tt->tracks[i].num_overlay_streams; j++)
+      {
+      s = &b->tt->tracks[i].overlay_streams[j];
+      if(!s->file_index)
+        continue;
+      bgav_dprintf("   Overlay stream %d [ID: %08x, Timescale: %d, PTS offset: %"PRId64"]\n", j+1,
+                   s->stream_id, s->timescale,
+                   s->start_time);
+      bgav_dprintf("   Maximum packet size: %d\n",
+                   s->max_packet_size);
+      bgav_dprintf("   Duration: %"PRId64"\n", s->duration);
+      dump_index(s);
       }
     }
   }
@@ -529,10 +542,11 @@ static void set_has_file_index(bgav_t * b)
                       &b->tt->tracks[i].duration);
       set_has_file_index_s(s, b->demuxer);
       }
-    for(j= 0; j <b->tt->tracks[i].num_subtitle_streams; j++)
-      {
-      s = &b->tt->tracks[i].subtitle_streams[j];
 
+    for(j= 0; j <b->tt->tracks[i].num_text_streams; j++)
+      {
+      s = &b->tt->tracks[i].text_streams[j];
+      
       if(!(s->flags & STREAM_SUBREADER))
         {
         update_duration(s, s->timescale,
@@ -540,6 +554,20 @@ static void set_has_file_index(bgav_t * b)
         set_has_file_index_s(s, b->demuxer);
         }
       }
+
+    for(j= 0; j <b->tt->tracks[i].num_overlay_streams; j++)
+      {
+      s = &b->tt->tracks[i].overlay_streams[j];
+      
+      if(!(s->flags & STREAM_SUBREADER))
+        {
+        update_duration(s, s->timescale,
+                        &b->tt->tracks[i].duration);
+        set_has_file_index_s(s, b->demuxer);
+        }
+      }
+
+
     // }
     }
   b->demuxer->flags |= BGAV_DEMUXER_CAN_SEEK;
@@ -609,10 +637,10 @@ int bgav_read_file_index(bgav_t * b)
             /* Passing NULL as encoding might break when we have MPEG-like formats with
                text subtitles */
           case BGAV_STREAM_SUBTITLE_TEXT:
-            s = bgav_track_add_subtitle_stream(&b->tt->tracks[i], &b->opt, 1, NULL);
+            s = bgav_track_add_text_stream(&b->tt->tracks[i], &b->opt, NULL);
             break;
           case BGAV_STREAM_SUBTITLE_OVERLAY:
-            s = bgav_track_add_subtitle_stream(&b->tt->tracks[i], &b->opt, 0, NULL);
+            s = bgav_track_add_overlay_stream(&b->tt->tracks[i], &b->opt);
             break;
           }
         
@@ -787,9 +815,14 @@ void bgav_write_file_index(bgav_t * b)
       if(b->tt->tracks[i].video_streams[j].file_index)
         num_streams++;
       }
-    for(j = 0; j < b->tt->tracks[i].num_subtitle_streams; j++)
+    for(j = 0; j < b->tt->tracks[i].num_text_streams; j++)
       {
-      if(b->tt->tracks[i].subtitle_streams[j].file_index)
+      if(b->tt->tracks[i].text_streams[j].file_index)
+        num_streams++;
+      }
+    for(j = 0; j < b->tt->tracks[i].num_overlay_streams; j++)
+      {
+      if(b->tt->tracks[i].overlay_streams[j].file_index)
         num_streams++;
       }
     
@@ -807,9 +840,15 @@ void bgav_write_file_index(bgav_t * b)
       if(s->file_index)
         file_index_write_stream(output, s->file_index, s);
       }
-    for(j = 0; j < b->tt->tracks[i].num_subtitle_streams; j++)
+    for(j = 0; j < b->tt->tracks[i].num_text_streams; j++)
       {
-      s = &b->tt->tracks[i].subtitle_streams[j];
+      s = &b->tt->tracks[i].text_streams[j];
+      if(s->file_index)
+        file_index_write_stream(output, s->file_index, s);
+      }
+    for(j = 0; j < b->tt->tracks[i].num_overlay_streams; j++)
+      {
+      s = &b->tt->tracks[i].overlay_streams[j];
       if(s->file_index)
         file_index_write_stream(output, s->file_index, s);
       }
@@ -877,10 +916,15 @@ static int build_file_index_simple(bgav_t * b)
       flush_stream_simple(&b->tt->cur->audio_streams[j], 0);
     for(j = 0; j < b->tt->cur->num_video_streams; j++)
       flush_stream_simple(&b->tt->cur->video_streams[j], 0);
-    for(j = 0; j < b->tt->cur->num_subtitle_streams; j++)
+    for(j = 0; j < b->tt->cur->num_text_streams; j++)
       {
-      if(!(b->tt->cur->subtitle_streams[j].flags & STREAM_SUBREADER))
-        flush_stream_simple(&b->tt->cur->subtitle_streams[j], 0);
+      if(!(b->tt->cur->text_streams[j].flags & STREAM_SUBREADER))
+        flush_stream_simple(&b->tt->cur->text_streams[j], 0);
+      }
+    for(j = 0; j < b->tt->cur->num_overlay_streams; j++)
+      {
+      if(!(b->tt->cur->overlay_streams[j].flags & STREAM_SUBREADER))
+        flush_stream_simple(&b->tt->cur->overlay_streams[j], 0);
       }
     }
 
@@ -894,106 +938,18 @@ static int build_file_index_simple(bgav_t * b)
     s = &b->tt->cur->video_streams[j];
     flush_stream_simple(s, 1);
     }
-  for(j = 0; j < b->tt->cur->num_subtitle_streams; j++)
+  for(j = 0; j < b->tt->cur->num_text_streams; j++)
     {
-    s = &b->tt->cur->subtitle_streams[j];
+    s = &b->tt->cur->text_streams[j];
     if(!(s->flags & STREAM_SUBREADER))
       flush_stream_simple(s, 1);
     }
-  bgav_input_seek(b->input, old_position, SEEK_SET);
-  return 1;
-  }
-
-/*
- *  Top level packets contain frames of one elemtary stream
- *  framed at codec level
- */
-
-static int build_file_index_mixed(bgav_t * b)
-  {
-  int j, eof = 0;
-  int callback_count = 0;
-  int64_t old_position;
-  old_position = b->input->position;
-  
-  while(!eof)
+  for(j = 0; j < b->tt->cur->num_overlay_streams; j++)
     {
-    /* Process one packet */
-    if(!bgav_demuxer_next_packet(b->demuxer))
-      eof = 1;
-    
-    for(j = 0; j < b->tt->cur->num_audio_streams; j++)
-      {
-      switch(b->tt->cur->audio_streams[j].index_mode)
-        {
-        case INDEX_MODE_SIMPLE:
-          flush_stream_simple(&b->tt->cur->audio_streams[j], 0);
-          break;
-        }
-      
-      }
-    for(j = 0; j < b->tt->cur->num_video_streams; j++)
-      {
-      switch(b->tt->cur->video_streams[j].index_mode)
-        {
-        case INDEX_MODE_SIMPLE:
-          flush_stream_simple(&b->tt->cur->video_streams[j], 0);
-          break;
-        }
-      }
-    for(j = 0; j < b->tt->cur->num_subtitle_streams; j++)
-      {
-      if(!(b->tt->cur->subtitle_streams[j].flags & STREAM_SUBREADER))
-        {
-        switch(b->tt->cur->subtitle_streams[j].index_mode)
-          {
-          case INDEX_MODE_SIMPLE:
-            flush_stream_simple(&b->tt->cur->subtitle_streams[j], 0);
-            break;
-          }
-        }
-      }
-
-    if(b->opt.index_callback && !(callback_count % 100))
-      b->opt.index_callback(b->opt.index_callback_data,
-                            (float)b->input->position / 
-                            (float)b->input->total_bytes);
-    callback_count++;
+    s = &b->tt->cur->overlay_streams[j];
+    if(!(s->flags & STREAM_SUBREADER))
+      flush_stream_simple(s, 1);
     }
-
-  /* Flush */
-  for(j = 0; j < b->tt->cur->num_audio_streams; j++)
-    {
-    switch(b->tt->cur->audio_streams[j].index_mode)
-      {
-      case INDEX_MODE_SIMPLE:
-        flush_stream_simple(&b->tt->cur->audio_streams[j], 1);
-        break;
-      }
-      
-    }
-  for(j = 0; j < b->tt->cur->num_video_streams; j++)
-    {
-    switch(b->tt->cur->video_streams[j].index_mode)
-      {
-      case INDEX_MODE_SIMPLE:
-        flush_stream_simple(&b->tt->cur->video_streams[j], 1);
-        break;
-      }
-    }
-  for(j = 0; j < b->tt->cur->num_subtitle_streams; j++)
-    {
-    if(!(b->tt->cur->subtitle_streams[j].flags & STREAM_SUBREADER))
-      {
-      switch(b->tt->cur->subtitle_streams[j].index_mode)
-        {
-        case INDEX_MODE_SIMPLE:
-          flush_stream_simple(&b->tt->cur->subtitle_streams[j], 1);
-          break;
-        }
-      }
-    }
-  
   bgav_input_seek(b->input, old_position, SEEK_SET);
   return 1;
   }
@@ -1017,29 +973,28 @@ static int bgav_build_file_index_parseall(bgav_t * b)
       b->tt->cur->video_streams[j].file_index = bgav_file_index_create();
       bgav_set_video_stream(b, j, BGAV_STREAM_PARSE);
       }
-    for(j = 0; j < b->tt->cur->num_subtitle_streams; j++)
+    for(j = 0; j < b->tt->cur->num_text_streams; j++)
       {
-      if(!(b->tt->cur->subtitle_streams[j].flags & STREAM_SUBREADER))
+      if(!(b->tt->cur->text_streams[j].flags & STREAM_SUBREADER))
         {
-        b->tt->cur->subtitle_streams[j].file_index = bgav_file_index_create();
-        bgav_set_subtitle_stream(b, j, BGAV_STREAM_PARSE);
+        b->tt->cur->text_streams[j].file_index = bgav_file_index_create();
+        bgav_set_text_stream(b, j, BGAV_STREAM_PARSE);
+        }
+      }
+    for(j = 0; j < b->tt->cur->num_overlay_streams; j++)
+      {
+      if(!(b->tt->cur->overlay_streams[j].flags & STREAM_SUBREADER))
+        {
+        b->tt->cur->overlay_streams[j].file_index = bgav_file_index_create();
+        bgav_set_overlay_stream(b, j, BGAV_STREAM_PARSE);
         }
       }
 
     if(!bgav_start(b))
       return 0;
     
-    switch(b->demuxer->index_mode)
-      {
-      case INDEX_MODE_SIMPLE:
-        build_file_index_simple(b);
-        ret = 1;
-        break;
-      case INDEX_MODE_MIXED:
-        build_file_index_mixed(b);
-        ret = 1;
-        break;
-      }
+    build_file_index_simple(b);
+    
     b->demuxer->flags &= ~BGAV_DEMUXER_BUILD_INDEX;
     
     bgav_stop(b);
@@ -1049,11 +1004,18 @@ static int bgav_build_file_index_parseall(bgav_t * b)
       bgav_set_audio_stream(b, j, BGAV_STREAM_MUTE);
     for(j = 0; j < b->tt->cur->num_video_streams; j++)
       bgav_set_video_stream(b, j, BGAV_STREAM_MUTE);
-    for(j = 0; j < b->tt->cur->num_subtitle_streams; j++)
+    for(j = 0; j < b->tt->cur->num_text_streams; j++)
       {
-      if(!(b->tt->cur->subtitle_streams[j].flags & STREAM_SUBREADER))
+      if(!(b->tt->cur->text_streams[j].flags & STREAM_SUBREADER))
         {
-        bgav_set_subtitle_stream(b, j, BGAV_STREAM_MUTE);
+        bgav_set_text_stream(b, j, BGAV_STREAM_MUTE);
+        }
+      }
+    for(j = 0; j < b->tt->cur->num_overlay_streams; j++)
+      {
+      if(!(b->tt->cur->overlay_streams[j].flags & STREAM_SUBREADER))
+        {
+        bgav_set_overlay_stream(b, j, BGAV_STREAM_MUTE);
         }
       }
     }

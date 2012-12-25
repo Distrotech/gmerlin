@@ -331,8 +331,10 @@ static void set_stream_demuxers(bgav_track_t * t,
     set_stream_demuxer(&t->audio_streams[i], demuxer);
   for(i = 0; i < t->num_video_streams; i++)
     set_stream_demuxer(&t->video_streams[i], demuxer);
-  for(i = 0; i < t->num_subtitle_streams; i++)
-    set_stream_demuxer(&t->subtitle_streams[i], demuxer);
+  for(i = 0; i < t->num_text_streams; i++)
+    set_stream_demuxer(&t->text_streams[i], demuxer);
+  for(i = 0; i < t->num_overlay_streams; i++)
+    set_stream_demuxer(&t->overlay_streams[i], demuxer);
   }
 
 int bgav_select_track(bgav_t * b, int track)
@@ -483,8 +485,10 @@ int bgav_select_track(bgav_t * b, int track)
       b->tt->cur->audio_streams[i].index_position = 0;
     for(i = 0; i < b->tt->cur->num_video_streams; i++)
       b->tt->cur->video_streams[i].index_position = 0;
-    for(i = 0; i < b->tt->cur->num_subtitle_streams; i++)
-      b->tt->cur->subtitle_streams[i].index_position = 0;
+    for(i = 0; i < b->tt->cur->num_text_streams; i++)
+      b->tt->cur->text_streams[i].index_position = 0;
+    for(i = 0; i < b->tt->cur->num_overlay_streams; i++)
+      b->tt->cur->overlay_streams[i].index_position = 0;
     }
   
   set_stream_demuxers(b->tt->cur, b->demuxer);

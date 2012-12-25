@@ -330,8 +330,10 @@ int bgav_stream_get_index(bgav_stream_t * s)
       return (int)(s - s->track->video_streams);
       break;
     case BGAV_STREAM_SUBTITLE_TEXT:
+      return (int)(s - s->track->text_streams);
+      break;
     case BGAV_STREAM_SUBTITLE_OVERLAY:
-      return (int)(s - s->track->subtitle_streams);
+      return (int)(s - s->track->overlay_streams);
       break;
     case BGAV_STREAM_UNKNOWN:
       break;
@@ -448,3 +450,14 @@ void bgav_stream_set_from_gavl(bgav_stream_t * s,
   gavl_metadata_copy(&s->m, m);
   }
                          
+int bgav_streams_foreach(bgav_stream_t * s, int num,
+                         int (*action)(void * priv, bgav_stream_t * s), void * priv)
+  {
+  int i;
+  for(i = 0; i < num; i++)
+    {
+    if(!action(priv, s + i))
+      return 0;
+    }
+  return 1;
+  } 

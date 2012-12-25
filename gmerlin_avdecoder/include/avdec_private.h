@@ -652,6 +652,8 @@ void bgav_stream_set_from_gavl(bgav_stream_t * s,
                                const gavl_video_format_t * vfmt,
                                const gavl_metadata_t * m);
 
+int bgav_streams_foreach(bgav_stream_t * s, int num,
+                         int (*action)(void * priv, bgav_stream_t * s), void * priv);
 
 /* Read for a packet source */
 gavl_source_status_t
@@ -710,11 +712,13 @@ struct bgav_track_s
 
   int num_audio_streams;
   int num_video_streams;
-  int num_subtitle_streams;
+  int num_text_streams;
+  int num_overlay_streams;
 
   bgav_stream_t * audio_streams;
   bgav_stream_t * video_streams;
-  bgav_stream_t * subtitle_streams;
+  bgav_stream_t * text_streams;
+  bgav_stream_t * overlay_streams;
   
   gavl_chapter_list_t * chapter_list;
   
@@ -738,11 +742,17 @@ void
 bgav_track_remove_video_stream(bgav_track_t * track, int stream);
 
 void
-bgav_track_remove_subtitle_stream(bgav_track_t * track, int stream);
+bgav_track_remove_text_stream(bgav_track_t * track, int stream);
+
+void
+bgav_track_remove_overlay_stream(bgav_track_t * track, int stream);
 
 bgav_stream_t *
-bgav_track_add_subtitle_stream(bgav_track_t * t, const bgav_options_t * opt,
-                               int text, const char * encoding);
+bgav_track_add_text_stream(bgav_track_t * t, const bgav_options_t * opt,
+                           const char * encoding);
+
+bgav_stream_t *
+bgav_track_add_overlay_stream(bgav_track_t * t, const bgav_options_t * opt);
 
 bgav_stream_t *
 bgav_track_attach_subtitle_reader(bgav_track_t * t,
@@ -751,6 +761,12 @@ bgav_track_attach_subtitle_reader(bgav_track_t * t,
 
 bgav_stream_t *
 bgav_track_find_stream(bgav_demuxer_context_t * t, int stream_id);
+
+bgav_stream_t * bgav_track_get_subtitle_stream(bgav_track_t * t, int index);
+
+int bgav_track_foreach(bgav_track_t * t,
+                     int (*action)(void * priv, bgav_stream_t * s), void * priv);
+
 
 /* Clear all buffers (call BEFORE seeking) */
 

@@ -1300,11 +1300,37 @@ int bgav_num_video_streams(bgav_t * bgav, int track);
  *  \param bgav A decoder instance
  *  \param track Track index (starting with 0)
  *  \returns The number of subtitle streams
+ *
+ *  Since version 1.3.0 the 2 categories of subtitles
+ *  are referred to as text and overlay streams.
+ *  The legacy functions still work as long as you use them
+ *  consistently.
  */
 
 BGAV_PUBLIC
 int bgav_num_subtitle_streams(bgav_t * bgav, int track);
 
+/** \ingroup track
+ *  \brief Get the number of text streams of a track
+ *  \param bgav A decoder instance
+ *  \param track Track index (starting with 0)
+ *  \returns The number of subtitle streams
+ */
+
+BGAV_PUBLIC
+int bgav_num_text_streams(bgav_t * bgav, int track);
+
+/** \ingroup track
+ *  \brief Get the number of overlay streams of a track
+ *  \param bgav A decoder instance
+ *  \param track Track index (starting with 0)
+ *  \returns The number of subtitle streams
+ */
+
+BGAV_PUBLIC
+int bgav_num_overlay_streams(bgav_t * bgav, int track);
+
+  
 
 /** \ingroup track
  *  \brief Get the name a track
@@ -1452,6 +1478,29 @@ const bgav_metadata_t *
 bgav_get_subtitle_metadata(bgav_t * bgav, int stream);
 
 /** \ingroup streams
+ *  \brief Get the metadata of a text stream
+ *  \param bgav A decoder instance
+ *  \param stream Subtitle stream index (starting with 0)
+ *  \returns The metadata for the stream
+ */
+
+BGAV_PUBLIC
+const bgav_metadata_t *
+bgav_get_text_metadata(bgav_t * b, int stream);
+
+/** \ingroup streams
+ *  \brief Get the metadata of an overlay stream
+ *  \param bgav A decoder instance
+ *  \param stream Subtitle stream index (starting with 0)
+ *  \returns The metadata for the stream
+ */
+
+BGAV_PUBLIC
+const bgav_metadata_t *
+bgav_get_overlay_metadata(bgav_t * b, int stream);
+
+  
+/** \ingroup streams
  *  \brief Get the metadata of a video stream
  *  \param bgav A decoder instance
  *  \param stream Video stream index (starting with 0)
@@ -1595,8 +1644,7 @@ bgav_get_video_packet_source(bgav_t * bgav, int stream);
 
 BGAV_PUBLIC
 gavl_packet_source_t *
-bgav_get_subtitle_packet_source(bgav_t * bgav, int stream);
-
+bgav_get_text_packet_source(bgav_t * bgav, int stream);
   
 /** \ingroup streams
  * \brief Select mode for an audio stream
@@ -1636,6 +1684,32 @@ int bgav_set_video_stream(bgav_t * bgav, int stream, bgav_stream_action_t action
 
 BGAV_PUBLIC
 int bgav_set_subtitle_stream(bgav_t * bgav, int stream, bgav_stream_action_t action);
+
+/** \ingroup streams
+ * \brief Select mode for a text stream
+ * \param bgav A decoder instance
+ * \param stream Stream index (starting with 0)
+ * \param action The stream action.
+ *
+ * Note that the default stream action is BGAV_STREAM_MUTE, which means that
+ * all streams are switched off by default.
+ */
+
+BGAV_PUBLIC
+int bgav_set_text_stream(bgav_t * bgav, int stream, bgav_stream_action_t action);
+
+/** \ingroup streams
+ * \brief Select mode for an overlay stream
+ * \param bgav A decoder instance
+ * \param stream Stream index (starting with 0)
+ * \param action The stream action.
+ *
+ * Note that the default stream action is BGAV_STREAM_MUTE, which means that
+ * all streams are switched off by default.
+ */
+
+BGAV_PUBLIC
+int bgav_set_overlay_stream(bgav_t * bgav, int stream, bgav_stream_action_t action);
 
 /***************************************************
  * Stream handling functions
@@ -2185,6 +2259,32 @@ BGAV_PUBLIC
 int64_t bgav_subtitle_duration(bgav_t * bgav, int stream);
 
 /** \ingroup sampleseek
+ *  \brief Get the text duration
+ *  \param bgav A decoder handle
+ *  \param stream Text stream index (starting with 0)
+ *  \returns Exact duration in stream tics
+ *
+ *  Use this only after \ref bgav_can_seek_sample returned 1.
+ */
+
+BGAV_PUBLIC
+int64_t bgav_text_duration(bgav_t * bgav, int stream);
+
+/** \ingroup sampleseek
+ *  \brief Get the overlay duration
+ *  \param bgav A decoder handle
+ *  \param stream Overlay stream index (starting with 0)
+ *  \returns Exact duration in stream tics
+ *
+ *  Use this only after \ref bgav_can_seek_sample returned 1.
+ */
+
+BGAV_PUBLIC
+int64_t bgav_overlay_duration(bgav_t * bgav, int stream);
+
+
+  
+/** \ingroup sampleseek
  *  \brief Seek to a specific audio sample
  *  \param bgav A decoder handle
  *  \param stream Audio stream index (starting with 0)
@@ -2196,7 +2296,7 @@ int64_t bgav_subtitle_duration(bgav_t * bgav, int stream);
  *  \ref bgav_audio_start_time is <b>not</b> included here.
  *  
  */
-
+  
 BGAV_PUBLIC
 void bgav_seek_audio(bgav_t * bgav, int stream, int64_t sample);
 
@@ -2266,6 +2366,33 @@ int64_t bgav_video_keyframe_after(bgav_t * bgav, int stream, int64_t time);
 BGAV_PUBLIC
 void bgav_seek_subtitle(bgav_t * bgav, int stream, int64_t time);
 
+/** \ingroup sampleseek
+ *  \brief Seek to a specific text position
+ *  \param bgav A decoder handle
+ *  \param stream text stream index (starting with 0)
+ *  \param time Time
+ *
+ *  Use this only after \ref bgav_can_seek_sample returned 1.
+ *  If time is between 2 subtitles, the earlier one will be chosen.
+ */
+  
+BGAV_PUBLIC
+void bgav_seek_text(bgav_t * bgav, int stream, int64_t time);
+
+/** \ingroup sampleseek
+ *  \brief Seek to a specific overlay position
+ *  \param bgav A decoder handle
+ *  \param stream Overlay stream index (starting with 0)
+ *  \param time Time
+ *
+ *  Use this only after \ref bgav_can_seek_sample returned 1.
+ *  If time is between 2 subtitles, the earlier one will be chosen.
+ */
+  
+BGAV_PUBLIC
+void bgav_seek_overlay(bgav_t * bgav, int stream, int64_t time);
+
+  
 /** \defgroup codec Standalone stream decoders
  *
  *  The standalone decoders can be used for the

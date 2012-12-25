@@ -659,9 +659,17 @@ static int open_mxf(bgav_demuxer_context_t * ctx)
     }
   if(ctx->index_mode != INDEX_MODE_NONE)
     {
-    for(i = 0; i < ctx->tt->cur->num_subtitle_streams; i++)
+    for(i = 0; i < ctx->tt->cur->num_text_streams; i++)
       {
-      if(ctx->tt->cur->subtitle_streams[i].index_mode == INDEX_MODE_NONE)
+      if(ctx->tt->cur->text_streams[i].index_mode == INDEX_MODE_NONE)
+        ctx->index_mode = INDEX_MODE_NONE;
+      }
+    }
+  if(ctx->index_mode != INDEX_MODE_NONE)
+    {
+    for(i = 0; i < ctx->tt->cur->num_overlay_streams; i++)
+      {
+      if(ctx->tt->cur->overlay_streams[i].index_mode == INDEX_MODE_NONE)
         ctx->index_mode = INDEX_MODE_NONE;
       }
     }
@@ -707,7 +715,7 @@ static int next_packet_mxf(bgav_demuxer_context_t * ctx)
     if(!s)
       s = next_stream(ctx->tt->cur->video_streams,ctx->tt->cur->num_video_streams);
     if(!s)
-      s = next_stream(ctx->tt->cur->subtitle_streams,ctx->tt->cur->num_subtitle_streams);
+      s = next_stream(ctx->tt->cur->text_streams,ctx->tt->cur->num_text_streams);
     if(!s)
       return 0;
     sp = s->priv;
@@ -722,43 +730,37 @@ static void seek_mxf(bgav_demuxer_context_t * ctx, int64_t time,
   }
 
 #if 1
-static int select_track_mxf(bgav_demuxer_context_t * ctx, int track)
+
+static void reset_streams(bgav_stream_t * streams, int num)
   {
   int j;
   stream_priv_t * sp;
+
+  for(j = 0; j < num; j++)
+    {
+    sp = streams[j].priv;
+    if(sp)
+      {
+      sp->pos = sp->start;
+      sp->eof = 0;
+      sp->pts_counter = 0;
+      }
+    }
+  }
+
+static int select_track_mxf(bgav_demuxer_context_t * ctx, int track)
+  {
   bgav_input_seek(ctx->input, ((partition_t*)(ctx->tt->cur->priv))->start_pos, SEEK_SET);
+
+  reset_streams(ctx->tt->cur->audio_streams,
+                ctx->tt->cur->num_audio_streams);
+  reset_streams(ctx->tt->cur->video_streams,
+                ctx->tt->cur->num_video_streams);
+  reset_streams(ctx->tt->cur->text_streams,
+                ctx->tt->cur->num_text_streams);
+  reset_streams(ctx->tt->cur->overlay_streams,
+                ctx->tt->cur->num_overlay_streams);
   
-  for(j = 0; j < ctx->tt->cur->num_audio_streams; j++)
-    {
-    sp = ctx->tt->cur->audio_streams[j].priv;
-    if(sp)
-      {
-      sp->pos = sp->start;
-      sp->eof = 0;
-      sp->pts_counter = 0;
-      }
-    }
-  for(j = 0; j < ctx->tt->cur->num_video_streams; j++)
-    {
-    sp = ctx->tt->cur->video_streams[j].priv;
-    if(sp)
-      {
-      sp->pos = sp->start;
-      sp->eof = 0;
-      sp->pts_counter = 0;
-      }
-    }
-  /* Not supported yet but well.. */
-  for(j = 0; j < ctx->tt->cur->num_subtitle_streams; j++)
-    {
-    sp = ctx->tt->cur->subtitle_streams[j].priv;
-    if(sp)
-      {
-      sp->pos = sp->start;
-      sp->eof = 0;
-      sp->pts_counter = 0;
-      }
-    }
   return 1;
   }
 #endif
@@ -851,9 +853,13 @@ static int get_source_stream(bgav_track_table_t * tt,
                                          track_id);
       break;
     case BGAV_STREAM_SUBTITLE_TEXT:
+      *stream_index = find_source_stream(tt->tracks[*track_index].text_streams,
+                                         tt->tracks[*track_index].num_text_streams,
+                                         track_id);
+      break;
     case BGAV_STREAM_SUBTITLE_OVERLAY:
-      *stream_index = find_source_stream(tt->tracks[*track_index].subtitle_streams,
-                                         tt->tracks[*track_index].num_subtitle_streams,
+      *stream_index = find_source_stream(tt->tracks[*track_index].overlay_streams,
+                                         tt->tracks[*track_index].num_overlay_streams,
                                          track_id);
       break;
     case BGAV_STREAM_UNKNOWN:
