@@ -74,7 +74,7 @@ typedef struct
   int64_t pts_offset; //!< First timestamp
   } bg_video_info_t;
 
-/** \brief Description of a subtitle stream
+/** \brief Description of a text stream
  *
  *  Unknown fields can be NULL.
  */
@@ -82,10 +82,21 @@ typedef struct
 typedef struct
   {
   gavl_metadata_t m; //!< Metadata
-  int is_text; //!< 1 if subtitles are in text format (0 for overlay subtitles)
+  int timescale;
+  int64_t duration;   //!< Duration in timescale tics
+  } bg_text_info_t;
+
+/** \brief Description of an overlay stream
+ *
+ *  Unknown fields can be NULL.
+ */
+
+typedef struct
+  {
+  gavl_metadata_t m; //!< Metadata
   gavl_video_format_t format; //!< Format of overlay subtitles
   int64_t duration;   //!< Duration in timescale tics
-  } bg_subtitle_info_t;
+  } bg_overlay_info_t;
 
 /** \brief Create trackname from metadata
  *  \param m Metadata
@@ -243,22 +254,22 @@ gavl_chapter_list_t * bg_chapter_list_load(const char * filename);
 
 typedef struct
   {
-  int flags;             //!< 1 if track is seekable (duration must be > 0 then)
-  int64_t duration;      //!< Duration
+  int flags;             //!< BG_TRACK_ flags defined above
+  int64_t duration;      //!< Duration must be > 0 if BG_TRACK_SEEKABLE is set.
   
   int num_audio_streams;   //!< Number of audio streams
   int num_video_streams;   //!< Number of video streams
-  int num_subtitle_streams;//!< Number of subtitle streams
+  int num_text_streams;    //!< Number of text streams
+  int num_overlay_streams; //!< Number of overlay streams
   
   bg_audio_info_t *    audio_streams; //!< Audio streams
   bg_video_info_t *    video_streams; //!< Video streams
-  bg_subtitle_info_t * subtitle_streams; //!< Subtitle streams
-
+  bg_text_info_t *     text_streams; //!< Subtitle streams
+  bg_overlay_info_t *  overlay_streams; //!< Subtitle streams
+  
   gavl_metadata_t metadata; //!< Metadata (optional)
   
-  /* The following are only meaningful for redirectors */
-  
-  char * url; //!< URL (needed if is_redirector field is nonzero)
+  char * url; //!< URL (denotes a redirector)
 
   gavl_chapter_list_t * chapter_list; //!< Chapter list (or NULL)
   

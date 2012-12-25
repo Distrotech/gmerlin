@@ -335,18 +335,16 @@ void bg_edl_append_track_info(bg_edl_t * e, const bg_track_info_t * info,
     seg->track = index;
     seg->stream = i;
     }
-  for(i = 0; i < info->num_subtitle_streams; i++)
+  
+  for(i = 0; i < info->num_text_streams; i++)
     {
-    if(info->subtitle_streams[i].is_text)
-      s = bg_edl_add_subtitle_text_stream(t);
-    else
-      s = bg_edl_add_subtitle_overlay_stream(t);
+    s = bg_edl_add_subtitle_text_stream(t);
     seg = bg_edl_add_segment(s);
-    s->timescale = info->subtitle_streams[i].format.timescale;
+    s->timescale = info->text_streams[i].timescale;
     seg->timescale = s->timescale;
 
-    if(info->subtitle_streams[i].duration)
-      seg->dst_duration = info->subtitle_streams[i].duration;
+    if(info->text_streams[i].duration)
+      seg->dst_duration = info->text_streams[i].duration;
     else
       seg->dst_duration = gavl_time_rescale(GAVL_TIME_SCALE,
                                             s->timescale,
@@ -357,4 +355,25 @@ void bg_edl_append_track_info(bg_edl_t * e, const bg_track_info_t * info,
     seg->track = index;
     seg->stream = i;
     }
+
+  for(i = 0; i < info->num_overlay_streams; i++)
+    {
+    s = bg_edl_add_subtitle_overlay_stream(t);
+    seg = bg_edl_add_segment(s);
+    s->timescale = info->overlay_streams[i].format.timescale;
+    seg->timescale = s->timescale;
+
+    if(info->overlay_streams[i].duration)
+      seg->dst_duration = info->overlay_streams[i].duration;
+    else
+      seg->dst_duration = gavl_time_rescale(GAVL_TIME_SCALE,
+                                            s->timescale,
+                                            info->duration);
+    seg->speed_num = 1;
+    seg->speed_den = 1;
+    seg->url = bg_strdup(NULL, url);
+    seg->track = index;
+    seg->stream = i;
+    }
+
   }

@@ -129,8 +129,10 @@ static void entry_from_track_info(bg_album_common_t * com,
       entry->num_video_streams++;
     }
   
-  entry->num_subtitle_streams = track_info->num_subtitle_streams;
-
+  entry->num_subtitle_streams =
+    track_info->num_text_streams +
+    track_info->num_overlay_streams;
+  
   if(!entry->name || update_name)
     {
     if(entry->name)
@@ -643,8 +645,8 @@ static int open_device(bg_album_t * a)
       else
         new_entry->num_video_streams++;
       }
-    new_entry->num_subtitle_streams =
-      track_info->num_subtitle_streams;
+    new_entry->num_subtitle_streams = track_info->num_text_streams +
+      track_info->num_overlay_streams;
     new_entry->duration = track_info->duration;
 
     bg_album_insert_entries_before(a, new_entry, NULL);
@@ -2381,11 +2383,17 @@ static int refresh_entry(bg_album_t * album,
         plugin->set_video_stream(album->com->load_handle->priv,
                                  i, BG_STREAM_ACTION_DECODE);
       }
-    if(plugin->set_subtitle_stream)
+    if(plugin->set_text_stream)
       {
-      for(i = 0; i < track_info->num_subtitle_streams; i++)
-        plugin->set_subtitle_stream(album->com->load_handle->priv,
-                                    i, BG_STREAM_ACTION_DECODE);
+      for(i = 0; i < track_info->num_text_streams; i++)
+        plugin->set_text_stream(album->com->load_handle->priv,
+                                i, BG_STREAM_ACTION_DECODE);
+      }
+    if(plugin->set_overlay_stream)
+      {
+      for(i = 0; i < track_info->num_overlay_streams; i++)
+        plugin->set_overlay_stream(album->com->load_handle->priv,
+                                   i, BG_STREAM_ACTION_DECODE);
       }
     
     if(plugin->start)

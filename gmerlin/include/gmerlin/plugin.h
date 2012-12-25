@@ -630,15 +630,24 @@ struct bg_input_plugin_s
 
   int (*set_video_stream)(void * priv, int stream, bg_stream_action_t action);
   
-  /** \brief Setup subtitle stream
+  /** \brief Setup text stream
    *  \param priv The handle returned by the create() method
    *  \param stream Stream index starting with 0
    *  \param action What to do with the stream
    *  \returns 1 on success, 0 on failure
    */
 
-  int (*set_subtitle_stream)(void * priv, int stream, bg_stream_action_t action);
-  
+  int (*set_text_stream)(void * priv, int stream, bg_stream_action_t action);
+
+  /** \brief Setup overlay stream
+   *  \param priv The handle returned by the create() method
+   *  \param stream Stream index starting with 0
+   *  \param action What to do with the stream
+   *  \returns 1 on success, 0 on failure
+   */
+
+  int (*set_overlay_stream)(void * priv, int stream, bg_stream_action_t action);
+
   /** \brief Start decoding
    *  \param priv The handle returned by the create() method
    *  \returns 1 on success, 0 on error
@@ -799,6 +808,16 @@ struct bg_input_plugin_s
   int (*read_subtitle_overlay)(void * priv,
                                gavl_overlay_t*ovl, int stream);
 
+  /** \brief Get the overlay source for a stream
+   *  \param priv The handle returned by the create() method
+   *  \param stream Stream index starting with 0
+   *  \returns The overlay source for this stream
+   *
+   *  This is an alternative for \ref read_subtitle_overlay.
+   */
+  
+  gavl_video_source_t * (*get_overlay_source)(void * priv, int stream);
+
   /** \brief Read one text subtitle
    *  \param priv The handle returned by the create() method
    *  \param text Where the text will be copied, the buffer will be realloc()ed.
@@ -822,6 +841,16 @@ struct bg_input_plugin_s
                             int64_t * start_time,
                             int64_t * duration, int stream);
 
+  /** \brief Get the text source for a stream
+   *  \param priv The handle returned by the create() method
+   *  \param stream Stream index starting with 0
+   *  \returns The text source for this stream
+   *
+   *  This is an alternative for \ref read_subtitle_text.
+   */
+  
+  gavl_packet_source_t * (*get_text_source)(void * priv, int stream);
+  
   /** \brief Get the packet source for a text subtitle stream
    *  \param priv The handle returned by the create() method
    *  \param stream Stream index starting with 0
