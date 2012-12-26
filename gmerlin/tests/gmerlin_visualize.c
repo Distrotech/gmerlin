@@ -72,6 +72,9 @@ gavl_time_t track_duration;
 gavl_time_t start_duration = 0;
 gavl_time_t end_duration = 0;
 
+gavl_audio_sink_t * asink = NULL;
+gavl_video_sink_t * vsink = NULL;
+
 static int load_input_file(bg_plugin_registry_t * plugin_reg,
                            bg_plugin_handle_t ** input_handle,
                            bg_input_plugin_t ** input_plugin,
@@ -208,12 +211,13 @@ static int open_encoder(bg_plugin_registry_t * plugin_reg,
     bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Starting %s failed", info->name);
     return 0;
     }
-
-  if((*plugin)->add_audio_stream)
-    (*plugin)->get_audio_format((*handle)->priv, audio_index, audio_format);
-
-  (*plugin)->get_video_format((*handle)->priv, video_index, video_format);
   
+  if((*plugin)->add_audio_stream)
+    asink = (*plugin)->get_audio_sink((*handle)->priv, audio_index);
+  else
+    asink = NULL;
+  
+  vsink = (*plugin)->get_video_sink((*handle)->priv, video_index);
   return 1;
   }
 
@@ -352,8 +356,6 @@ static void iteration(gavl_audio_frame_t * frame)
   {
   float percentage;
   bg_visualization_plugin_t * vis_plugin;
-  bg_encoder_plugin_t * enc_plugin = (bg_encoder_plugin_t*)enc_handle->plugin;
-  
   vis_plugin = (bg_visualization_plugin_t*)vis_handle->plugin;
   
   /* Update visualization */
@@ -376,11 +378,11 @@ static void iteration(gavl_audio_frame_t * frame)
     if(convert_audio_e)
       {
       gavl_audio_convert(audio_cnv_e, frame, aframe_e);
-      enc_plugin->write_audio_frame(enc_handle->priv, aframe_e, audio_index);
+      gavl_audio_sink_put_frame(asink, aframe_e);
       }
     else
       {
-      enc_plugin->write_audio_frame(enc_handle->priv, frame, audio_index);
+      gavl_audio_sink_put_frame(asink, frame);
       }
     }
   
@@ -396,13 +398,13 @@ static void iteration(gavl_audio_frame_t * frame)
       gavl_video_convert(video_cnv_e, vframe_v, vframe_e);
       vframe_e->timestamp = next_frame_time;
       vframe_e->duration = vfmt_e.frame_duration;
-      enc_plugin->write_video_frame(enc_handle->priv, vframe_e, video_index);
+      gavl_video_sink_put_frame(vsink, vframe_e);
       }
     else
       {
       vframe_v->timestamp = next_frame_time;
       vframe_v->duration = vfmt_v.frame_duration;
-      enc_plugin->write_video_frame(enc_handle->priv, vframe_v, video_index);
+      gavl_video_sink_put_frame(vsink, vframe_v);
       }
     next_frame_time += vfmt_e.frame_duration;
     }

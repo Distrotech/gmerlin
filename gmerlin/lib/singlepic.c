@@ -830,6 +830,7 @@ typedef struct
   const gavl_compression_info_t * ci;
 
   gavl_video_sink_t * sink;
+  gavl_packet_sink_t * psink;
   
   } encoder_t;
 
@@ -977,12 +978,31 @@ write_video_func_encoder(void * data, gavl_video_frame_t * frame)
   return ret ? GAVL_SINK_OK : GAVL_SINK_ERROR;
   }
 
-static int
-write_video_frame_encoder(void * data, gavl_video_frame_t * frame,
-                          int stream)
+static gavl_sink_status_t write_packet_encoder(void * data, gavl_packet_t * packet)
   {
+  FILE * out;
   encoder_t * e = data;
-  return (gavl_video_sink_put_frame(e->sink, frame) == GAVL_SINK_OK);
+  sprintf(e->filename_buffer, e->mask, e->frame_counter);
+
+  if(!bg_encoder_cb_create_output_file(e->cb, e->filename_buffer))
+    return GAVL_SINK_ERROR;
+  out = fopen(e->filename_buffer, "wb");
+  if(!out)
+    {
+    bg_log(BG_LOG_ERROR, LOG_DOMAIN_ENC, "Cannot open file %s: %s",
+           e->filename_buffer, strerror(errno));
+    return GAVL_SINK_ERROR;
+    }
+  
+  if(fwrite(packet->data, 1, packet->data_len, out) < packet->data_len)
+    {
+    bg_log(BG_LOG_ERROR, LOG_DOMAIN_ENC, "Couldn't write data to %s: %s",
+           e->filename_buffer, strerror(errno));
+    return GAVL_SINK_ERROR;
+    }
+  fclose(out);
+  e->frame_counter++;
+  return GAVL_SINK_OK;
   }
 
 static int start_encoder(void * data)
@@ -992,6 +1012,9 @@ static int start_encoder(void * data)
   if(e->have_header)
     e->sink = gavl_video_sink_create(NULL, write_video_func_encoder,
                                      e, &e->format);
+  else if(e->ci)
+    e->psink = gavl_packet_sink_create(NULL, write_packet_encoder,
+                                       e);
   
   return (e->have_header || e->ci) ? 1 : 0;
   }
@@ -1000,6 +1023,12 @@ static gavl_video_sink_t * get_video_sink_encoder(void * priv, int stream)
   {
   encoder_t * e = priv;
   return e->sink;
+  }
+
+static gavl_packet_sink_t * get_packet_sink_encoder(void * priv, int stream)
+  {
+  encoder_t * e = priv;
+  return e->psink;
   }
 
 static int writes_compressed_video(void * priv,
@@ -1047,40 +1076,6 @@ add_video_stream_compressed_encoder(void * data,
   return 0;
   }
 
-static void get_video_format_encoder(void * data, int stream,
-                                     gavl_video_format_t * format)
-  {
-  encoder_t * e = data;
-  gavl_video_format_copy(format, &e->format);
-  }
-
-static int write_video_packet_encoder(void * data, gavl_packet_t * packet,
-                                      int stream)
-  {
-  FILE * out;
-  encoder_t * e = data;
-  sprintf(e->filename_buffer, e->mask, e->frame_counter);
-
-  if(!bg_encoder_cb_create_output_file(e->cb, e->filename_buffer))
-    return 0;
-  out = fopen(e->filename_buffer, "wb");
-  if(!out)
-    {
-    bg_log(BG_LOG_ERROR, LOG_DOMAIN_ENC, "Cannot open file %s: %s",
-           e->filename_buffer, strerror(errno));
-    return 0;
-    }
-  
-  if(fwrite(packet->data, 1, packet->data_len, out) < packet->data_len)
-    {
-    bg_log(BG_LOG_ERROR, LOG_DOMAIN_ENC, "Couldn't write data to %s: %s",
-           e->filename_buffer, strerror(errno));
-    return 0;
-    }
-  fclose(out);
-  e->frame_counter++;
-  return 1;
-  }
 
 #define STR_FREE(s) if(s){free(s);s=NULL;}
 
@@ -1168,14 +1163,13 @@ const bg_encoder_plugin_t encoder_plugin =
     .add_video_stream =  add_video_stream_encoder,
     .add_video_stream_compressed =  add_video_stream_compressed_encoder,
     
-    .get_video_format =  get_video_format_encoder,
-
     .start =             start_encoder,
 
     .get_video_sink =    get_video_sink_encoder,
+    .get_video_packet_sink =    get_packet_sink_encoder,
     
-    .write_video_frame = write_video_frame_encoder,
-    .write_video_packet = write_video_packet_encoder,
+    //    .write_video_frame = write_video_frame_encoder,
+    //    .write_video_packet = write_video_packet_encoder,
     
     
     /* Close it */

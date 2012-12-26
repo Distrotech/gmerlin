@@ -47,6 +47,9 @@ typedef struct
   bg_plugin_handle_t * enc_handle;
   bg_encoder_plugin_t * enc_plugin;
 
+  gavl_packet_sink_t * sink_int;
+  gavl_video_sink_t * sink_ext;
+  
   } ovl2text_t;
 
 void * bg_ovl2text_create(bg_plugin_registry_t * plugin_reg)
@@ -99,40 +102,53 @@ add_subtitle_overlay_stream_ovl2text(void * priv,
   return 0;
   }
 
-static int start_ovl2text(void * priv)
+static gavl_sink_status_t
+write_ovl2text(void * priv, gavl_overlay_t * ovl)
   {
-  ovl2text_t * e = priv;
-  if(e->enc_plugin->start && !e->enc_plugin->start(e->enc_handle->priv))
-    return 0;
-  return 1;
-  }
-
-static void get_subtitle_overlay_format_ovl2text(void * priv, int stream,
-                                               gavl_video_format_t*ret)
-  {
-  ovl2text_t * e = priv;
-  gavl_video_format_copy(ret, &e->format);
-  }
-
-static int write_subtitle_overlay_ovl2text(void * priv, gavl_overlay_t * ovl, int stream)
-  {
-  int ret = 0;
   char * str = NULL;
   ovl2text_t * e = priv;
   
   bg_ocr_run(e->ocr, &e->format, ovl, &str);
   
   if(str)
-    ret = e->enc_plugin->write_subtitle_text(e->enc_handle->priv,
-                                             str, ovl->timestamp,
-                                             ovl->duration, stream);
-  return ret;
+    {
+    gavl_packet_t p;
+    gavl_packet_init(&p);
+    p.data_len = strlen(str);
+    p.data = (uint8_t *)str;
+    p.pts = ovl->timestamp;
+    p.duration = ovl->duration;
+    return gavl_packet_sink_put_packet(e->sink_int, &p);
+    }
+  return GAVL_SINK_ERROR;
+  }
+
+static int start_ovl2text(void * priv)
+  {
+  ovl2text_t * e = priv;
+  if(e->enc_plugin->start && !e->enc_plugin->start(e->enc_handle->priv))
+    return 0;
+  e->sink_int = e->enc_plugin->get_subtitle_text_sink(e->enc_handle->priv, 0);
+  e->sink_ext = gavl_video_sink_create(NULL, write_ovl2text, e, &e->format);
+  return 1;
+  }
+
+static gavl_video_sink_t * get_sink_ovl2text(void * priv, int stream)
+  {
+  ovl2text_t * e = priv;
+  return e->sink_ext;
   }
 
 static int close_ovl2text(void * priv, int do_delete)
   {
   ovl2text_t * e = priv;
   e->enc_plugin->close(e->enc_handle->priv, do_delete);
+
+  if(e->sink_ext)
+    {
+    gavl_video_sink_destroy(e->sink_ext);
+    e->sink_ext = NULL;
+    }
   return 1;
   }
 
@@ -250,9 +266,8 @@ static const bg_encoder_plugin_t the_plugin =
     
     .start =                start_ovl2text,
 
-    .get_subtitle_overlay_format = get_subtitle_overlay_format_ovl2text,
-    
-    .write_subtitle_overlay = write_subtitle_overlay_ovl2text,
+    .get_subtitle_overlay_sink = get_sink_ovl2text,
+
     .close =             close_ovl2text,
   };
 

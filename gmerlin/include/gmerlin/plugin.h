@@ -1747,7 +1747,7 @@ struct bg_encoder_plugin_s
    *  Call this after calling \ref start() if it's defined.
    */
   
-  void (*get_audio_format)(void * priv, int stream, gavl_audio_format_t*ret);
+  //  void (*get_audio_format)(void * priv, int stream, gavl_audio_format_t*ret);
 
   /** \brief Get video format
    *  \param priv The handle returned by the create() method
@@ -1757,7 +1757,7 @@ struct bg_encoder_plugin_s
    *  Call this after calling \ref start() if it's defined.
    */
 
-  void (*get_video_format)(void * priv, int stream, gavl_video_format_t*ret);
+  //  void (*get_video_format)(void * priv, int stream, gavl_video_format_t*ret);
 
   /** \brief Get video format of an overlay subtitle stream
    *  \param priv The handle returned by the create() method
@@ -1767,8 +1767,8 @@ struct bg_encoder_plugin_s
    *  Call this after calling \ref start() if it's defined.
    */
 
-  void (*get_subtitle_overlay_format)(void * priv, int stream,
-                                      gavl_video_format_t*ret);
+  //  void (*get_subtitle_overlay_format)(void * priv, int stream,
+  //                                      gavl_video_format_t*ret);
 
   /*
    *  Encode audio/video
@@ -1784,7 +1784,7 @@ struct bg_encoder_plugin_s
    *  the frame.
    */
   
-  int (*write_audio_frame)(void * data, gavl_audio_frame_t * frame, int stream);
+  //  int (*write_audio_frame)(void * data, gavl_audio_frame_t * frame, int stream);
 
   /** \brief Write audio packet
    *  \param priv The handle returned by the create() method
@@ -1796,7 +1796,7 @@ struct bg_encoder_plugin_s
    *  the packet.
    */
   
-  int (*write_audio_packet)(void * data, gavl_packet_t * packet, int stream);
+  //  int (*write_audio_packet)(void * data, gavl_packet_t * packet, int stream);
 
   
   /** \brief Write video frame
@@ -1806,7 +1806,7 @@ struct bg_encoder_plugin_s
    *  \returns 1 is the data was successfully written, 0 else
    */
 
-  int (*write_video_frame)(void * data, gavl_video_frame_t * frame, int stream);
+  //  int (*write_video_frame)(void * data, gavl_video_frame_t * frame, int stream);
 
   /** \brief Write video packet
    *  \param priv The handle returned by the create() method
@@ -1815,7 +1815,7 @@ struct bg_encoder_plugin_s
    *  \returns 1 is the data was successfully written, 0 else
    */
   
-  int (*write_video_packet)(void * data, gavl_packet_t * packet, int stream);
+  //  int (*write_video_packet)(void * data, gavl_packet_t * packet, int stream);
   
   /** \brief Write a text subtitle
    *  \param priv The handle returned by the create() method
@@ -1826,9 +1826,9 @@ struct bg_encoder_plugin_s
    *  \returns 1 is the data was successfully written, 0 else
    */
   
-  int (*write_subtitle_text)(void * data,const char * text,
-                             int64_t start,
-                             int64_t duration, int stream);
+  //  int (*write_subtitle_text)(void * data,const char * text,
+  //                             int64_t start,
+  //                             int64_t duration, int stream);
   
   /** \brief Write an overlay subtitle
    *  \param priv The handle returned by the create() method
@@ -1837,7 +1837,7 @@ struct bg_encoder_plugin_s
    *  \returns 1 is the data was successfully written, 0 else
    */
   
-  int (*write_subtitle_overlay)(void * data, gavl_overlay_t * ovl, int stream);
+  //  int (*write_subtitle_overlay)(void * data, gavl_overlay_t * ovl, int stream);
 
   /** \brief Get audio sink
    *  \param priv The handle returned by the create() method
@@ -1873,6 +1873,13 @@ struct bg_encoder_plugin_s
    */
   
   gavl_packet_sink_t * (*get_subtitle_text_sink)(void * priv, int stream);
+  
+  /** \brief Get overlay subtitle sink
+   *  \param priv The handle returned by the create() method
+   *  \returns The video sink for this stream
+   */
+  
+  gavl_video_sink_t * (*get_subtitle_overlay_sink)(void * priv, int stream);
   
   /** \brief Update metadata
    *  \param priv The handle returned by the create() method

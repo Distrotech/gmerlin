@@ -430,20 +430,6 @@ add_video_stream_compressed_lqt(void * data,
   return vs->index;
   }
 
-static void get_audio_format_lqt(void * data, int stream,
-                                 gavl_audio_format_t * ret)
-  {
-  e_lqt_t * e = data;
-  gavl_audio_format_copy(ret, &e->audio_streams[stream].format);
-  }
-  
-static void get_video_format_lqt(void * data, int stream,
-                                 gavl_video_format_t * ret)
-  {
-  e_lqt_t * e = data;
-  gavl_video_format_copy(ret, &e->video_streams[stream].format);
-  }
-
 static gavl_video_sink_t * get_video_sink_lqt(void * data, int stream)
   {
   e_lqt_t * e = data;
@@ -851,58 +837,6 @@ static void create_parameters(e_lqt_t * e)
   
   }
 
-static int write_audio_frame_lqt(void * data,
-                                 gavl_audio_frame_t * frame, int stream)
-  {
-  e_lqt_t * e = data;
-  return (gavl_audio_sink_put_frame(e->audio_streams[stream].sink,
-                                    frame) == GAVL_SINK_OK);
-  }
-
-
-static int write_video_frame_lqt(void * data,
-                                 gavl_video_frame_t * frame, int stream)
-  {
-  e_lqt_t * e = data;
-  return (gavl_video_sink_put_frame(e->video_streams[stream].sink,
-                                    frame) == GAVL_SINK_OK);
-  }
-
-static int write_audio_packet_lqt(void * data, gavl_packet_t * p, int stream)
-  {
-  e_lqt_t * e = data;
-  return (gavl_packet_sink_put_packet(e->audio_streams[stream].psink,
-                                      p) == GAVL_SINK_OK);
-  }
-
-static int write_video_packet_lqt(void * data, gavl_packet_t * p, int stream)
-  {
-  e_lqt_t * e = data;
-  return (gavl_packet_sink_put_packet(e->video_streams[stream].psink,
-                                      p) == GAVL_SINK_OK);
-  }
-
-static int write_subtitle_text_lqt(void * data,const char * text,
-                                   int64_t start,
-                                   int64_t duration, int stream)
-  {
-  int ret;
-  gavl_packet_t p;
-  e_lqt_t * e = data;
-  int len = strlen(text);
-  gavl_packet_init(&p);
-  p.pts = start;
-  p.duration = duration;
-
-  gavl_packet_alloc(&p, len);
-  memcpy(p.data, text, len);
-  ret =
-    (gavl_packet_sink_put_packet(e->subtitle_text_streams[stream].psink,
-                                 &p) == GAVL_SINK_OK);
-  gavl_packet_free(&p);
-  return ret;
-  }
-
 static const bg_parameter_info_t common_parameters[] =
   {
     {
@@ -1213,25 +1147,13 @@ like H.264/AVC, AAC, MP3, Divx compatible etc. Also supported are chapters and t
     .set_video_parameter =          set_video_parameter_lqt,
     .set_subtitle_text_parameter =  set_subtitle_text_parameter_lqt,
     
-    .get_audio_format =     get_audio_format_lqt,
-    .get_video_format =     get_video_format_lqt,
-
     .get_audio_sink =     get_audio_sink_lqt,
     .get_video_sink =     get_video_sink_lqt,
 
     .get_audio_packet_sink =     get_audio_packet_sink_lqt,
     .get_video_packet_sink =     get_video_packet_sink_lqt,
     .get_subtitle_text_sink =     get_text_sink_lqt,
-    
     .start =                start_lqt,
-    
-    .write_audio_frame =    write_audio_frame_lqt,
-    .write_video_frame =    write_video_frame_lqt,
-
-    .write_audio_packet = write_audio_packet_lqt,
-    .write_video_packet = write_video_packet_lqt,
-    
-    .write_subtitle_text =  write_subtitle_text_lqt,
     .close =                close_lqt,
   };
 

@@ -47,6 +47,8 @@ typedef struct
   
   bg_encoder_callbacks_t * cb;
 
+  gavl_packet_sink_t * sink;
+  
   } subtext_t;
 
 static void write_time_srt(FILE * output, gavl_time_t time)
@@ -64,13 +66,12 @@ static void write_time_srt(FILE * output, gavl_time_t time)
   fprintf(output, "%02d:%02d:%02d,%03d", h, m, sec, msec);
   }
 
-static void write_subtitle_srt(subtext_t * s, const char * text,
-                               gavl_time_t time, gavl_time_t duration)
+static void write_subtitle_srt(subtext_t * s, gavl_packet_t * p)
   {
   int i;
   char ** lines;
 
-  if(!text || (*text == '\0'))
+  if(!p->data_len)
     {
     bg_log(BG_LOG_WARNING, LOG_DOMAIN, "Ignoring empty subtitle");
     return;
@@ -81,12 +82,12 @@ static void write_subtitle_srt(subtext_t * s, const char * text,
   fprintf(s->output, "%d\r\n", s->titles_written + 1);
   
   /* Time */
-  write_time_srt(s->output, time);
+  write_time_srt(s->output, p->pts);
   fprintf(s->output, " --> ");
-  write_time_srt(s->output, time+duration);
+  write_time_srt(s->output, p->pts+p->duration);
   fprintf(s->output, "\r\n");
   
-  lines = bg_strbreak(text, '\n');
+  lines = bg_strbreak((char*)p->data, '\n');
   i = 0;
   while(lines[i])
     {
@@ -122,29 +123,27 @@ static void write_header_mpsub(subtext_t * s)
   fprintf(s->output, "FORMAT=TIME\n\n");
   }
 
-static void write_subtitle_mpsub(subtext_t * s, const char * text,
-                                 gavl_time_t time, gavl_time_t duration)
+static void write_subtitle_mpsub(subtext_t * s, gavl_packet_t * p)
   {
   if(s->last_time != GAVL_TIME_UNDEFINED)
     {
     fprintf(s->output, "%.3f %.3f\n",
-            gavl_time_to_seconds(time - (s->last_time + s->last_duration)),
-            gavl_time_to_seconds(duration));
+            gavl_time_to_seconds(p->pts - (s->last_time + s->last_duration)),
+            gavl_time_to_seconds(p->duration));
     }
   else
     fprintf(s->output, "%.3f %.3f\n",
-            gavl_time_to_seconds(time),
-            gavl_time_to_seconds(duration));
+            gavl_time_to_seconds(p->pts),
+            gavl_time_to_seconds(p->duration));
   
-  fprintf(s->output, "%s\n\n", text);
+  fprintf(s->output, "%s\n\n", (char*)p->data);
   }
 
 static const struct
   {
   const char * extension;
   const char * name;
-  void (*write_subtitle)(subtext_t * s, const char * text,
-                         gavl_time_t time, gavl_time_t duration);
+  void (*write_subtitle)(subtext_t * s, gavl_packet_t * p);
   void (*write_header)(subtext_t * s);
   }
 formats[] =
@@ -208,6 +207,18 @@ static int add_subtitle_text_stream_subtext(void * data,
   return 0;
   }
 
+static gavl_sink_status_t write_subtitle_text_subtext(void * data, gavl_packet_t * p)
+  {
+  subtext_t * e;
+  e = data;
+  formats[e->format_index].write_subtitle(e, p);
+  e->titles_written++;
+  e->last_time     = p->pts;
+  e->last_duration = p->duration;
+  
+  return 1;
+  }
+
 static int start_subtext(void * data)
   {
   subtext_t * e;
@@ -215,23 +226,15 @@ static int start_subtext(void * data)
   
   if(formats[e->format_index].write_header)
     formats[e->format_index].write_header(e);
-  
+  e->sink = gavl_packet_sink_create(NULL, write_subtitle_text_subtext, e);
   return 1;
   }
 
-static int write_subtitle_text_subtext(void * data, const char * text,
-                                       gavl_time_t start,
-                                       gavl_time_t duration, int stream)
+static gavl_packet_sink_t * get_sink_subtext(void * data, int stream)
   {
   subtext_t * e;
   e = data;
-  formats[e->format_index].write_subtitle(e, text, start, duration);
-  e->titles_written++;
-
-  e->last_time     = start;
-  e->last_duration = duration;
-  
-  return 1;
+  return e->sink;
   }
 
 static int close_subtext(void * data, int do_delete)
@@ -326,8 +329,8 @@ const bg_encoder_plugin_t the_plugin =
     .add_subtitle_text_stream =     add_subtitle_text_stream_subtext,
     
     .start =                start_subtext,
+    .get_subtitle_text_sink = get_sink_subtext,
     
-    .write_subtitle_text = write_subtitle_text_subtext,
     .close =             close_subtext,
     
   };

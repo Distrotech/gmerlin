@@ -48,7 +48,8 @@ typedef struct
   gavl_metadata_t metadata;
 
   bg_encoder_callbacks_t * cb;
-  
+
+  gavl_video_sink_t * sink;
   } spumux_t;
 
 static void * create_spumux()
@@ -107,18 +108,6 @@ add_subtitle_overlay_stream_spumux(void * priv,
   return 1;
   }
 
-static int start_spumux(void * priv)
-  {
-  return 1;
-  }
-
-static void get_subtitle_overlay_format_spumux(void * priv, int stream,
-                                               gavl_video_format_t*ret)
-  {
-  spumux_t * spumux = priv;
-  gavl_video_format_copy(ret, (&spumux->format));
-  }
-
 static void print_time(FILE * out, gavl_time_t time, gavl_video_format_t * format)
   {
   int h, m, s, f;
@@ -133,7 +122,8 @@ static void print_time(FILE * out, gavl_time_t time, gavl_video_format_t * forma
   fprintf(out, "%02d:%02d:%02d.%02d", h, m, s, f);
   }
 
-static int write_subtitle_overlay_spumux(void * priv, gavl_overlay_t * ovl, int stream)
+static gavl_sink_status_t
+write_subtitle_overlay_spumux(void * priv, gavl_overlay_t * ovl)
   {
   char * image_filename;
   spumux_t * spumux = priv;
@@ -152,15 +142,15 @@ static int write_subtitle_overlay_spumux(void * priv, gavl_overlay_t * ovl, int 
   if(!bg_encoder_cb_create_output_file(spumux->cb, image_filename))
     {
     free(image_filename);
-    return 0;
+    return GAVL_SINK_ERROR;
     }
   
   if(!bg_pngwriter_write_header(priv, image_filename, NULL,
                                 &tmp_format, &spumux->metadata))
-    return 0;
+    return GAVL_SINK_ERROR;
   
   if(!bg_pngwriter_write_image(priv, spumux->subframe))
-    return 0;
+    return GAVL_SINK_ERROR;
   
   fprintf(spumux->xml_file, "    <spu start=\"");
   print_time(spumux->xml_file, ovl->timestamp, &spumux->format);
@@ -173,7 +163,20 @@ static int write_subtitle_overlay_spumux(void * priv, gavl_overlay_t * ovl, int 
   free(image_filename);
     
   spumux->subtitles_written++;
+  return GAVL_SINK_OK;
+  }
+
+static int start_spumux(void * priv)
+  {
+  spumux_t * spumux = priv;
+  spumux->sink = gavl_video_sink_create(NULL, write_subtitle_overlay_spumux, spumux, &spumux->format);
   return 1;
+  }
+
+static gavl_video_sink_t * get_sink_spumux(void * priv, int stream)
+  {
+  spumux_t * spumux = priv;
+  return spumux->sink;
   }
 
 static int close_spumux(void * priv, int do_delete)
@@ -195,6 +198,12 @@ static int close_spumux(void * priv, int do_delete)
       free(image_filename);
       }
     remove(spumux->filename);
+    }
+
+  if(spumux->sink)
+    {
+    gavl_video_sink_destroy(spumux->sink);
+    spumux->sink = NULL;
     }
   return 1;
   }
@@ -265,9 +274,11 @@ const bg_encoder_plugin_t the_plugin =
     
     .start =                start_spumux,
 
-    .get_subtitle_overlay_format = get_subtitle_overlay_format_spumux,
+    .get_subtitle_overlay_sink = get_sink_spumux,
     
-    .write_subtitle_overlay = write_subtitle_overlay_spumux,
+    // .get_subtitle_overlay_format = get_subtitle_overlay_format_spumux,
+    
+    // .write_subtitle_overlay = write_subtitle_overlay_spumux,
     .close =             close_spumux,
   };
 

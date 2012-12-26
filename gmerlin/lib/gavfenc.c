@@ -524,7 +524,7 @@ static int bg_gavf_start(void * data)
   }
 
 /* LEGACY */
-
+#if 0
 static void
 bg_gavf_get_audio_format(void * data, int stream,
                          gavl_audio_format_t*ret)
@@ -587,6 +587,7 @@ bg_gavf_write_subtitle_text(void * data, const char * text,
   gavl_packet_free(&p);
   return ret;
   }
+#endif
 
 static void free_stream_common(stream_common_t * s)
   {
@@ -633,6 +634,7 @@ bg_gavf_close(void * data, int do_delete)
   return 1;
   }
 
+#if 0
 /* LEGACY */
 static int
 bg_gavf_write_audio_packet(void * data, gavl_packet_t * packet,
@@ -652,6 +654,7 @@ bg_gavf_write_video_packet(void * data, gavl_packet_t * packet,
   return gavl_packet_sink_put_packet(f->video_streams[stream].com.psink,
                                      packet) == GAVL_SINK_OK;
   }
+#endif
 
 static gavl_audio_sink_t * bg_gavf_get_audio_sink(void * data, int stream)
   {
@@ -729,8 +732,8 @@ const bg_encoder_plugin_t the_plugin =
     .set_audio_parameter =  bg_gavf_set_audio_parameter,
     .set_video_parameter =  bg_gavf_set_video_parameter,
     
-    .get_audio_format =     bg_gavf_get_audio_format,
-    .get_video_format =     bg_gavf_get_video_format,
+    //    .get_audio_format =     bg_gavf_get_audio_format,
+    //    .get_video_format =     bg_gavf_get_video_format,
 
     .start =                bg_gavf_start,
 
@@ -740,12 +743,12 @@ const bg_encoder_plugin_t the_plugin =
     .get_video_packet_sink = bg_gavf_get_video_packet_sink,
     .get_subtitle_text_sink = bg_gavf_get_text_sink,
     
-    .write_audio_frame =    bg_gavf_write_audio_frame,
-    .write_video_frame =    bg_gavf_write_video_frame,
-    .write_subtitle_text =    bg_gavf_write_subtitle_text,
+    //    .write_audio_frame =    bg_gavf_write_audio_frame,
+    //    .write_video_frame =    bg_gavf_write_video_frame,
+    //    .write_subtitle_text =    bg_gavf_write_subtitle_text,
 
-    .write_audio_packet =    bg_gavf_write_audio_packet,
-    .write_video_packet =    bg_gavf_write_video_packet,
+    //    .write_audio_packet =    bg_gavf_write_audio_packet,
+    //    .write_video_packet =    bg_gavf_write_video_packet,
 
     .close =                bg_gavf_close,
   };

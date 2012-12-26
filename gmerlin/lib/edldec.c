@@ -693,12 +693,12 @@ static void cleanup_source_common(source_common_t * com)
     bg_plugin_unref(com->handle);
   }
 
-static int has_subtitle_edl(void * priv, int stream)
-  {
+// static int has_subtitle_edl(void * priv, int stream)
+//  {
   //  edl_dec_t * dec;
   //  dec = (edl_dec_t*)priv;
-  return 1;
-  }
+//  return 1;
+//  }
 
 /* Read one audio frame. Frames might be incomplete at segment boundaries */
 
@@ -1100,7 +1100,7 @@ static int start_overlay(overlay_stream_t * s, edl_dec_t * dec, bg_overlay_info_
   /* Initialize first segment */
   s->com.current_segment = 0;
   init_overlay_segment(s);
-  
+  return 1;
   }
 
 static int start_edl(void * priv)

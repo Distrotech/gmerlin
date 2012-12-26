@@ -528,13 +528,6 @@ static gavl_sink_status_t write_func_wav(void * data, gavl_audio_frame_t * frame
   return GAVL_SINK_OK;
   }
 
-static void get_audio_format_wav(void * data, int stream,
-                                 gavl_audio_format_t * ret)
-  {
-  wav_t * wav;
-  wav = data;
-  gavl_audio_format_copy(ret, &wav->format);
-  }
 
 static int start_wav(void * data)
   {
@@ -644,12 +637,6 @@ static int close_wav(void * data, int do_delete)
   return ret;
   }
 
-static int write_audio_frame_wav(void * data, gavl_audio_frame_t * frame, int stream)
-  {
-  wav_t * wav = data;
-  return (gavl_audio_sink_put_frame(wav->sink, frame) == GAVL_SINK_OK);
-  }
-
 static gavl_audio_sink_t * get_audio_sink_wav(void * data, int stream)
   {
   wav_t * wav = data;
@@ -685,11 +672,9 @@ const bg_encoder_plugin_t the_plugin =
     
     .set_audio_parameter =     set_audio_parameter_wav,
 
-    .get_audio_format =        get_audio_format_wav,
     .get_audio_sink =          get_audio_sink_wav,
 
     .start =               start_wav,
-    .write_audio_frame =   write_audio_frame_wav,
     .close =               close_wav
   };
 
