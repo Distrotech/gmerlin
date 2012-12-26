@@ -795,7 +795,6 @@ const bg_input_plugin_t the_plugin =
     /* Set streams */
     .set_audio_stream =      set_audio_stream_cdaudio,
     .set_video_stream =      NULL,
-    .set_subtitle_stream =   NULL,
 
     /*
      *  Start decoding.

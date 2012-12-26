@@ -277,6 +277,9 @@ struct bg_text_renderer_s
   int default_width, default_height;
   gavl_pixelformat_t default_csp;
   float default_framerate;
+
+  gavl_packet_source_t * psrc;
+  gavl_video_source_t * vsrc;
   };
 
 static void adjust_bbox(cache_entry_t * glyph, int dst_x, int dst_y, bbox_t * ret)
@@ -1154,6 +1157,10 @@ void bg_text_renderer_destroy(bg_text_renderer_t * r)
   
   FT_Done_FreeType(r->library);
   pthread_mutex_destroy(&r->config_mutex);
+
+  if(r->vsrc)
+    gavl_video_source_destroy(r->vsrc);
+
   free(r);
   }
 
@@ -1825,3 +1832,37 @@ void bg_text_renderer_render(bg_text_renderer_t * r, const char * string,
   pthread_mutex_unlock(&r->config_mutex);
   }
 
+static gavl_source_status_t read_video(void * priv, gavl_video_frame_t ** frame)
+  {
+  gavl_packet_t * p = NULL;
+  gavl_source_status_t st;
+  bg_text_renderer_t * r = priv;
+  
+  if((st = gavl_packet_source_read_packet(r->psrc, &p) != GAVL_SOURCE_OK))
+    return st;
+
+  bg_text_renderer_render(r, (char*)p->data, // Assume the text is properly zero padded
+                          *frame);
+  (*frame)->timestamp = p->pts;
+  (*frame)->duration = p->duration;
+  return GAVL_SOURCE_OK;
+  }
+
+gavl_video_source_t * bg_text_renderer_connect(bg_text_renderer_t * r,
+                                               gavl_packet_source_t * src,
+                                               const gavl_video_format_t * frame_format,
+                                               int timescale)
+  {
+  gavl_video_format_t overlay_format;
+  r->psrc = src;
+
+  memset(&overlay_format, 0, sizeof(overlay_format));
+  
+  bg_text_renderer_init(r, frame_format, &overlay_format);
+
+  if(r->vsrc)
+    gavl_video_source_destroy(r->vsrc);
+  
+  r->vsrc = gavl_video_source_create(read_video, r, 0, &overlay_format);
+  return r->vsrc;
+  }

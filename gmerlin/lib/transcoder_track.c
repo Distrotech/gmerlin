@@ -135,14 +135,14 @@ static void create_sections(bg_transcoder_track_t * t,
 
       in_index = t->subtitle_text_streams[i].in_index;
 
-      tag = gavl_metadata_get(&track_info->subtitle_streams[i].m,
+      tag = gavl_metadata_get(&track_info->text_streams[in_index].m,
                               GAVL_META_LANGUAGE);
-            
+      
       if(tag)
         bg_cfg_section_set_parameter_string(t->subtitle_text_streams[i].general_section,
                                             "in_language",
                                             tag);
-      gavl_metadata_copy(&t->subtitle_text_streams[i].m, &track_info->subtitle_streams[i].m);
+      gavl_metadata_copy(&t->subtitle_text_streams[i].m, &track_info->text_streams[in_index].m);
       }
     }
 
@@ -155,13 +155,13 @@ static void create_sections(bg_transcoder_track_t * t,
       t->subtitle_overlay_streams[i].general_section = bg_cfg_section_copy(general_section);
       in_index = t->subtitle_overlay_streams[i].in_index;
 
-      tag = gavl_metadata_get(&track_info->subtitle_streams[in_index].m,
+      tag = gavl_metadata_get(&track_info->overlay_streams[in_index].m,
                               GAVL_META_LANGUAGE);
       
       if(tag)
         bg_cfg_section_set_parameter_string(t->subtitle_overlay_streams[i].general_section,
                                             "in_language", tag);
-      gavl_metadata_copy(&t->subtitle_overlay_streams[i].m, &track_info->subtitle_streams[in_index].m);
+      gavl_metadata_copy(&t->subtitle_overlay_streams[i].m, &track_info->overlay_streams[in_index].m);
       }
     }
   
@@ -565,7 +565,6 @@ static void set_track(bg_transcoder_track_t * track,
                       bg_plugin_registry_t * plugin_reg)
   {
   int i;
-  int subtitle_text_index, subtitle_overlay_index;
   const bg_input_plugin_t * input;
   input = (bg_input_plugin_t *)input_plugin->plugin;
   
@@ -680,59 +679,40 @@ static void set_track(bg_transcoder_track_t * track,
     }
 
   /* Subtitle streams */
-  
-  if(track_info->num_subtitle_streams)
-    {
-    for(i = 0; i < track_info->num_subtitle_streams; i++)
-      {
-      if(track_info->subtitle_streams[i].is_text)
-        track->num_subtitle_text_streams++;
-      else
-        track->num_subtitle_overlay_streams++;
-      }
 
-    if(track->num_subtitle_text_streams)
-      track->subtitle_text_streams =
-        calloc(track->num_subtitle_text_streams,
-               sizeof(*(track->subtitle_text_streams)));
-    
-    if(track->num_subtitle_overlay_streams)
-      track->subtitle_overlay_streams =
-        calloc(track->num_subtitle_overlay_streams,
-               sizeof(*(track->subtitle_overlay_streams)));
-    
-    subtitle_text_index = 0;
-    subtitle_overlay_index = 0;
-    
-    for(i = 0; i < track_info->num_subtitle_streams; i++)
-      {
-      if(track_info->subtitle_streams[i].is_text)
-        {
-        track->subtitle_text_streams[subtitle_text_index].label =
-          create_stream_label(&track_info->subtitle_streams[i].m);
-        track->subtitle_text_streams[subtitle_text_index].in_index = i;
-        subtitle_text_index++;
-        }
-      else
-        {
-        track->subtitle_overlay_streams[subtitle_overlay_index].label =
-          create_stream_label(&track_info->subtitle_streams[i].m);
-        track->subtitle_overlay_streams[subtitle_overlay_index].in_index = i;
-        
-        subtitle_overlay_index++;
-        }
-      }
-    
+  track->num_subtitle_text_streams = track_info->num_text_streams;
+  track->num_subtitle_overlay_streams = track_info->num_overlay_streams;
+  
+  if(track->num_subtitle_text_streams)
+    track->subtitle_text_streams =
+      calloc(track->num_subtitle_text_streams,
+             sizeof(*(track->subtitle_text_streams)));
+  
+  if(track->num_subtitle_overlay_streams)
+    track->subtitle_overlay_streams =
+      calloc(track->num_subtitle_overlay_streams,
+             sizeof(*(track->subtitle_overlay_streams)));
+  
+  for(i = 0; i < track_info->num_text_streams; i++)
+    {
+    track->subtitle_text_streams[i].label =
+      create_stream_label(&track_info->text_streams[i].m);
+    track->subtitle_text_streams[i].in_index = i;
     }
- 
+  for(i = 0; i < track_info->num_overlay_streams; i++)
+    {
+    track->subtitle_text_streams[i].label =
+      create_stream_label(&track_info->overlay_streams[i].m);
+    track->subtitle_text_streams[i].in_index = i;
+    }
+  
   create_subtitle_parameters(track);
   create_filter_parameters(track, plugin_reg);
   }
 
 static void enable_streams(bg_input_plugin_t * plugin, void * priv, 
                            int track,
-                           int num_audio_streams, int num_video_streams,
-                           int num_subtitle_streams)
+                           bg_track_info_t * info)
   {
   int i;
 
@@ -741,7 +721,7 @@ static void enable_streams(bg_input_plugin_t * plugin, void * priv,
 
   if(plugin->set_audio_stream)
     {
-    for(i = 0; i < num_audio_streams; i++)
+    for(i = 0; i < info->num_audio_streams; i++)
       {
       plugin->set_audio_stream(priv, i, BG_STREAM_ACTION_DECODE);
       }
@@ -749,16 +729,23 @@ static void enable_streams(bg_input_plugin_t * plugin, void * priv,
 
   if(plugin->set_video_stream)
     {
-    for(i = 0; i < num_video_streams; i++)
+    for(i = 0; i < info->num_video_streams; i++)
       {
       plugin->set_video_stream(priv, i, BG_STREAM_ACTION_DECODE);
       }
     }
-  if(plugin->set_subtitle_stream)
+  if(plugin->set_text_stream)
     {
-    for(i = 0; i < num_subtitle_streams; i++)
+    for(i = 0; i < info->num_text_streams; i++)
       {
-      plugin->set_subtitle_stream(priv, i, BG_STREAM_ACTION_DECODE);
+      plugin->set_text_stream(priv, i, BG_STREAM_ACTION_DECODE);
+      }
+    }
+  if(plugin->set_overlay_stream)
+    {
+    for(i = 0; i < info->num_overlay_streams; i++)
+      {
+      plugin->set_overlay_stream(priv, i, BG_STREAM_ACTION_DECODE);
       }
     }
 
@@ -854,9 +841,7 @@ bg_transcoder_track_create(const char * url,
       {
       enable_streams(input, plugin_handle->priv, 
                      track,
-                     track_info->num_audio_streams,
-                     track_info->num_video_streams,
-                     track_info->num_subtitle_streams);
+                     track_info);
       streams_enabled = 1;
       }
     
@@ -904,9 +889,7 @@ bg_transcoder_track_create(const char * url,
         {
         enable_streams(input, plugin_handle->priv, 
                        i,
-                       track_info->num_audio_streams,
-                       track_info->num_video_streams,
-                       track_info->num_subtitle_streams);
+                       track_info);
         streams_enabled = 1;
         }
       

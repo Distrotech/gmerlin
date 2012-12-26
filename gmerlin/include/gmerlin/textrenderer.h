@@ -19,6 +19,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  * *****************************************************************/
 
+#include <gavl/connectors.h>
 
 typedef struct bg_text_renderer_s bg_text_renderer_t;
 
@@ -42,3 +43,8 @@ void bg_text_renderer_get_frame_format(bg_text_renderer_t * r,
 
 void bg_text_renderer_render(bg_text_renderer_t*,
                              const char * string, gavl_overlay_t * ovl);
+
+gavl_video_source_t * bg_text_renderer_connect(bg_text_renderer_t * r,
+                                               gavl_packet_source_t * src,
+                                               const gavl_video_format_t * frame_format,
+                                               int timescale);

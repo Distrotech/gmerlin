@@ -970,21 +970,41 @@ static void init_subtitle_text_stream(subtitle_text_stream_t * ret,
     }
   }
 
-static void start_subtitle_stream_i(subtitle_stream_t * ret,
+static void start_text_stream_i(subtitle_stream_t * ret,
                                     bg_plugin_handle_t * in_handle)
   {
   ret->com.in_handle = in_handle;
   ret->com.in_plugin = (bg_input_plugin_t*)(in_handle->plugin);
   
   /* Set stream */
-  if(ret->com.in_plugin->set_subtitle_stream)
+  if(ret->com.in_plugin->set_text_stream)
     {
     if(ret->com.action != STREAM_ACTION_FORGET)
-      ret->com.in_plugin->set_subtitle_stream(ret->com.in_handle->priv,
+      ret->com.in_plugin->set_text_stream(ret->com.in_handle->priv,
                                               ret->com.in_index,
                                               BG_STREAM_ACTION_DECODE);
     else
-      ret->com.in_plugin->set_subtitle_stream(ret->com.in_handle->priv,
+      ret->com.in_plugin->set_text_stream(ret->com.in_handle->priv,
+                                              ret->com.in_index,
+                                              BG_STREAM_ACTION_OFF);
+    }
+  }
+
+static void start_overlay_stream_i(subtitle_stream_t * ret,
+                                   bg_plugin_handle_t * in_handle)
+  {
+  ret->com.in_handle = in_handle;
+  ret->com.in_plugin = (bg_input_plugin_t*)(in_handle->plugin);
+  
+  /* Set stream */
+  if(ret->com.in_plugin->set_overlay_stream)
+    {
+    if(ret->com.action != STREAM_ACTION_FORGET)
+      ret->com.in_plugin->set_overlay_stream(ret->com.in_handle->priv,
+                                              ret->com.in_index,
+                                              BG_STREAM_ACTION_DECODE);
+    else
+      ret->com.in_plugin->set_overlay_stream(ret->com.in_handle->priv,
                                               ret->com.in_index,
                                               BG_STREAM_ACTION_OFF);
     }
@@ -1009,14 +1029,16 @@ static void set_input_formats(bg_transcoder_t * ret)
     {
     if(ret->subtitle_overlay_streams[i].com.do_decode)
       gavl_video_format_copy(&ret->subtitle_overlay_streams[i].in_format,
-                             &ret->track_info->subtitle_streams[ret->subtitle_overlay_streams[i].com.in_index].format);
+                             &ret->track_info->overlay_streams[ret->subtitle_overlay_streams[i].com.in_index].format);
     }
+#if 0
   for(i = 0; i < ret->num_subtitle_text_streams; i++)
     {
     if(ret->subtitle_text_streams[i].com.com.do_decode)
       gavl_video_format_copy(&ret->subtitle_text_streams[i].com.in_format,
-                             &ret->track_info->subtitle_streams[ret->subtitle_text_streams[i].com.com.in_index].format);
+                             &ret->track_info->text_streams[ret->subtitle_text_streams[i].com.com.in_index].format);
     }
+#endif
   }
 
 static void add_audio_stream(audio_stream_t * ret,
@@ -2351,7 +2373,7 @@ static int start_input(bg_transcoder_t * ret)
     {
     if(ret->subtitle_text_streams[i].com.com.do_decode)
       {
-      start_subtitle_stream_i((subtitle_stream_t*)(&ret->subtitle_text_streams[i]),
+      start_text_stream_i((subtitle_stream_t*)(&ret->subtitle_text_streams[i]),
                               ret->in_handle);
       }
     }
@@ -2359,8 +2381,8 @@ static int start_input(bg_transcoder_t * ret)
     {
     if(ret->subtitle_overlay_streams[i].com.do_decode)
       {
-      start_subtitle_stream_i(&ret->subtitle_overlay_streams[i],
-                              ret->in_handle);
+      start_overlay_stream_i(&ret->subtitle_overlay_streams[i],
+                             ret->in_handle);
       }
     }
   

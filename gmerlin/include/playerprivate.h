@@ -520,7 +520,7 @@ int bg_player_audio_set_eof(bg_player_t * p);
 
 /* player_subtitle.c */
 
-int bg_player_subtitle_init(bg_player_t * player, int subtitle_stream);
+int bg_player_subtitle_init(bg_player_t * player);
 void bg_player_subtitle_cleanup(bg_player_t * p);
 
 void bg_player_subtitle_create(bg_player_t * p);
@@ -538,3 +538,5 @@ void bg_player_accel_pressed(bg_player_t * player, int id);
 void bg_player_set_duration(bg_player_t * player, gavl_time_t duration, int can_seek);
 
 void bg_player_set_metadata(bg_player_t * player, const gavl_metadata_t *);
+
+int bg_player_get_subtitle_index(bg_track_info_t * info, int stream_index, int * is_text);

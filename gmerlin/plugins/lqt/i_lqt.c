@@ -108,7 +108,7 @@ typedef struct
     int quicktime_index;
     int timescale;
     int64_t pts_offset;
-    } * subtitle_streams;
+    } * text_streams;
   } i_lqt_t;
 
 static void * create_lqt()
@@ -280,9 +280,9 @@ static int open_lqt(void * data, const char * arg)
     }
   if(num_text_streams)
     {
-    e->subtitle_streams = calloc(num_text_streams, sizeof(*e->subtitle_streams));
-    e->track_info.subtitle_streams =
-      calloc(num_text_streams, sizeof(*e->track_info.subtitle_streams));
+    e->text_streams = calloc(num_text_streams, sizeof(*e->text_streams));
+    e->track_info.text_streams =
+      calloc(num_text_streams, sizeof(*e->track_info.text_streams));
     
     for(i = 0; i < num_text_streams; i++)
       {
@@ -298,21 +298,19 @@ static int open_lqt(void * data, const char * arg)
         }
       else
         {
-        m = &e->track_info.subtitle_streams[e->track_info.num_subtitle_streams].m;
+        m = &e->track_info.text_streams[e->track_info.num_text_streams].m;
         
-        e->subtitle_streams[e->track_info.num_subtitle_streams].quicktime_index = i;
-        e->subtitle_streams[e->track_info.num_subtitle_streams].timescale =
+        e->text_streams[e->track_info.num_text_streams].quicktime_index = i;
+        e->text_streams[e->track_info.num_text_streams].timescale =
           lqt_text_time_scale(e->file, i);
 
-        e->subtitle_streams[e->track_info.num_subtitle_streams].pts_offset =
+        e->text_streams[e->track_info.num_text_streams].pts_offset =
           lqt_get_text_pts_offset(e->file, i);
         
         lqt_get_text_language(e->file, i, lang);
         gavl_metadata_set(m, GAVL_META_LANGUAGE, lang);
         
-        e->track_info.subtitle_streams[e->track_info.num_subtitle_streams].is_text = 1;
-        
-        e->track_info.num_subtitle_streams++;
+        e->track_info.num_text_streams++;
         }
       }
 
@@ -384,11 +382,11 @@ static int read_subtitle_text_lqt(void * priv,
   {
   i_lqt_t * e = priv;
   int ret =  lqt_read_text(e->file,
-                           e->subtitle_streams[stream].quicktime_index,
+                           e->text_streams[stream].quicktime_index,
                            text, text_alloc,
                            start_time, duration);
   if(ret)
-    *start_time += e->subtitle_streams[stream].pts_offset;
+    *start_time += e->text_streams[stream].pts_offset;
   return ret;
   }
 

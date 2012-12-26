@@ -119,7 +119,7 @@ static void msg_num_streams(bg_msg_t * msg,
 
   bg_msg_set_arg_int(msg, 0, info->num_audio_streams);
   bg_msg_set_arg_int(msg, 1, info->num_video_streams);
-  bg_msg_set_arg_int(msg, 2, info->num_subtitle_streams);
+  bg_msg_set_arg_int(msg, 2, info->num_text_streams + info->num_overlay_streams);
   }
 
 struct stream_info_s
@@ -150,12 +150,19 @@ static void msg_video_stream_info(bg_msg_t * msg, const void * data)
 
 static void msg_subtitle_stream_info(bg_msg_t * msg, const void * data)
   {
+  int index, is_text;
   const struct stream_info_s * si;
   si = (const struct stream_info_s*)data;
   bg_msg_set_id(msg, BG_PLAYER_MSG_SUBTITLE_STREAM_INFO);
 
   bg_msg_set_arg_int(msg,    0, si->index);
-  bg_msg_set_arg_metadata(msg, 1, &si->track->subtitle_streams[si->index].m);
+
+  index = bg_player_get_subtitle_index(si->track, si->index, &is_text);
+
+  if(is_text)
+    bg_msg_set_arg_metadata(msg, 1, &si->track->text_streams[index].m);
+  else
+    bg_msg_set_arg_metadata(msg, 1, &si->track->overlay_streams[index].m);
   }
 
 static void msg_mute(bg_msg_t * msg, const void * data)
@@ -322,7 +329,7 @@ static int init_video_stream(bg_player_t * p)
 
 static int init_subtitle_stream(bg_player_t * p)
   {
-  if(!bg_player_subtitle_init(p, p->current_subtitle_stream))
+  if(!bg_player_subtitle_init(p))
     {
     bg_player_set_state(p, BG_PLAYER_STATE_ERROR,
                         NULL, NULL);
@@ -480,9 +487,16 @@ static void init_playback(bg_player_t * p, gavl_time_t time,
                            msg_video_stream_info,
                            &si);
     }
-  for(i = 0; i < p->track_info->num_subtitle_streams; i++)
+  for(i = 0; i < p->track_info->num_overlay_streams; i++)
     {
     si.index = i;
+    bg_msg_queue_list_send(p->message_queues,
+                           msg_subtitle_stream_info,
+                           &si);
+    }
+  for(i = 0; i < p->track_info->num_text_streams; i++)
+    {
+    si.index = i + p->track_info->num_overlay_streams;
     bg_msg_queue_list_send(p->message_queues,
                            msg_subtitle_stream_info,
                            &si);

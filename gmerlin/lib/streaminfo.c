@@ -47,7 +47,12 @@ static void bg_video_info_free(bg_video_info_t * info)
   gavl_metadata_free(&info->m);
   }
 
-static void bg_subtitle_info_free(bg_subtitle_info_t * info)
+static void bg_text_info_free(bg_text_info_t * info)
+  {
+  gavl_metadata_free(&info->m);
+  }
+
+static void bg_overlay_info_free(bg_overlay_info_t * info)
   {
   gavl_metadata_free(&info->m);
   }
@@ -69,13 +74,19 @@ void bg_track_info_free(bg_track_info_t * info)
       bg_video_info_free(&info->video_streams[i]);
     MY_FREE(info->video_streams);
     }
-  if(info->subtitle_streams)
+  if(info->text_streams)
     {
-    for(i = 0; i < info->num_subtitle_streams; i++)
-      bg_subtitle_info_free(&info->subtitle_streams[i]);
-    MY_FREE(info->subtitle_streams);
+    for(i = 0; i < info->num_text_streams; i++)
+      bg_text_info_free(&info->text_streams[i]);
+    MY_FREE(info->text_streams);
     }
-
+  if(info->overlay_streams)
+    {
+    for(i = 0; i < info->num_overlay_streams; i++)
+      bg_overlay_info_free(&info->overlay_streams[i]);
+    MY_FREE(info->overlay_streams);
+    }
+  
   gavl_metadata_free(&info->metadata);
 
   if(info->chapter_list)

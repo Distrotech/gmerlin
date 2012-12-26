@@ -97,7 +97,8 @@ void bg_player_input_select_streams(bg_player_t * p)
   if(p->current_video_stream >= p->track_info->num_video_streams)
     p->current_video_stream = 0;
 
-  if(p->current_subtitle_stream >= p->track_info->num_subtitle_streams)
+  if(p->current_subtitle_stream >=
+     p->track_info->num_text_streams + p->track_info->num_overlay_streams)
     p->current_subtitle_stream = 0;
 
   if(!p->audio_stream.plugin_handle)
@@ -130,7 +131,8 @@ void bg_player_input_select_streams(bg_player_t * p)
     }
 
   if((p->current_subtitle_stream >= 0) &&
-     (p->current_subtitle_stream < p->track_info->num_subtitle_streams))
+     (p->current_subtitle_stream <
+      p->track_info->num_text_streams + p->track_info->num_overlay_streams))
     {
     p->flags |= PLAYER_DO_SUBTITLE;
     ss->eof = 0;
@@ -193,17 +195,38 @@ void bg_player_input_select_streams(bg_player_t * p)
       }
     }
 
-  if(p->input_plugin->set_subtitle_stream)
+  if(p->input_plugin->set_text_stream)
     {
-    for(i = 0; i < p->track_info->num_subtitle_streams; i++)
+    for(i = 0; i < p->track_info->num_text_streams; i++)
       {
       if(i == p->current_subtitle_stream) 
-        p->input_plugin->set_subtitle_stream(p->input_priv, i,
-                                      BG_STREAM_ACTION_DECODE);
+        p->input_plugin->set_text_stream(p->input_priv, i,
+                                         BG_STREAM_ACTION_DECODE);
       else
-        p->input_plugin->set_subtitle_stream(p->input_priv, i,
+        p->input_plugin->set_text_stream(p->input_priv, i,
                                          BG_STREAM_ACTION_OFF);
       }
+    }
+
+  if(p->input_plugin->set_overlay_stream)
+    {
+    for(i = 0; i < p->track_info->num_overlay_streams; i++)
+      {
+      if(i + p->track_info->num_text_streams == p->current_subtitle_stream) 
+        p->input_plugin->set_overlay_stream(p->input_priv, i,
+                                            BG_STREAM_ACTION_DECODE);
+      else
+        p->input_plugin->set_overlay_stream(p->input_priv, i,
+                                            BG_STREAM_ACTION_OFF);
+      }
+    }
+
+  if(DO_SUBTITLE(p->flags))
+    {
+    if(p->current_subtitle_stream < p->track_info->num_text_streams)
+      p->flags |= PLAYER_DO_SUBTITLE_TEXT;
+    else
+      p->flags |= PLAYER_DO_SUBTITLE_OVERLAY;
     }
   }
 
@@ -224,17 +247,6 @@ int bg_player_input_start(bg_player_t * p)
       p->input_plugin = NULL;
       return 0;
       }
-    }
-  
-  /* Subtitle type must be set here, because it's unknown before the
-     start() call */
-
-  if(DO_SUBTITLE(p->flags))
-    {
-    if(p->track_info->subtitle_streams[p->current_subtitle_stream].is_text)
-      p->flags |= PLAYER_DO_SUBTITLE_TEXT;
-    else
-      p->flags |= PLAYER_DO_SUBTITLE_OVERLAY;
     }
   
   /* Check for still image mode */
@@ -383,13 +395,6 @@ int bg_player_input_get_video_format(bg_player_t * p)
   return 1;
   }
 
-int
-bg_player_input_get_subtitle_format(bg_player_t * p)
-  {
-  gavl_video_format_copy(&p->subtitle_stream.input_format,
-                         &p->track_info->subtitle_streams[p->current_subtitle_stream].format);
-  return 1;
-  }
 
 int
 bg_player_input_read_audio(void * priv, gavl_audio_frame_t * frame, int stream, int samples)
