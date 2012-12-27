@@ -41,7 +41,7 @@ bgav_stream_decoder_t * bgav_stream_decoder_create()
   {
   bgav_stream_decoder_t * ret = calloc(1, sizeof(*ret));
   bgav_options_set_defaults(&ret->opt);
-
+  bgav_codecs_init(&ret->opt);
   ret->s.opt = &ret->opt;
   return ret;
   }

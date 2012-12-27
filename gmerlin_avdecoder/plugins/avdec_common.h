@@ -50,6 +50,15 @@ bg_avdec_get_video_source(void * priv, int stream);
 gavl_audio_source_t *
 bg_avdec_get_audio_source(void * priv, int stream);
 
+gavl_packet_source_t *
+bg_avdec_get_video_packet_source(void * priv, int stream);
+
+gavl_packet_source_t *
+bg_avdec_get_audio_packet_source(void * priv, int stream);
+
+gavl_packet_source_t *
+bg_avdec_get_text_packet_source(void * priv, int stream);
+
 int bg_avdec_read_video(void * priv,
                         gavl_video_frame_t * frame,
                         int stream);

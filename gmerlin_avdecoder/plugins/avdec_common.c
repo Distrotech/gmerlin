@@ -124,6 +124,27 @@ bg_avdec_get_audio_source(void * priv, int stream)
   return bgav_get_audio_source(avdec->dec, stream);
   }
 
+gavl_packet_source_t *
+bg_avdec_get_video_packet_source(void * priv, int stream)
+  {
+  avdec_priv * avdec = priv;
+  return bgav_get_video_packet_source(avdec->dec, stream);
+  }
+
+gavl_packet_source_t *
+bg_avdec_get_audio_packet_source(void * priv, int stream)
+  {
+  avdec_priv * avdec = priv;
+  return bgav_get_audio_packet_source(avdec->dec, stream);
+  }
+
+gavl_packet_source_t *
+bg_avdec_get_text_packet_source(void * priv, int stream)
+  {
+  avdec_priv * avdec = priv;
+  return bgav_get_text_packet_source(avdec->dec, stream);
+  }
+
 void bg_avdec_destroy(void * priv)
   {
   avdec_priv * avdec = priv;
@@ -313,6 +334,9 @@ int bg_avdec_start(void * priv)
     
     avdec->current_track->text_streams[i].duration =
       bgav_text_duration(avdec->dec, i);
+
+    avdec->current_track->text_streams[i].timescale = 
+      bgav_get_text_timescale(avdec->dec, i);
     }
 
   for(i = 0; i < avdec->current_track->num_overlay_streams; i++)

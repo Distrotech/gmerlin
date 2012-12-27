@@ -525,32 +525,17 @@ int bgav_get_audio_compression_info(bgav_t * bgav, int stream,
 int bgav_read_audio_packet(bgav_t * bgav, int stream, gavl_packet_t * p)
   {
   bgav_stream_t * s = &bgav->tt->cur->audio_streams[stream];
-
   return (gavl_packet_source_read_packet(s->psrc, &p) == GAVL_SOURCE_OK);
-
-#if 0 // Old version
-  
-  bgav_packet_t * bp;
-
-  
-  bp = bgav_stream_get_packet_read(s);
-  if(!bp)
-    return 0;
-  
-  gavl_packet_alloc(p, bp->data_size);
-  memcpy(p->data, bp->data, bp->data_size);
-  p->data_len = bp->data_size;
-
-  bgav_packet_2_gavl(bp, p);
-  bgav_stream_done_packet_read(s, bp);
-  
-  return 1;
-#endif
   }
 
-BGAV_PUBLIC
 gavl_audio_source_t * bgav_get_audio_source(bgav_t * bgav, int stream)
   {
   bgav_stream_t * s = &bgav->tt->cur->audio_streams[stream];
   return s->data.audio.source;
+  }
+
+gavl_packet_source_t * bgav_get_audio_packet_source(bgav_t * bgav, int stream)
+  {
+  bgav_stream_t * s = &bgav->tt->cur->audio_streams[stream];
+  return s->psrc;
   }

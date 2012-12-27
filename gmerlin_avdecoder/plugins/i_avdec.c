@@ -409,8 +409,8 @@ const bg_input_plugin_t the_plugin =
     
     .set_audio_stream =      bg_avdec_set_audio_stream,
     .set_video_stream =      bg_avdec_set_video_stream,
-    .set_text_stream =   bg_avdec_set_text_stream,
-    .set_overlay_stream =   bg_avdec_set_overlay_stream,
+    .set_text_stream =       bg_avdec_set_text_stream,
+    .set_overlay_stream =    bg_avdec_set_overlay_stream,
 
     /*
      *  Start decoding.
@@ -432,6 +432,10 @@ const bg_input_plugin_t the_plugin =
 
     .get_video_source = bg_avdec_get_video_source,
     .get_audio_source = bg_avdec_get_audio_source,
+
+    .get_video_packet_source = bg_avdec_get_video_packet_source,
+    .get_audio_packet_source = bg_avdec_get_audio_packet_source,
+    .get_text_source = bg_avdec_get_text_packet_source,
     
     .has_subtitle =          bg_avdec_has_subtitle,
 

@@ -1791,6 +1791,21 @@ BGAV_PUBLIC
 const gavl_video_format_t * bgav_get_overlay_format(bgav_t * bgav, int stream);
 
 /** \ingroup stream_info
+ *  \brief Get the timescale for a text stream
+ *  \param bgav A decoder instance
+ *  \param stream Stream index (starting with 0)
+ *  \returns The timescale
+ *
+ *  Note, that you can trust the return value of this function only, if
+ *  you enabled the stream (see \ref bgav_set_video_stream) and started
+ *  the decoders (see \ref bgav_start).
+ */
+
+BGAV_PUBLIC
+int bgav_get_text_timescale(bgav_t * bgav, int stream);
+
+  
+/** \ingroup stream_info
  *  \brief Get the frame table of a video stream
  *  \param bgav A decoder instance
  *  \param stream Stream index (starting with 0)

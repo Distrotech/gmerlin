@@ -940,3 +940,9 @@ void bgav_set_video_frame_from_packet(const bgav_packet_t * p,
   f->duration = p->duration;
   f->timecode = p->tc;
   }
+
+gavl_packet_source_t * bgav_get_video_packet_source(bgav_t * bgav, int stream)
+  {
+  bgav_stream_t * s = &bgav->tt->cur->video_streams[stream];
+  return s->psrc;
+  }

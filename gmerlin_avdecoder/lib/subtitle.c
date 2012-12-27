@@ -194,8 +194,11 @@ void bgav_subtitle_dump(bgav_stream_t * s)
                   (s->data.subtitle.charset ? s->data.subtitle.charset :
                    BGAV_UTF8));
     }
-  bgav_dprintf( "  Format:\n");
-  gavl_video_format_dump(&s->data.subtitle.format);
+  else
+    {
+    bgav_dprintf( "  Format:\n");
+    gavl_video_format_dump(&s->data.subtitle.format);
+    }
   }
 
 int bgav_subtitle_start(bgav_stream_t * s)
@@ -329,3 +332,7 @@ const gavl_video_format_t * bgav_get_overlay_format(bgav_t * bgav, int stream)
   }
 
 
+int bgav_get_text_timescale(bgav_t * bgav, int stream)
+  {
+  return bgav->tt->cur->text_streams[stream].timescale;
+  }

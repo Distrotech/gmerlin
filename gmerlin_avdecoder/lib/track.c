@@ -455,20 +455,15 @@ void bgav_track_dump(bgav_t * b, bgav_track_t * t)
     bgav_stream_dump(&t->video_streams[i]);
     bgav_video_dump(&t->video_streams[i]);
     }
-  for(i = 0; i < t->num_text_streams; i++)
-    {
-    bgav_stream_dump(&t->text_streams[i]);
-    bgav_subtitle_dump(&t->text_streams[i]);
-    }
-  for(i = 0; i < t->num_text_streams; i++)
-    {
-    bgav_stream_dump(&t->text_streams[i]);
-    bgav_subtitle_dump(&t->text_streams[i]);
-    }
   for(i = 0; i < t->num_overlay_streams; i++)
     {
     bgav_stream_dump(&t->overlay_streams[i]);
     bgav_subtitle_dump(&t->overlay_streams[i]);
+    }
+  for(i = 0; i < t->num_text_streams; i++)
+    {
+    bgav_stream_dump(&t->text_streams[i]);
+    bgav_subtitle_dump(&t->text_streams[i]);
     }
   
   }
