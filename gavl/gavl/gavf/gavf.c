@@ -111,9 +111,12 @@ static gavl_sink_status_t write_packet(gavf_t * g, int stream, const gavl_packet
   {
   int write_sync = 0;
   gavf_stream_t * s = &g->streams[stream];
-#if 0
-  fprintf(stderr, "write_packet\n");
-  gavl_packet_dump(p);
+#if 1
+  if(p->data_len == 0)
+    {
+    fprintf(stderr, "write_packet %p\n", p);
+    gavl_packet_dump(p);
+    }
 #endif
   /* Decide whether to write a sync header */
   if(!g->first_sync_pos)
@@ -212,6 +215,20 @@ gavl_sink_status_t gavf_flush_packets(gavf_t * g, gavf_stream_t * s)
       }
     }
 
+  /* Flush discontinuous streams */
+  for(i = 0; i < g->ph.num_streams; i++)
+    {
+    ws = &g->streams[i];
+    if(ws->flags & STREAM_FLAG_DISCONTINUOUS)
+      {
+      while((p = gavf_packet_buffer_get_read(ws->pb)))
+        {
+        if((st = write_packet(g, i, p)) != GAVL_SINK_OK)
+          return st;
+        }
+      }
+    }
+  
   /* Flush as many packets as possible */
   while(1)
     {
@@ -224,6 +241,9 @@ gavl_sink_status_t gavf_flush_packets(gavf_t * g, gavf_stream_t * s)
     for(i = 0; i < g->ph.num_streams; i++)
       {
       ws = &g->streams[i];
+
+      if(ws->flags & STREAM_FLAG_DISCONTINUOUS)
+        continue;
       
       test_time =
         gavf_packet_buffer_get_min_pts(ws->pb);
