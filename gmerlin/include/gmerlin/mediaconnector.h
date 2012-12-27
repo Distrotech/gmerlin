@@ -61,6 +61,15 @@ typedef struct
 
   bg_thread_t * th;
   bg_mediaconnector_t * conn;
+  
+  /* Discontinuous stream support: Don't output a packet
+     too early */
+  
+  gavl_video_frame_t * discont_vframe;
+  gavl_packet_t      * discont_packet;
+  
+  gavl_video_source_t * discont_vsrc;
+  gavl_packet_source_t * discont_psrc;
   } bg_mediaconnector_stream_t;
 
 struct bg_mediaconnector_s

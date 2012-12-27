@@ -58,7 +58,7 @@ static bg_plug_t * out_plug = NULL;
 static bg_cfg_section_t * audio_section = NULL;
 static bg_cfg_section_t * video_section = NULL;
 
-static char * outfile = NULL;
+static char * outfile = "-";
 
 /* Recorder module */
 
@@ -365,10 +365,6 @@ int main(int argc, char ** argv)
   bg_plug_set_compressor_config(out_plug,
                                 gavftools_ac_params(),
                                 gavftools_vc_params());
-  
-  /* Set output file */
-  if(!outfile)
-    outfile = "-";
   
   /* Open plugins */
   if(!recorder_open(&rec, &conn))
