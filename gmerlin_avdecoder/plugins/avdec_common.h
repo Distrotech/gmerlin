@@ -84,7 +84,11 @@ int bg_avdec_set_video_stream(void * priv,
                               int stream,
                               bg_stream_action_t action);
 
-int bg_avdec_set_subtitle_stream(void * priv,
+int bg_avdec_set_overlay_stream(void * priv,
+                                 int stream,
+                                 bg_stream_action_t action);
+
+int bg_avdec_set_text_stream(void * priv,
                                  int stream,
                                  bg_stream_action_t action);
 int bg_avdec_start(void * priv);

@@ -134,7 +134,7 @@ const bg_input_plugin_t the_plugin =
     /* Set streams */
     .set_audio_stream =      bg_avdec_set_audio_stream,
     .set_video_stream =      bg_avdec_set_video_stream,
-    .set_subtitle_stream =   bg_avdec_set_subtitle_stream,
+    .set_overlay_stream =   bg_avdec_set_overlay_stream,
 
     /*
      *  Start decoding.

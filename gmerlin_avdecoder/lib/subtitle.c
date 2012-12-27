@@ -322,3 +322,10 @@ bgav_get_text_packet_source(bgav_t * b, int stream)
   {
   return b->tt->cur->text_streams[stream].psrc;
   }
+
+const gavl_video_format_t * bgav_get_overlay_format(bgav_t * bgav, int stream)
+  {
+  return &bgav->tt->cur->overlay_streams[stream].data.subtitle.format;
+  }
+
+

@@ -250,15 +250,26 @@ int bg_avdec_set_video_stream(void * priv,
   return bgav_set_video_stream(avdec->dec, stream, act);
   }
 
-int bg_avdec_set_subtitle_stream(void * priv,
-                              int stream,
-                              bg_stream_action_t action)
+int bg_avdec_set_text_stream(void * priv,
+                             int stream,
+                             bg_stream_action_t action)
   {
   bgav_stream_action_t  act;
   avdec_priv * avdec = priv;
   act = get_stream_action(action);
 
-  return bgav_set_subtitle_stream(avdec->dec, stream, act);
+  return bgav_set_text_stream(avdec->dec, stream, act);
+  }
+
+int bg_avdec_set_overlay_stream(void * priv,
+                                 int stream,
+                                 bg_stream_action_t action)
+  {
+  bgav_stream_action_t  act;
+  avdec_priv * avdec = priv;
+  act = get_stream_action(action);
+
+  return bgav_set_overlay_stream(avdec->dec, stream, act);
   }
 
 int bg_avdec_start(void * priv)
@@ -294,21 +305,26 @@ int bg_avdec_start(void * priv)
     avdec->current_track->audio_streams[i].duration =
       bgav_audio_duration(avdec->dec, i);
     }
-  for(i = 0; i < avdec->current_track->num_subtitle_streams; i++)
+
+  for(i = 0; i < avdec->current_track->num_text_streams; i++)
     {
-    gavl_metadata_copy(&avdec->current_track->subtitle_streams[i].m,
-                       bgav_get_subtitle_metadata(avdec->dec, i));
+    gavl_metadata_copy(&avdec->current_track->text_streams[i].m,
+                       bgav_get_text_metadata(avdec->dec, i));
     
-    if(bgav_subtitle_is_text(avdec->dec, i))
-      {
-      avdec->current_track->subtitle_streams[i].is_text = 1;
-      }
-    avdec->current_track->subtitle_streams[i].duration =
-      bgav_subtitle_duration(avdec->dec, i);
+    avdec->current_track->text_streams[i].duration =
+      bgav_text_duration(avdec->dec, i);
+    }
 
-
-    format = bgav_get_subtitle_format(avdec->dec, i);
-    gavl_video_format_copy(&avdec->current_track->subtitle_streams[i].format,
+  for(i = 0; i < avdec->current_track->num_overlay_streams; i++)
+    {
+    gavl_metadata_copy(&avdec->current_track->overlay_streams[i].m,
+                       bgav_get_overlay_metadata(avdec->dec, i));
+    
+    avdec->current_track->overlay_streams[i].duration =
+      bgav_overlay_duration(avdec->dec, i);
+    
+    format = bgav_get_overlay_format(avdec->dec, i);
+    gavl_video_format_copy(&avdec->current_track->overlay_streams[i].format,
                            format);
     }
   return 1;
@@ -338,8 +354,8 @@ int bg_avdec_init(avdec_priv * avdec)
     {
     avdec->track_info[i].num_audio_streams = bgav_num_audio_streams(avdec->dec, i);
     avdec->track_info[i].num_video_streams = bgav_num_video_streams(avdec->dec, i);
-    avdec->track_info[i].num_subtitle_streams =
-      bgav_num_subtitle_streams(avdec->dec, i);
+    avdec->track_info[i].num_text_streams = bgav_num_text_streams(avdec->dec, i);
+    avdec->track_info[i].num_overlay_streams = bgav_num_overlay_streams(avdec->dec, i);
 
     if(bgav_can_seek(avdec->dec))
       avdec->track_info[i].flags |= BG_TRACK_SEEKABLE;
@@ -359,11 +375,17 @@ int bg_avdec_init(avdec_priv * avdec)
         calloc(avdec->track_info[i].num_video_streams,
                sizeof(*avdec->track_info[i].video_streams));
       }
-    if(avdec->track_info[i].num_subtitle_streams)
+    if(avdec->track_info[i].num_text_streams)
       {
-      avdec->track_info[i].subtitle_streams =
-        calloc(avdec->track_info[i].num_subtitle_streams,
-               sizeof(*avdec->track_info[i].subtitle_streams));
+      avdec->track_info[i].text_streams =
+        calloc(avdec->track_info[i].num_text_streams,
+               sizeof(*avdec->track_info[i].text_streams));
+      }
+    if(avdec->track_info[i].num_overlay_streams)
+      {
+      avdec->track_info[i].overlay_streams =
+        calloc(avdec->track_info[i].num_overlay_streams,
+               sizeof(*avdec->track_info[i].overlay_streams));
       }
     avdec->track_info[i].duration = bgav_get_duration(avdec->dec, i);
     
@@ -571,9 +593,9 @@ static bg_edl_track_t * copy_tracks(const bgav_edl_track_t * src, int len)
     ret[i].video_streams = copy_streams(src[i].video_streams,
                                         src[i].num_video_streams);
     ret[i].subtitle_text_streams = copy_streams(src[i].subtitle_text_streams,
-                                           src[i].num_subtitle_text_streams);
+                                                src[i].num_subtitle_text_streams);
     ret[i].subtitle_overlay_streams = copy_streams(src[i].subtitle_overlay_streams,
-                                           src[i].num_subtitle_overlay_streams);
+                                                   src[i].num_subtitle_overlay_streams);
     ret[i].num_audio_streams = src[i].num_audio_streams;
     ret[i].num_video_streams = src[i].num_video_streams;
     ret[i].num_subtitle_text_streams = src[i].num_subtitle_text_streams;

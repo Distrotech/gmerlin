@@ -409,18 +409,20 @@ static uint32_t speex_fourccs[] =
 
 
 int bgav_get_audio_compression_info(bgav_t * bgav, int stream,
-                                    gavl_compression_info_t * info)
+                                    gavl_compression_info_t * ret)
   {
   int need_header = 0;
   int need_bitrate = 1;
   gavl_codec_id_t id = GAVL_CODEC_ID_NONE;
   bgav_stream_t * s = &bgav->tt->cur->audio_streams[stream];
 
-  memset(info, 0, sizeof(*info));
-
+  if(ret)
+    memset(ret, 0, sizeof(*ret));
+  
   if(s->flags & STREAM_GOT_CI)
     {
-    gavl_compression_info_copy(info, &s->ci);
+    if(ret)
+      gavl_compression_info_copy(ret, &s->ci);
     return 1;
     }
   else if(s->flags & STREAM_GOT_NO_CI)
@@ -493,27 +495,28 @@ int bgav_get_audio_compression_info(bgav_t * bgav, int stream,
     s->flags |= STREAM_GOT_NO_CI;
     return 0;
     }
-  info->id = id;
+  s->ci.id = id;
 
   if(s->flags & STREAM_SBR)
-    info->flags |= GAVL_COMPRESSION_SBR;
+    s->ci.flags |= GAVL_COMPRESSION_SBR;
   
   if(need_header)
     {
-    info->global_header = malloc(s->ext_size);
-    memcpy(info->global_header, s->ext_data, s->ext_size);
-    info->global_header_len = s->ext_size;
+    s->ci.global_header = malloc(s->ext_size);
+    memcpy(s->ci.global_header, s->ext_data, s->ext_size);
+    s->ci.global_header_len = s->ext_size;
     }
   
   if(s->codec_bitrate)
-    info->bitrate = s->codec_bitrate;
+    s->ci.bitrate = s->codec_bitrate;
   else if(s->container_bitrate)
-    info->bitrate = s->container_bitrate;
+    s->ci.bitrate = s->container_bitrate;
 
-  info->max_packet_size = s->max_packet_size;
-  info->pre_skip = s->data.audio.pre_skip;
-  
-  gavl_compression_info_copy(&s->ci, info);
+  s->ci.max_packet_size = s->max_packet_size;
+  s->ci.pre_skip = s->data.audio.pre_skip;
+
+  if(ret)
+    gavl_compression_info_copy(ret, &s->ci);
   
   s->flags |= STREAM_GOT_CI;
   return 1;

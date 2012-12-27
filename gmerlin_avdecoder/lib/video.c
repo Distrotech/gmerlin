@@ -788,18 +788,20 @@ const uint32_t bgav_dv_fourccs[] =
 
 
 int bgav_get_video_compression_info(bgav_t * bgav, int stream,
-                                    gavl_compression_info_t * info)
+                                    gavl_compression_info_t * ret)
   {
   gavl_codec_id_t id;
   bgav_stream_t * s = &bgav->tt->cur->video_streams[stream];
   int need_bitrate = 0;
   bgav_bsf_t * bsf = NULL;
-  
-  memset(info, 0, sizeof(*info));
 
+  if(ret)
+    memset(ret, 0, sizeof(*ret));
+  
   if(s->flags & STREAM_GOT_CI)
     {
-    gavl_compression_info_copy(info, &s->ci);
+    if(ret)
+      gavl_compression_info_copy(ret, &s->ci);
     return 1;
     }
   else if(s->flags & STREAM_GOT_NO_CI)
@@ -855,7 +857,7 @@ int bgav_get_video_compression_info(bgav_t * bgav, int stream,
     return 0;
     }
   
-  info->id = id;
+  s->ci.id = id;
 
   /* Create the filtered extradata */
   if((s->flags & STREAM_FILTER_PACKETS) && !s->bsf)
@@ -863,13 +865,13 @@ int bgav_get_video_compression_info(bgav_t * bgav, int stream,
   
   if(s->ext_size)
     {
-    info->global_header = malloc(s->ext_size);
-    memcpy(info->global_header, s->ext_data, s->ext_size);
-    info->global_header_len = s->ext_size;
+    s->ci.global_header = malloc(s->ext_size);
+    memcpy(s->ci.global_header, s->ext_data, s->ext_size);
+    s->ci.global_header_len = s->ext_size;
     if(bgav_video_is_divx4(s->fourcc))
-      bgav_mpeg4_remove_packed_flag(info->global_header,
-                                    &info->global_header_len,
-                                    &info->global_header_len);
+      bgav_mpeg4_remove_packed_flag(s->ci.global_header,
+                                    &s->ci.global_header_len,
+                                    &s->ci.global_header_len);
     }
 
   /* Restore everything */
@@ -877,11 +879,11 @@ int bgav_get_video_compression_info(bgav_t * bgav, int stream,
     bgav_bsf_destroy(bsf);
   
   if(s->codec_bitrate)
-    info->bitrate = s->codec_bitrate;
+    s->ci.bitrate = s->codec_bitrate;
   else if(s->container_bitrate)
-    info->bitrate = s->container_bitrate;
+    s->ci.bitrate = s->container_bitrate;
   
-  if(need_bitrate && !info->bitrate)
+  if(need_bitrate && !s->ci.bitrate)
     {
     bgav_log(&bgav->opt, BGAV_LOG_WARNING, LOG_DOMAIN,
              "Video compression format needs bitrate for compressed output");
@@ -890,15 +892,16 @@ int bgav_get_video_compression_info(bgav_t * bgav, int stream,
     }
   
   if(!(s->flags & STREAM_INTRA_ONLY))
-    info->flags |= GAVL_COMPRESSION_HAS_P_FRAMES;
+    s->ci.flags |= GAVL_COMPRESSION_HAS_P_FRAMES;
   if(s->flags & STREAM_B_FRAMES)
-    info->flags |= GAVL_COMPRESSION_HAS_B_FRAMES;
+    s->ci.flags |= GAVL_COMPRESSION_HAS_B_FRAMES;
   if(s->flags & STREAM_FIELD_PICTURES)
-    info->flags |= GAVL_COMPRESSION_HAS_FIELD_PICTURES;
+    s->ci.flags |= GAVL_COMPRESSION_HAS_FIELD_PICTURES;
   
-  info->max_packet_size = s->max_packet_size;
+  s->ci.max_packet_size = s->max_packet_size;
 
-  gavl_compression_info_copy(&s->ci, info);
+  if(ret)
+    gavl_compression_info_copy(ret, &s->ci);
   s->flags |= STREAM_GOT_CI;
   
   return 1;
