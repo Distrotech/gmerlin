@@ -111,13 +111,11 @@ const bg_encoder_plugin_t the_plugin =
     
     .set_audio_parameter =  bg_ffmpeg_set_audio_parameter,
     
-    .get_audio_format =     bg_ffmpeg_get_audio_format,
     .get_audio_sink =       bg_ffmpeg_get_audio_sink,
     .get_audio_packet_sink =       bg_ffmpeg_get_audio_packet_sink,
 
     .start =                bg_ffmpeg_start,
     
-    .write_audio_frame =    bg_ffmpeg_write_audio_frame,
     .close =                bg_ffmpeg_close,
   };
 

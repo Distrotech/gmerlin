@@ -232,19 +232,11 @@ const bg_encoder_plugin_t the_plugin =
     .get_video_sink =     bg_ffmpeg_get_video_sink,
     .get_video_packet_sink =     bg_ffmpeg_get_video_packet_sink,
     
-    .get_audio_format =     bg_ffmpeg_get_audio_format,
-    .get_video_format =     bg_ffmpeg_get_video_format,
-
     .start =                bg_ffmpeg_start,
     
-    .write_audio_frame =    bg_ffmpeg_write_audio_frame,
-    .write_video_frame =    bg_ffmpeg_write_video_frame,
-    .write_subtitle_text =    bg_ffmpeg_write_subtitle_text,
     .get_subtitle_text_sink = bg_ffmpeg_get_text_packet_sink,
 
-    .write_audio_packet =    bg_ffmpeg_write_audio_packet,
-    .write_video_packet =    bg_ffmpeg_write_video_packet,
-
+    
     .close =                bg_ffmpeg_close,
   };
 

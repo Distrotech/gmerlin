@@ -144,13 +144,6 @@ static int writes_compressed_audio_mpa(void * priv,
   return 0;
   }
 
-static int write_audio_frame_mpa(void * data, gavl_audio_frame_t * frame,
-                                  int stream)
-  {
-  e_mpa_t * mpa;
-  mpa = data;
-  return bg_mpa_write_audio_frame(&mpa->com, frame);
-  }
 
 static gavl_audio_sink_t * get_audio_sink_mpa(void * data, int stream)
   {
@@ -159,21 +152,11 @@ static gavl_audio_sink_t * get_audio_sink_mpa(void * data, int stream)
   return mpa->com.sink;
   }
 
-static int write_audio_packet_mpa(void * data, gavl_packet_t * p,
-                                  int stream)
+static gavl_packet_sink_t * get_audio_packet_sink_mpa(void * data, int stream)
   {
   e_mpa_t * mpa;
   mpa = data;
-  return bg_mpa_write_audio_packet(&mpa->com, p);
-  }
-
-static void get_audio_format_mpa(void * data, int stream,
-                                 gavl_audio_format_t * ret)
-  {
-  e_mpa_t * mpa;
-  mpa = data;
-  bg_mpa_get_format(&mpa->com, ret);
-  
+  return mpa->com.psink;
   }
 
 static int close_mpa(void * data, int do_delete)
@@ -228,12 +211,10 @@ const bg_encoder_plugin_t the_plugin =
     .open =                open_mpa,
     .add_audio_stream =    add_audio_stream_mpa,
     .add_audio_stream_compressed =    add_audio_stream_compressed_mpa,
-    .get_audio_format =    get_audio_format_mpa,
-    .get_audio_sink   = get_audio_sink_mpa,
+    .get_audio_sink   =    get_audio_sink_mpa,
+    .get_audio_packet_sink   =    get_audio_packet_sink_mpa,
     
     .start =               start_mpa,
-    .write_audio_frame =   write_audio_frame_mpa,
-    .write_audio_packet =   write_audio_packet_mpa,
     .close =               close_mpa
   };
 

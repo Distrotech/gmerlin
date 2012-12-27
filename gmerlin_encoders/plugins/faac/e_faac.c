@@ -191,12 +191,6 @@ static gavl_sink_status_t write_packet(void * data, gavl_packet_t * p)
   return GAVL_SINK_OK;
   }
 
-static int write_audio_frame_faac(void * data, gavl_audio_frame_t * frame,
-                                  int stream)
-  {
-  faac_t * faac = data;
-  return (gavl_audio_sink_put_frame(faac->sink, frame) == GAVL_SINK_OK);
-  }
 
 static int add_audio_stream_faac(void * data,
                                  const gavl_metadata_t * m,
@@ -220,13 +214,6 @@ static int start_faac(void * data)
   faac->psink = gavl_packet_sink_create(NULL, write_packet, faac);
   bg_faac_set_packet_sink(faac->codec, faac->psink);
   return 1;
-  }
-
-static void get_audio_format_faac(void * data, int stream,
-                                 gavl_audio_format_t * ret)
-  {
-  faac_t * faac = data;
-  gavl_audio_format_copy(ret, &faac->format);
   }
 
 static gavl_audio_sink_t * get_audio_sink_faac(void * data, int stream)
@@ -306,10 +293,8 @@ const bg_encoder_plugin_t the_plugin =
     .set_audio_parameter =     set_audio_parameter_faac,
     .start               =     start_faac,
 
-    .get_audio_format =        get_audio_format_faac,
     .get_audio_sink =        get_audio_sink_faac,
     
-    .write_audio_frame =   write_audio_frame_faac,
     .close =               close_faac
   };
 

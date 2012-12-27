@@ -35,6 +35,8 @@ typedef struct
   FILE * out;
   
   gavl_audio_sink_t * sink;
+  gavl_packet_sink_t * psink;
+
   } bg_mpa_common_t;
 
 const bg_parameter_info_t * bg_mpa_get_parameters();
@@ -47,8 +49,6 @@ void bg_mpa_set_format(bg_mpa_common_t * com, const gavl_audio_format_t * format
 void bg_mpa_get_format(bg_mpa_common_t * com, gavl_audio_format_t * format);
 
 int bg_mpa_start(bg_mpa_common_t * com, const char * filename);
-
-int bg_mpa_write_audio_frame(bg_mpa_common_t * com, gavl_audio_frame_t * frame);
 
 int bg_mpa_close(bg_mpa_common_t * com);
 

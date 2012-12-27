@@ -424,12 +424,24 @@ gavl_video_sink_t * bg_mpv_get_video_sink(bg_mpv_common_t * com)
   return com->y4m.sink;
   }
 
+gavl_packet_sink_t * bg_mpv_get_video_packet_sink(bg_mpv_common_t * com)
+  {
+  return com->psink;
+  }
+
 
 static const uint8_t sequence_end[4] = { 0x00, 0x00, 0x01, 0xb7 };
 
 int bg_mpv_close(bg_mpv_common_t * com)
   {
   int ret = 1;
+
+  if(com->psink)
+    {
+    gavl_packet_sink_destroy(com->psink);
+    com->psink = NULL;
+    }
+  
   if(com->mpeg2enc)
     {
     if(bg_subprocess_close(com->mpeg2enc))
@@ -453,13 +465,30 @@ int bg_mpv_close(bg_mpv_common_t * com)
   return ret;
   }
 
+static gavl_sink_status_t write_video_packet(void * priv,
+                                             gavl_packet_t * packet)
+  {
+  bg_mpv_common_t * com = priv;
+
+  int len = packet->data_len;
+  if(packet->sequence_end_pos > 0)
+    len = packet->sequence_end_pos;
+
+  
+  if(fwrite(packet->data, 1, len, com->out) < len)
+    return GAVL_SINK_ERROR;
+  return GAVL_SINK_OK;
+  }
+
 int bg_mpv_start(bg_mpv_common_t * com)
   {
   int result;
 
   if(com->ci)
+    {
+    com->psink = gavl_packet_sink_create(NULL, write_video_packet, com);
     return 1;
-  
+    }
   com->y4m.chroma_mode = bg_mpv_get_chroma_mode(com);
 
   bg_encoder_set_framerate_nearest(&com->y4m.fr,
@@ -478,13 +507,3 @@ void bg_mpv_set_ci(bg_mpv_common_t * com, const gavl_compression_info_t * ci)
   com->ci = ci;
   }
 
-int bg_mpv_write_video_packet(bg_mpv_common_t * com,
-                              gavl_packet_t * packet)
-  {
-  int len = packet->data_len;
-  if(packet->sequence_end_pos > 0)
-    len = packet->sequence_end_pos;
-  if(fwrite(packet->data, 1, len, com->out) < len)
-    return 0;
-  return 1;
-  }

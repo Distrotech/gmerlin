@@ -220,18 +220,6 @@ bg_ogg_encoder_get_video_sink(void * data, int stream);
 gavl_packet_sink_t *
 bg_ogg_encoder_get_video_packet_sink(void * data, int stream);
 
-int bg_ogg_encoder_write_audio_frame(void * data,
-                                     gavl_audio_frame_t*f,int stream);
-
-int bg_ogg_encoder_write_video_frame(void * data,
-                                     gavl_video_frame_t*f,int stream);
-
-int bg_ogg_encoder_write_audio_packet(void * data,
-                                      gavl_packet_t*p,int stream);
-
-int bg_ogg_encoder_write_video_packet(void * data,
-                                      gavl_packet_t*p,int stream);
-
 int bg_ogg_encoder_close(void * data, int do_delete);
 
 bg_parameter_info_t *

@@ -589,25 +589,6 @@ static int open_video_encoder(ffmpeg_priv_t * priv,
   return 1;
   }
 
-
-int bg_ffmpeg_write_audio_frame(void * data,
-                                gavl_audio_frame_t * frame, int stream)
-  {
-  ffmpeg_priv_t * priv;
-  priv = data;
-  return (gavl_audio_sink_put_frame(priv->audio_streams[stream].sink,
-                                    frame) == GAVL_SINK_OK);
-  }
-
-int bg_ffmpeg_write_video_frame(void * data,
-                                gavl_video_frame_t * frame, int stream)
-  {
-  ffmpeg_priv_t * priv;
-  priv = data;
-  return (gavl_video_sink_put_frame(priv->video_streams[stream].sink,
-                                    frame) == GAVL_SINK_OK);
-  }
-
 int bg_ffmpeg_start(void * data)
   {
   ffmpeg_priv_t * priv;
@@ -676,15 +657,6 @@ void bg_ffmpeg_get_audio_format(void * data, int stream,
                          
   }
 
-void bg_ffmpeg_get_video_format(void * data, int stream,
-                                gavl_video_format_t*ret)
-  {
-  ffmpeg_priv_t * priv;
-  priv = data;
-
-  gavl_video_format_copy(ret, &priv->video_streams[stream].format);
-  
-  }
 
 gavl_audio_sink_t *
 bg_ffmpeg_get_audio_sink(void * data, int stream)
@@ -700,35 +672,6 @@ bg_ffmpeg_get_video_sink(void * data, int stream)
   ffmpeg_priv_t * priv;
   priv = data;
   return priv->video_streams[stream].sink;
-  }
-
-int bg_ffmpeg_write_subtitle_text(void * data,const char * text,
-                                  int64_t start,
-                                  int64_t duration, int stream)
-  {
-  gavl_packet_t pkt;
-  ffmpeg_priv_t * priv;
-  bg_ffmpeg_text_stream_t * st;
-  int ret;
-  int len;
-  
-  priv = data;
-  st = &priv->text_streams[stream];
-
-  gavl_packet_init(&pkt);
-
-  len = strlen(text);
-
-  gavl_packet_alloc(&pkt, len);
-  memcpy(pkt.data, text, len);
-  pkt.data_len = len;
-  
-  pkt.pts      = start;
-  pkt.duration = duration;
-
-  ret = (gavl_packet_sink_put_packet(st->com.psink, &pkt) == GAVL_SINK_OK);
-  gavl_packet_free(&pkt);
-  return ret;
   }
 
 static void close_common(bg_ffmpeg_stream_common_t * com)
@@ -915,23 +858,6 @@ int bg_ffmpeg_add_video_stream_compressed(void * priv,
     st->com.stream->codec->flags |= CODEC_FLAG_GLOBAL_HEADER;
     }
   return ret;
-  }
-
-
-int bg_ffmpeg_write_audio_packet(void * priv,
-                                 gavl_packet_t * packet, int stream)
-  {
-  ffmpeg_priv_t * f = priv;
-  bg_ffmpeg_audio_stream_t * st = f->audio_streams + stream;
-  return gavl_packet_sink_put_packet(st->com.psink, packet) == GAVL_SINK_OK;
-  }
-
-int bg_ffmpeg_write_video_packet(void * priv, gavl_packet_t * packet,
-                                 int stream)
-  {
-  ffmpeg_priv_t * f = priv;
-  bg_ffmpeg_video_stream_t * st = f->video_streams + stream;
-  return gavl_packet_sink_put_packet(st->com.psink, packet) == GAVL_SINK_OK;
   }
 
 gavl_packet_sink_t *

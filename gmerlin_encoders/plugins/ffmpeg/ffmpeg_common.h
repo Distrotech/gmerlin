@@ -268,8 +268,6 @@ int bg_ffmpeg_start(void * data);
 
 void bg_ffmpeg_get_audio_format(void * data, int stream,
                                 gavl_audio_format_t*ret);
-void bg_ffmpeg_get_video_format(void * data, int stream,
-                                gavl_video_format_t*ret);
 
 gavl_audio_sink_t *
 bg_ffmpeg_get_audio_sink(void * data, int stream);
@@ -286,11 +284,6 @@ bg_ffmpeg_get_video_packet_sink(void * data, int stream);
 gavl_packet_sink_t *
 bg_ffmpeg_get_text_packet_sink(void * data, int stream);
 
-int bg_ffmpeg_write_audio_frame(void * data,
-                                gavl_audio_frame_t * frame, int stream);
-
-int bg_ffmpeg_write_video_frame(void * data,
-                                gavl_video_frame_t * frame, int stream);
 
 int bg_ffmpeg_write_subtitle_text(void * data,const char * text,
                                   int64_t start,
@@ -334,7 +327,3 @@ int bg_ffmpeg_add_video_stream_compressed(void * priv,
                                           const gavl_metadata_t * metadata,
                                           const gavl_video_format_t * format,
                                           const gavl_compression_info_t * info);
-
-
-int bg_ffmpeg_write_audio_packet(void * data, gavl_packet_t * packet, int stream);
-int bg_ffmpeg_write_video_packet(void * data, gavl_packet_t * packet, int stream);

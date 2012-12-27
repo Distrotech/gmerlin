@@ -54,6 +54,9 @@ typedef struct
   const gavl_compression_info_t * ci;
     
   int64_t start_pts;
+
+  gavl_audio_sink_t * sink;
+  gavl_packet_sink_t * psink;
   } audio_stream_t;
 
 typedef struct
@@ -64,6 +67,10 @@ typedef struct
   const gavl_compression_info_t * ci;
     
   int64_t start_pts;
+
+  gavl_video_sink_t * sink;
+  gavl_packet_sink_t * psink;
+
   } video_stream_t;
 
 typedef struct
@@ -321,34 +328,20 @@ static int writes_compressed_audio_mpeg(void * priv,
     }
   return 0;
   }
-  
-static void get_audio_format_mpeg(void * data, int stream,
-                                  gavl_audio_format_t * ret)
-  {
-  e_mpeg_t * e = data;
-  bg_mpa_get_format(&e->audio_streams[stream].mpa, ret);
-  }
 
-
-static void get_video_format_mpeg(void * data, int stream,
-                                  gavl_video_format_t * ret)
-  {
-  e_mpeg_t * e = data;
-  bg_mpv_get_format(&e->video_streams[stream].mpv, ret);
-  }
 
 static gavl_audio_sink_t *
 get_audio_sink_mpeg(void * data, int stream)
   {
   e_mpeg_t * e = data;
-  return e->audio_streams[stream].mpa.sink;
+  return e->audio_streams[stream].sink;
   }
 
 static gavl_video_sink_t *
 get_video_sink_mpeg(void * data, int stream)
   {
   e_mpeg_t * e = data;
-  return bg_mpv_get_video_sink(&e->video_streams[stream].mpv);
+  return e->video_streams[stream].sink;
   }
 
 static char * get_filename(e_mpeg_t * e, const char * extension, int is_audio)
@@ -396,6 +389,39 @@ static char * get_filename(e_mpeg_t * e, const char * extension, int is_audio)
     
   } 
 
+static gavl_sink_status_t write_audio_frame_mpeg(void * data, gavl_audio_frame_t* frame)
+  {
+  audio_stream_t * s = data;
+  if(s->start_pts == GAVL_TIME_UNDEFINED)
+    s->start_pts = frame->timestamp;
+  return gavl_audio_sink_put_frame(s->mpa.sink, frame);
+  }
+
+static gavl_sink_status_t write_video_frame_mpeg(void * data, gavl_video_frame_t* frame)
+  {
+  video_stream_t * s = data;
+  if(s->start_pts == GAVL_TIME_UNDEFINED)
+    s->start_pts = frame->timestamp;
+  return gavl_video_sink_put_frame(s->mpv.y4m.sink, frame);
+  }
+
+static gavl_sink_status_t write_audio_packet_mpeg(void * data, gavl_packet_t* p)
+  {
+  audio_stream_t * s = data;
+  if(s->start_pts == GAVL_TIME_UNDEFINED)
+    s->start_pts = p->pts;
+  return gavl_packet_sink_put_packet(s->mpa.psink, p);
+  }
+
+static gavl_sink_status_t write_video_packet_mpeg(void * data, gavl_packet_t* p)
+  {
+  video_stream_t * s = data;
+  if(s->start_pts == GAVL_TIME_UNDEFINED)
+    s->start_pts = p->pts;
+  return gavl_packet_sink_put_packet(s->mpv.psink, p);
+  }
+
+
 static int start_mpeg(void * data)
   {
   
@@ -418,6 +444,16 @@ static int start_mpeg(void * data)
 
     if(!bg_mpa_start(&e->audio_streams[i].mpa, e->audio_streams[i].filename))
       return 0;
+
+    if(e->audio_streams[i].ci)
+      e->audio_streams[i].psink =
+        gavl_packet_sink_create(NULL, write_audio_packet_mpeg,
+                                &e->audio_streams[i]);
+    else
+      e->audio_streams[i].sink =
+        gavl_audio_sink_create(NULL, write_audio_frame_mpeg,
+                               &e->audio_streams[i],
+                               gavl_audio_sink_get_format(e->audio_streams[i].mpa.sink));
     }
   for(i = 0; i < e->num_video_streams; i++)
     {
@@ -438,52 +474,18 @@ static int start_mpeg(void * data)
     
     if(!bg_mpv_start(&e->video_streams[i].mpv))
       return 0;
+
+    if(e->video_streams[i].ci)
+      e->video_streams[i].psink =
+        gavl_packet_sink_create(NULL, write_video_packet_mpeg,
+                                &e->video_streams[i]);
+    else
+      e->video_streams[i].sink =
+        gavl_video_sink_create(NULL, write_video_frame_mpeg,
+                               &e->video_streams[i],
+                               gavl_video_sink_get_format(e->video_streams[i].mpv.y4m.sink));
     }
   return 1;
-  }
-
-static int write_audio_frame_mpeg(void * data, gavl_audio_frame_t* frame,
-                                  int stream)
-  {
-  audio_stream_t * s;
-  e_mpeg_t * e = data;
-  s = &e->audio_streams[stream];
-  if(s->start_pts == GAVL_TIME_UNDEFINED)
-    s->start_pts = frame->timestamp;
-  return bg_mpa_write_audio_frame(&s->mpa, frame);
-  }
-
-static int write_video_frame_mpeg(void * data, gavl_video_frame_t* frame,
-                                  int stream)
-  {
-  video_stream_t * s;
-  e_mpeg_t * e = data;
-  s = &e->video_streams[stream];
-  if(s->start_pts == GAVL_TIME_UNDEFINED)
-    s->start_pts = frame->timestamp;
-  return bg_mpv_write_video_frame(&s->mpv, frame);
-  }
-
-static int write_audio_packet_mpeg(void * data, gavl_packet_t* p,
-                                   int stream)
-  {
-  audio_stream_t * s;
-  e_mpeg_t * e = data;
-  s = &e->audio_streams[stream];
-  if(s->start_pts == GAVL_TIME_UNDEFINED)
-    s->start_pts = p->pts;
-  return bg_mpa_write_audio_packet(&s->mpa, p);
-  }
-
-static int write_video_packet_mpeg(void * data, gavl_packet_t* p,
-                                   int stream)
-  {
-  video_stream_t * s;
-  e_mpeg_t * e = data;
-  s = &e->video_streams[stream];
-  if(s->start_pts == GAVL_TIME_UNDEFINED)
-    s->start_pts = p->pts;
-  return bg_mpv_write_video_packet(&s->mpv, p);
   }
 
 static int close_mpeg(void * data, int do_delete)
@@ -508,6 +510,11 @@ static int close_mpeg(void * data, int do_delete)
 
   for(i = 0; i < e->num_audio_streams; i++)
     {
+    if(e->audio_streams[i].sink)
+      gavl_audio_sink_destroy(e->audio_streams[i].sink);
+    if(e->audio_streams[i].psink)
+      gavl_packet_sink_destroy(e->audio_streams[i].psink);
+    
     if(!bg_mpa_close(&e->audio_streams[i].mpa))
       {
       ret = 0;
@@ -532,6 +539,11 @@ static int close_mpeg(void * data, int do_delete)
     }
   for(i = 0; i < e->num_video_streams; i++)
     {
+    if(e->video_streams[i].sink)
+      gavl_video_sink_destroy(e->video_streams[i].sink);
+    if(e->video_streams[i].psink)
+      gavl_packet_sink_destroy(e->video_streams[i].psink);
+    
     if(!bg_mpv_close(&e->video_streams[i].mpv))
       {
       ret = 0;
@@ -829,20 +841,11 @@ const bg_encoder_plugin_t the_plugin =
     .set_audio_parameter =  set_audio_parameter_mpeg,
     .set_video_parameter =  set_video_parameter_mpeg,
 
-    .get_audio_format =     get_audio_format_mpeg,
-    .get_video_format =     get_video_format_mpeg,
 
     .get_audio_sink =     get_audio_sink_mpeg,
     .get_video_sink =     get_video_sink_mpeg,
     
     .start =                start_mpeg,
-
-    .write_audio_frame = write_audio_frame_mpeg,
-    .write_video_frame = write_video_frame_mpeg,
-
-    .write_audio_packet = write_audio_packet_mpeg,
-    .write_video_packet = write_video_packet_mpeg,
-
     .close =             close_mpeg,
 
   };

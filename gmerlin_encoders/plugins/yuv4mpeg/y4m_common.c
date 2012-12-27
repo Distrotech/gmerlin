@@ -143,6 +143,15 @@ static void convert_yuva4444(uint8_t ** dst, uint8_t ** src,
     }
   }
 
+static gavl_video_frame_t *
+y4m_get_func(void * data)
+  {
+  bg_y4m_common_t * com = data;
+  if(!com->frame)
+    com->frame = gavl_video_frame_create_nopad(&com->format);
+  return com->frame;
+  }
+
 static gavl_sink_status_t
 y4m_write_func(void * data, gavl_video_frame_t * frame)
   {
@@ -158,20 +167,8 @@ y4m_write_func(void * data, gavl_video_frame_t * frame)
     result = y4m_write_frame(com->fd, &com->si, &com->fi, com->tmp_planes);
     }
   else
-    {
-    if((frame->strides[0] == com->strides[0]) &&
-       (frame->strides[1] == com->strides[1]) &&
-       (frame->strides[2] == com->strides[2]) &&
-       (frame->strides[3] == com->strides[3]))
-      result = y4m_write_frame(com->fd, &com->si, &com->fi, frame->planes);
-    else
-      {
-      if(!com->frame)
-        com->frame = gavl_video_frame_create_nopad(&com->format);
-      gavl_video_frame_copy(&com->format, com->frame, frame);
-      result = y4m_write_frame(com->fd, &com->si, &com->fi, com->frame->planes);
-      }
-    }
+    result = y4m_write_frame(com->fd, &com->si, &com->fi, frame->planes);
+  
   if(result != Y4M_OK)
     return GAVL_SINK_ERROR;
   return GAVL_SINK_OK;
@@ -228,8 +225,11 @@ int bg_y4m_write_header(bg_y4m_common_t * com)
            ((err == Y4M_ERR_SYSTEM) ? strerror(errno) : y4m_strerr(err)));
     return 0;
     }
-  
-  com->sink = gavl_video_sink_create(NULL, y4m_write_func, com, &com->format);
+
+  if(com->format.pixelformat == GAVL_YUVA_32)
+    com->sink = gavl_video_sink_create(NULL, y4m_write_func, com, &com->format);
+  else
+    com->sink = gavl_video_sink_create(y4m_get_func, y4m_write_func, com, &com->format);
   
   return 1;
   }

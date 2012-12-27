@@ -93,12 +93,6 @@ static int add_video_stream_compressed_mpv(void * data,
   return 0;
   }
 
-static void get_video_format_mpv(void * data, int stream,
-                                 gavl_video_format_t * ret)
-  {
-  e_mpv_t * e = data;
-  gavl_video_format_copy(ret, &e->format);
-  }
 
 static int start_mpv(void * data)
   {
@@ -142,13 +136,6 @@ static int writes_compressed_video_mpv(void * priv,
   return 0;
   }
 
-static int write_video_frame_mpv(void * data,
-                                 gavl_video_frame_t* frame,
-                                 int stream)
-  {
-  e_mpv_t * e = data;
-  return bg_mpv_write_video_frame(&e->mpv, frame);
-  }
 
 static gavl_video_sink_t * get_video_sink_mpv(void * data, int stream)
   {
@@ -156,13 +143,13 @@ static gavl_video_sink_t * get_video_sink_mpv(void * data, int stream)
   return bg_mpv_get_video_sink(&e->mpv);
   }
 
-static int write_video_packet_mpv(void * data,
-                                  gavl_packet_t* p,
-                                  int stream)
+static gavl_packet_sink_t * get_video_packet_sink_mpv(void * data, int stream)
   {
   e_mpv_t * e = data;
-  return bg_mpv_write_video_packet(&e->mpv, p);
+  return bg_mpv_get_video_packet_sink(&e->mpv);
+  
   }
+
 
 static int close_mpv(void * data, int do_delete)
   {
@@ -232,13 +219,11 @@ const bg_encoder_plugin_t the_plugin =
     
     //    .set_video_parameter =  set_video_parameter_mpv,
 
-    .get_video_format =     get_video_format_mpv,
     .get_video_sink =     get_video_sink_mpv,
+    .get_video_packet_sink =     get_video_packet_sink_mpv,
 
     .start =                start_mpv,
 
-    .write_video_frame = write_video_frame_mpv,
-    .write_video_packet = write_video_packet_mpv,
     .close =             close_mpv,
     
   };

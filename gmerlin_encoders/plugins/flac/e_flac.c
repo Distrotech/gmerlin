@@ -350,21 +350,6 @@ write_audio_packet_func_flac(void * priv, gavl_packet_t * packet)
     return GAVL_SINK_ERROR;
   }
 
-static int write_audio_frame_flac(void * data, gavl_audio_frame_t * frame,
-                                  int stream)
-  {
-  flac_t * flac;
-  flac = data;
-  return (gavl_audio_sink_put_frame(flac->sink, frame) == GAVL_SINK_OK);
-  }
-
-static int
-write_audio_packet_flac(void * priv, gavl_packet_t * packet, int stream)
-  {
-  flac_t * flac = priv;
-  return (gavl_packet_sink_put_packet(flac->psink_ext, packet) == GAVL_SINK_OK);
-  }
-
 static int start_flac(void * data)
   {
   flac_t * flac;
@@ -392,19 +377,18 @@ static int start_flac(void * data)
   return 1;
   }
 
-static void get_audio_format_flac(void * data, int stream,
-                                 gavl_audio_format_t * ret)
-  {
-  flac_t * flac;
-  flac = data;
-  gavl_audio_format_copy(ret, &flac->format);
-  }
-
 static gavl_audio_sink_t * get_audio_sink_flac(void * data, int stream)
   {
   flac_t * flac;
   flac = data;
   return flac->sink;
+  }
+
+static gavl_packet_sink_t * get_audio_packet_sink_flac(void * data, int stream)
+  {
+  flac_t * flac;
+  flac = data;
+  return flac->psink_ext;
   }
 
 static void build_seek_table(flac_t * flac)
@@ -609,12 +593,10 @@ const bg_encoder_plugin_t the_plugin =
     
     .set_audio_parameter =     set_audio_parameter_flac,
 
-    .get_audio_format =        get_audio_format_flac,
     .get_audio_sink =          get_audio_sink_flac,
+    .get_audio_packet_sink =   get_audio_packet_sink_flac,
     .start =                   start_flac,
     
-    .write_audio_frame =   write_audio_frame_flac,
-    .write_audio_packet =   write_audio_packet_flac,
     .close =               close_flac
   };
 

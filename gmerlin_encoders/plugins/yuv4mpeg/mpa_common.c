@@ -305,6 +305,17 @@ write_audio_func(void * priv,
   return GAVL_SINK_OK;
   }
 
+static gavl_sink_status_t
+write_packet_func(void * priv,
+                  gavl_packet_t * packet)
+  {
+  bg_mpa_common_t * com = priv;
+  if(fwrite(packet->data, 1, packet->data_len, com->out) < packet->data_len)
+    return GAVL_SINK_ERROR;
+  return GAVL_SINK_OK;
+  }
+
+
 int bg_mpa_start(bg_mpa_common_t * com, const char * filename)
   {
   sigset_t newset;
@@ -313,6 +324,7 @@ int bg_mpa_start(bg_mpa_common_t * com, const char * filename)
   if(com->ci)
     {
     com->out = fopen(filename, "wb");
+    com->psink = gavl_packet_sink_create(NULL, write_packet_func, com);
     }
   else
     {
@@ -344,20 +356,6 @@ int bg_mpa_start(bg_mpa_common_t * com, const char * filename)
   return 1;
   }
 
-int bg_mpa_write_audio_frame(bg_mpa_common_t * com,
-                             gavl_audio_frame_t * frame)
-  {
-  return gavl_audio_sink_put_frame(com->sink, frame) == GAVL_SINK_OK;
-  }
-
-int bg_mpa_write_audio_packet(bg_mpa_common_t * com,
-                              gavl_packet_t * packet)
-  {
-  if(fwrite(packet->data, 1, packet->data_len, com->out) < packet->data_len)
-    return 0;
-  return 1;
-  }
-
 int bg_mpa_close(bg_mpa_common_t * com)
   {
   int ret = 1;
@@ -374,6 +372,11 @@ int bg_mpa_close(bg_mpa_common_t * com)
     {
     gavl_audio_sink_destroy(com->sink);
     com->sink = NULL;
+    }
+  if(com->psink)
+    {
+    gavl_packet_sink_destroy(com->psink);
+    com->psink = NULL;
     }
 
   return ret;

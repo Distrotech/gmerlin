@@ -42,6 +42,8 @@ typedef struct
   FILE * out;
   
   bg_encoder_framerate_t fr;
+
+  gavl_packet_sink_t * psink;
   } bg_mpv_common_t;
 
 const bg_parameter_info_t * bg_mpv_get_parameters();
@@ -50,9 +52,6 @@ const bg_parameter_info_t * bg_mpv_get_parameters();
 void bg_mpv_set_parameter(void * data, const char * name, const bg_parameter_value_t * val);
 
 int bg_mpv_open(bg_mpv_common_t * com, const char * filename);
-
-int bg_mpv_write_video_packet(bg_mpv_common_t * com,
-                              gavl_packet_t * packet);
 
 void bg_mpv_set_format(bg_mpv_common_t * com, const gavl_video_format_t * format);
 void bg_mpv_get_format(bg_mpv_common_t * com, gavl_video_format_t * format);
@@ -66,6 +65,8 @@ int bg_mpv_write_video_frame(bg_mpv_common_t * com, gavl_video_frame_t * frame);
 int bg_mpv_close(bg_mpv_common_t * com);
 
 gavl_video_sink_t * bg_mpv_get_video_sink(bg_mpv_common_t * com);
+gavl_packet_sink_t * bg_mpv_get_video_packet_sink(bg_mpv_common_t * com);
+
 const char * bg_mpv_get_extension(bg_mpv_common_t * com);
 
 

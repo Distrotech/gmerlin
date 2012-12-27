@@ -84,13 +84,11 @@ const bg_encoder_plugin_t the_plugin =
     .set_video_pass =       bg_ffmpeg_set_video_pass,
     .set_video_parameter =  bg_ffmpeg_set_video_parameter,
     
-    .get_video_format =     bg_ffmpeg_get_video_format,
     .get_video_sink =       bg_ffmpeg_get_video_sink,
     .get_video_packet_sink =     bg_ffmpeg_get_video_packet_sink,
     
     .start =                bg_ffmpeg_start,
     
-    .write_video_frame =    bg_ffmpeg_write_video_frame,
     .close =                bg_ffmpeg_close,
   };
 

@@ -96,13 +96,6 @@ static const bg_parameter_info_t * get_audio_parameters_lame(void * data)
   return audio_parameters;
   }
 
-static void get_audio_format_lame(void * data, int stream,
-                           gavl_audio_format_t * ret)
-  {
-  lame_priv_t * lame = data;
-  gavl_audio_format_copy(ret, &lame->fmt);
-  }
-
 static gavl_audio_sink_t * get_audio_sink_lame(void * data, int stream)
   {
   lame_priv_t * lame = data;
@@ -242,23 +235,12 @@ write_audio_packet_func_lame(void * data, gavl_packet_t * p)
   return GAVL_SINK_OK;
   }
 
-static int write_audio_packet_lame(void * data, gavl_packet_t * p, int stream)
-  {
-  lame_priv_t * lame = data;
-  return gavl_packet_sink_put_packet(lame->psink, p) == GAVL_SINK_OK;
-  }
 
 static gavl_packet_sink_t *
 get_packet_sink_lame(void * data, int stream)
   {
   lame_priv_t * lame = data;
   return lame->psink;
-  }
-
-static int write_audio_frame_lame(void * data, gavl_audio_frame_t * frame, int stream)
-  {
-  lame_priv_t * lame = data;
-  return gavl_audio_sink_put_frame(lame->asink, frame) == GAVL_SINK_OK;
   }
 
 static int
@@ -399,14 +381,10 @@ const bg_encoder_plugin_t the_plugin =
 
     .start = start_lame,
     
-    .get_audio_format =        get_audio_format_lame,
-    .get_audio_sink =        get_audio_sink_lame,
-
-    .get_audio_packet_sink =        get_packet_sink_lame,
+    .get_audio_sink =          get_audio_sink_lame,
+    .get_audio_packet_sink =   get_packet_sink_lame,
     
-    .write_audio_frame =    write_audio_frame_lame,
-    .write_audio_packet =   write_audio_packet_lame,
-    .close =               close_lame
+    .close =                   close_lame
   };
 
 /* Include this into all plugin modules exactly once
