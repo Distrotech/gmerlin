@@ -822,7 +822,7 @@ int bg_encoder_start(bg_encoder_t * enc)
     {
     subtitle_overlay_stream_t * os = &enc->subtitle_overlay_streams[i];
     os->sink = os->com.plugin->get_subtitle_overlay_sink(os->com.priv, os->com.out_index);
-    gavl_packet_sink_set_lock_funcs(os->com.psink, lock_plugin, unlock_plugin, os->com.h);
+    gavl_video_sink_set_lock_funcs(os->sink, lock_plugin, unlock_plugin, os->com.h);
     }
   
   
@@ -1201,34 +1201,34 @@ int bg_encoder_writes_compressed_video(bg_encoder_t * enc,
 gavl_audio_sink_t *
 bg_encoder_get_audio_sink(bg_encoder_t * enc, int stream)
   {
-  return NULL;
+  return enc->audio_streams[stream].sink;
   }
 
 gavl_video_sink_t *
 bg_encoder_get_video_sink(bg_encoder_t * enc, int stream)
   {
-  return NULL;
+  return enc->video_streams[stream].sink;
   }
 
 gavl_packet_sink_t *
 bg_encoder_get_audio_packet_sink(bg_encoder_t * enc, int stream)
   {
-  return NULL;
+  return enc->audio_streams[stream].com.psink;
   }
 
 gavl_packet_sink_t * bg_encoder_get_video_packet_sink(bg_encoder_t * enc, int stream)
   {
-  return NULL;
+  return enc->video_streams[stream].com.psink;
   }
 
 gavl_packet_sink_t * bg_encoder_get_text_sink(bg_encoder_t * enc, int stream)
   {
-  return NULL;
+  return enc->subtitle_text_streams[stream].com.psink;
   }
 
 gavl_video_sink_t * bg_encoder_get_overlay_sink(bg_encoder_t * enc, int stream)
   {
-  return NULL;
+  return enc->subtitle_overlay_streams[stream].sink;
   }
 
 void bg_encoder_update_metadata(bg_encoder_t * enc,

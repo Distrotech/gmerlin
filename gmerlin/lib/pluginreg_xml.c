@@ -96,6 +96,7 @@ flag_names[] =
     { "VideoCompressor",         BG_PLUGIN_VIDEO_COMPRESSOR },
     { "AudioDecompressor",       BG_PLUGIN_AUDIO_DECOMPRESSOR },
     { "VideoDecompressor",       BG_PLUGIN_VIDEO_DECOMPRESSOR },
+    { "OverlayCompressor",       BG_PLUGIN_OVERLAY_COMPRESSOR },
     { "Unsupported",    BG_PLUGIN_UNSUPPORTED     },
     { NULL,    0                                  },
   };

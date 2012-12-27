@@ -21,6 +21,7 @@
 
 #include <pthread.h>
 #include <signal.h>
+#include <string.h>
 
 #include "gavftools.h"
 
@@ -48,9 +49,11 @@ void gavftools_init_registries()
 
 static bg_cfg_section_t * ac_section = NULL;
 static bg_cfg_section_t * vc_section = NULL;
+static bg_cfg_section_t * oc_section = NULL;
 
 static bg_parameter_info_t * ac_parameters = NULL;
 static bg_parameter_info_t * vc_parameters = NULL;
+static bg_parameter_info_t * oc_parameters = NULL;
 
 static bg_stream_action_t * a_actions = NULL;
 static int num_a_actions = 0;
@@ -104,6 +107,19 @@ const bg_parameter_info_t * gavftools_vc_params(void)
 
   }
 
+const bg_parameter_info_t * gavftools_oc_params(void)
+  {
+  if(!oc_parameters)
+    {
+    oc_parameters =
+      bg_plugin_registry_create_compressor_parameters(plugin_reg,
+                                                      BG_PLUGIN_OVERLAY_COMPRESSOR);
+    
+    }
+  return oc_parameters;
+
+  }
+
 bg_cfg_section_t * gavftools_ac_section(void)
   {
   if(!ac_section)
@@ -122,6 +138,17 @@ bg_cfg_section_t * gavftools_vc_section(void)
     vc_section =
       bg_cfg_section_create_from_parameters("vc",
                                             gavftools_vc_params());
+    }
+  return vc_section;
+  }
+
+bg_cfg_section_t * gavftools_oc_section(void)
+  {
+  if(!oc_section)
+    {
+    oc_section =
+      bg_cfg_section_create_from_parameters("oc",
+                                            gavftools_oc_params());
     }
   return vc_section;
   }
@@ -157,6 +184,23 @@ gavftools_opt_vc(void * data, int * argc, char *** _argv, int arg)
                                NULL,
                                NULL,
                                gavftools_vc_params(),
+                               (*_argv)[arg]))
+    exit(-1);
+  bg_cmdline_remove_arg(argc, _argv, arg);
+  }
+
+void
+gavftools_opt_oc(void * data, int * argc, char *** _argv, int arg)
+  {
+  if(arg >= *argc)
+    {
+    fprintf(stderr, "Option -oc requires an argument\n");
+    exit(-1);
+    }
+  if(!bg_cmdline_apply_options(gavftools_oc_section(),
+                               NULL,
+                               NULL,
+                               gavftools_oc_params(),
                                (*_argv)[arg]))
     exit(-1);
   bg_cmdline_remove_arg(argc, _argv, arg);
@@ -255,5 +299,53 @@ gavftools_opt_ts(void * data, int * argc, char *** _argv, int arg)
     }
   t_actions = stream_actions_from_arg((*_argv)[arg], &num_t_actions);
   bg_cmdline_remove_arg(argc, _argv, arg);
+  }
+
+bg_stream_action_t * gavftools_get_stream_actions(int num, gavf_stream_type_t type)
+  {
+  int i;
+  int num_actions;
+  bg_stream_action_t * actions;
+  bg_stream_action_t * ret;
+
+  if(!num)
+    return NULL;
+  
+  switch(type)
+    {
+    case GAVF_STREAM_AUDIO:
+      actions = a_actions;
+      num_actions = num_a_actions;
+      break;
+    case GAVF_STREAM_VIDEO:
+      actions = v_actions;
+      num_actions = num_v_actions;
+      break;
+    case GAVF_STREAM_TEXT:
+      actions = t_actions;
+      num_actions = num_t_actions;
+      break;
+    case GAVF_STREAM_OVERLAY:
+      actions = o_actions;
+      num_actions = num_o_actions;
+      break;
+    default:
+      return NULL;
+    }
+
+  ret = calloc(num, sizeof(*ret));
+  
+  i = num;
+  if(i > num_actions)
+    i = num_actions;
+
+  memcpy(ret, actions, i * sizeof(*actions));
+
+  if(num > num_actions)
+    {
+    for(i = num_actions; i < num; i++)
+      ret[i] = BG_STREAM_ACTION_OFF;
+    }
+  return ret;
   }
 

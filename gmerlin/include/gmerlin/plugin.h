@@ -118,10 +118,11 @@ typedef int (*bg_read_video_func_t)(void * priv, gavl_video_frame_t* frame,
 #define BG_PLUGIN_DEVPARAM        (1<<17)  //!< Plugin has pluggable devices as parameters, which must be updated regurarly
 #define BG_PLUGIN_OV_STILL        (1<<18)  //!< OV plugin supports still images
 
-#define BG_PLUGIN_AUDIO_COMPRESSOR   (1<<19)  //!< Plugin compresses audio
-#define BG_PLUGIN_VIDEO_COMPRESSOR   (1<<20)  //!< Plugin compresses video
-#define BG_PLUGIN_AUDIO_DECOMPRESSOR (1<<21)  //!< Plugin decompresses audio
-#define BG_PLUGIN_VIDEO_DECOMPRESSOR (1<<22)  //!< Plugin decompresses video
+#define BG_PLUGIN_AUDIO_COMPRESSOR    (1<<19)  //!< Plugin compresses audio
+#define BG_PLUGIN_VIDEO_COMPRESSOR    (1<<20)  //!< Plugin compresses video
+#define BG_PLUGIN_AUDIO_DECOMPRESSOR  (1<<21)  //!< Plugin decompresses audio
+#define BG_PLUGIN_VIDEO_DECOMPRESSOR  (1<<22)  //!< Plugin decompresses video
+#define BG_PLUGIN_OVERLAY_COMPRESSOR  (1<<23)  //!< Plugin compresses overlays
 
 #define BG_PLUGIN_UNSUPPORTED     (1<<24)  //!< Plugin is not supported. Only for a foreign API plugins
 
@@ -598,6 +599,19 @@ struct bg_input_plugin_s
 
   int (*get_video_compression_info)(void * priv, int stream,
                                     gavl_compression_info_t * info);
+
+  /** \brief Get the compression info of an overlay stream
+   *  \param priv The handle returned by the create() method
+   *  \param stream Stream index starting with 0
+   *  \param info Returns the compression info
+   *  \returns 1 if the compression info was returned, 0 if the stream cannot be output in compressed form
+   *
+   *  The returned compression info should be freed with
+   *  \ref gavl_compression_info_free
+   */
+
+  int (*get_overlay_compression_info)(void * priv, int stream,
+                                      gavl_compression_info_t * info);
   
   /*
    *  These functions set the audio- video- and subpicture streams
@@ -771,6 +785,16 @@ struct bg_input_plugin_s
 
   gavl_packet_source_t * (*get_video_packet_source)(void * priv, int stream);
 
+  /** \brief Get the packet source for an overlay stream
+   *  \param priv The handle returned by the create() method
+   *  \param stream Stream index starting with 0
+   *  \returns The packet source for this stream
+   *
+   *  This is an alternative for \ref read_video_packet
+   */
+
+  gavl_packet_source_t * (*get_overlay_packet_source)(void * priv, int stream);
+  
   
   /** \brief Skip frames in a video stream
       \param stream Stream index (starting with 0)
