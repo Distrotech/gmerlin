@@ -795,7 +795,6 @@ struct bg_input_plugin_s
 
   gavl_packet_source_t * (*get_overlay_packet_source)(void * priv, int stream);
   
-  
   /** \brief Skip frames in a video stream
       \param stream Stream index (starting with 0)
       \param time The time to skip to (will be changed to the true time)

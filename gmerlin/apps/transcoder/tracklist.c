@@ -1023,8 +1023,8 @@ static void auto_rename(track_list_t * l)
                              bg_metadata_set_parameter,
                              &m);
         new_name = bg_create_track_name(&m, d.rename_mask);
-        bg_cfg_section_set_parameter_string(t->general_section,
-                                            "name", new_name);
+        bg_cfg_section_set_parameter_string(t->metadata_section,
+                                            "label", new_name);
         free(new_name);
         gavl_metadata_free(&m);
         }
