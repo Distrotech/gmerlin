@@ -57,21 +57,6 @@ void bgav_video_parser_get_packet(bgav_video_parser_t * parser,
 
 int bgav_video_parser_max_ref_frames(bgav_video_parser_t * parser);
 
-/* TODO: Implement this and remove other API */
-
-#if 0 // Private
-bgav_packet_t *
-bgav_video_parser_get_packet_parse_full(void * parser);
-
-bgav_packet_t *
-bgav_video_parser_peek_packet_parse_full(void * parser, int force);
-
-bgav_packet_t *
-bgav_video_parser_get_packet_parse_frame(void * parser);
-
-bgav_packet_t *
-bgav_video_parser_peek_packet_parse_frame(void * parser, int force);
-#endif
 
 
 /* Audio parser */

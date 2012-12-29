@@ -379,7 +379,8 @@ static void set_header_end(bgav_video_parser_t * parser, bgav_packet_t * p,
 #define SWAP(n1, n2) \
   swp = n1; n1 = n2; n2 = swp;
 
-static int parse_frame_mpeg4(bgav_video_parser_t * parser, bgav_packet_t * p)
+static int parse_frame_mpeg4(bgav_video_parser_t * parser, bgav_packet_t * p,
+                            int64_t prs_orig)
   {
   mpeg4_priv_t * priv = parser->priv;
   const uint8_t * data;

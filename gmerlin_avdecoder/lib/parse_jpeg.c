@@ -136,7 +136,8 @@ static gavl_pixelformat_t get_pixelformat(bgav_packet_t * p)
   return GAVL_PIXELFORMAT_NONE;
   }
 
-static int parse_frame_jpeg(bgav_video_parser_t * parser, bgav_packet_t * p)
+static int parse_frame_jpeg(bgav_video_parser_t * parser, bgav_packet_t * p,
+                            int64_t prs_orig)
   {
   jpeg_priv_t * priv = parser->priv;
   

@@ -40,7 +40,7 @@ typedef void (*reset_func)(bgav_video_parser_t*);
    Return 0 on error, 1 else
 */
    
-typedef int (*parse_frame_func)(bgav_video_parser_t*, bgav_packet_t * p);
+typedef int (*parse_frame_func)(bgav_video_parser_t*, bgav_packet_t * p, int64_t pts_orig);
 
 /*
  *  Find a frame boundary in the bytebuffer (parser->buf)
@@ -140,6 +140,6 @@ void bgav_video_parser_init_mjpa(bgav_video_parser_t * parser);
 void bgav_video_parser_init_dv(bgav_video_parser_t * parser);
 void bgav_video_parser_init_jpeg(bgav_video_parser_t * parser);
 void bgav_video_parser_init_png(bgav_video_parser_t * parser);
-
+void bgav_video_parser_init_dvdsub(bgav_video_parser_t * parser);
 void bgav_video_parser_flush(bgav_video_parser_t * parser, int bytes);
 

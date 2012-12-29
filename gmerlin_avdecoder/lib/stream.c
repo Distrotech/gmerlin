@@ -41,8 +41,10 @@ int bgav_stream_start(bgav_stream_t * stream)
       result = bgav_audio_start(stream);
       break;
     case BGAV_STREAM_SUBTITLE_OVERLAY:
+      result = bgav_overlay_start(stream);
+      break;
     case BGAV_STREAM_SUBTITLE_TEXT:
-      result = bgav_subtitle_start(stream);
+      result = bgav_text_start(stream);
       break;
     default:
       break;

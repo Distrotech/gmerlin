@@ -111,7 +111,7 @@ void bgav_init_video_decoders_y4m();
 void bgav_init_video_decoders_tga();
 void bgav_init_video_decoders_rtjpeg();
 void bgav_init_video_decoders_gavl();
-void bgav_init_subtitle_overlay_decoders_dvd();
+void bgav_init_video_decoders_dvdsub();
 
 void bgav_init_audio_decoders_gavf();
 void bgav_init_video_decoders_gavf();

@@ -159,7 +159,7 @@ bgav_stream_decoder_connect_video(bgav_stream_decoder_t * dec,
 
   gavl_metadata_copy(m, &dec->s.m);
   
-  return dec->s.data.video.source;
+  return dec->s.data.video.vsrc;
   }
 
 int64_t

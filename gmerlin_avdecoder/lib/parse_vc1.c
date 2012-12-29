@@ -253,7 +253,8 @@ static int find_frame_boundary_vc1(bgav_video_parser_t * parser, int * skip)
   return 0;
   }
 
-static int parse_frame_vc1(bgav_video_parser_t * parser, bgav_packet_t * p)
+static int parse_frame_vc1(bgav_video_parser_t * parser, bgav_packet_t * p,
+                            int64_t prs_orig)
   {
   const uint8_t * ptr;
   const uint8_t * sh_start = NULL;

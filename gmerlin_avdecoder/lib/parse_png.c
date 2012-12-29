@@ -39,27 +39,20 @@ static int get_format(bgav_stream_t * s, bgav_packet_t * p,
                       gavl_video_format_t * fmt)
   {
   int ret = 1;
-  char * error_msg = NULL;
   bgav_png_reader_t * png = bgav_png_reader_create(s->data.video.depth);
   
-  if(!bgav_png_reader_read_header(png,
+  if(!bgav_png_reader_read_header(s->opt, png,
                                   p->data, p->data_size,
-                                  fmt, &error_msg))
+                                  fmt))
     {
-    if(error_msg)
-      {
-      bgav_log(s->opt, BGAV_LOG_ERROR, LOG_DOMAIN, "%s", error_msg);
-      free(error_msg);
-      }
-    else
-      bgav_log(s->opt, BGAV_LOG_ERROR, LOG_DOMAIN, "Reading png header failed");
     ret = 0;
     }
   bgav_png_reader_destroy(png);
   return ret;
   }
 
-static int parse_frame_png(bgav_video_parser_t * parser, bgav_packet_t * p)
+static int parse_frame_png(bgav_video_parser_t * parser, bgav_packet_t * p,
+                            int64_t prs_orig)
   {
   png_priv_t * priv = parser->priv;
   

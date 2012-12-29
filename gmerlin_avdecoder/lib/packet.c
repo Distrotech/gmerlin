@@ -228,6 +228,11 @@ void bgav_packet_2_gavl(bgav_packet_t * src,
   dst->data_alloc = src->data_alloc;
   dst->interlace_mode = src->ilace;
   dst->timecode = src->tc;
+
+  dst->dst_x = src->dst_x;
+  dst->dst_y = src->dst_y;
+
+  gavl_rectangle_i_copy(&dst->src_rect, &src->src_rect);
   }
 
 void bgav_packet_from_gavl(gavl_packet_t * src,
@@ -242,4 +247,9 @@ void bgav_packet_from_gavl(gavl_packet_t * src,
   dst->sequence_end_pos = src->sequence_end_pos;
   dst->ilace = src->interlace_mode;
   dst->tc = src->timecode;
+
+  dst->dst_x = src->dst_x;
+  dst->dst_y = src->dst_y;
+
+  gavl_rectangle_i_copy(&dst->src_rect, &src->src_rect);
   }

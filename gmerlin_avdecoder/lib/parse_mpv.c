@@ -139,7 +139,8 @@ static int extract_header(bgav_video_parser_t * parser, bgav_packet_t * p,
   return 1;
   }
 
-static int parse_frame_mpeg12(bgav_video_parser_t * parser, bgav_packet_t * p)
+static int parse_frame_mpeg12(bgav_video_parser_t * parser, bgav_packet_t * p,
+                            int64_t prs_orig)
   {
   const uint8_t * sc;
   mpeg12_priv_t * priv = parser->priv;

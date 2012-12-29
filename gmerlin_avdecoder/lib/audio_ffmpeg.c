@@ -151,7 +151,7 @@ static int init_format(bgav_stream_t * s)
     {
     bgav_log(s->opt, BGAV_LOG_ERROR, LOG_DOMAIN,
              "Could not get sample format (maybe codec init failed)");
-      return 0;
+    return 0;
     }
   priv->sample_size =
     gavl_bytes_per_sample(s->data.audio.format.sample_format);
@@ -248,11 +248,6 @@ static gavl_source_status_t decode_frame_ffmpeg(bgav_stream_t * s)
 
     if(got_frame)
       break;
-
-    /* Only codecs with delay are allowed to eat
-       packets without outputting audio */
-    if(!(priv->ctx->codec->capabilities & CODEC_CAP_DELAY))
-      return GAVL_SOURCE_EOF;
     }
   
   if(got_frame && f.nb_samples)
@@ -362,12 +357,16 @@ static int init_ffmpeg_audio(bgav_stream_t * s)
   if(avcodec_open(priv->ctx, codec) != 0)
     {
     bgav_ffmpeg_unlock();
+    bgav_log(s->opt, BGAV_LOG_ERROR, LOG_DOMAIN,
+             "avcodec_open failed");
     return 0;
     }
 #else
   if(avcodec_open2(priv->ctx, codec, NULL) != 0)
     {
     bgav_ffmpeg_unlock();
+    bgav_log(s->opt, BGAV_LOG_ERROR, LOG_DOMAIN,
+             "avcodec_open2 failed");
     return 0;
     }
 #endif
@@ -773,7 +772,10 @@ static codec_info_t codec_infos[] =
                     0x00 },
       -1 },
 #endif
-    
+    { "FFmpeg WMA pro decoder", "WMA Pro", CODEC_ID_WMAPRO,
+      (uint32_t[]){ BGAV_WAVID_2_FOURCC(0x0162),
+                    0x00 },
+      -1 },
     
     /*     CODEC_ID_MUSEPACK8, */
   };

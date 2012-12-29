@@ -26,7 +26,8 @@
 
 
 static int parse_frame_mjpa(bgav_video_parser_t * parser,
-                            bgav_packet_t * p)
+                            bgav_packet_t * p,
+                            int64_t prs_orig)
   {
   uint8_t * ptr;
   int i;

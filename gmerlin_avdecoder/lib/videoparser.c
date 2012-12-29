@@ -96,6 +96,9 @@ parsers[] =
     { BGAV_MK_FOURCC('j', 'p', 'e', 'g'), bgav_video_parser_init_jpeg },
     { BGAV_MK_FOURCC('B', 'B', 'C', 'D'), bgav_video_parser_init_dirac },
     
+    { BGAV_MK_FOURCC('D', 'V', 'D', 'S'), bgav_video_parser_init_dvdsub },
+    { BGAV_MK_FOURCC('m', 'p', '4', 's'), bgav_video_parser_init_dvdsub },
+
   };
 
 int bgav_video_parser_supported(uint32_t fourcc)
@@ -339,7 +342,7 @@ parse_next_packet(bgav_video_parser_t * parser, int force, int64_t *pts_ret)
   
   /* Parse frame */
   
-  if(!parser->parse_frame(parser, ret))
+  if(!parser->parse_frame(parser, ret, pts))
     {
     /* Error */
     bgav_packet_pool_put(parser->s->pp, ret);
@@ -551,7 +554,7 @@ static int parse_frame(bgav_video_parser_t * parser,
   bgav_hexdump(p->data, 16, 16);
 #endif
   
-  ret = parser->parse_frame(parser, p);
+  ret = parser->parse_frame(parser, p, p->pts);
 
 #ifdef DUMP_OUTPUT
   bgav_dprintf("Parse frame output [%p] ", p);
@@ -677,9 +680,12 @@ bgav_video_parser_create(bgav_stream_t * s)
   
   ret->timestamp = GAVL_TIME_UNDEFINED;
   ret->raw_position = -1;
-  ret->s->data.video.max_ref_frames = 2;
-  ret->format = &s->data.video.format;
 
+  if(s->type == BGAV_STREAM_VIDEO)
+    {
+    ret->s->data.video.max_ref_frames = 2;
+    ret->format = &s->data.video.format;
+    }
   ret->start_pos = -1;
   
   bgav_packet_source_copy(&ret->src, &s->src);

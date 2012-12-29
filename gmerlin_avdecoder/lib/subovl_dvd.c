@@ -83,7 +83,6 @@ static int has_subtitle_dvdsub(bgav_stream_t * s)
     return 1;
   
   /* Check if we have enough data */
-
   
   while(1)
     {
@@ -391,19 +390,19 @@ static void resync_dvdsub(bgav_stream_t * s)
   priv->packet_size = 0;
   }
 
-static bgav_subtitle_overlay_decoder_t decoder =
+static bgav_video_decoder_t decoder =
   {
     .fourccs = (uint32_t[]){ BGAV_MK_FOURCC('D', 'V', 'D', 'S'),
                              BGAV_MK_FOURCC('m', 'p', '4', 's'), 0 },
     .name =    "DVD subtitle decoder",
     .init =         init_dvdsub,
-    .has_subtitle = has_subtitle_dvdsub,
+    //    .has_subtitle = has_subtitle_dvdsub,
     .decode =       decode_dvdsub,
     .close =        close_dvdsub,
     .resync =       resync_dvdsub,
   };
 
-void bgav_init_subtitle_overlay_decoders_dvd()
+void bgav_init_video_decoders_dvdsub()
   {
-  bgav_subtitle_overlay_decoder_register(&decoder);
+  bgav_video_decoder_register(&decoder);
   }

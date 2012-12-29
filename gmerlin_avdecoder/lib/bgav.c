@@ -296,19 +296,11 @@ void bgav_stop(bgav_t * b)
 static void set_stream_demuxer(bgav_stream_t * s,
                                bgav_demuxer_context_t * demuxer)
   {
-  /* TODO: Handle subreaders */
   if(s->flags & STREAM_SUBREADER)
     {
-    if(s->type == BGAV_STREAM_SUBTITLE_TEXT)
-      {
-      s->src.data = s->data.subtitle.subreader;
-      s->src.get_func = bgav_subtitle_reader_read_text_packet;
-      s->src.peek_func = bgav_subtitle_reader_peek_text_packet;
-      }
-    else // TODO: spumux
-      {
-      
-      }
+    s->src.data = s->data.subtitle.subreader;
+    s->src.get_func = bgav_subtitle_reader_read_packet;
+    s->src.peek_func = bgav_subtitle_reader_peek_packet;
     }
   else
     {

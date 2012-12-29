@@ -465,9 +465,7 @@ void bgav_stringbreak_free(char ** str)
   }
 
 int bgav_slurp_file(const char * location,
-                    uint8_t ** ret,
-                    int * ret_alloc,
-                    int * size,
+                    bgav_packet_t * p,
                     const bgav_options_t * opt)
   {
   bgav_input_context_t * input;
@@ -482,20 +480,16 @@ int bgav_slurp_file(const char * location,
     bgav_input_destroy(input);
     return 0;
     }
-  if(*ret_alloc < input->total_bytes)
-    {
-    *ret_alloc = input->total_bytes + 128;
-    *ret = realloc(*ret, *ret_alloc);
-    }
+
+  bgav_packet_alloc(p, input->total_bytes);
   
-  if(bgav_input_read_data(input, *ret, input->total_bytes) <
+  if(bgav_input_read_data(input, p->data, input->total_bytes) <
      input->total_bytes)
     {
-    free(ret);
     bgav_input_destroy(input);
     return 0;
     }
-  *size = input->total_bytes;
+  p->data_size = input->total_bytes;
   bgav_input_destroy(input);
   return 1;
   }

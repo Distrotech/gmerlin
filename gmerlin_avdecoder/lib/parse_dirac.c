@@ -95,7 +95,7 @@ static void set_format(bgav_video_parser_t * parser)
   }
 
 static int parse_frame_dirac(bgav_video_parser_t * parser,
-                             bgav_packet_t * p)
+                             bgav_packet_t * p, int64_t pts_orig)
   {
   int code, len;
   dirac_priv_t * priv;

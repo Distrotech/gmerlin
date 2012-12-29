@@ -144,13 +144,11 @@ static void bgav_set_dll_path_win32()
 
 static bgav_audio_decoder_t * audio_decoders = NULL;
 static bgav_video_decoder_t * video_decoders = NULL;
-static bgav_subtitle_overlay_decoder_t * subtitle_overlay_decoders = NULL;
 
 static int codecs_initialized = 0;
 
 static int num_audio_codecs = 0;
 static int num_video_codecs = 0;
-static int num_subtitle_overlay_codecs = 0;
 
 static pthread_mutex_t codec_mutex;
 static int mutex_initialized = 0;
@@ -176,7 +174,6 @@ void bgav_codecs_dump()
   {
   bgav_audio_decoder_t * ad;
   bgav_video_decoder_t * vd;
-  bgav_subtitle_overlay_decoder_t * sod;
   int i;
   bgav_codecs_init(NULL);
   
@@ -202,17 +199,7 @@ void bgav_codecs_dump()
     vd = vd->next;
     }
   bgav_dprintf("</ul>\n");
-
-  bgav_dprintf("<h2>Graphical subtitle codecs</h2>\n");
-  bgav_dprintf("<ul>\n");
-  sod = subtitle_overlay_decoders;
-  for(i = 0; i < num_subtitle_overlay_codecs; i++)
-    {
-    bgav_dprintf("<li>%s\n", sod->name);
-    sod = sod->next;
-    }
-  bgav_dprintf("</ul>\n");
-
+  
   }
 
 
@@ -333,9 +320,8 @@ void bgav_codecs_init(bgav_options_t * opt)
   bgav_init_video_decoders_gavl();
   bgav_init_audio_decoders_gavf();
   bgav_init_video_decoders_gavf();
-
-  bgav_init_subtitle_overlay_decoders_dvd();
-
+  bgav_init_video_decoders_dvdsub();
+  
   codecs_unlock();
   
   }
@@ -370,23 +356,6 @@ void bgav_video_decoder_register(bgav_video_decoder_t * dec)
     }
   dec->next = NULL;
   num_video_codecs++;
-  }
-
-void bgav_subtitle_overlay_decoder_register(bgav_subtitle_overlay_decoder_t * dec)
-  {
-  bgav_subtitle_overlay_decoder_t * before;
-  if(!subtitle_overlay_decoders)
-    subtitle_overlay_decoders = dec;
-  else
-    {
-    before = subtitle_overlay_decoders;
-    while(before->next)
-      before = before->next;
-    before->next = dec;
-    }
-  dec->next = NULL;
-  num_subtitle_overlay_codecs++;
-  
   }
 
 bgav_audio_decoder_t * bgav_find_audio_decoder(uint32_t fourcc)
@@ -428,36 +397,6 @@ bgav_video_decoder_t * bgav_find_video_decoder(uint32_t fourcc)
   //    bgav_codecs_init();
   
   cur = video_decoders;
-
-  while(cur)
-    {
-    i = 0;
-    while(cur->fourccs[i])
-      {
-      if(cur->fourccs[i] == fourcc)
-        {
-        codecs_unlock();
-        return cur;
-        }
-      else
-        i++;
-      }
-    cur = cur->next;
-    }
-  codecs_unlock();
-  return NULL;
-  }
-
-bgav_subtitle_overlay_decoder_t * bgav_find_subtitle_overlay_decoder(uint32_t fourcc)
-  {
-  bgav_subtitle_overlay_decoder_t * cur;
-  int i;
-  codecs_lock();
-
-  //  if(!codecs_initialized)
-  //    bgav_codecs_init();
-  
-  cur = subtitle_overlay_decoders;
 
   while(cur)
     {

@@ -24,6 +24,7 @@
 #include <string.h>
 
 #include <avdec_private.h>
+#include <parser.h>
 
 #define LOG_DOMAIN "subtitle"
 
@@ -79,15 +80,13 @@ int bgav_subtitle_is_text(bgav_t * b, int stream)
     return 0;
   }
 
-
-
-
 const char * bgav_get_subtitle_language(bgav_t * b, int stream)
   {
   bgav_stream_t * s = bgav_track_get_subtitle_stream(b->tt->cur, stream);
   return gavl_metadata_get(&s->m, GAVL_META_LANGUAGE);
   }
 
+/* LEGACY */
 int bgav_read_subtitle_overlay(bgav_t * b, gavl_overlay_t * ovl, int stream)
   {
   bgav_stream_t * s = bgav_track_get_subtitle_stream(b->tt->cur, stream);
@@ -99,14 +98,10 @@ int bgav_read_subtitle_overlay(bgav_t * b, gavl_overlay_t * ovl, int stream)
     }
   else
     return 0;
-  
-  if(s->flags & STREAM_SUBREADER)
-    {
-    return bgav_subtitle_reader_read_overlay(s, ovl);
-    }
   return s->data.subtitle.decoder->decoder->decode(s, ovl);
   }
 
+/* LEGACY */
 int bgav_read_subtitle_text(bgav_t * b, char ** ret, int *ret_alloc,
                             int64_t * start_time, int64_t * duration,
                             int stream)
@@ -153,38 +148,17 @@ int bgav_has_subtitle(bgav_t * b, int stream)
     }
   else
     {
-    if(s->type == BGAV_STREAM_SUBTITLE_TEXT)
-      {
-      if(b->tt->cur->flags & TRACK_SAMPLE_ACCURATE)
-        force = 1;
-      else
-        force = 0;
-      
-      if(bgav_stream_peek_packet_read(s, NULL, force))
-        return 1;
-      else
-        {
-        if(s->flags & STREAM_EOF_D)
-          {
-          s->flags |= STREAM_EOF_C;
-          return 1;
-          }
-        else
-          return 0;
-        }
-      }
+    if(b->tt->cur->flags & TRACK_SAMPLE_ACCURATE)
+      force = 1;
     else
-      {
-      if(s->data.subtitle.decoder->decoder->has_subtitle(s))
-        return 1;
-      else if(s->flags & STREAM_EOF_C)
-        return 1;
-      else
-        return 0;
-      }
+      force = 0;
+    
+    if(bgav_stream_peek_packet_read(s, NULL, force) == GAVL_SOURCE_AGAIN)
+      return 0;
+    else
+      return 1; 
     }
   }
-
 
 void bgav_subtitle_dump(bgav_stream_t * s)
   {
@@ -201,39 +175,89 @@ void bgav_subtitle_dump(bgav_stream_t * s)
     }
   }
 
-int bgav_subtitle_start(bgav_stream_t * s)
+static gavl_source_status_t read_video_copy(void * sp,
+                                            gavl_video_frame_t ** frame)
   {
-  bgav_subtitle_overlay_decoder_t * dec;
-  bgav_subtitle_overlay_decoder_context_t * ctx;
-
-  s->flags &= ~(STREAM_EOF_C|STREAM_EOF_D);
+  gavl_source_status_t st;
+  bgav_stream_t * s = sp;
   
-  if(s->type == BGAV_STREAM_SUBTITLE_TEXT)
+  if(frame)
     {
-    if(s->data.subtitle.subreader)
-      if(!bgav_subtitle_reader_start(s))
-        return 0;
-    
-    s->data.subtitle.cnv =
-      bgav_subtitle_converter_create(s);
-
-    s->psrc =
-      gavl_packet_source_create(bgav_stream_read_packet_func, // get_packet,
-                                s,
-                                GAVL_SOURCE_SRC_ALLOC,
-                                NULL, NULL, NULL);
+    if((st = s->data.subtitle.decoder->decoder->decode(sp, *frame)) != GAVL_SOURCE_OK)
+      return st;
+    s->out_time = (*frame)->timestamp + (*frame)->duration;
     }
   else
     {
-    if(s->data.subtitle.subreader)
-      {
-      if(!bgav_subtitle_reader_start(s))
-        return 0;
-      else
-        return 1;
-      }
+    if((st = s->data.subtitle.decoder->decoder->decode(sp, NULL)) != GAVL_SOURCE_OK)
+      return st;
+    }
+#ifdef DUMP_TIMESTAMPS
+  bgav_dprintf("Overlay timestamp: %"PRId64"\n", s->data.video.frame->timestamp);
+#endif
+  // s->flags &= ~STREAM_HAVE_FRAME;
+  return GAVL_SOURCE_OK;
+  }
+
+int bgav_text_start(bgav_stream_t * s)
+  {
+  s->flags &= ~(STREAM_EOF_C|STREAM_EOF_D);
+
+  if(s->data.subtitle.subreader)
+    if(!bgav_subtitle_reader_start(s))
+      return 0;
+  
+  s->data.subtitle.cnv =
+    bgav_subtitle_converter_create(s);
+  
+  s->psrc =
+    gavl_packet_source_create(bgav_stream_read_packet_func, // get_packet,
+                              s,
+                              GAVL_SOURCE_SRC_ALLOC,
+                              NULL, NULL, NULL);
+  return 1;
+  }
+
+int bgav_overlay_start(bgav_stream_t * s)
+  {
+  bgav_video_decoder_t * dec;
+  bgav_video_decoder_context_t * ctx;
+  
+  s->flags &= ~(STREAM_EOF_C|STREAM_EOF_D);
+  
+  if(s->data.subtitle.subreader)
+    {
+    if(!bgav_subtitle_reader_start(s))
+      return 0;
+    else
+      return 1;
+    }
+
+  if((s->fourcc == BGAV_MK_FOURCC('m', 'p', '4', 's')) ||
+     (s->fourcc == BGAV_MK_FOURCC('D', 'V', 'D', 'S')))
+    s->flags |= STREAM_PARSE_FULL;
     
-    dec = bgav_find_subtitle_overlay_decoder(s->fourcc);
+  if((s->flags & (STREAM_PARSE_FULL|STREAM_PARSE_FRAME)) &&
+     !s->data.subtitle.parser)
+    {
+    s->data.subtitle.parser = bgav_video_parser_create(s);
+    if(!s->data.subtitle.parser)
+      {
+      bgav_log(s->opt, BGAV_LOG_WARNING, LOG_DOMAIN,
+               "No subtitle parser found for fourcc %c%c%c%c (0x%08x)",
+               (s->fourcc & 0xFF000000) >> 24,
+               (s->fourcc & 0x00FF0000) >> 16,
+               (s->fourcc & 0x0000FF00) >> 8,
+               (s->fourcc & 0x000000FF),
+               s->fourcc);
+      return 0;
+      }
+    s->index_mode = INDEX_MODE_SIMPLE;
+    }
+
+  if(s->action == BGAV_STREAM_DECODE)
+    {
+    dec = bgav_find_video_decoder(s->fourcc);
     if(!dec)
       {
       bgav_log(s->opt, BGAV_LOG_WARNING, LOG_DOMAIN,
@@ -251,8 +275,23 @@ int bgav_subtitle_start(bgav_stream_t * s)
     
     if(!dec->init(s))
       return 0;
+
+    s->data.subtitle.format.timescale = s->timescale;
+    s->data.subtitle.vsrc =
+      gavl_video_source_create(read_video_copy,
+                               s, 0,
+                               &s->data.subtitle.format);
     }
-  s->data.subtitle.format.timescale = s->timescale;
+  else if(s->action == BGAV_STREAM_READRAW)
+    {
+    s->psrc =
+      gavl_packet_source_create(bgav_stream_read_packet_func, // get_packet,
+                                s,
+                                GAVL_SOURCE_SRC_ALLOC,
+                                &s->ci,
+                                NULL, &s->data.subtitle.format);
+    }
+  
   return 1;
   }
 
@@ -273,7 +312,11 @@ void bgav_subtitle_stop(bgav_stream_t * s)
     free(s->data.subtitle.decoder);
     s->data.subtitle.decoder = NULL;
     }
-  
+  if(s->data.subtitle.vsrc)
+    {
+    gavl_video_source_destroy(s->data.subtitle.vsrc);
+    s->data.subtitle.vsrc = NULL;
+    }
   }
 
 void bgav_subtitle_resync(bgav_stream_t * s)
@@ -288,6 +331,9 @@ void bgav_subtitle_resync(bgav_stream_t * s)
 
   if(s->data.subtitle.cnv)
     bgav_subtitle_converter_reset(s->data.subtitle.cnv);
+  
+  if(s->data.subtitle.vsrc)
+    gavl_video_source_reset(s->data.subtitle.vsrc);
   }
 
 int bgav_subtitle_skipto(bgav_stream_t * s, int64_t * time, int scale)
@@ -335,4 +381,16 @@ const gavl_video_format_t * bgav_get_overlay_format(bgav_t * bgav, int stream)
 int bgav_get_text_timescale(bgav_t * bgav, int stream)
   {
   return bgav->tt->cur->text_streams[stream].timescale;
+  }
+
+gavl_packet_source_t *
+bgav_get_overlay_packet_source(bgav_t * b, int stream)
+  {
+  return b->tt->cur->overlay_streams[stream].psrc;
+  }
+
+gavl_video_source_t *
+bgav_get_overlay_source(bgav_t * b, int stream)
+  {
+  return b->tt->cur->overlay_streams[stream].data.subtitle.vsrc;
   }

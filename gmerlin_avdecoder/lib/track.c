@@ -158,21 +158,6 @@ bgav_track_add_overlay_stream(bgav_track_t * t, const bgav_options_t * opt)
   return add_overlay_stream(t, opt, NULL);
   }
 
-
-#if 0
-bgav_stream_t *
-bgav_track_add_subtitle_stream(bgav_track_t * t, const bgav_options_t * opt,
-                               int text,
-                               const char * encoding)
-  {
-  return add_subtitle_stream(t,
-                             opt,
-                             text,
-                             encoding,
-                             NULL);
-  }
-#endif
-
 bgav_stream_t *
 bgav_track_attach_subtitle_reader(bgav_track_t * t,
                                   const bgav_options_t * opt,
@@ -180,7 +165,7 @@ bgav_track_attach_subtitle_reader(bgav_track_t * t,
   {
   bgav_stream_t * ret;
 
-  if(r->reader->read_subtitle_text)
+  if(r->reader->type == BGAV_STREAM_SUBTITLE_TEXT)
     ret = add_text_stream(t, opt,
                           NULL, r);
   else
@@ -943,6 +928,11 @@ void bgav_track_get_compression(bgav_track_t * t)
     s = &t->video_streams[i];
     s->action = BGAV_STREAM_READRAW;
     }
+  for(i = 0; i < t->num_overlay_streams; i++)
+    {
+    s = &t->overlay_streams[i];
+    s->action = BGAV_STREAM_READRAW;
+    }
 
   /* Get a first packet. This will complete the formats */
   for(i = 0; i < t->num_audio_streams; i++)
@@ -957,6 +947,12 @@ void bgav_track_get_compression(bgav_track_t * t)
     bgav_stream_start(s);
     bgav_stream_peek_packet_read(s, NULL, 1);
     }
+  for(i = 0; i < t->num_overlay_streams; i++)
+    {
+    s = &t->overlay_streams[i];
+    bgav_stream_start(s);
+    bgav_stream_peek_packet_read(s, NULL, 1);
+    }
   
   /* Set all streams back to mute mode */
   for(i = 0; i < t->num_audio_streams; i++)
@@ -967,6 +963,11 @@ void bgav_track_get_compression(bgav_track_t * t)
   for(i = 0; i < t->num_video_streams; i++)
     {
     s = &t->video_streams[i];
+    s->action = BGAV_STREAM_MUTE;
+    }
+  for(i = 0; i < t->num_overlay_streams; i++)
+    {
+    s = &t->overlay_streams[i];
     s->action = BGAV_STREAM_MUTE;
     }
   t->flags |= TRACK_HAS_COMPRESSION;

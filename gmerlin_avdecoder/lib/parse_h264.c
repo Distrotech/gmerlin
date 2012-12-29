@@ -356,7 +356,7 @@ handle_sei_new(bgav_video_parser_t * parser, bgav_packet_t * p)
   }
 
 
-static int parse_frame_avc(bgav_video_parser_t * parser, bgav_packet_t * p)
+static int parse_frame_avc(bgav_video_parser_t * parser, bgav_packet_t * p, int64_t pts_orig)
   {
   int nal_len;
   bgav_h264_nal_header_t nh;
@@ -538,7 +538,7 @@ static const uint8_t * get_nal_end(bgav_packet_t * p,
   return ret;
   }
 
-static int parse_frame_h264(bgav_video_parser_t * parser, bgav_packet_t * p)
+static int parse_frame_h264(bgav_video_parser_t * parser, bgav_packet_t * p, int64_t pts_orig)
   {
   bgav_h264_nal_header_t nh;
   const uint8_t * nal_end;

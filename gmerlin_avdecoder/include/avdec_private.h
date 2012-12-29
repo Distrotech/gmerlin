@@ -52,15 +52,15 @@ typedef struct bgav_input_s                    bgav_input_t;
 typedef struct bgav_input_context_s            bgav_input_context_t;
 typedef struct bgav_audio_decoder_s            bgav_audio_decoder_t;
 typedef struct bgav_video_decoder_s            bgav_video_decoder_t;
-typedef struct bgav_subtitle_overlay_decoder_s bgav_subtitle_overlay_decoder_t;
+// typedef struct bgav_subtitle_overlay_decoder_s bgav_subtitle_overlay_decoder_t;
 typedef struct bgav_subtitle_reader_s bgav_subtitle_reader_t;
 typedef struct bgav_subtitle_reader_context_s bgav_subtitle_reader_context_t;
 typedef struct bgav_subtitle_converter_s bgav_subtitle_converter_t;
 
 typedef struct bgav_audio_decoder_context_s bgav_audio_decoder_context_t;
 typedef struct bgav_video_decoder_context_s bgav_video_decoder_context_t;
-typedef struct bgav_subtitle_overlay_decoder_context_s
-bgav_subtitle_overlay_decoder_context_t;
+// typedef struct bgav_subtitle_overlay_decoder_context_s
+// bgav_subtitle_overlay_decoder_context_t;
 
 typedef struct bgav_stream_s   bgav_stream_t;
 
@@ -142,6 +142,7 @@ struct bgav_video_decoder_s
   bgav_video_decoder_t * next;
   };
 
+#if 0
 struct bgav_subtitle_overlay_decoder_s
   {
   uint32_t * fourccs;
@@ -149,7 +150,7 @@ struct bgav_subtitle_overlay_decoder_s
   int (*init)(bgav_stream_t*);
 
   /* Query if a subtitle is available */
-  int (*has_subtitle)(bgav_stream_t*);
+  //  int (*has_subtitle)(bgav_stream_t*);
   /*
    *  Decodes one frame. If frame is NULL;
    *  the frame is skipped
@@ -157,10 +158,10 @@ struct bgav_subtitle_overlay_decoder_s
   gavl_source_status_t (*decode)(bgav_stream_t*, gavl_overlay_t*);
   void (*close)(bgav_stream_t*);
   void (*resync)(bgav_stream_t*);
-  void (*parse)(bgav_stream_t*);
+  // void (*parse)(bgav_stream_t*);
   bgav_subtitle_overlay_decoder_t * next;
   };
-
+#endif
 
 struct bgav_audio_decoder_context_s
   {
@@ -174,11 +175,13 @@ struct bgav_video_decoder_context_s
   const bgav_video_decoder_t * decoder;
   };
 
+#if 0
 struct bgav_subtitle_overlay_decoder_context_s
   {
   void * priv;
   const bgav_subtitle_overlay_decoder_t * decoder;
   };
+#endif
 
 /* Palette support */
 
@@ -277,6 +280,13 @@ struct bgav_packet_s
   /* Palette data */
   int palette_size;
   bgav_palette_entry_t * palette;
+
+  /* For overlay streams: Save coordinates out-of-band so we can
+     use any alpha capable I-frame format */
+  
+  int dst_x;
+  int dst_y;
+  gavl_rectangle_i_t src_rect;
   };
 
 /* packet.c */
@@ -610,7 +620,7 @@ struct bgav_stream_s
         int sent;
         } pal;
       
-      gavl_video_source_t * source;
+      gavl_video_source_t * vsrc;
 
       /* If this is set, we will pass this to the
          source */
@@ -618,13 +628,15 @@ struct bgav_stream_s
       } video;
     struct
       {
+      bgav_video_parser_t * parser;
       /* Video format for overlays */
       gavl_video_format_t format;
-      /* Converter for text subtitles */
+      /* Charset converter for text subtitles */
       bgav_subtitle_converter_t * cnv;
-
-      bgav_subtitle_overlay_decoder_context_t * decoder;
+      
+      bgav_video_decoder_context_t * decoder;
       bgav_subtitle_reader_context_t * subreader;
+      gavl_video_source_t * vsrc;
       
       char * charset;
       
@@ -1626,9 +1638,7 @@ char ** bgav_stringbreak(const char * str, char sep);
 void bgav_stringbreak_free(char ** str);
 
 int bgav_slurp_file(const char * location,
-                    uint8_t ** ret,
-                    int * ret_alloc,
-                    int * size,
+                    bgav_packet_t * p,
                     const bgav_options_t * opt);
 
 char * bgav_search_file_write(const bgav_options_t * opt,
@@ -1761,7 +1771,9 @@ void bgav_video_set_still(bgav_stream_t * stream);
 
 void bgav_subtitle_dump(bgav_stream_t * s);
 
-int bgav_subtitle_start(bgav_stream_t * s);
+int bgav_text_start(bgav_stream_t * s);
+int bgav_overlay_start(bgav_stream_t * s);
+
 void bgav_subtitle_stop(bgav_stream_t * s);
 
 void bgav_subtitle_resync(bgav_stream_t * stream);
@@ -1775,11 +1787,9 @@ void bgav_codecs_init(bgav_options_t * opt);
 
 bgav_audio_decoder_t * bgav_find_audio_decoder(uint32_t fourcc);
 bgav_video_decoder_t * bgav_find_video_decoder(uint32_t fourcc);
-bgav_subtitle_overlay_decoder_t * bgav_find_subtitle_overlay_decoder(uint32_t fourcc);
 
 void bgav_audio_decoder_register(bgav_audio_decoder_t * dec);
 void bgav_video_decoder_register(bgav_video_decoder_t * dec);
-void bgav_subtitle_overlay_decoder_register(bgav_subtitle_overlay_decoder_t * dec);
 
 /* base64.c */
 
@@ -1828,9 +1838,7 @@ struct bgav_subtitle_reader_context_s
   
   char * info; /* Derived from filename difference */
   char * filename; /* Name of the subtitle file */
-  //  bgav_packet_t * p;
-  gavl_overlay_t * ovl;
-
+  
   int64_t time_offset;
 
   /* Timestamps are scaled with out_pts = pts * scale_num / scale_den */
@@ -1840,11 +1848,6 @@ struct bgav_subtitle_reader_context_s
   char * line;
   uint32_t line_alloc;
   
-  /* 1 if the packet or overlay contains a not yet read
-     subtitle */
-  
-  int has_subtitle; 
-
   /* Some formats have a header... */
   int64_t data_start;
   
@@ -1857,17 +1860,17 @@ struct bgav_subtitle_reader_context_s
 
 struct bgav_subtitle_reader_s
   {
+  bgav_stream_type_t type;
   char * extensions;
   char * name;
-
+  
   int (*probe)(char * line);
   
   int (*init)(bgav_stream_t*);
   void (*close)(bgav_stream_t*);
   void (*seek)(bgav_stream_t*,int64_t time, int scale);
   
-  int (*read_subtitle_text)(bgav_stream_t*, bgav_packet_t * p);
-  int (*read_subtitle_overlay)(bgav_stream_t*);
+  gavl_source_status_t (*read_packet)(bgav_stream_t*, bgav_packet_t * p);
   };
 
 bgav_subtitle_reader_context_t *
@@ -1882,25 +1885,15 @@ void bgav_subtitle_reader_seek(bgav_stream_t *,
                                int64_t time, int scale);
 
 
-int bgav_subtitle_reader_read_overlay(bgav_stream_t *, gavl_overlay_t * ovl);
-
 /* Packet source functions */
 
 gavl_source_status_t
-bgav_subtitle_reader_read_text_packet(void * subreader,
-                                      bgav_packet_t ** p);
+bgav_subtitle_reader_read_packet(void * subreader,
+                                 bgav_packet_t ** p);
 
 gavl_source_status_t
-bgav_subtitle_reader_peek_text_packet(void * subreader,
-                                      bgav_packet_t ** p, int force);
-
-#if 0
-bgav_packet_t *
-bgav_subtitle_reader_read_text_packet(void * subreader);
-
-bgav_packet_t *
-bgav_subtitle_reader_peek_text_packet(void * subreader, int force);
-#endif
+bgav_subtitle_reader_peek_packet(void * subreader,
+                                 bgav_packet_t ** p, int force);
 
 /* log.c */
 

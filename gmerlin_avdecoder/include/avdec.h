@@ -1645,6 +1645,18 @@ bgav_get_video_packet_source(bgav_t * bgav, int stream);
 BGAV_PUBLIC
 gavl_packet_source_t *
 bgav_get_text_packet_source(bgav_t * bgav, int stream);
+
+/** \ingroup readraw
+ *  \brief Get a packet source for an overlay stream
+ *  \param bgav A decoder instance
+ *  \param stream Stream index (starting with 0)
+ *  \returns The packet source
+ */
+
+BGAV_PUBLIC
+gavl_packet_source_t *
+bgav_get_overlay_packet_source(bgav_t * bgav, int stream);
+
   
 /** \ingroup streams
  * \brief Select mode for an audio stream
@@ -2009,7 +2021,7 @@ void bgav_skip_video(bgav_t * bgav, int stream,
                      int exact);
 
 /** \ingroup decode
-    \brief Return the video source for this stream
+    \brief Return the video source for a video stream
     \param bgav A decoder instance
     \param stream Stream index (starting with 0)
     \returns A video source to get the frames from
@@ -2023,6 +2035,17 @@ void bgav_skip_video(bgav_t * bgav, int stream,
   
 BGAV_PUBLIC
 gavl_video_source_t * bgav_get_video_source(bgav_t * bgav, int stream);
+
+/** \ingroup decode
+    \brief Return the video source for an overlay stream
+    \param bgav A decoder instance
+    \param stream Stream index (starting with 0)
+    \returns A video source to get the overlays from
+    
+*/
+  
+BGAV_PUBLIC
+gavl_video_source_t * bgav_get_overlay_source(bgav_t * bgav, int stream);
 
   
 /** \ingroup decode

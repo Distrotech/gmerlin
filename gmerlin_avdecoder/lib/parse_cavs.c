@@ -57,7 +57,8 @@ static void reset_cavs(bgav_video_parser_t * parser)
   priv->has_picture_start = 0;
   }
 
-static int parse_frame_cavs(bgav_video_parser_t * parser, bgav_packet_t * p)
+static int parse_frame_cavs(bgav_video_parser_t * parser, bgav_packet_t * p,
+                            int64_t pts_orig)
   {
   int start_code;
   int len;

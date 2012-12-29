@@ -34,7 +34,7 @@ typedef struct
   int have_format;
   } dv_priv_t;
 
-static int parse_frame_dv(bgav_video_parser_t * parser, bgav_packet_t * p)
+static int parse_frame_dv(bgav_video_parser_t * parser, bgav_packet_t * p, int64_t pts_orig)
   {
   dv_priv_t * priv = parser->priv;
   gavl_video_format_t * fmt = &parser->s->data.video.format;

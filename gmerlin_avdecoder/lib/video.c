@@ -83,12 +83,13 @@ static gavl_source_status_t
 read_video_nocopy(void * sp,
                   gavl_video_frame_t ** frame)
   {
+  gavl_source_status_t st;
   bgav_stream_t * s = sp;
   //  fprintf(stderr, "Read video nocopy\n");
   if(!check_still(s))
     return GAVL_SOURCE_AGAIN;
-  if(!s->data.video.decoder->decoder->decode(sp, NULL))
-    return GAVL_SOURCE_EOF;
+  if((st = s->data.video.decoder->decoder->decode(sp, NULL)) != GAVL_SOURCE_OK)
+    return st;
   if(frame)
     *frame = s->data.video.frame;
 #ifdef DUMP_TIMESTAMPS
@@ -102,20 +103,21 @@ read_video_nocopy(void * sp,
 static gavl_source_status_t read_video_copy(void * sp,
                                             gavl_video_frame_t ** frame)
   {
+  gavl_source_status_t st;
   bgav_stream_t * s = sp;
   if(!check_still(s))
     return GAVL_SOURCE_AGAIN;
   
   if(frame)
     {
-    if(!s->data.video.decoder->decoder->decode(sp, *frame))
-      return GAVL_SOURCE_EOF;
+    if((st = s->data.video.decoder->decoder->decode(sp, *frame)) != GAVL_SOURCE_OK)
+      return st;
     s->out_time = (*frame)->timestamp + (*frame)->duration;
     }
   else
     {
-    if(!s->data.video.decoder->decoder->decode(sp, NULL))
-      return GAVL_SOURCE_EOF;
+    if((st = s->data.video.decoder->decoder->decode(sp, NULL)) != GAVL_SOURCE_OK)
+      return st;
     }
 #ifdef DUMP_TIMESTAMPS
   bgav_dprintf("Video timestamp: %"PRId64"\n", s->data.video.frame->timestamp);
@@ -260,14 +262,14 @@ int bgav_video_start(bgav_stream_t * s)
       if(!(s->flags & STREAM_INTRA_ONLY))
         src_flags |= GAVL_SOURCE_SRC_REF;
       
-      s->data.video.source =
+      s->data.video.vsrc =
         gavl_video_source_create(read_video_nocopy,
                                  s, src_flags,
                                  &s->data.video.format);
       }
     else
       {
-      s->data.video.source =
+      s->data.video.vsrc =
         gavl_video_source_create(read_video_copy,
                                  s, 0,
                                  &s->data.video.format);
@@ -311,7 +313,7 @@ static int bgav_video_decode(bgav_stream_t * s,
                              gavl_video_frame_t* frame)
   {
   gavl_source_status_t result;
-  result = gavl_video_source_read_frame(s->data.video.source,
+  result = gavl_video_source_read_frame(s->data.video.vsrc,
                                         frame ? &frame : NULL);
 
   return (result == GAVL_SOURCE_OK) ? 1 : 0;
@@ -360,10 +362,10 @@ void bgav_video_stop(bgav_stream_t * s)
     s->data.video.ft = NULL;
     }
 
-  if(s->data.video.source)
+  if(s->data.video.vsrc)
     {
-    gavl_video_source_destroy(s->data.video.source);
-    s->data.video.source = NULL;
+    gavl_video_source_destroy(s->data.video.vsrc);
+    s->data.video.vsrc = NULL;
     }
   if(s->data.video.decoder)
     {
@@ -404,8 +406,8 @@ void bgav_video_resync(bgav_stream_t * s)
   if(s->fd)
     bgav_frametype_detector_reset(s->fd);
   
-  if(s->data.video.source)
-    gavl_video_source_reset(s->data.video.source);
+  if(s->data.video.vsrc)
+    gavl_video_source_reset(s->data.video.vsrc);
   
   /* If the stream has keyframes, skip until the next one */
 
@@ -554,7 +556,7 @@ gavl_video_source_t * bgav_get_video_source(bgav_t * bgav, int stream)
   {
   bgav_stream_t * s;
   s = &bgav->tt->cur->video_streams[stream];
-  return s->data.video.source;
+  return s->data.video.vsrc;
   }
 
 static void frame_table_append_frame(gavl_frame_table_t * t,
@@ -939,6 +941,10 @@ void bgav_set_video_frame_from_packet(const bgav_packet_t * p,
   f->timestamp = p->pts;
   f->duration = p->duration;
   f->timecode = p->tc;
+
+  f->dst_x = p->dst_x;
+  f->dst_y = p->dst_y;
+  gavl_rectangle_i_copy(&f->src_rect, &p->src_rect);
   }
 
 gavl_packet_source_t * bgav_get_video_packet_source(bgav_t * bgav, int stream)

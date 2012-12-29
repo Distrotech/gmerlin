@@ -533,6 +533,7 @@ static int setup_track(bgav_input_context_t * ctx,
       continue;
 
     s = bgav_track_add_overlay_stream(new_track, ctx->opt);
+    
     s->fourcc = BGAV_MK_FOURCC('D', 'V', 'D', 'S');
 
     /*  there are several streams for one spu */
