@@ -35,7 +35,7 @@ bgav_stream_t * bgav_track_get_subtitle_stream(bgav_track_t * t, int index)
   if(index >= t->num_overlay_streams)
     return &t->text_streams[index - t->num_overlay_streams];
   else
-    return &t->text_streams[index];
+    return &t->overlay_streams[index];
   }
 
 bgav_stream_t *

@@ -315,7 +315,8 @@ static int bgav_video_decode(bgav_stream_t * s,
   gavl_source_status_t result;
   result = gavl_video_source_read_frame(s->data.video.vsrc,
                                         frame ? &frame : NULL);
-
+  if(result != GAVL_SOURCE_OK)
+    fprintf(stderr, "read video returned: %d\n", result);
   return (result == GAVL_SOURCE_OK) ? 1 : 0;
   }
 

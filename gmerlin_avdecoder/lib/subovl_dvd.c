@@ -31,9 +31,6 @@
 
 typedef struct
   {
-  uint8_t * buffer;
-  int buffer_alloc;
-  int buffer_size;
   int packet_size; /* Size of the entire packet (read from the first 2 bytes) */
   int64_t pts;
   
@@ -68,63 +65,6 @@ static int init_dvdsub(bgav_stream_t * s)
   priv->field_height = s->data.subtitle.format.image_height / 2;
   
   return 1;
-  }
-
-/* Query if a subtitle is available */
-static int has_subtitle_dvdsub(bgav_stream_t * s)
-  {
-  bgav_packet_t * p;
-  dvdsub_t * priv;
-  gavl_source_status_t st;
-  
-  priv = s->data.subtitle.decoder->priv;
-
-  if(s->flags & STREAM_EOF_C)
-    return 1;
-  
-  /* Check if we have enough data */
-  
-  while(1)
-    {
-    if(priv->packet_size && (priv->buffer_size >= priv->packet_size))
-      return 1;
-    
-    if((st = bgav_stream_peek_packet_read(s, NULL, 0)) != GAVL_SOURCE_OK)
-      {
-      /* Signal EOF */
-      if(st == GAVL_SOURCE_EOF)
-        {
-        s->flags |= STREAM_EOF_C;
-        return 1;
-        }
-      return 0;
-      }
-
-    p = NULL;
-    bgav_stream_get_packet_read(s, &p);
-    
-    //    bgav_packet_dump(p);
-    //    bgav_hexdump(p->data, p->data_size >= 16 ? 16 : p->data_size , 16);
-    
-    /* Append data */
-    if(priv->buffer_size + p->data_size > priv->buffer_alloc)
-      {
-      priv->buffer_alloc = priv->buffer_size + p->data_size + 1024;
-      priv->buffer = realloc(priv->buffer, priv->buffer_alloc);
-      }
-    memcpy(priv->buffer + priv->buffer_size, p->data, p->data_size);
-
-    if(!priv->buffer_size)
-      {
-      priv->packet_size = BGAV_PTR_2_16BE(priv->buffer);
-      priv->pts = p->pts;
-      }
-    priv->buffer_size += p->data_size;
-    bgav_stream_done_packet_read(s, p);
-
-    }
-  
-  return 0;
   }
 
 static int get_nibble(const uint8_t *buf, int nibble_offset)
@@ -201,20 +141,21 @@ static void decode_field(uint8_t * ptr, int len,
 
 static gavl_source_status_t decode_dvdsub(bgav_stream_t * s, gavl_overlay_t * ovl)
   {
+  gavl_source_status_t st;
   uint8_t * ptr;
   uint8_t cmd;
   uint16_t ctrl_offset, ctrl_start, next_ctrl_offset;
   dvdsub_t * priv;
   uint16_t date;
   uint8_t palette[4] = { 0,0,0,0 }, alpha[4] = { 0,0,0,0 };
-  int start_date = -1, end_date = -1;
+  int start_date = 0, end_date = -1;
   int x1 = 0, y1 = 0, x2= 0, y2= 0, i;
   uint16_t offset1 = 0, offset2 = 0;
   int ctrl_seq_end;
   uint32_t * ifo_palette;
-  
   uint32_t local_palette[4];
-
+  bgav_packet_t * p = NULL;
+  
   if(s->flags & STREAM_EOF_C)
     return GAVL_SOURCE_EOF;
   
@@ -222,15 +163,20 @@ static gavl_source_status_t decode_dvdsub(bgav_stream_t * s, gavl_overlay_t * ov
 
   ifo_palette = (uint32_t*)(s->ext_data);
   
-  if(!has_subtitle_dvdsub(s))
-    return GAVL_SOURCE_AGAIN;
+  if((st = bgav_stream_peek_packet_read(s, &p, 0)) != GAVL_SOURCE_OK)
+    return st;
+
+  bgav_stream_get_packet_read(s, &p);
+
+  //  fprintf(stderr, "Got overlay\n");
+  //  bgav_packet_dump(p);
   
   /* Data size */
-  ctrl_offset = BGAV_PTR_2_16BE(priv->buffer+2);
+  ctrl_offset = BGAV_PTR_2_16BE(p->data+2);
   ctrl_start = ctrl_offset;
   
   /* Decode command section */
-  ptr = priv->buffer + ctrl_offset;
+  ptr = p->data + ctrl_offset;
 
   while(1) /* Control packet loop */
     {
@@ -243,6 +189,7 @@ static gavl_source_status_t decode_dvdsub(bgav_stream_t * s, gavl_overlay_t * ov
       {
       cmd = *ptr;
       ptr++;
+      
       switch(cmd)
         {
         case 0x00: /* Force display (or menu subtitle?) */
@@ -268,6 +215,7 @@ static gavl_source_status_t decode_dvdsub(bgav_stream_t * s, gavl_overlay_t * ov
           ptr += 2;
           break;
         case 0x05:
+        case 0x85:
           x1 =  (ptr[0] << 4)         | (ptr[1] >> 4);
           x2 = ((ptr[1] & 0x0f) << 8) | ptr[2];
           y1 =  (ptr[3] << 4)         | (ptr[4] >> 4);
@@ -330,13 +278,13 @@ static gavl_source_status_t decode_dvdsub(bgav_stream_t * s, gavl_overlay_t * ov
 #endif
   /* Decode the image */
   
-  decode_field(priv->buffer + offset1, offset2 - offset1,
+  decode_field(p->data + offset1, offset2 - offset1,
                ovl->planes[0],
                x2 - x1 + 1,
                2 * ovl->strides[0],
                local_palette, priv->field_height);
   
-  decode_field(priv->buffer + offset2, ctrl_start - offset2,
+  decode_field(p->data + offset2, ctrl_start - offset2,
                ovl->planes[0] + ovl->strides[0],
                x2 - x1 + 1,
                2 * ovl->strides[0],
@@ -344,14 +292,9 @@ static gavl_source_status_t decode_dvdsub(bgav_stream_t * s, gavl_overlay_t * ov
 
   /* Set rest of overlay structure */
 
-  ovl->timestamp = priv->pts + start_date * priv->pts_mult;
-  ovl->duration = priv->pts_mult * (end_date - start_date);
-#if 0
-  fprintf(stderr, "Got overlay ");
-  fprintf(stderr, " %f %f\n",
-          ovl->frame->timestamp / 90000.0, 
-          (ovl->frame->timestamp + ovl->frame->duration) / 90000.0);
-#endif
+  ovl->timestamp = p->pts;
+  ovl->duration = p->duration;
+
   ovl->src_rect.x = 0;
   ovl->src_rect.y = 0;
   ovl->src_rect.w = x2 - x1 + 1;
@@ -365,12 +308,19 @@ static gavl_source_status_t decode_dvdsub(bgav_stream_t * s, gavl_overlay_t * ov
 
   if(ovl->dst_y + ovl->src_rect.h > priv->vs_format.image_height)
     ovl->dst_y = priv->vs_format.image_height - ovl->src_rect.h;
-  
-  /* If we reach this point, we have a complete subtitle packet */
-  //  bgav_hexdump(priv->buffer, priv->packet_size, 16);
 
-  priv->buffer_size = 0;
-  priv->packet_size = 0;
+#if 0
+  fprintf(stderr, "Got overlay ");
+  fprintf(stderr, " %f %f\n",
+          ovl->timestamp / 90000.0, 
+          (ovl->timestamp + ovl->duration) / 90000.0);
+  fprintf(stderr, "src: %dx%d+%d+%d dst: %d %d\n",
+          ovl->src_rect.w, ovl->src_rect.h,
+          ovl->src_rect.x, ovl->src_rect.y,
+          ovl->dst_x, ovl->dst_y);
+#endif
+  
+  bgav_stream_done_packet_read(s, p);
   
   return 1;
   }
@@ -382,13 +332,13 @@ static void close_dvdsub(bgav_stream_t * s)
   free(priv);
   }
 
+#if 0
 static void resync_dvdsub(bgav_stream_t * s)
   {
   dvdsub_t * priv;
   priv = s->data.subtitle.decoder->priv;
-  priv->buffer_size = 0;
-  priv->packet_size = 0;
   }
+#endif
 
 static bgav_video_decoder_t decoder =
   {
@@ -399,7 +349,7 @@ static bgav_video_decoder_t decoder =
     //    .has_subtitle = has_subtitle_dvdsub,
     .decode =       decode_dvdsub,
     .close =        close_dvdsub,
-    .resync =       resync_dvdsub,
+    //     .resync =       resync_dvdsub,
   };
 
 void bgav_init_video_decoders_dvdsub()

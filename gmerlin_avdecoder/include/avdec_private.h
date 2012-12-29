@@ -225,19 +225,19 @@ dst[0] = pal.b >> 8;
 /* If these flags are changed, the flags of the superindex must be
    changed as well */
 
-#define PACKET_SET_CODING_TYPE(p, t) p->flags |= t
-#define PACKET_SET_KEYFRAME(p)       p->flags |= GAVL_PACKET_KEYFRAME
-#define PACKET_SET_SKIP(p)           p->flags |= PACKET_FLAG_SKIP
-#define PACKET_SET_LAST(p)           p->flags |= GAVL_PACKET_LAST
-#define PACKET_SET_REF(p)            p->flags |= GAVL_PACKET_REF
-#define PACKET_SET_FIELD_PIC(p)      p->flags |= PACKET_FLAG_FIELD_PIC
+#define PACKET_SET_CODING_TYPE(p, t) (p)->flags |= t
+#define PACKET_SET_KEYFRAME(p)       (p)->flags |= GAVL_PACKET_KEYFRAME
+#define PACKET_SET_SKIP(p)           (p)->flags |= PACKET_FLAG_SKIP
+#define PACKET_SET_LAST(p)           (p)->flags |= GAVL_PACKET_LAST
+#define PACKET_SET_REF(p)            (p)->flags |= GAVL_PACKET_REF
+#define PACKET_SET_FIELD_PIC(p)      (p)->flags |= PACKET_FLAG_FIELD_PIC
 
-#define PACKET_GET_CODING_TYPE(p)    (p->flags & GAVL_PACKET_TYPE_MASK)
-#define PACKET_GET_KEYFRAME(p)       (p->flags & GAVL_PACKET_KEYFRAME)
-#define PACKET_GET_SKIP(p)           (p->flags & PACKET_FLAG_SKIP)
-#define PACKET_GET_LAST(p)           (p->flags & GAVL_PACKET_LAST)
-#define PACKET_GET_REF(p)            (p->flags & GAVL_PACKET_REF)
-#define PACKET_GET_FIELD_PIC(p)      (p->flags & PACKET_FLAG_FIELD_PIC)
+#define PACKET_GET_CODING_TYPE(p)    ((p)->flags & GAVL_PACKET_TYPE_MASK)
+#define PACKET_GET_KEYFRAME(p)       ((p)->flags & GAVL_PACKET_KEYFRAME)
+#define PACKET_GET_SKIP(p)           ((p)->flags & PACKET_FLAG_SKIP)
+#define PACKET_GET_LAST(p)           ((p)->flags & GAVL_PACKET_LAST)
+#define PACKET_GET_REF(p)            ((p)->flags & GAVL_PACKET_REF)
+#define PACKET_GET_FIELD_PIC(p)      ((p)->flags & PACKET_FLAG_FIELD_PIC)
 
 struct bgav_packet_s
   {

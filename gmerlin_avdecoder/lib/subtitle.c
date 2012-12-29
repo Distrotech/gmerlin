@@ -98,7 +98,7 @@ int bgav_read_subtitle_overlay(bgav_t * b, gavl_overlay_t * ovl, int stream)
     }
   else
     return 0;
-  return s->data.subtitle.decoder->decoder->decode(s, ovl);
+  return gavl_video_source_read_frame(s->data.subtitle.vsrc, &ovl) == GAVL_SOURCE_OK;
   }
 
 /* LEGACY */

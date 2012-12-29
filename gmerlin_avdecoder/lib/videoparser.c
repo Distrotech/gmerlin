@@ -234,37 +234,40 @@ void bgav_video_parser_flush(bgav_video_parser_t * parser, int bytes)
 
 /* New (generic) API */
 
-static int get_input_packet(bgav_video_parser_t * parser, int force)
+static gavl_source_status_t
+get_input_packet(bgav_video_parser_t * parser, int force)
   {
   gavl_source_status_t st;
   bgav_packet_t * p = NULL;
 
-  if(!force && (st = parser->src.peek_func(parser->src.data, NULL, 0)) !=
-     GAVL_SOURCE_OK)
-    return 0;
+  if(!force && ((st = parser->src.peek_func(parser->src.data, NULL, 0)) !=
+                GAVL_SOURCE_OK))
+    return st;
   
   if((st = parser->src.get_func(parser->src.data, &p)) != GAVL_SOURCE_OK)
     {
-    parser->eof = 1;
-    return 0;
+    if(st == GAVL_SOURCE_EOF)
+      parser->eof = 1;
+    return st;
     }
   else
     {
     bgav_video_parser_add_packet(parser, p);
     bgav_packet_pool_put(parser->s->pp, p);
-    return 1;
+    return GAVL_SOURCE_OK;
     }
   }
 
-static bgav_packet_t *
-parse_next_packet(bgav_video_parser_t * parser, int force, int64_t *pts_ret)
+static gavl_source_status_t
+parse_next_packet(bgav_video_parser_t * parser, int force, int64_t *pts_ret,
+                  bgav_packet_t ** ret)
   {
-  bgav_packet_t * ret;
   int skip = -1;
   int64_t pts = 0;
-
+  gavl_source_status_t st;
+  
   if(parser->eof)
-    return NULL;
+    return GAVL_SOURCE_EOF;
   
   /* Synchronize */
   while(!parser->have_sync)
@@ -276,10 +279,10 @@ parse_next_packet(bgav_video_parser_t * parser, int force, int64_t *pts_ret)
       parser->pos += skip;
       break;
       }
-    if(!get_input_packet(parser, force))
+    if((st = get_input_packet(parser, force)) != GAVL_SOURCE_OK)
       {
       // EOF while initializing the video parser
-      return NULL;
+      return st;
       }
 
     if(parser->buf.size > MAX_SCAN_SIZE)
@@ -287,7 +290,7 @@ parse_next_packet(bgav_video_parser_t * parser, int force, int64_t *pts_ret)
       bgav_log(parser->s->opt, BGAV_LOG_ERROR, LOG_DOMAIN,
                "Didn't find a frame in the first %d bytes (misdetected codec?)",
                parser->buf.size);
-      return NULL;
+      return GAVL_SOURCE_EOF;
       }
     
     force = 1;
@@ -298,10 +301,13 @@ parse_next_packet(bgav_video_parser_t * parser, int force, int64_t *pts_ret)
     {
     if(parser->find_frame_boundary(parser, &skip))
       break;
-    if(!get_input_packet(parser, force))
+    if((st = get_input_packet(parser, force)) != GAVL_SOURCE_OK)
       {
       // EOF: Take this packet as the last one
-      parser->pos = parser->buf.size;
+      if(st == GAVL_SOURCE_EOF)
+        parser->pos = parser->buf.size;
+      else if(st == GAVL_SOURCE_AGAIN)
+        return st;
       break;
       }
 
@@ -310,26 +316,24 @@ parse_next_packet(bgav_video_parser_t * parser, int force, int64_t *pts_ret)
       bgav_log(parser->s->opt, BGAV_LOG_ERROR, LOG_DOMAIN,
                "Didn't find a frame in the first %d bytes (misdetected codec?)",
                parser->buf.size);
-      return NULL;
+      return GAVL_SOURCE_EOF;
       }
-    
-    force = 1;
     }
   
   /* Set up packet */
 
-  ret = bgav_packet_pool_get(parser->s->pp);
-  bgav_packet_alloc(ret, parser->pos);
-  memcpy(ret->data, parser->buf.buffer, parser->pos);
-  ret->data_size = parser->pos;
+  *ret = bgav_packet_pool_get(parser->s->pp);
+  bgav_packet_alloc(*ret, parser->pos);
+  memcpy((*ret)->data, parser->buf.buffer, parser->pos);
+  (*ret)->data_size = parser->pos;
 
   if(parser->raw)
     {
-    ret->position = parser->raw_position;
+    (*ret)->position = parser->raw_position;
     }
   else
     {
-    ret->position = parser->packets[0].packet_position;
+    (*ret)->position = parser->packets[0].packet_position;
     pts = parser->packets[0].pts;
     }
   
@@ -342,25 +346,27 @@ parse_next_packet(bgav_video_parser_t * parser, int force, int64_t *pts_ret)
   
   /* Parse frame */
   
-  if(!parser->parse_frame(parser, ret, pts))
+  if(!parser->parse_frame(parser, *ret, pts))
     {
+    bgav_log(parser->s->opt, BGAV_LOG_ERROR, LOG_DOMAIN,
+             "Parsing frame failed");
     /* Error */
-    bgav_packet_pool_put(parser->s->pp, ret);
-    return NULL;
+    bgav_packet_pool_put(parser->s->pp, *ret);
+    return GAVL_SOURCE_EOF;
     }
 
-  if(PACKET_GET_SKIP(ret))
-    return ret;
+  if(PACKET_GET_SKIP(*ret))
+    return GAVL_SOURCE_OK;
   
   /* If it's the first packet without skip flag set, set start position */
   if(parser->start_pos < 0)
-    parser->start_pos = ret->position;
+    parser->start_pos = (*ret)->position;
 
   /* If we are before the start position, set the skip flag */
-  if((parser->start_pos >= 0) && (ret->position < parser->start_pos))
+  if((parser->start_pos >= 0) && ((*ret)->position < parser->start_pos))
     {
-    PACKET_SET_SKIP(ret);
-    return ret;
+    PACKET_SET_SKIP(*ret);
+    return GAVL_SOURCE_OK;
     }
 
   /* Set the timescale */
@@ -373,7 +379,7 @@ parse_next_packet(bgav_video_parser_t * parser, int force, int64_t *pts_ret)
   //  fprintf(stderr, "Got packet:\n");
   //  bgav_packet_dump(ret);
   
-  return ret;
+  return GAVL_SOURCE_OK;
   }
 
 static void process_packet(bgav_video_parser_t * parser, bgav_packet_t * p, int64_t pts_orig)
@@ -446,51 +452,48 @@ static void process_packet(bgav_video_parser_t * parser, bgav_packet_t * p, int6
     }
   }
 
-static bgav_packet_t * parse_full(void * parser1,
-                                  int force)
+static gavl_source_status_t
+parse_full(void * parser1, int force, bgav_packet_t ** ret)
   {
+  gavl_source_status_t st;
   int64_t pts_orig = GAVL_TIME_UNDEFINED;
-  bgav_packet_t * ret;
   bgav_video_parser_t * parser = parser1;
 
-  ret = parse_next_packet(parser, force, &pts_orig);
-  if(!ret)
-    return NULL;
-
+  if((st = parse_next_packet(parser, force, &pts_orig, ret)) != GAVL_SOURCE_OK)
+    return st;
+  
   /* Merge field pictures */
   
-  if(ret->flags & PACKET_FLAG_FIELD_PIC)
+  if((*ret)->flags & PACKET_FLAG_FIELD_PIC)
     {
     bgav_packet_t * field2;
-    field2 = parse_next_packet(parser, 1, NULL);
-    if(!field2)
-      return NULL;
-    
-    bgav_packet_merge_field2(ret, field2);
+
+    /* Reading the second field should never return GAVL_SOURCE_AGAIN! */
+    if((st = parse_next_packet(parser, 1, NULL, &field2)) != GAVL_SOURCE_OK)
+      return GAVL_SOURCE_EOF;
+    bgav_packet_merge_field2(*ret, field2);
     bgav_packet_pool_put(parser->s->pp, field2);
     }
 
-  if(PACKET_GET_SKIP(ret))
-    return ret;
+  if(PACKET_GET_SKIP(*ret))
+    return GAVL_SOURCE_OK;
 
-  process_packet(parser, ret, pts_orig);
-  
-  if(PACKET_GET_SKIP(ret))
-    return ret;
+  process_packet(parser, *ret, pts_orig);
   
 #ifdef DUMP_OUTPUT
-    bgav_dprintf("Get packet ");
-    bgav_packet_dump(ret);
-    bgav_hexdump(ret->data, 16, 16);
-    //  bgav_dprintf("recovery_point %d\n", c->recovery_point);
+  bgav_dprintf("Get packet ");
+  bgav_packet_dump(*ret);
+  bgav_hexdump((*ret)->data, 16, 16);
+  //  bgav_dprintf("recovery_point %d\n", c->recovery_point);
 #endif
  
-  return ret;
+  return GAVL_SOURCE_OK;
   }
 
 static gavl_source_status_t
 get_packet_parse_full(void * parser1, bgav_packet_t ** ret_p)
   {
+  gavl_source_status_t st;
   bgav_packet_t * ret;
   bgav_video_parser_t * parser = parser1;
 
@@ -503,9 +506,8 @@ get_packet_parse_full(void * parser1, bgav_packet_t ** ret_p)
 
   while(1)
     {
-    ret = parse_full(parser1, 1);
-    if(!ret)
-      break;
+    if((st = parse_full(parser1, 1, &ret)) != GAVL_SOURCE_OK)
+      return st;
     if(!PACKET_GET_SKIP(ret))
       break;
     bgav_packet_pool_put(parser->s->pp, ret);
@@ -519,15 +521,15 @@ static gavl_source_status_t
 peek_packet_parse_full(void * parser1, bgav_packet_t ** ret_p,
                                          int force)
   {
+  gavl_source_status_t st;
   bgav_video_parser_t * parser = parser1;
 
   if(!parser->out_packet)
     {
     while(1)
       {
-      parser->out_packet = parse_full(parser1, force);
-      if(!parser->out_packet)
-        break;
+      if((st = parse_full(parser1, force, &parser->out_packet)) != GAVL_SOURCE_OK)
+        return st;
       if(!PACKET_GET_SKIP(parser->out_packet))
         break;
       bgav_packet_pool_put(parser->s->pp, parser->out_packet);
@@ -538,7 +540,7 @@ peek_packet_parse_full(void * parser1, bgav_packet_t ** ret_p,
   if(ret_p)
     *ret_p = parser->out_packet;
   
-  return parser->out_packet ? GAVL_SOURCE_OK : GAVL_SOURCE_EOF;
+  return GAVL_SOURCE_OK;
   }
 
 static int parse_frame(bgav_video_parser_t * parser,
@@ -592,6 +594,7 @@ get_packet_parse_frame(void * parser1, bgav_packet_t ** ret_p)
     {
     if((st = parser->src.get_func(parser->src.data, &ret)) != GAVL_SOURCE_OK)
       return st;
+    
     if(!parse_frame(parser, ret))
       {
       bgav_packet_pool_put(parser->s->pp, ret);
@@ -603,8 +606,7 @@ get_packet_parse_frame(void * parser1, bgav_packet_t ** ret_p)
     }
 
   *ret_p = ret;
-  
-  return ret ? GAVL_SOURCE_OK : GAVL_SOURCE_EOF;
+  return GAVL_SOURCE_OK;
   }
 
 static gavl_source_status_t
@@ -644,7 +646,7 @@ peek_packet_parse_frame(void * parser1, bgav_packet_t ** ret_p,
   if(ret_p)
     *ret_p = parser->out_packet;
   
-  return parser->out_packet ? GAVL_SOURCE_OK : GAVL_SOURCE_EOF;
+  return GAVL_SOURCE_OK;
   }
 
 bgav_video_parser_t *

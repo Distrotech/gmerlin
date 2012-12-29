@@ -282,8 +282,10 @@ get_data(bgav_stream_t * s, bgav_packet_t ** ret_p)
   ffmpeg_video_priv * priv = s->data.video.decoder->priv;
   
   if((st = bgav_stream_get_packet_read(s, ret_p)) != GAVL_SOURCE_OK)
+    {
+    fprintf(stderr, "get packet returned %d\n", st);
     return st;
-
+    }
   ret = *ret_p;
 
 #ifdef DUMP_PACKET
