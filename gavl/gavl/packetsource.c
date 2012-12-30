@@ -27,12 +27,14 @@
 #define FLAG_HAS_AFMT         (1<<0)
 #define FLAG_HAS_VFMT         (1<<1)
 #define FLAG_HAS_CI           (1<<2)
+#define FLAG_HAS_TIMESCALE    (1<<3)
 
 struct gavl_packet_source_s
   {
   gavl_audio_format_t audio_format;
   gavl_video_format_t video_format;
   gavl_compression_info_t ci;
+  int timescale;
   
   gavl_packet_t p;
   
@@ -47,38 +49,72 @@ struct gavl_packet_source_s
   void * lock_priv;
   };
 
-
-gavl_packet_source_t *
-gavl_packet_source_create(gavl_packet_source_func_t func,
-                          void * priv, int src_flags,
-                          const gavl_compression_info_t * ci,
-                          const gavl_audio_format_t * afmt,
-                          const gavl_video_format_t * vfmt)
+static gavl_packet_source_t *
+create_common(gavl_packet_source_func_t func,
+              void * priv, int src_flags)
   {
   gavl_packet_source_t * ret;
   ret = calloc(1, sizeof(*ret));
   ret->func = func;
   ret->priv = priv;
   ret->src_flags = src_flags;
+  return ret;
+  }
 
-  if(ci)
-    {
-    gavl_compression_info_copy(&ret->ci, ci);
-    ret->flags |= FLAG_HAS_CI;
-    }
-
-  if(afmt)
-    {
-    gavl_audio_format_copy(&ret->audio_format, afmt);
-    ret->flags |= FLAG_HAS_AFMT;
-    }
-
-  if(vfmt)
-    {
-    gavl_video_format_copy(&ret->video_format, vfmt);
-    ret->flags |= FLAG_HAS_VFMT;
-    }
+gavl_packet_source_t *
+gavl_packet_source_create_audio(gavl_packet_source_func_t func,
+                                void * priv, int src_flags,
+                                const gavl_compression_info_t * ci,
+                                const gavl_audio_format_t * afmt)
+  {
+  gavl_packet_source_t * ret = create_common(func, priv, src_flags);
   
+  gavl_compression_info_copy(&ret->ci, ci);
+  ret->flags |= FLAG_HAS_CI;
+  
+  gavl_audio_format_copy(&ret->audio_format, afmt);
+  ret->flags |= FLAG_HAS_AFMT;
+  return ret;
+  }
+
+gavl_packet_source_t *
+gavl_packet_source_create_video(gavl_packet_source_func_t func,
+                                void * priv, int src_flags,
+                                const gavl_compression_info_t * ci,
+                                const gavl_video_format_t * vfmt)
+  {
+  gavl_packet_source_t * ret = create_common(func, priv, src_flags);
+  
+  gavl_compression_info_copy(&ret->ci, ci);
+  ret->flags |= FLAG_HAS_CI;
+  
+  gavl_video_format_copy(&ret->video_format, vfmt);
+  ret->flags |= FLAG_HAS_VFMT;
+  return ret;
+  }
+
+gavl_packet_source_t *
+gavl_packet_source_create_text(gavl_packet_source_func_t func,
+                               void * priv, int src_flags,
+                               int timescale)
+  {
+  gavl_packet_source_t * ret = create_common(func, priv, src_flags);
+  ret->timescale = timescale;
+  ret->flags |= FLAG_HAS_TIMESCALE;
+  return ret;
+  }
+
+gavl_packet_source_t *
+gavl_packet_source_create_source(gavl_packet_source_func_t func,
+                                 void * priv, int src_flags,
+                                 gavl_packet_source_t * src)
+  {
+  gavl_packet_source_t * ret = create_common(func, priv, src_flags);
+  ret->timescale = src->timescale;
+  ret->flags = src->flags;
+  gavl_compression_info_copy(&ret->ci, &src->ci);
+  gavl_video_format_copy(&ret->video_format, &src->video_format);
+  gavl_audio_format_copy(&ret->audio_format, &src->audio_format);
   return ret;
   }
 
@@ -121,7 +157,18 @@ gavl_packet_source_get_video_format(gavl_packet_source_t * s)
   else
     return NULL;
   }
-  
+
+GAVL_PUBLIC int
+gavl_packet_source_get_timescale(gavl_packet_source_t * s)
+  {
+  if(s->flags & FLAG_HAS_VFMT)
+    return s->video_format.timescale;
+  else if(s->flags & FLAG_HAS_AFMT)
+    return s->audio_format.samplerate;
+  return s->timescale;
+  }
+
+
 gavl_source_status_t
 gavl_packet_source_read_packet(void*sp, gavl_packet_t ** p)
   {

@@ -194,10 +194,7 @@ typedef struct
   
   } gavf_stream_t;
 
-void gavf_stream_create_packet_src(gavf_t * g, gavf_stream_t * s,
-                                   const gavl_compression_info_t * ci,
-                                   const gavl_audio_format_t * afmt,
-                                   const gavl_video_format_t * vfmt);
+void gavf_stream_create_packet_src(gavf_t * g, gavf_stream_t * s);
 
 void gavf_stream_create_packet_sink(gavf_t * g, gavf_stream_t * s);
 

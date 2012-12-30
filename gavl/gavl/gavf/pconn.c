@@ -70,24 +70,42 @@ read_packet_func_buffer_discont(void * priv, gavl_packet_t ** p)
   }
 
 
-void gavf_stream_create_packet_src(gavf_t * g, gavf_stream_t * s,
-                                   const gavl_compression_info_t * ci,
-                                   const gavl_audio_format_t * afmt,
-                                   const gavl_video_format_t * vfmt)
+void gavf_stream_create_packet_src(gavf_t * g, gavf_stream_t * s)
   {
+  gavl_packet_source_func_t func;
+  int flags;
+  
   if(!(g->opt.flags & GAVF_OPT_FLAG_BUFFER_READ))
-    s->psrc = gavl_packet_source_create(read_packet_func_nobuffer, s, 0,
-                                        ci, afmt, vfmt);
+    {
+    func = read_packet_func_nobuffer;
+    flags = 0;
+    }
   else
     {
     if(s->flags & STREAM_FLAG_DISCONTINUOUS)
-      s->psrc = gavl_packet_source_create(read_packet_func_buffer_discont, s,
-                                          GAVL_SOURCE_SRC_ALLOC,
-                                          ci, afmt, vfmt);
+      {
+      func = read_packet_func_buffer_discont;
+      flags = GAVL_SOURCE_SRC_ALLOC;
+      }
     else
-      s->psrc = gavl_packet_source_create(read_packet_func_buffer_cont, s,
-                                          GAVL_SOURCE_SRC_ALLOC,
-                                          ci, afmt, vfmt);
+      {
+      func = read_packet_func_buffer_cont;
+      flags = GAVL_SOURCE_SRC_ALLOC;
+      }
+    }
+
+  switch(s->h->type)
+    {
+    case GAVF_STREAM_AUDIO:
+      s->psrc = gavl_packet_source_create_audio(func, s, flags, &s->h->ci, &s->h->format.audio);
+      break;
+    case GAVF_STREAM_OVERLAY:
+    case GAVF_STREAM_VIDEO:
+      s->psrc = gavl_packet_source_create_video(func, s, flags, &s->h->ci, &s->h->format.video);
+      break;
+    case GAVF_STREAM_TEXT:
+      s->psrc = gavl_packet_source_create_text(func, s, flags, s->h->format.text.timescale);
+      break;
     }
   }
 

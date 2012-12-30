@@ -361,7 +361,7 @@ static void gavf_stream_init_audio(gavf_t * g, gavf_stream_t * s)
   else
     {
     /* Create packet source */
-    gavf_stream_create_packet_src(g, s, &s->h->ci, &s->h->format.audio,  NULL);
+    gavf_stream_create_packet_src(g, s);
     }
   }
 
@@ -414,8 +414,7 @@ static void gavf_stream_init_video(gavf_t * g, gavf_stream_t * s)
   else
     {
     /* Create packet source */
-    gavf_stream_create_packet_src(g, s, &s->h->ci, NULL,
-                                  &s->h->format.video);
+    gavf_stream_create_packet_src(g, s);
     }
   }
 
@@ -435,7 +434,7 @@ static void gavf_stream_init_text(gavf_t * g, gavf_stream_t * s)
   else
     {
     /* Create packet source */
-    gavf_stream_create_packet_src(g, s, NULL, NULL, NULL);
+    gavf_stream_create_packet_src(g, s);
     }
   }
 

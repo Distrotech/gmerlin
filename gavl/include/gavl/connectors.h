@@ -418,23 +418,62 @@ void gavl_audio_source_destroy(gavl_audio_source_t * s);
 
 /* Packet source */
 
-/** \brief Create a packet source
+/** \brief Create an audio packet source
  *  \param func Callback for reading one frame
  *  \param priv Client data to be passed to func
  *  \param src_flags Flags
- *  \param ci Compression info for audio and video sreams, NULL else
- *  \param afmt Format of the audio stream or NULL
- *  \param vfmt Format of the video stream or NULL
+ *  \param ci Compression info
+ *  \param afmt Format of the audio stream
  */
 
 GAVL_PUBLIC
 gavl_packet_source_t *
-gavl_packet_source_create(gavl_packet_source_func_t func,
-                          void * priv, int src_flags,
-                          const gavl_compression_info_t * ci,
-                          const gavl_audio_format_t * afmt,
-                          const gavl_video_format_t * vfmt);
+gavl_packet_source_create_audio(gavl_packet_source_func_t func,
+                                void * priv, int src_flags,
+                                const gavl_compression_info_t * ci,
+                                const gavl_audio_format_t * afmt);
 
+/** \brief Create a video packet source
+ *  \param func Callback for reading one frame
+ *  \param priv Client data to be passed to func
+ *  \param src_flags Flags
+ *  \param ci Compression info
+ *  \param vfmt Format of the video stream
+ */
+
+GAVL_PUBLIC
+gavl_packet_source_t *
+gavl_packet_source_create_video(gavl_packet_source_func_t func,
+                                void * priv, int src_flags,
+                                const gavl_compression_info_t * ci,
+                                const gavl_video_format_t * vfmt);
+
+/** \brief Create a text packet source
+ *  \param func Callback for reading one frame
+ *  \param priv Client data to be passed to func
+ *  \param src_flags Flags
+ *  \param scale Timescale of the text packets
+ */
+
+GAVL_PUBLIC
+gavl_packet_source_t *
+gavl_packet_source_create_text(gavl_packet_source_func_t func,
+                               void * priv, int src_flags, int timescale);
+
+/** \brief Create a packet source from another packet source
+ *  \param func Callback for reading one frame
+ *  \param priv Client data to be passed to func
+ *  \param src_flags Flags
+ *  \param src Source to copy the stream specific data from
+ */
+  
+GAVL_PUBLIC
+gavl_packet_source_t *
+gavl_packet_source_create_source(gavl_packet_source_func_t func,
+                                 void * priv, int src_flags,
+                                 gavl_packet_source_t * src);
+
+  
 /** \brief Set lock functions
  *  \param src A packet source
  *  \param lock_func Function called before a packet is read
@@ -472,6 +511,14 @@ gavl_packet_source_get_audio_format(gavl_packet_source_t * s);
 
 GAVL_PUBLIC const gavl_video_format_t *
 gavl_packet_source_get_video_format(gavl_packet_source_t * s);
+
+/** \brief Get the time scale
+ *  \param s A packet source
+ *  \returns The time scale
+ */
+
+GAVL_PUBLIC int
+gavl_packet_source_get_timescale(gavl_packet_source_t * s);
 
 /** \brief Read one packet
  *  \param s A packet source
