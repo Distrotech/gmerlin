@@ -70,6 +70,8 @@ struct gavl_audio_source_s
   gavl_connector_lock_func_t unlock_func;
   void * lock_priv;
 
+  gavl_audio_source_t * prev;
+  
   };
 
 gavl_audio_source_t *
@@ -85,6 +87,20 @@ gavl_audio_source_create(gavl_audio_source_func_t func,
   ret->src_flags = src_flags;
   gavl_audio_format_copy(&ret->src_format, src_format);
   ret->cnv = gavl_audio_converter_create();
+  return ret;
+  }
+
+gavl_audio_source_t *
+gavl_audio_source_create_source(gavl_audio_source_func_t func,
+                                void * priv,
+                                int src_flags,
+                                gavl_audio_source_t * src)
+  {
+  gavl_audio_source_t * ret =
+    gavl_audio_source_create(func, priv, src_flags,
+                             gavl_audio_source_get_dst_format(src));
+  
+  ret->prev = src;
   return ret;
   }
 
@@ -109,7 +125,7 @@ gavl_audio_source_get_src_format(gavl_audio_source_t * s)
 const gavl_audio_format_t *
 gavl_audio_source_get_dst_format(gavl_audio_source_t * s)
   {
-  return &s->dst_format;
+  return (s->flags & FLAG_DST_SET) ? &s->dst_format : &s->src_format;
   }
 
 gavl_audio_options_t * gavl_audio_source_get_options(gavl_audio_source_t * s)

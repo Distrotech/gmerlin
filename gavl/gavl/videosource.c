@@ -65,6 +65,7 @@ struct gavl_video_source_s
   gavl_connector_lock_func_t unlock_func;
   void * lock_priv;
 
+  gavl_video_source_t * prev;
   };
 
 gavl_video_source_t *
@@ -80,6 +81,21 @@ gavl_video_source_create(gavl_video_source_func_t func,
   ret->src_flags = src_flags;
   gavl_video_format_copy(&ret->src_format, src_format);
   ret->cnv = gavl_video_converter_create();
+  return ret;
+  }
+
+
+gavl_video_source_t *
+gavl_video_source_create_source(gavl_video_source_func_t func,
+                                void * priv,
+                                int src_flags,
+                                gavl_video_source_t * src)
+  {
+  gavl_video_source_t * ret =
+    gavl_video_source_create(func, priv, src_flags,
+                             gavl_video_source_get_dst_format(src));
+  
+  ret->prev = src;
   return ret;
   }
 
@@ -106,7 +122,7 @@ gavl_video_source_get_src_format(gavl_video_source_t * s)
 const gavl_video_format_t *
 gavl_video_source_get_dst_format(gavl_video_source_t * s)
   {
-  return &s->dst_format;
+  return (s->flags & FLAG_DST_SET) ? &s->dst_format : &s->src_format;
   }
 
 gavl_video_options_t * gavl_video_source_get_options(gavl_video_source_t * s)
@@ -178,9 +194,7 @@ read_video_simple(gavl_video_source_t * s,
   
   /* Pass from src to dst */
 
-  if(!(*frame) && (s->src_flags & GAVL_SOURCE_SRC_ALLOC) &&
-     (!(s->dst_flags & GAVL_SOURCE_DST_OVERWRITES) ||
-      !(s->src_flags & GAVL_SOURCE_SRC_REF)))
+  if(!(*frame) && (s->src_flags & GAVL_SOURCE_SRC_ALLOC))
     direct = 1;
   
   /* Pass from dst to src (this is the legacy behavior) */

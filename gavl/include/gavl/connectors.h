@@ -149,19 +149,12 @@ typedef struct gavl_packet_source_s gavl_packet_source_t;
 
 #define GAVL_SOURCE_SRC_ALLOC               (1<<0)
 
-/** \brief Source might need the frames for decoding future frames */
-
-#define GAVL_SOURCE_SRC_REF                 (1<<1)
 
 /** \brief Samples per frame is just an upper bound.
     Frames can have smaller sizes also. The last frame is always
     allowed to have fewer samples, even if this flag is not set */
 
 #define GAVL_SOURCE_SRC_FRAMESIZE_MAX       (1<<2)
-  
-/** \brief Destination changes frame. */
-
-#define GAVL_SOURCE_DST_OVERWRITES          (1<<0)
 
 /* Called by the source */
 
@@ -179,6 +172,23 @@ gavl_video_source_create(gavl_video_source_func_t func,
                          void * priv, int src_flags,
                          const gavl_video_format_t * src_format);
 
+/** \brief Create a video source from another source
+ *  \param func Function to get the frames from
+ *  \param priv Client data to pass to func
+ *  \param src_flags Flags describing the source
+ *  \param src preceeding source in the pipeline
+ *  \returns A newly created video source
+ *
+ *  This will take the destination format of the preceeding source
+ *  as the input format
+ */
+
+GAVL_PUBLIC
+gavl_video_source_t *
+gavl_video_source_create_source(gavl_video_source_func_t func,
+                                void * priv, int src_flags,
+                                gavl_video_source_t * src);
+  
 /** \brief Set lock functions
  *  \param src A video source
  *  \param lock_func Function called before a frame is read
@@ -291,6 +301,24 @@ gavl_audio_source_create(gavl_audio_source_func_t func,
                          void * priv, int src_flags,
                          const gavl_audio_format_t * src_format);
 
+/** \brief Create an audio source from another source
+ *  \param func Function to get the frames from
+ *  \param priv Client data to pass to func
+ *  \param src_flags Flags describing the source
+ *  \param src preceeding source in the pipeline
+ *  \returns A newly created audio source
+ *
+ *  This will take the destination format of the preceeding source
+ *  as the input format
+ */
+
+GAVL_PUBLIC
+gavl_audio_source_t *
+gavl_audio_source_create_source(gavl_audio_source_func_t func,
+                                void * priv, int src_flags,
+                                gavl_audio_source_t * src);
+
+  
 /** \brief Set lock functions
  *  \param src An audio source
  *  \param lock_func Function called before a frame is read
