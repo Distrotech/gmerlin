@@ -136,4 +136,6 @@ bg_stream_action_t * gavftools_get_stream_actions(int num, gavf_stream_type_t ty
 bg_stream_action_t * gavftools_get_stream_action(gavf_stream_type_t type,
                                                  int num);
 
+void gavftools_set_compresspor_options(bg_cmdline_arg_t * global_options);
+
 void gavftools_block_sigpipe(void);

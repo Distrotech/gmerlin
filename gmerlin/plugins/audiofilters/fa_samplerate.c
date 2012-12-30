@@ -45,7 +45,8 @@ typedef struct
   gavl_audio_format_t format;
 
   gavl_audio_source_t * in_src;
-  
+  gavl_audio_source_t * out_src;
+
   } samplerate_priv_t;
 
 static void * create_samplerate()
@@ -59,6 +60,8 @@ static void destroy_samplerate(void * priv)
   {
   samplerate_priv_t * vp;
   vp = priv;
+  if(vp->out_src)
+    gavl_audio_source_destroy(vp->out_src);
   free(vp);
   }
 
@@ -173,14 +176,16 @@ connect_samplerate(void * priv,
   gavl_audio_format_t format;
   samplerate_priv_t * vp = priv;
   vp->in_src = src;
+  if(vp->out_src)
+    gavl_audio_source_destroy(vp->out_src);
 
   vp->samplerate_current = get_samplerate(vp);
   
   gavl_audio_format_copy(&format, gavl_audio_source_get_src_format(vp->in_src));
   format.samplerate = vp->samplerate_current;
   gavl_audio_source_set_dst(vp->in_src, 0, &format);
-
-  return gavl_audio_source_create(read_func, vp, 0, &format);
+  vp->out_src = gavl_audio_source_create_source(read_func, vp, 0, vp->in_src);
+  return vp->out_src;
   }
 
 const bg_fa_plugin_t the_plugin = 

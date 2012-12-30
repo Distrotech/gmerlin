@@ -102,8 +102,8 @@ static void video_stream_2_xml(xmlNodePtr parent,
 
   }
 
-static void subtitle_text_stream_2_xml(xmlNodePtr parent,
-                                       bg_transcoder_track_subtitle_text_t * s)
+static void text_stream_2_xml(xmlNodePtr parent,
+                                       bg_transcoder_track_text_t * s)
   {
   xmlNodePtr node;
   char * tmp_string;
@@ -143,8 +143,8 @@ static void subtitle_text_stream_2_xml(xmlNodePtr parent,
     }
   }
 
-static void subtitle_overlay_stream_2_xml(xmlNodePtr parent,
-                                          bg_transcoder_track_subtitle_overlay_t * s)
+static void overlay_stream_2_xml(xmlNodePtr parent,
+                                          bg_transcoder_track_overlay_t * s)
   {
   xmlNodePtr node;
   char * tmp_string;
@@ -225,17 +225,17 @@ static void track_2_xml(bg_transcoder_track_t * track,
     xmlAddChild(xml_track, BG_XML_NEW_TEXT("\n"));
     }
 
-  if(track->subtitle_text_encoder_section)
+  if(track->text_encoder_section)
     {
-    node = xmlNewTextChild(xml_track, NULL, (xmlChar*)"SUBTITLE_TEXT_ENCODER", NULL);
-    section_2_xml(track->subtitle_text_encoder_section, node);
+    node = xmlNewTextChild(xml_track, NULL, (xmlChar*)"TEXT_ENCODER", NULL);
+    section_2_xml(track->text_encoder_section, node);
     xmlAddChild(xml_track, BG_XML_NEW_TEXT("\n"));
     }
 
-  if(track->subtitle_overlay_encoder_section)
+  if(track->overlay_encoder_section)
     {
-    node = xmlNewTextChild(xml_track, NULL, (xmlChar*)"SUBTITLE_OVERLAY_ENCODER", NULL);
-    section_2_xml(track->subtitle_overlay_encoder_section, node);
+    node = xmlNewTextChild(xml_track, NULL, (xmlChar*)"OVERLAY_ENCODER", NULL);
+    section_2_xml(track->overlay_encoder_section, node);
     xmlAddChild(xml_track, BG_XML_NEW_TEXT("\n"));
     }
   
@@ -270,29 +270,29 @@ static void track_2_xml(bg_transcoder_track_t * track,
       }
     xmlAddChild(xml_track, BG_XML_NEW_TEXT("\n"));
     }
-  if(track->num_subtitle_text_streams)
+  if(track->num_text_streams)
     {
-    node = xmlNewTextChild(xml_track, NULL, (xmlChar*)"SUBTITLE_TEXT_STREAMS", NULL);
+    node = xmlNewTextChild(xml_track, NULL, (xmlChar*)"TEXT_STREAMS", NULL);
     xmlAddChild(node, BG_XML_NEW_TEXT("\n"));
     
-    for(i = 0; i < track->num_subtitle_text_streams; i++)
+    for(i = 0; i < track->num_text_streams; i++)
       {
       stream_node = xmlNewTextChild(node, NULL, (xmlChar*)"STREAM", NULL);
       xmlAddChild(stream_node, BG_XML_NEW_TEXT("\n"));
-      subtitle_text_stream_2_xml(stream_node, &track->subtitle_text_streams[i]);
+      text_stream_2_xml(stream_node, &track->text_streams[i]);
       xmlAddChild(node, BG_XML_NEW_TEXT("\n"));
       }
     }
-  if(track->num_subtitle_overlay_streams)
+  if(track->num_overlay_streams)
     {
-    node = xmlNewTextChild(xml_track, NULL, (xmlChar*)"SUBTITLE_OVERLAY_STREAMS", NULL);
+    node = xmlNewTextChild(xml_track, NULL, (xmlChar*)"OVERLAY_STREAMS", NULL);
     xmlAddChild(node, BG_XML_NEW_TEXT("\n"));
     
-    for(i = 0; i < track->num_subtitle_overlay_streams; i++)
+    for(i = 0; i < track->num_overlay_streams; i++)
       {
       stream_node = xmlNewTextChild(node, NULL, (xmlChar*)"STREAM", NULL);
       xmlAddChild(stream_node, BG_XML_NEW_TEXT("\n"));
-      subtitle_overlay_stream_2_xml(stream_node, &track->subtitle_overlay_streams[i]);
+      overlay_stream_2_xml(stream_node, &track->overlay_streams[i]);
       xmlAddChild(node, BG_XML_NEW_TEXT("\n"));
       }
     }
@@ -491,7 +491,7 @@ static void xml_2_video(bg_transcoder_track_video_t * s,
   
   }
 
-static void xml_2_subtitle_text(bg_transcoder_track_subtitle_text_t * s,
+static void xml_2_text(bg_transcoder_track_text_t * s,
                                 xmlDocPtr xml_doc, xmlNodePtr xml_stream)
   {
   xmlNodePtr node;
@@ -543,7 +543,7 @@ static void xml_2_subtitle_text(bg_transcoder_track_subtitle_text_t * s,
     }
   }
 
-static void xml_2_subtitle_overlay(bg_transcoder_track_subtitle_overlay_t * s,
+static void xml_2_overlay(bg_transcoder_track_overlay_t * s,
                                    xmlDocPtr xml_doc, xmlNodePtr xml_stream)
   {
   xmlNodePtr node;
@@ -606,17 +606,17 @@ static void purge_track(bg_transcoder_track_t * t)
                                         "audio_encoder", NULL);
 
   bg_cfg_section_get_parameter_string(t->general_section,
-                                      "subtitle_text_encoder", &name);
+                                      "text_encoder", &name);
 
   if(name && !strcmp(name, video_name))
     bg_cfg_section_set_parameter_string(t->general_section,
-                                        "subtitle_text_encoder", NULL);
+                                        "text_encoder", NULL);
   
   bg_cfg_section_get_parameter_string(t->general_section,
-                                      "subtitle_overlay_encoder", &name);
+                                      "overlay_encoder", &name);
   if(name && !strcmp(name, video_name))
     bg_cfg_section_set_parameter_string(t->general_section,
-                                        "subtitle_overlay_encoder", NULL);
+                                        "overlay_encoder", NULL);
   }
 
 static int xml_2_track(bg_transcoder_track_t * t,
@@ -653,10 +653,10 @@ static int xml_2_track(bg_transcoder_track_t * t,
       t->audio_encoder_section = xml_2_section(xml_doc, node);
     else if(!BG_XML_STRCMP(node->name, "VIDEO_ENCODER"))
       t->video_encoder_section = xml_2_section(xml_doc, node);
-    else if(!BG_XML_STRCMP(node->name, "SUBTITLE_TEXT_ENCODER"))
-      t->subtitle_text_encoder_section = xml_2_section(xml_doc, node);
-    else if(!BG_XML_STRCMP(node->name, "SUBTITLE_OVERLAY_ENCODER"))
-      t->subtitle_overlay_encoder_section = xml_2_section(xml_doc, node);
+    else if(!BG_XML_STRCMP(node->name, "TEXT_ENCODER"))
+      t->text_encoder_section = xml_2_section(xml_doc, node);
+    else if(!BG_XML_STRCMP(node->name, "OVERLAY_ENCODER"))
+      t->overlay_encoder_section = xml_2_section(xml_doc, node);
     else if(!BG_XML_STRCMP(node->name, "AUDIO_STREAMS"))
       {
       /* Count streams */
@@ -731,24 +731,24 @@ static int xml_2_track(bg_transcoder_track_t * t,
 
     /* Subtitle text streams */
 
-    else if(!BG_XML_STRCMP(node->name, "SUBTITLE_TEXT_STREAMS"))
+    else if(!BG_XML_STRCMP(node->name, "TEXT_STREAMS"))
       {
       /* Count streams */
 
-      t->num_subtitle_text_streams = 0;
+      t->num_text_streams = 0;
 
       child_node = node->children;
       while(child_node)
         {
         if(child_node->name && !BG_XML_STRCMP(child_node->name, "STREAM"))
-          t->num_subtitle_text_streams++;
+          t->num_text_streams++;
         child_node = child_node->next;
         }
 
       /* Allocate streams */
       
-      t->subtitle_text_streams =
-        calloc(t->num_subtitle_text_streams, sizeof(*(t->subtitle_text_streams)));
+      t->text_streams =
+        calloc(t->num_text_streams, sizeof(*(t->text_streams)));
       
       /* Load streams */
       
@@ -759,7 +759,7 @@ static int xml_2_track(bg_transcoder_track_t * t,
         {
         if(child_node->name && !BG_XML_STRCMP(child_node->name, "STREAM"))
           {
-          xml_2_subtitle_text(&t->subtitle_text_streams[i], xml_doc, child_node);
+          xml_2_text(&t->text_streams[i], xml_doc, child_node);
           i++;
           }
         child_node = child_node->next;
@@ -768,24 +768,24 @@ static int xml_2_track(bg_transcoder_track_t * t,
 
     /* Subtitle overlay streams */
 
-    else if(!BG_XML_STRCMP(node->name, "SUBTITLE_OVERLAY_STREAMS"))
+    else if(!BG_XML_STRCMP(node->name, "OVERLAY_STREAMS"))
       {
       /* Count streams */
 
-      t->num_subtitle_overlay_streams = 0;
+      t->num_overlay_streams = 0;
 
       child_node = node->children;
       while(child_node)
         {
         if(child_node->name && !BG_XML_STRCMP(child_node->name, "STREAM"))
-          t->num_subtitle_overlay_streams++;
+          t->num_overlay_streams++;
         child_node = child_node->next;
         }
 
       /* Allocate streams */
       
-      t->subtitle_overlay_streams =
-        calloc(t->num_subtitle_overlay_streams, sizeof(*(t->subtitle_overlay_streams)));
+      t->overlay_streams =
+        calloc(t->num_overlay_streams, sizeof(*(t->overlay_streams)));
       
       /* Load streams */
       
@@ -796,7 +796,7 @@ static int xml_2_track(bg_transcoder_track_t * t,
         {
         if(child_node->name && !BG_XML_STRCMP(child_node->name, "STREAM"))
           {
-          xml_2_subtitle_overlay(&t->subtitle_overlay_streams[i], xml_doc, child_node);
+          xml_2_overlay(&t->overlay_streams[i], xml_doc, child_node);
           i++;
           }
         child_node = child_node->next;

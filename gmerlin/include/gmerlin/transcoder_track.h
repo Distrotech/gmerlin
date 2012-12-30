@@ -68,7 +68,7 @@ typedef struct
   bg_cfg_section_t * encoder_section_text;
   bg_cfg_section_t * encoder_section_overlay;
   gavl_metadata_t m;
-  } bg_transcoder_track_subtitle_text_t;
+  } bg_transcoder_track_text_t;
 
 typedef struct
   {
@@ -80,7 +80,7 @@ typedef struct
   bg_cfg_section_t * encoder_section;
   
   gavl_metadata_t m;
-  } bg_transcoder_track_subtitle_overlay_t;
+  } bg_transcoder_track_overlay_t;
 
 
 struct bg_transcoder_track_s
@@ -95,18 +95,18 @@ struct bg_transcoder_track_s
 
   bg_cfg_section_t    * audio_encoder_section;
   bg_cfg_section_t    * video_encoder_section;
-  bg_cfg_section_t    * subtitle_text_encoder_section;
-  bg_cfg_section_t    * subtitle_overlay_encoder_section;
+  bg_cfg_section_t    * text_encoder_section;
+  bg_cfg_section_t    * overlay_encoder_section;
   
   int num_audio_streams;
   int num_video_streams;
-  int num_subtitle_text_streams;
-  int num_subtitle_overlay_streams;
+  int num_text_streams;
+  int num_overlay_streams;
 
   bg_transcoder_track_audio_t    * audio_streams;
   bg_transcoder_track_video_t    * video_streams;
-  bg_transcoder_track_subtitle_text_t    * subtitle_text_streams;
-  bg_transcoder_track_subtitle_overlay_t * subtitle_overlay_streams;
+  bg_transcoder_track_text_t    * text_streams;
+  bg_transcoder_track_overlay_t * overlay_streams;
   
   /* For chaining */
   struct bg_transcoder_track_s * next;
@@ -132,10 +132,10 @@ const bg_parameter_info_t *
 bg_transcoder_track_video_get_general_parameters();
 
 const bg_parameter_info_t *
-bg_transcoder_track_subtitle_text_get_general_parameters();
+bg_transcoder_track_text_get_general_parameters();
 
 const bg_parameter_info_t *
-bg_transcoder_track_subtitle_overlay_get_general_parameters();
+bg_transcoder_track_overlay_get_general_parameters();
 
 
 bg_transcoder_track_t *
@@ -170,8 +170,8 @@ char * bg_transcoder_track_get_name(bg_transcoder_track_t * t);
 
 const char * bg_transcoder_track_get_audio_encoder(bg_transcoder_track_t * t);
 const char * bg_transcoder_track_get_video_encoder(bg_transcoder_track_t * t);
-const char * bg_transcoder_track_get_subtitle_text_encoder(bg_transcoder_track_t * t);
-const char * bg_transcoder_track_get_subtitle_overlay_encoder(bg_transcoder_track_t * t);
+const char * bg_transcoder_track_get_text_encoder(bg_transcoder_track_t * t);
+const char * bg_transcoder_track_get_overlay_encoder(bg_transcoder_track_t * t);
 
 void bg_transcoder_track_get_duration(bg_transcoder_track_t * t,
                                       gavl_time_t * ret, gavl_time_t * ret_total);

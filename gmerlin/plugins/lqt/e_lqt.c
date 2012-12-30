@@ -104,7 +104,7 @@ typedef struct
 
   int index;
   e_lqt_t * e;
-  } subtitle_text_stream_t;
+  } text_stream_t;
 
 struct e_lqt_s
   {
@@ -124,7 +124,7 @@ struct e_lqt_s
   
   int num_video_streams;
   int num_audio_streams;
-  int num_subtitle_text_streams;
+  int num_text_streams;
   
   /* Needed for calculating the duration of the last chapter */
   gavl_time_t duration;
@@ -133,7 +133,7 @@ struct e_lqt_s
 
   audio_stream_t         * audio_streams;
   video_stream_t         * video_streams;
-  subtitle_text_stream_t * subtitle_text_streams;
+  text_stream_t * text_streams;
   
   const gavl_chapter_list_t * chapter_list;
   
@@ -373,20 +373,20 @@ add_audio_stream_compressed_lqt(void * data,
   return as->index;
   }
 
-static int add_subtitle_text_stream_lqt(void * data,
+static int add_text_stream_lqt(void * data,
                                         const gavl_metadata_t * m,
                                         uint32_t * timescale)
   {
   const char * tag;
-  subtitle_text_stream_t * s;
+  text_stream_t * s;
   e_lqt_t * e = data;
 
-  e->subtitle_text_streams =
-    realloc(e->subtitle_text_streams,
-            (e->num_subtitle_text_streams+1)*
-            sizeof(*(e->subtitle_text_streams)));
+  e->text_streams =
+    realloc(e->text_streams,
+            (e->num_text_streams+1)*
+            sizeof(*(e->text_streams)));
 
-  s = e->subtitle_text_streams + e->num_subtitle_text_streams;
+  s = e->text_streams + e->num_text_streams;
   
   memset(s, 0, sizeof(*s));
 
@@ -395,10 +395,10 @@ static int add_subtitle_text_stream_lqt(void * data,
     strncpy(s->language, tag, 3);
   
   s->timescale = *timescale;
-  s->index = e->num_subtitle_text_streams;
+  s->index = e->num_text_streams;
   s->e = e;
   
-  e->num_subtitle_text_streams++;
+  e->num_text_streams++;
   return s->index;
   }
 
@@ -451,7 +451,7 @@ static gavl_packet_sink_t * get_video_packet_sink_lqt(void * data, int stream)
 static gavl_packet_sink_t * get_text_sink_lqt(void * data, int stream)
   {
   e_lqt_t * e = data;
-  return e->subtitle_text_streams[stream].psink;
+  return e->text_streams[stream].psink;
   }
 
 static gavl_packet_sink_t * get_audio_packet_sink_lqt(void * data, int stream)
@@ -553,10 +553,10 @@ write_audio_packet_func(void * data, gavl_packet_t * p)
   }
 
 static gavl_sink_status_t
-write_subtitle_text_func(void * data,
+write_text_func(void * data,
                          gavl_packet_t * p)
   {
-  subtitle_text_stream_t * s = data;
+  text_stream_t * s = data;
   
   if(s->e->file_type & (LQT_FILE_AVI|LQT_FILE_AVI_ODML))
     {
@@ -622,10 +622,10 @@ static int start_lqt(void * data)
   if(!(e->file_type & (LQT_FILE_AVI|LQT_FILE_AVI_ODML)))
     {
     /* Add the subtitle tracks */
-    for(i = 0; i < e->num_subtitle_text_streams; i++)
+    for(i = 0; i < e->num_text_streams; i++)
       {
-      subtitle_text_stream_t * ts;
-      ts = &e->subtitle_text_streams[i];
+      text_stream_t * ts;
+      ts = &e->text_streams[i];
 
       lqt_add_text_track(e->file, ts->timescale);
       lqt_set_text_language(e->file, i, ts->language);
@@ -648,7 +648,7 @@ static int start_lqt(void * data)
                             ts->bg_color[2],
                             ts->bg_color[3]);
 
-      ts->psink = gavl_packet_sink_create(NULL, write_subtitle_text_func,
+      ts->psink = gavl_packet_sink_create(NULL, write_text_func,
                                           ts);
       
       }
@@ -657,7 +657,7 @@ static int start_lqt(void * data)
     if(e->chapter_list)
       {
       lqt_add_text_track(e->file, e->chapter_list->timescale);
-      e->chapter_track_id = e->num_subtitle_text_streams;
+      e->chapter_track_id = e->num_text_streams;
       lqt_set_chapter_track(e->file, e->chapter_track_id);
       }
     }
@@ -793,21 +793,21 @@ static int close_lqt(void * data, int do_delete)
     free(e->video_streams);
     e->video_streams = NULL;
     }
-  if(e->subtitle_text_streams)
+  if(e->text_streams)
     {
-    for(i = 0; i < e->num_subtitle_text_streams; i++)
+    for(i = 0; i < e->num_text_streams; i++)
       {
-      subtitle_text_stream_t * ts = &e->subtitle_text_streams[i];
+      text_stream_t * ts = &e->text_streams[i];
       if(ts->psink)
         gavl_packet_sink_destroy(ts->psink);
       }
-    free(e->subtitle_text_streams);
-    e->subtitle_text_streams = NULL;
+    free(e->text_streams);
+    e->text_streams = NULL;
     }
   
   e->num_audio_streams = 0;
   e->num_video_streams = 0;
-  e->num_subtitle_text_streams = 0;
+  e->num_text_streams = 0;
   return 1;
   }
 
@@ -1009,7 +1009,7 @@ static void set_video_parameter_lqt(void * data, int stream, const char * name,
 
 /* Subtitle parameters */
 
-static const bg_parameter_info_t subtitle_text_parameters[] =
+static const bg_parameter_info_t text_parameters[] =
   {
     {
       .name =      "box_top",
@@ -1055,25 +1055,25 @@ static const bg_parameter_info_t subtitle_text_parameters[] =
   };
 
 static const bg_parameter_info_t *
-get_subtitle_text_parameters_lqt(void * priv)
+get_text_parameters_lqt(void * priv)
   {
-  return subtitle_text_parameters;
+  return text_parameters;
   }
 
 #define CNV_COLOR(c) (int)(c * 65535.0 + 0.5)
 
 static void
-set_subtitle_text_parameter_lqt(void * priv, int stream,
+set_text_parameter_lqt(void * priv, int stream,
                                 const char * name,
                                 const bg_parameter_value_t * val)
   {
   e_lqt_t * e = priv;
-  subtitle_text_stream_t * ts;
+  text_stream_t * ts;
   
   if(!name)
     return;
 
-  ts = &e->subtitle_text_streams[stream];
+  ts = &e->text_streams[stream];
   
   if(!strcmp(name, "box_top"))
     ts->text_box[0] = val->val_i;
@@ -1121,13 +1121,13 @@ like H.264/AVC, AAC, MP3, Divx compatible etc. Also supported are chapters and t
     
     .max_audio_streams =         -1,
     .max_video_streams =         -1,
-    .max_subtitle_text_streams = -1,
+    .max_text_streams = -1,
 
     .set_callbacks =         set_callbacks_lqt,
     
     .get_audio_parameters =         get_audio_parameters_lqt,
     .get_video_parameters =         get_video_parameters_lqt,
-    .get_subtitle_text_parameters = get_subtitle_text_parameters_lqt,
+    .get_text_parameters = get_text_parameters_lqt,
 
     .open =                 open_lqt,
 
@@ -1137,7 +1137,7 @@ like H.264/AVC, AAC, MP3, Divx compatible etc. Also supported are chapters and t
     .add_audio_stream =     add_audio_stream_lqt,
     .add_audio_stream_compressed =     add_audio_stream_compressed_lqt,
     
-    .add_subtitle_text_stream = add_subtitle_text_stream_lqt,
+    .add_text_stream = add_text_stream_lqt,
 
     .add_video_stream =     add_video_stream_lqt,
     .add_video_stream_compressed =     add_video_stream_compressed_lqt,
@@ -1145,14 +1145,14 @@ like H.264/AVC, AAC, MP3, Divx compatible etc. Also supported are chapters and t
     
     .set_audio_parameter =          set_audio_parameter_lqt,
     .set_video_parameter =          set_video_parameter_lqt,
-    .set_subtitle_text_parameter =  set_subtitle_text_parameter_lqt,
+    .set_text_parameter =  set_text_parameter_lqt,
     
     .get_audio_sink =     get_audio_sink_lqt,
     .get_video_sink =     get_video_sink_lqt,
 
     .get_audio_packet_sink =     get_audio_packet_sink_lqt,
     .get_video_packet_sink =     get_video_packet_sink_lqt,
-    .get_subtitle_text_sink =     get_text_sink_lqt,
+    .get_text_sink =     get_text_sink_lqt,
     .start =                start_lqt,
     .close =                close_lqt,
   };

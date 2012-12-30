@@ -40,6 +40,7 @@ typedef struct
   bg_gavl_video_options_t opt;
 
   gavl_video_source_t * in_src;
+  gavl_video_source_t * out_src;
   } framerate_priv_t;
 
 static void * create_framerate()
@@ -56,6 +57,8 @@ static void destroy_framerate(void * priv)
   {
   framerate_priv_t * vp = priv;
   bg_gavl_video_options_free(&vp->opt);
+  if(vp->out_src)
+    gavl_video_source_destroy(vp->out_src);
   free(vp);
   }
 
@@ -119,6 +122,8 @@ connect_framerate(void * priv,
   framerate_priv_t * vp = priv;
   
   vp->in_src = src;
+  if(vp->out_src)
+    gavl_video_source_destroy(vp->out_src);
 
   in_format = gavl_video_source_get_src_format(vp->in_src);
   
@@ -132,10 +137,12 @@ connect_framerate(void * priv,
                                       &vp->format);
   
   gavl_video_source_set_dst(vp->in_src, 0, &vp->format);
-  
-  return gavl_video_source_create(read_func,
-                                  vp, 0,
-                                  &vp->format);
+
+  vp->out_src =
+    gavl_video_source_create_source(read_func,
+                                    vp, 0,
+                                    vp->in_src);
+  return vp->out_src;
   }
                                           
 

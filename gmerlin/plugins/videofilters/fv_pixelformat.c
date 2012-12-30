@@ -41,6 +41,7 @@ typedef struct
   bg_parameter_info_t * parameters;
 
   gavl_video_source_t * in_src;
+  gavl_video_source_t * out_src;
   } pixelformat_priv_t;
 
 static void * create_pixelformat()
@@ -56,6 +57,8 @@ static void destroy_pixelformat(void * priv)
   vp = priv;
   if(vp->parameters)
     bg_parameter_info_destroy_array(vp->parameters);
+  if(vp->out_src)
+    gavl_video_source_destroy(vp->out_src);
   free(vp);
   }
 
@@ -158,6 +161,8 @@ connect_pixelformat(void * priv,
   pixelformat_priv_t * vp = priv;
   
   vp->in_src = src;
+  if(vp->out_src)
+    gavl_video_source_destroy(vp->out_src);
 
   in_format = gavl_video_source_get_src_format(vp->in_src);
 
@@ -168,10 +173,12 @@ connect_pixelformat(void * priv,
   vp->format.pixelformat = vp->pixelformat;
   
   gavl_video_source_set_dst(vp->in_src, 0, &vp->format);
-  
-  return gavl_video_source_create(read_func,
-                                  vp, 0,
-                                  &vp->format);
+
+  vp->out_src =
+    gavl_video_source_create_source(read_func,
+                                    vp, 0,
+                                    vp->in_src);
+  return vp->out_src;
   }
 
 

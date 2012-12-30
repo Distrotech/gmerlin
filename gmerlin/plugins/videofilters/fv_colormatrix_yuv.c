@@ -45,7 +45,8 @@ typedef struct
   gavl_video_options_t * global_opt;
 
   gavl_video_source_t * in_src;
-  
+  gavl_video_source_t * out_src;
+
   } colormatrix_priv_t;
 
 static int need_restart_colormatrix(void * priv)
@@ -64,20 +65,14 @@ static void * create_colormatrix()
   return ret;
   }
 
-#if 0
-static gavl_video_options_t * get_options_colormatrix(void * priv)
-  {
-  colormatrix_priv_t * vp = priv;
-  return vp->global_opt;
-  }
-#endif
-
 static void destroy_colormatrix(void * priv)
   {
   colormatrix_priv_t * vp;
   vp = priv;
   bg_colormatrix_destroy(vp->mat);
   gavl_video_options_destroy(vp->global_opt);
+  if(vp->out_src)
+    gavl_video_source_destroy(vp->out_src);
 
   free(vp);
   }
@@ -413,6 +408,8 @@ connect_colormatrix(void * priv, gavl_video_source_t * src,
   {
   int flags = 0;
   colormatrix_priv_t * vp = priv;
+  if(vp->out_src)
+    gavl_video_source_destroy(vp->out_src);
 
   if(vp->force_alpha)
     flags |= BG_COLORMATRIX_FORCE_ALPHA;
@@ -429,10 +426,12 @@ connect_colormatrix(void * priv, gavl_video_source_t * src,
   gavl_video_source_set_dst(vp->in_src, 0, &vp->format);
   
   vp->need_restart = 0;
-  return gavl_video_source_create(read_func,
-                                  vp, 0,
-                                  &vp->format);
-   }
+  vp->out_src =
+    gavl_video_source_create_source(read_func,
+                                 vp, 0,
+                                 vp->in_src);
+  return vp->out_src;
+  }
 
 
 const const bg_fv_plugin_t the_plugin = 

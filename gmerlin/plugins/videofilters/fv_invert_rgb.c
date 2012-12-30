@@ -47,6 +47,7 @@ typedef struct invert_priv_s
   gavl_video_options_t * global_opt;
   
   gavl_video_source_t * in_src;
+  gavl_video_source_t * out_src;
   } invert_priv_t;
 
 static const float coeffs_unity[4][5] =
@@ -81,6 +82,8 @@ static void destroy_invert(void * priv)
   vp = priv;
   bg_colormatrix_destroy(vp->mat);
   gavl_video_options_destroy(vp->global_opt);
+  if(vp->out_src)
+    gavl_video_source_destroy(vp->out_src);
   free(vp);
   }
 
@@ -520,6 +523,8 @@ static gavl_video_source_t * connect_invert(void * priv, gavl_video_source_t * s
   {
   invert_priv_t * vp;
   vp = priv;
+  if(vp->out_src)
+    gavl_video_source_destroy(vp->out_src);
 
   vp->in_src = src;
   set_format(vp, gavl_video_source_get_src_format(vp->in_src));
@@ -527,10 +532,12 @@ static gavl_video_source_t * connect_invert(void * priv, gavl_video_source_t * s
     gavl_video_options_copy(vp->global_opt, opt);
   
   gavl_video_source_set_dst(vp->in_src, 0, &vp->format);
-  
-  return gavl_video_source_create(read_func,
-                                  vp, 0,
-                                  &vp->format);
+
+  vp->out_src =
+    gavl_video_source_create_source(read_func,
+                                    vp, 0,
+                                    vp->in_src);
+  return vp->out_src;
   }
 
 

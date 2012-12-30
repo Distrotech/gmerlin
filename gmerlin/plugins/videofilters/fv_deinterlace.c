@@ -75,6 +75,7 @@ typedef struct deinterlace_priv_s
                                      gavl_video_frame_t ** frame);
 
   gavl_video_source_t * in_src;
+  gavl_video_source_t * out_src;
   } deinterlace_priv_t;
 
 static void * create_deinterlace()
@@ -94,6 +95,8 @@ static void destroy_deinterlace(void * priv)
   {
   deinterlace_priv_t * vp;
   vp = priv;
+  if(vp->out_src)
+    gavl_video_source_destroy(vp->out_src);
   
   gavl_video_deinterlacer_destroy(vp->deint);
 
@@ -448,16 +451,18 @@ connect_deinterlace(void * priv,
   deinterlace_priv_t * vp = priv;
   
   vp->in_src = src;
+  if(vp->out_src)
+    gavl_video_source_destroy(vp->out_src);
 
   set_format(vp, gavl_video_source_get_src_format(vp->in_src));
   if(opt)
     gavl_video_options_copy(vp->global_opt, opt);
   
   gavl_video_source_set_dst(vp->in_src, 0, &vp->in_format);
-  
-  return gavl_video_source_create(read_func,
-                                  vp, 0,
-                                  &vp->out_format);
+
+  vp->out_src =
+    gavl_video_source_create_source(read_func, vp, 0, vp->in_src);
+  return vp->out_src;
   }
 
 const const bg_fv_plugin_t the_plugin = 

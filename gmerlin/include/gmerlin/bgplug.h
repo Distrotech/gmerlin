@@ -125,7 +125,8 @@ bg_plug_header_from_id(bg_plug_t * p, uint32_t id);
 void
 bg_plug_set_compressor_config(bg_plug_t * p,
                               const bg_parameter_info_t * ac_params,
-                              const bg_parameter_info_t * vc_params);
+                              const bg_parameter_info_t * vc_params,
+                              const bg_parameter_info_t * oc_params);
 
 /* Called by bg_plug_open */
 

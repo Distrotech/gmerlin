@@ -141,9 +141,9 @@ track_dialog_t * track_dialog_create(bg_transcoder_track_t * t,
     }
   /* Subtitle text encoder */
 
-  if(t->subtitle_text_encoder_section && t->num_subtitle_text_streams)
+  if(t->text_encoder_section && t->num_text_streams)
     {
-    plugin_name = bg_transcoder_track_get_subtitle_text_encoder(t);
+    plugin_name = bg_transcoder_track_get_text_encoder(t);
 
     if(plugin_name)
       {
@@ -154,7 +154,7 @@ track_dialog_t * track_dialog_create(bg_transcoder_track_t * t,
         label = TRD(plugin_info->long_name, plugin_info->gettext_domain);
         bg_dialog_add(ret->cfg_dialog,
                       label,
-                      t->subtitle_text_encoder_section,
+                      t->text_encoder_section,
                       NULL,
                       NULL,
                       NULL,
@@ -165,10 +165,10 @@ track_dialog_t * track_dialog_create(bg_transcoder_track_t * t,
 
   /* Subtitle overlay encoder */
 
-  if(t->subtitle_overlay_encoder_section &&
-     (t->num_subtitle_text_streams || t->num_subtitle_overlay_streams))
+  if(t->overlay_encoder_section &&
+     (t->num_text_streams || t->num_overlay_streams))
     {
-    plugin_name = bg_transcoder_track_get_subtitle_overlay_encoder(t);
+    plugin_name = bg_transcoder_track_get_overlay_encoder(t);
 
     if(plugin_name)
       {
@@ -178,7 +178,7 @@ track_dialog_t * track_dialog_create(bg_transcoder_track_t * t,
         label = TRD(plugin_info->long_name, plugin_info->gettext_domain);
         bg_dialog_add(ret->cfg_dialog,
                       label,
-                      t->subtitle_overlay_encoder_section,
+                      t->overlay_encoder_section,
                       NULL,
                       NULL,
                       NULL,
@@ -339,7 +339,7 @@ track_dialog_t * track_dialog_create(bg_transcoder_track_t * t,
   
   /* Subtitle streams */
 
-  plugin_name = bg_transcoder_track_get_subtitle_text_encoder(t);
+  plugin_name = bg_transcoder_track_get_text_encoder(t);
   if(!plugin_name)
     plugin_name = bg_transcoder_track_get_video_encoder(t);
   
@@ -348,7 +348,7 @@ track_dialog_t * track_dialog_create(bg_transcoder_track_t * t,
   else
     plugin_info = NULL;
 
-  plugin_name1 = bg_transcoder_track_get_subtitle_overlay_encoder(t);
+  plugin_name1 = bg_transcoder_track_get_overlay_encoder(t);
   if(!plugin_name1)
     plugin_name1 = bg_transcoder_track_get_video_encoder(t);
   
@@ -357,19 +357,19 @@ track_dialog_t * track_dialog_create(bg_transcoder_track_t * t,
   else
     plugin_info1 = NULL;
   
-  for(i = 0; i < t->num_subtitle_text_streams; i++)
+  for(i = 0; i < t->num_text_streams; i++)
     {
-    if(t->num_subtitle_text_streams > 1)
+    if(t->num_text_streams > 1)
       {
-      if(t->subtitle_text_streams[i].label)
-        label = bg_sprintf(TR("Subtitles #%d: %s"), i+1, t->subtitle_text_streams[i].label);
+      if(t->text_streams[i].label)
+        label = bg_sprintf(TR("Subtitles #%d: %s"), i+1, t->text_streams[i].label);
       else
         label = bg_sprintf(TR("Subtitles #%d"), i+1);
       }
     else
       {
-      if(t->subtitle_text_streams[i].label)
-        label = bg_sprintf(TR("Subtitles: %s"), t->subtitle_text_streams[i].label);
+      if(t->text_streams[i].label)
+        label = bg_sprintf(TR("Subtitles: %s"), t->text_streams[i].label);
       else
         label = bg_sprintf(TR("Subtitles"));
       }
@@ -380,64 +380,64 @@ track_dialog_t * track_dialog_create(bg_transcoder_track_t * t,
     
     bg_dialog_add_child(ret->cfg_dialog, parent,
                         TR("General"),
-                        t->subtitle_text_streams[i].general_section,
+                        t->text_streams[i].general_section,
                         NULL,
                         NULL,
                         NULL,
-                        t->subtitle_text_streams[i].general_parameters);
+                        t->text_streams[i].general_parameters);
 
     bg_dialog_add_child(ret->cfg_dialog, parent,
                         TR("Textrenderer"),
-                        t->subtitle_text_streams[i].textrenderer_section,
+                        t->text_streams[i].textrenderer_section,
                         NULL,
                         NULL,
                         NULL,
                         bg_text_renderer_get_parameters());
 
-    if(plugin_info->subtitle_text_parameters)
+    if(plugin_info->text_parameters)
       {
       label = TR("Encode options (text)");
       
       bg_dialog_add_child(ret->cfg_dialog, parent,
                           label,
-                          t->subtitle_text_streams[i].encoder_section_text,
+                          t->text_streams[i].encoder_section_text,
                           NULL,
                           NULL,
                           NULL,
-                          plugin_info->subtitle_text_parameters);
+                          plugin_info->text_parameters);
       }
 
-    if(plugin_info1->subtitle_overlay_parameters)
+    if(plugin_info1->overlay_parameters)
       {
       label = TR("Encode options (overlay)");
       
       bg_dialog_add_child(ret->cfg_dialog, parent,
                           label,
-                          t->subtitle_text_streams[i].encoder_section_overlay,
+                          t->text_streams[i].encoder_section_overlay,
                           NULL,
                           NULL,
                           NULL,
-                          plugin_info1->subtitle_overlay_parameters);
+                          plugin_info1->overlay_parameters);
       }
     
     }
 
   
   
-  for(i = 0; i < t->num_subtitle_overlay_streams; i++)
+  for(i = 0; i < t->num_overlay_streams; i++)
     {
-    if(t->num_subtitle_overlay_streams > 1)
+    if(t->num_overlay_streams > 1)
       {
-      if(t->subtitle_overlay_streams[i].label)
-        label = bg_sprintf(TR("Subtitles #%d: %s"), i+1+t->num_subtitle_text_streams,
-                           t->subtitle_overlay_streams[i].label);
+      if(t->overlay_streams[i].label)
+        label = bg_sprintf(TR("Subtitles #%d: %s"), i+1+t->num_text_streams,
+                           t->overlay_streams[i].label);
       else
-        label = bg_sprintf(TR("Subtitles #%d"), i+1+t->num_subtitle_text_streams);
+        label = bg_sprintf(TR("Subtitles #%d"), i+1+t->num_text_streams);
       }
     else
       {
-      if(t->subtitle_overlay_streams[i].label)
-        label = bg_sprintf(TR("Subtitles: %s"), t->subtitle_overlay_streams[i].label);
+      if(t->overlay_streams[i].label)
+        label = bg_sprintf(TR("Subtitles: %s"), t->overlay_streams[i].label);
       else
         label = bg_sprintf(TR("Subtitles"));
       }
@@ -448,22 +448,22 @@ track_dialog_t * track_dialog_create(bg_transcoder_track_t * t,
     
     bg_dialog_add_child(ret->cfg_dialog, parent,
                         TR("General"),
-                        t->subtitle_overlay_streams[i].general_section,
+                        t->overlay_streams[i].general_section,
                         NULL,
                         NULL,
                         NULL,
-                        t->subtitle_overlay_streams[i].general_parameters);
+                        t->overlay_streams[i].general_parameters);
 
-    if(plugin_info1->subtitle_overlay_parameters)
+    if(plugin_info1->overlay_parameters)
       {
       label = TR("Encode options");
       bg_dialog_add_child(ret->cfg_dialog, parent,
                           label,
-                          t->subtitle_overlay_streams[i].encoder_section,
+                          t->overlay_streams[i].encoder_section,
                           NULL,
                           NULL,
                           NULL,
-                          plugin_info1->subtitle_overlay_parameters);
+                          plugin_info1->overlay_parameters);
       }
     }
   return ret;

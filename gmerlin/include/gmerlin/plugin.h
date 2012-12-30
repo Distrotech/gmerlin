@@ -191,8 +191,8 @@ typedef enum
     BG_PLUGIN_RECORDER_VIDEO             = (1<<4), //!< Video recorder
     BG_PLUGIN_ENCODER_AUDIO              = (1<<5), //!< Encoder for audio only
     BG_PLUGIN_ENCODER_VIDEO              = (1<<6), //!< Encoder for video only
-    BG_PLUGIN_ENCODER_SUBTITLE_TEXT      = (1<<7), //!< Encoder for text subtitles only
-    BG_PLUGIN_ENCODER_SUBTITLE_OVERLAY   = (1<<8), //!< Encoder for overlay subtitles only
+    BG_PLUGIN_ENCODER_TEXT               = (1<<7), //!< Encoder for text subtitles only
+    BG_PLUGIN_ENCODER_OVERLAY            = (1<<8), //!< Encoder for overlay subtitles only
     BG_PLUGIN_ENCODER                    = (1<<9), //!< Encoder for multiple kinds of streams
     BG_PLUGIN_ENCODER_PP                 = (1<<10),//!< Encoder postprocessor (e.g. CD burner)
     BG_PLUGIN_IMAGE_READER               = (1<<11),//!< Image reader
@@ -1501,8 +1501,8 @@ struct bg_encoder_plugin_s
   
   int max_audio_streams;  //!< Maximum number of audio streams. -1 means infinite
   int max_video_streams;  //!< Maximum number of video streams. -1 means infinite
-  int max_subtitle_text_streams;//!< Maximum number of text subtitle streams. -1 means infinite
-  int max_subtitle_overlay_streams;//!< Maximum number of overlay subtitle streams. -1 means infinite
+  int max_text_streams;//!< Maximum number of text subtitle streams. -1 means infinite
+  int max_overlay_streams;//!< Maximum number of overlay subtitle streams. -1 means infinite
   
   /** \brief Set callbacks
    *  \param priv The handle returned by the create() method
@@ -1536,7 +1536,20 @@ struct bg_encoder_plugin_s
   int (*writes_compressed_video)(void * priv,
                                  const gavl_video_format_t * format,
                                  const gavl_compression_info_t * info);
+
+  /** \brief Query for writing compressed overlay packets
+   *  \param priv The handle returned by the create() method
+   *  \param format Format of the source
+   *  \param info Compression info
+   *  \returns 1 if stream compressed format can be written, 0 else
+   *  
+   *  Call this function after all global parameters are set.
+   */
   
+  int (*writes_compressed_overlay)(void * priv,
+                                   const gavl_video_format_t * format,
+                                   const gavl_compression_info_t * info);
+    
   /** \brief Open a file
    *  \param priv The handle returned by the create() method
    *  \param filename Name of the file to be opened (without extension!)
@@ -1578,7 +1591,7 @@ struct bg_encoder_plugin_s
    *  The returned parameters are owned by the plugin and must not be freed.
    */
 
-  const bg_parameter_info_t * (*get_subtitle_text_parameters)(void * priv);
+  const bg_parameter_info_t * (*get_text_parameters)(void * priv);
 
   /** \brief Get overlay subtitle related parameters
    *  \param priv The handle returned by the create() method
@@ -1587,7 +1600,7 @@ struct bg_encoder_plugin_s
    *  The returned parameters are owned by the plugin and must not be freed.
    */
 
-  const bg_parameter_info_t * (*get_subtitle_overlay_parameters)(void * priv);
+  const bg_parameter_info_t * (*get_overlay_parameters)(void * priv);
   
   /* Add streams. The formats can be changed, be sure to get the
    * final formats with get_[audio|video]_format after starting the plugin
@@ -1660,7 +1673,7 @@ struct bg_encoder_plugin_s
    *  \returns Index of this stream (starting with 0)
    */
   
-  int (*add_subtitle_text_stream)(void * priv,
+  int (*add_text_stream)(void * priv,
                                   const gavl_metadata_t * m,
                                   uint32_t * timescale);
   
@@ -1676,9 +1689,9 @@ struct bg_encoder_plugin_s
    *  needed by the plugin, after \ref start was called.
    */
   
-  int (*add_subtitle_overlay_stream)(void * priv,
-                                     const gavl_metadata_t * m,
-                                     const gavl_video_format_t * format);
+  int (*add_overlay_stream)(void * priv,
+                            const gavl_metadata_t * m,
+                            const gavl_video_format_t * format);
   
   /* Set parameters for the streams */
 
@@ -1719,7 +1732,7 @@ struct bg_encoder_plugin_s
    *  \ref get_subtitle_text_parameters.
    */
   
-  void (*set_subtitle_text_parameter)(void * priv, int stream,
+  void (*set_text_parameter)(void * priv, int stream,
                                       const char * name,
                                       const bg_parameter_value_t * v);
 
@@ -1733,9 +1746,9 @@ struct bg_encoder_plugin_s
    *  \ref get_subtitle_overlay_parameters.
    */
   
-  void (*set_subtitle_overlay_parameter)(void * priv, int stream,
-                                         const char * name,
-                                         const bg_parameter_value_t * v);
+  void (*set_overlay_parameter)(void * priv, int stream,
+                                const char * name,
+                                const bg_parameter_value_t * v);
   
   /** \brief Setup multipass video encoding.
    *  \param priv The handle returned by the create() method
@@ -1758,110 +1771,6 @@ struct bg_encoder_plugin_s
   
   int (*start)(void * priv);
   
-  /*
-   *  After setting the parameters, get the formats, you need to deliver the frames in
-   */
-
-  /** \brief Get audio format
-   *  \param priv The handle returned by the create() method
-   *  \param stream Stream index (starting with 0)
-   *  \param ret Returns format
-   *
-   *  Call this after calling \ref start() if it's defined.
-   */
-  
-  //  void (*get_audio_format)(void * priv, int stream, gavl_audio_format_t*ret);
-
-  /** \brief Get video format
-   *  \param priv The handle returned by the create() method
-   *  \param stream Stream index (starting with 0)
-   *  \param ret Returns format
-   *
-   *  Call this after calling \ref start() if it's defined.
-   */
-
-  //  void (*get_video_format)(void * priv, int stream, gavl_video_format_t*ret);
-
-  /** \brief Get video format of an overlay subtitle stream
-   *  \param priv The handle returned by the create() method
-   *  \param stream Stream index (starting with 0)
-   *  \param ret Returns format
-   *
-   *  Call this after calling \ref start() if it's defined.
-   */
-
-  //  void (*get_subtitle_overlay_format)(void * priv, int stream,
-  //                                      gavl_video_format_t*ret);
-
-  /*
-   *  Encode audio/video
-   */
-
-  /** \brief Write audio samples
-   *  \param priv The handle returned by the create() method
-   *  \param frame Frame with samples
-   *  \param stream Stream index (starting with 0)
-   *  \returns 1 is the data was successfully written, 0 else
-   *
-   *  The actual number of samples must be stored in the valid_samples member of
-   *  the frame.
-   */
-  
-  //  int (*write_audio_frame)(void * data, gavl_audio_frame_t * frame, int stream);
-
-  /** \brief Write audio packet
-   *  \param priv The handle returned by the create() method
-   *  \param packet Packet with compressed data
-   *  \param stream Stream index (starting with 0)
-   *  \returns 1 is the data was successfully written, 0 else
-   *
-   *  The actual number of samples must be stored in the duration member of
-   *  the packet.
-   */
-  
-  //  int (*write_audio_packet)(void * data, gavl_packet_t * packet, int stream);
-
-  
-  /** \brief Write video frame
-   *  \param priv The handle returned by the create() method
-   *  \param frame Frame
-   *  \param stream Stream index (starting with 0)
-   *  \returns 1 is the data was successfully written, 0 else
-   */
-
-  //  int (*write_video_frame)(void * data, gavl_video_frame_t * frame, int stream);
-
-  /** \brief Write video packet
-   *  \param priv The handle returned by the create() method
-   *  \param packet Packet with compressed data
-   *  \param stream Stream index (starting with 0)
-   *  \returns 1 is the data was successfully written, 0 else
-   */
-  
-  //  int (*write_video_packet)(void * data, gavl_packet_t * packet, int stream);
-  
-  /** \brief Write a text subtitle
-   *  \param priv The handle returned by the create() method
-   *  \param frame The text
-   *  \param start Start of the subtitle
-   *  \param duration Duration of the subtitle
-   *  \param stream Stream index (starting with 0)
-   *  \returns 1 is the data was successfully written, 0 else
-   */
-  
-  //  int (*write_subtitle_text)(void * data,const char * text,
-  //                             int64_t start,
-  //                             int64_t duration, int stream);
-  
-  /** \brief Write an overlay subtitle
-   *  \param priv The handle returned by the create() method
-   *  \param ovl An overlay
-   *  \param stream Stream index (starting with 0)
-   *  \returns 1 is the data was successfully written, 0 else
-   */
-  
-  //  int (*write_subtitle_overlay)(void * data, gavl_overlay_t * ovl, int stream);
-
   /** \brief Get audio sink
    *  \param priv The handle returned by the create() method
    *  \returns The audio sink for this stream
@@ -1895,22 +1804,21 @@ struct bg_encoder_plugin_s
    *  \returns The packet sink for this stream
    */
   
-  gavl_packet_sink_t * (*get_subtitle_text_sink)(void * priv, int stream);
+  gavl_packet_sink_t * (*get_text_sink)(void * priv, int stream);
   
   /** \brief Get overlay subtitle sink
    *  \param priv The handle returned by the create() method
    *  \returns The video sink for this stream
    */
   
-  gavl_video_sink_t * (*get_subtitle_overlay_sink)(void * priv, int stream);
+  gavl_video_sink_t * (*get_overlay_sink)(void * priv, int stream);
 
   /** \brief Get overlay subtitle sink
    *  \param priv The handle returned by the create() method
    *  \returns The packet sink for this stream
    */
-
-  gavl_packet_sink_t * (*get_subtitle_overlay_packet_sink)(void * priv, int stream);
-
+  
+  gavl_packet_sink_t * (*get_overlay_packet_sink)(void * priv, int stream);
   
   /** \brief Update metadata
    *  \param priv The handle returned by the create() method

@@ -327,6 +327,7 @@ typedef struct
   int run_adding;
 
   gavl_audio_source_t * in_src;
+  gavl_audio_source_t * out_src;
   
   bg_parameter_info_t * parameters;
 
@@ -579,6 +580,10 @@ connect_ladspa(void * priv, gavl_audio_source_t * src,
   ladspa_priv_t * lp = priv;
 
   lp->in_src = src;
+
+  if(lp->out_src)
+    gavl_audio_source_destroy(lp->out_src);
+  
   gavl_audio_format_copy(&lp->format,
                          gavl_audio_source_get_src_format(lp->in_src));
   lp->format.interleave_mode = GAVL_INTERLEAVE_NONE;
@@ -587,9 +592,10 @@ connect_ladspa(void * priv, gavl_audio_source_t * src,
   
   gavl_audio_source_set_dst(lp->in_src, 0, &lp->format);
 
-  return gavl_audio_source_create(read_func,
-                                  lp, 0,
-                                  &lp->format);
+  lp->out_src = gavl_audio_source_create_source(read_func,
+                                                lp, 0,
+                                                lp->in_src);
+  return lp->out_src;
   }
 
 int bg_ladspa_load(bg_plugin_handle_t * ret,
@@ -693,6 +699,9 @@ void bg_ladspa_unload(bg_plugin_handle_t * h)
   FREE(lp->in_c_ports);
   FREE(lp->out_c_ports);
 
+  if(lp->out_src)
+    gavl_audio_source_destroy(lp->out_src);
+  
   cleanup_ladspa(lp);
   free(h->plugin_nc);
   free(lp);

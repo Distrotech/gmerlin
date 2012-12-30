@@ -93,6 +93,7 @@ typedef struct
   chroma_out_mode_t chroma_out_mode;
 
   gavl_video_source_t * in_src;
+  gavl_video_source_t * out_src;
   } cropscale_priv_t;
 
 static void * create_cropscale()
@@ -114,6 +115,8 @@ static void destroy_cropscale(void * priv)
   vp = priv;
   gavl_video_scaler_destroy(vp->scaler);
   gavl_video_options_destroy(vp->global_opt);
+  if(vp->out_src)
+    gavl_video_source_destroy(vp->out_src);
   free(vp);
   }
 
@@ -1260,9 +1263,11 @@ connect_cropscale(void * priv, gavl_video_source_t * src,
   vp->need_reinit = 1;
   vp->need_restart = 0;
 
-  return gavl_video_source_create(read_func,
-                                  vp, 0,
-                                  &vp->out_format);
+  vp->out_src =
+    gavl_video_source_create_source(read_func,
+                                    vp, 0,
+                                    vp->in_src);
+  return vp->out_src;
   }
   
 static int need_restart_cropscale(void * priv)

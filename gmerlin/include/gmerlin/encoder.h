@@ -80,12 +80,12 @@ int bg_encoder_add_video_stream_compressed(bg_encoder_t *,
                                            int index);
 
 
-int bg_encoder_add_subtitle_text_stream(bg_encoder_t *,
+int bg_encoder_add_text_stream(bg_encoder_t *,
                                         const gavl_metadata_t * m,
                                         int timescale,
                                         int index);
 
-int bg_encoder_add_subtitle_overlay_stream(bg_encoder_t *,
+int bg_encoder_add_overlay_stream(bg_encoder_t *,
                                            const gavl_metadata_t * m,
                                            const gavl_video_format_t * format,
                                            int index,
@@ -97,9 +97,9 @@ void bg_encoder_get_audio_format(bg_encoder_t *, int stream,
                                  gavl_audio_format_t*ret);
 void bg_encoder_get_video_format(bg_encoder_t *, int stream,
                                  gavl_video_format_t*ret);
-void bg_encoder_get_subtitle_overlay_format(bg_encoder_t *, int stream,
+void bg_encoder_get_overlay_format(bg_encoder_t *, int stream,
                                             gavl_video_format_t*ret);
-void bg_encoder_get_subtitle_text_timescale(bg_encoder_t *, int stream,
+void bg_encoder_get_text_timescale(bg_encoder_t *, int stream,
                                             uint32_t * ret);
 
 gavl_audio_sink_t * bg_encoder_get_audio_sink(bg_encoder_t *, int stream);
@@ -115,10 +115,10 @@ int bg_encoder_write_audio_frame(bg_encoder_t *,
 int bg_encoder_write_video_frame(bg_encoder_t *,
                                  gavl_video_frame_t * frame, int stream);
 
-int bg_encoder_write_subtitle_text(bg_encoder_t *,const char * text,
+int bg_encoder_write_text(bg_encoder_t *,const char * text,
                                    int64_t start, int64_t duration, int stream);
 
-int bg_encoder_write_subtitle_overlay(bg_encoder_t *,
+int bg_encoder_write_overlay(bg_encoder_t *,
                                       gavl_overlay_t * ovl, int stream);
 
 int bg_encoder_write_audio_packet(bg_encoder_t *,

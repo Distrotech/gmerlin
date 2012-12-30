@@ -254,7 +254,7 @@ const bg_encoder_plugin_t the_plugin =
       .long_name =      TRS("spumux overlay exporter"),
       .description =    TRS("Exports overlay subtitles into the format used by spumux\
  (http://dvdauthor.sourceforge.net)"),
-      .type =           BG_PLUGIN_ENCODER_SUBTITLE_OVERLAY,
+      .type =           BG_PLUGIN_ENCODER_OVERLAY,
       .flags =          BG_PLUGIN_FILE,
       .priority =       BG_PLUGIN_PRIORITY_MAX,
       .create =         create_spumux,
@@ -264,17 +264,17 @@ const bg_encoder_plugin_t the_plugin =
       //   get_error:      get_error_spumux,
     },
 
-    .max_subtitle_overlay_streams = 1,
+    .max_overlay_streams = 1,
     
     .set_callbacks =        set_callbacks_spumux,
     
     .open =                 open_spumux,
 
-    .add_subtitle_overlay_stream =     add_subtitle_overlay_stream_spumux,
+    .add_overlay_stream =     add_subtitle_overlay_stream_spumux,
     
     .start =                start_spumux,
 
-    .get_subtitle_overlay_sink = get_sink_spumux,
+    .get_overlay_sink = get_sink_spumux,
     
     // .get_subtitle_overlay_format = get_subtitle_overlay_format_spumux,
     

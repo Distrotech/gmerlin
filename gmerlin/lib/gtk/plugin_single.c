@@ -252,8 +252,8 @@ static void change_callback(GtkWidget * w, gpointer data)
 
   if(widget->info->type & (BG_PLUGIN_ENCODER_AUDIO|
                            BG_PLUGIN_ENCODER_VIDEO|
-                           BG_PLUGIN_ENCODER_SUBTITLE_TEXT|
-                           BG_PLUGIN_ENCODER_SUBTITLE_OVERLAY|
+                           BG_PLUGIN_ENCODER_TEXT|
+                           BG_PLUGIN_ENCODER_OVERLAY|
                            BG_PLUGIN_ENCODER))
     {
     if(widget->audio_section_priv)
@@ -286,7 +286,7 @@ static void change_callback(GtkWidget * w, gpointer data)
       widget->subtitle_text_section_priv = 0;
       }
     
-    if(widget->info->subtitle_text_parameters)
+    if(widget->info->text_parameters)
       widget->subtitle_text_section =
         bg_cfg_section_find_subsection(widget->section, "$subtitle_text");
     else
@@ -298,7 +298,7 @@ static void change_callback(GtkWidget * w, gpointer data)
       widget->subtitle_overlay_section_priv = 0;
       }
     
-    if(widget->info->subtitle_overlay_parameters)
+    if(widget->info->overlay_parameters)
       widget->subtitle_overlay_section =
         bg_cfg_section_find_subsection(widget->section, "$subtitle_overlay");
     else

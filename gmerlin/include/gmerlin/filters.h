@@ -160,7 +160,7 @@ void bg_audio_filter_chain_destroy(bg_audio_filter_chain_t * ch);
  *  \ref bg_audio_filter_chain_set_parameter and \ref bg_audio_filter_chain_read.
  */
 
-void bg_audio_filter_chain_lock(bg_audio_filter_chain_t * ch);
+void bg_audio_filter_chain_lock(void * ch);
 
 /** \brief Unlock an audio filter chain
  *  \param ch An audio filter chain
@@ -169,7 +169,7 @@ void bg_audio_filter_chain_lock(bg_audio_filter_chain_t * ch);
  *  \ref bg_audio_filter_chain_set_parameter and \ref bg_audio_filter_chain_read.
  */
 
-void bg_audio_filter_chain_unlock(bg_audio_filter_chain_t * ch);
+void bg_audio_filter_chain_unlock(void * ch);
 
 /** \brief Reset an audio filter chain
  *  \param ch An audio filter chain
@@ -316,7 +316,7 @@ void bg_video_filter_chain_destroy(bg_video_filter_chain_t * ch);
  *  \ref bg_video_filter_chain_set_parameter and \ref bg_video_filter_chain_read.
  */
 
-void bg_video_filter_chain_lock(bg_video_filter_chain_t * ch);
+void bg_video_filter_chain_lock(void * ch);
 
 /** \brief Unlock a video filter chain
  *  \param ch A video filter chain
@@ -325,7 +325,7 @@ void bg_video_filter_chain_lock(bg_video_filter_chain_t * ch);
  *  \ref bg_video_filter_chain_set_parameter and \ref bg_video_filter_chain_read.
  */
 
-void bg_video_filter_chain_unlock(bg_video_filter_chain_t * ch);
+void bg_video_filter_chain_unlock(void * ch);
 
 /** \brief Reset a video filter chain
  *  \param ch A video filter chain

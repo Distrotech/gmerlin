@@ -57,8 +57,8 @@
 
 static const uint32_t stream_flags = BG_STREAM_AUDIO |
 BG_STREAM_VIDEO |
-BG_STREAM_SUBTITLE_TEXT |
-BG_STREAM_SUBTITLE_OVERLAY;
+BG_STREAM_TEXT |
+BG_STREAM_OVERLAY;
 
 static const uint32_t plugin_flags = BG_PLUGIN_FILE;
 
@@ -1349,14 +1349,14 @@ static void transcoder_window_preferences(transcoder_window_t * w)
                                 TR("Text subtitle defaults"));
     
   cfg_section = bg_cfg_section_find_subsection(w->track_defaults_section,
-                                               "subtitle_text");
+                                               "text");
 
   bg_dialog_add_child(dlg, parent, TR("General"),
                       cfg_section,
                       NULL,
                       NULL,
                       NULL,
-                      bg_transcoder_track_subtitle_text_get_general_parameters());
+                      bg_transcoder_track_text_get_general_parameters());
 
   cfg_section = bg_cfg_section_find_subsection(w->track_defaults_section,
                                                "textrenderer");
@@ -1369,7 +1369,7 @@ static void transcoder_window_preferences(transcoder_window_t * w)
                       bg_text_renderer_get_parameters());
   
   cfg_section = bg_cfg_section_find_subsection(w->track_defaults_section,
-                                               "subtitle_overlay");
+                                               "overlay");
 
   bg_dialog_add(dlg,
                 TR("Overlay subtitle defaults"),
@@ -1377,7 +1377,7 @@ static void transcoder_window_preferences(transcoder_window_t * w)
                 NULL,
                 NULL,
                 NULL,
-                bg_transcoder_track_subtitle_overlay_get_general_parameters());
+                bg_transcoder_track_overlay_get_general_parameters());
 
   bg_dialog_add(dlg,
                 TR("Encoders"),

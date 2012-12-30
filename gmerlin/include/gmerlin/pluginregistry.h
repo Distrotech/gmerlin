@@ -60,10 +60,10 @@ typedef enum
 
 typedef enum
   {
-    BG_STREAM_AUDIO             = (1<<0),
-    BG_STREAM_SUBTITLE_TEXT     = (1<<1),
-    BG_STREAM_SUBTITLE_OVERLAY  = (1<<2),
-    BG_STREAM_VIDEO             = (1<<3),
+    BG_STREAM_AUDIO    = (1<<0),
+    BG_STREAM_TEXT     = (1<<1),
+    BG_STREAM_OVERLAY  = (1<<2),
+    BG_STREAM_VIDEO    = (1<<3),
   } bg_stream_type_t;
 
 /** \ingroup plugin_registry
@@ -109,14 +109,14 @@ struct bg_plugin_info_s
   
   int max_audio_streams; //!< For encoders: Maximum number of audio streams (-1 means infinite)
   int max_video_streams; //!< For encoders: Maximum number of video streams (-1 means infinite)
-  int max_subtitle_text_streams;//!< For encoders: Maximum number of text subtitle streams (-1 means infinite)
-  int max_subtitle_overlay_streams;//!< For encoders: Maximum number of overlay subtitle streams (-1 means infinite)
+  int max_text_streams;//!< For encoders: Maximum number of text subtitle streams (-1 means infinite)
+  int max_overlay_streams;//!< For encoders: Maximum number of overlay subtitle streams (-1 means infinite)
 
   bg_parameter_info_t * audio_parameters; //!< Parameters, which can be passed to set_audio_parameter
   bg_parameter_info_t * video_parameters; //!< Parameters, which can be passed to set_video_parameter
 
-  bg_parameter_info_t * subtitle_text_parameters; //!< Parameters, which can be passed to set_subtitle_text_parameter
-  bg_parameter_info_t * subtitle_overlay_parameters; //!< Parameters, which can be passed to set_subtitle_overlay_parameter
+  bg_parameter_info_t * text_parameters; //!< Parameters, which can be passed to set_text_parameter
+  bg_parameter_info_t * overlay_parameters; //!< Parameters, which can be passed to set_overlay_parameter
   
   char * cmp_name; //!< Name used for alphabetical sorting. Not for external use.
   
@@ -682,11 +682,11 @@ int bg_plugin_registry_get_encode_audio_to_video(bg_plugin_registry_t * reg);
 /** \ingroup plugin_registry_defaults
  *  \brief Specify whether text subtitles should be encoded into the same file as the video if possible
  *  \param reg A plugin registry
- *  \param subtitle_text_to_video 0 if the text subtitles should always go to a separate file, 1 else
+ *  \param text_to_video 0 if the text subtitles should always go to a separate file, 1 else
  */
 
-void bg_plugin_registry_set_encode_subtitle_text_to_video(bg_plugin_registry_t * reg,
-                                                          int subtitle_text_to_video);
+void bg_plugin_registry_set_encode_text_to_video(bg_plugin_registry_t * reg,
+                                                          int text_to_video);
 
 /** \ingroup plugin_registry_defaults
  *  \brief Query whether text subtitles should be encoded into the same file as the video if possible
@@ -694,23 +694,23 @@ void bg_plugin_registry_set_encode_subtitle_text_to_video(bg_plugin_registry_t *
  *  \returns 0 if the text subtitles should always go to a separate file, 1 else
  */
 
-int bg_plugin_registry_get_encode_subtitle_text_to_video(bg_plugin_registry_t * reg);
+int bg_plugin_registry_get_encode_text_to_video(bg_plugin_registry_t * reg);
 
 /** \ingroup plugin_registry_defaults
  *  \brief Specify whether overlay subtitles should be encoded into the same file as the video if possible
  *  \param reg A plugin registry
- *  \param subtitle_overlay_to_video 0 if the overay subtitles should always go to a separate file, 1 else
+ *  \param overlay_to_video 0 if the overay subtitles should always go to a separate file, 1 else
  */
 
-void bg_plugin_registry_set_encode_subtitle_overlay_to_video(bg_plugin_registry_t * reg,
-                                                             int subtitle_overlay_to_video);
+void bg_plugin_registry_set_encode_overlay_to_video(bg_plugin_registry_t * reg,
+                                                             int overlay_to_video);
 
 /** \ingroup plugin_registry_defaults
  *  \brief Query whether overlay subtitles should be encoded into the same file as the video if possible
  *  \param reg A plugin registry
  *  \returns 0 if the overay subtitles should always go to a separate file, 1 else
  */
-int bg_plugin_registry_get_encode_subtitle_overlay_to_video(bg_plugin_registry_t * reg);
+int bg_plugin_registry_get_encode_overlay_to_video(bg_plugin_registry_t * reg);
 
 /** \ingroup plugin_registry_defaults
  *  \brief Specify whether postprocessing should be done after encoding

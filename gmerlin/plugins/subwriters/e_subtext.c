@@ -197,9 +197,9 @@ static int open_subtext(void * data, const char * filename,
   return 1;
   }
 
-static int add_subtitle_text_stream_subtext(void * data,
-                                            const gavl_metadata_t * m,
-                                            uint32_t * timescale)
+static int add_text_stream_subtext(void * data,
+                                   const gavl_metadata_t * m,
+                                   uint32_t * timescale)
   {
   subtext_t * e;
   e = data;
@@ -311,7 +311,7 @@ const bg_encoder_plugin_t the_plugin =
       .name =           "e_subtext",       /* Unique short name */
       .long_name =      TRS("Text subtitle exporter"),
       .description =    TRS("Plugin for exporting text subtitles. Supported formats are MPSub and SRT"),
-      .type =           BG_PLUGIN_ENCODER_SUBTITLE_TEXT,
+      .type =           BG_PLUGIN_ENCODER_TEXT,
       .flags =          BG_PLUGIN_FILE,
       .priority =       BG_PLUGIN_PRIORITY_MAX,
       .create =         create_subtext,
@@ -320,16 +320,16 @@ const bg_encoder_plugin_t the_plugin =
       .set_parameter =  set_parameter_subtext,
     },
 
-    .max_subtitle_text_streams = 1,
+    .max_text_streams = 1,
     
     .set_callbacks =        set_callbacks_subtext,
     
     .open =                 open_subtext,
 
-    .add_subtitle_text_stream =     add_subtitle_text_stream_subtext,
+    .add_text_stream =     add_text_stream_subtext,
     
     .start =                start_subtext,
-    .get_subtitle_text_sink = get_sink_subtext,
+    .get_text_sink = get_sink_subtext,
     
     .close =             close_subtext,
     

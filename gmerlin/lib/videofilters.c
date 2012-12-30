@@ -49,8 +49,7 @@ typedef struct
 
 struct bg_video_filter_chain_s
   {
-  gavl_video_source_t * out_src_1; // Last Filter element
-  gavl_video_source_t * out_src_2; // Output (reading from here locks the chain)
+  gavl_video_source_t * out_src; // Last Filter element
   gavl_video_source_t * in_src; // Legacy!!
   
   int num_filters;
@@ -99,8 +98,6 @@ static void video_filter_destroy(video_filter_t * f)
   {
   if(f->handle)
     bg_plugin_unref_nolock(f->handle);
-  if(f->out_src)
-    gavl_video_source_destroy(f->out_src);
   }
 
 static void destroy_video_chain(bg_video_filter_chain_t * ch)
@@ -269,8 +266,7 @@ int bg_video_filter_chain_init(bg_video_filter_chain_t * ch,
   ch->in_src = gavl_video_source_create(read_func_in, ch, 0, in_format);
 
   bg_video_filter_chain_connect(ch, ch->in_src);
-  gavl_video_format_copy(out_format,
-                         gavl_video_source_get_src_format(ch->out_src_1));
+  gavl_video_format_copy(out_format, gavl_video_source_get_src_format(ch->out_src));
   return ch->num_filters;
   }
 
@@ -287,13 +283,13 @@ int bg_video_filter_chain_read(void * priv, gavl_video_frame_t* frame,
                                int stream)
   {
   bg_video_filter_chain_t * ch = priv;
-  return (gavl_video_source_read_frame(ch->out_src_2, &frame) == GAVL_SOURCE_OK);
+  return (gavl_video_source_read_frame(ch->out_src, &frame) == GAVL_SOURCE_OK);
   }
 
 int bg_video_filter_chain_set_out_format(bg_video_filter_chain_t * ch,
                                          const gavl_video_format_t * out_format)
   {
-  gavl_video_source_set_dst(ch->out_src_2, 0, out_format);
+  gavl_video_source_set_dst(ch->out_src, 0, out_format);
   return 1; // Unused anyway?
   }
 
@@ -306,8 +302,6 @@ void bg_video_filter_chain_destroy(bg_video_filter_chain_t * ch)
     free(ch->filter_string);
   destroy_video_chain(ch);
 
-  if(ch->out_src_2)
-    gavl_video_source_destroy(ch->out_src_2);
   if(ch->in_src)
     gavl_video_source_destroy(ch->in_src);
 
@@ -316,13 +310,15 @@ void bg_video_filter_chain_destroy(bg_video_filter_chain_t * ch)
   free(ch);
   }
 
-void bg_video_filter_chain_lock(bg_video_filter_chain_t * cnv)
+void bg_video_filter_chain_lock(void * priv)
   {
+  bg_video_filter_chain_t * cnv = priv;
   pthread_mutex_lock(&cnv->mutex);
   }
 
-void bg_video_filter_chain_unlock(bg_video_filter_chain_t * cnv)
+void bg_video_filter_chain_unlock(void * priv)
   {
+  bg_video_filter_chain_t * cnv = priv;
   pthread_mutex_unlock(&cnv->mutex);
   }
 
@@ -335,20 +331,6 @@ void bg_video_filter_chain_reset(bg_video_filter_chain_t * ch)
       ch->filters[i].plugin->reset(ch->filters[i].handle->priv);
     gavl_video_source_reset(ch->filters[i].out_src);
     }
-  gavl_video_source_reset(ch->out_src_2);
-  }
-
-/*  */
-static gavl_source_status_t
-read_func_out(void * priv, gavl_video_frame_t ** frame)
-  {
-  gavl_source_status_t ret;
-  bg_video_filter_chain_t * ch = priv;
-  
-  bg_video_filter_chain_lock(ch);
-  ret = gavl_video_source_read_frame(ch->out_src_1, frame);
-  bg_video_filter_chain_unlock(ch);
-  return ret;
   }
 
 gavl_video_source_t *
@@ -359,9 +341,6 @@ bg_video_filter_chain_connect(bg_video_filter_chain_t * ch,
   
   for(i = 0; i < ch->num_filters; i++)
     {
-    if(ch->filters[i].out_src)
-      gavl_video_source_destroy(ch->filters[i].out_src);
-    
     gavl_video_options_copy(gavl_video_source_get_options(src),
                             ch->opt->opt);
     
@@ -371,14 +350,11 @@ bg_video_filter_chain_connect(bg_video_filter_chain_t * ch,
     src = ch->filters[i].out_src;
     }
   
-  ch->out_src_1 = src;
-
-  if(ch->out_src_2)
-    gavl_video_source_destroy(ch->out_src_2);
-
-  gavl_video_source_set_dst(ch->out_src_1, 0, NULL);
-  ch->out_src_2 =
-    gavl_video_source_create(read_func_out, ch, 0,
-                             gavl_video_source_get_dst_format(ch->out_src_1));
-  return src;
+  ch->out_src = src;
+  gavl_video_source_set_lock_funcs(ch->out_src,
+                                   bg_video_filter_chain_lock,
+                                   bg_video_filter_chain_unlock,
+                                   ch);
+  
+  return ch->out_src;
   }

@@ -42,8 +42,8 @@ type_names[] =
     { "VideoRecorder",           BG_PLUGIN_RECORDER_VIDEO },
     { "EncoderAudio",            BG_PLUGIN_ENCODER_AUDIO },
     { "EncoderVideo",            BG_PLUGIN_ENCODER_VIDEO },
-    { "EncoderSubtitleText",     BG_PLUGIN_ENCODER_SUBTITLE_TEXT },
-    { "EncoderSubtitleOverlay",  BG_PLUGIN_ENCODER_SUBTITLE_OVERLAY },
+    { "EncoderSubtitleText",     BG_PLUGIN_ENCODER_TEXT },
+    { "EncoderSubtitleOverlay",  BG_PLUGIN_ENCODER_OVERLAY },
     { "Encoder",                 BG_PLUGIN_ENCODER       },
     { "EncoderPP",               BG_PLUGIN_ENCODER_PP    },
     { "ImageReader",             BG_PLUGIN_IMAGE_READER  },
@@ -120,14 +120,14 @@ static const char * const device_info_key       = "DEVICE_INFO";
 static const char * const device_key            = "DEVICE";
 static const char * const max_audio_streams_key = "MAX_AUDIO_STREAMS";
 static const char * const max_video_streams_key = "MAX_VIDEO_STREAMS";
-static const char * const max_subtitle_text_streams_key = "MAX_SUBTITLE_TEXT_STREAMS";
-static const char * const max_subtitle_overlay_streams_key = "MAX_SUBTITLE_OVERLAY_STREAMS";
+static const char * const max_text_streams_key = "MAX_TEXT_STREAMS";
+static const char * const max_overlay_streams_key = "MAX_OVERLAY_STREAMS";
 
 static const char * const parameters_key       = "PARAMETERS";
 static const char * const audio_parameters_key = "AUDIO_PARAMETERS";
 static const char * const video_parameters_key = "VIDEO_PARAMETERS";
-static const char * const subtitle_text_parameters_key = "SUBTITLE_TEXT_PARAMETERS";
-static const char * const subtitle_overlay_parameters_key = "SUBTITLE_OVERLAY_PARAMETERS";
+static const char * const text_parameters_key = "TEXT_PARAMETERS";
+static const char * const overlay_parameters_key = "OVERLAY_PARAMETERS";
 
 static const char * const gettext_domain_key   = "GETTEXT_DOMAIN";
 static const char * const gettext_directory_key       = "GETTEXT_DIRECTORY";
@@ -223,15 +223,15 @@ static bg_plugin_info_t * load_plugin(xmlDocPtr doc, xmlNodePtr node)
       cur = cur->next;
       continue;
       }
-    else if(!BG_XML_STRCMP(cur->name, subtitle_text_parameters_key))
+    else if(!BG_XML_STRCMP(cur->name, text_parameters_key))
       {
-      ret->subtitle_text_parameters = bg_xml_2_parameters(doc, cur);
+      ret->text_parameters = bg_xml_2_parameters(doc, cur);
       cur = cur->next;
       continue;
       }
-    else if(!BG_XML_STRCMP(cur->name, subtitle_overlay_parameters_key))
+    else if(!BG_XML_STRCMP(cur->name, overlay_parameters_key))
       {
-      ret->subtitle_overlay_parameters = bg_xml_2_parameters(doc, cur);
+      ret->overlay_parameters = bg_xml_2_parameters(doc, cur);
       cur = cur->next;
       continue;
       }
@@ -371,13 +371,13 @@ static bg_plugin_info_t * load_plugin(xmlDocPtr doc, xmlNodePtr node)
       {
       ret->max_video_streams = atoi(tmp_string);
       }
-    else if(!BG_XML_STRCMP(cur->name, max_subtitle_text_streams_key))
+    else if(!BG_XML_STRCMP(cur->name, max_text_streams_key))
       {
-      ret->max_subtitle_text_streams = atoi(tmp_string);
+      ret->max_text_streams = atoi(tmp_string);
       }
-    else if(!BG_XML_STRCMP(cur->name, max_subtitle_overlay_streams_key))
+    else if(!BG_XML_STRCMP(cur->name, max_overlay_streams_key))
       {
-      ret->max_subtitle_overlay_streams = atoi(tmp_string);
+      ret->max_overlay_streams = atoi(tmp_string);
       }
     xmlFree(tmp_string);
     cur = cur->next;
@@ -546,24 +546,24 @@ static void save_plugin(xmlNodePtr parent, const bg_plugin_info_t * info)
     bg_parameters_2_xml(info->video_parameters, xml_item);
     xmlAddChild(xml_plugin, BG_XML_NEW_TEXT("\n"));
     }
-  if(info->subtitle_text_parameters)
+  if(info->text_parameters)
     {
-    xml_item = xmlNewTextChild(xml_plugin, NULL, (xmlChar*)subtitle_text_parameters_key, NULL);
-    bg_parameters_2_xml(info->subtitle_text_parameters, xml_item);
+    xml_item = xmlNewTextChild(xml_plugin, NULL, (xmlChar*)text_parameters_key, NULL);
+    bg_parameters_2_xml(info->text_parameters, xml_item);
     xmlAddChild(xml_plugin, BG_XML_NEW_TEXT("\n"));
     }
-  if(info->subtitle_overlay_parameters)
+  if(info->overlay_parameters)
     {
-    xml_item = xmlNewTextChild(xml_plugin, NULL, (xmlChar*)subtitle_overlay_parameters_key, NULL);
-    bg_parameters_2_xml(info->subtitle_overlay_parameters, xml_item);
+    xml_item = xmlNewTextChild(xml_plugin, NULL, (xmlChar*)overlay_parameters_key, NULL);
+    bg_parameters_2_xml(info->overlay_parameters, xml_item);
     xmlAddChild(xml_plugin, BG_XML_NEW_TEXT("\n"));
     }
   
   if(info->type & (BG_PLUGIN_ENCODER_AUDIO|
                    BG_PLUGIN_ENCODER_VIDEO|
                    BG_PLUGIN_ENCODER |
-                   BG_PLUGIN_ENCODER_SUBTITLE_TEXT |
-                   BG_PLUGIN_ENCODER_SUBTITLE_OVERLAY))
+                   BG_PLUGIN_ENCODER_TEXT |
+                   BG_PLUGIN_ENCODER_OVERLAY))
     {
     xml_item = xmlNewTextChild(xml_plugin, NULL, (xmlChar*)max_audio_streams_key, NULL);
     sprintf(buffer, "%d", info->max_audio_streams);
@@ -575,13 +575,13 @@ static void save_plugin(xmlNodePtr parent, const bg_plugin_info_t * info)
     xmlAddChild(xml_item, BG_XML_NEW_TEXT(buffer));
     xmlAddChild(xml_plugin, BG_XML_NEW_TEXT("\n"));
 
-    xml_item = xmlNewTextChild(xml_plugin, NULL, (xmlChar*)max_subtitle_text_streams_key, NULL);
-    sprintf(buffer, "%d", info->max_subtitle_text_streams);
+    xml_item = xmlNewTextChild(xml_plugin, NULL, (xmlChar*)max_text_streams_key, NULL);
+    sprintf(buffer, "%d", info->max_text_streams);
     xmlAddChild(xml_item, BG_XML_NEW_TEXT(buffer));
     xmlAddChild(xml_plugin, BG_XML_NEW_TEXT("\n"));
 
-    xml_item = xmlNewTextChild(xml_plugin, NULL, (xmlChar*)max_subtitle_overlay_streams_key, NULL);
-    sprintf(buffer, "%d", info->max_subtitle_overlay_streams);
+    xml_item = xmlNewTextChild(xml_plugin, NULL, (xmlChar*)max_overlay_streams_key, NULL);
+    sprintf(buffer, "%d", info->max_overlay_streams);
     xmlAddChild(xml_item, BG_XML_NEW_TEXT(buffer));
     xmlAddChild(xml_plugin, BG_XML_NEW_TEXT("\n"));
     

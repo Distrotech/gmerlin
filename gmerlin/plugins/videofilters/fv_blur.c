@@ -52,7 +52,8 @@ typedef struct
   gavl_video_format_t format;
 
   gavl_video_source_t * in_src;
-  
+  gavl_video_source_t * out_src;
+
   } blur_priv_t;
 
 static void * create_blur()
@@ -96,6 +97,9 @@ static void destroy_blur(void * priv)
   vp = priv;
   if(vp->scaler)
     gavl_video_scaler_destroy(vp->scaler);
+  if(vp->out_src)
+    gavl_video_source_destroy(vp->out_src);
+
   gavl_video_options_destroy(vp->global_opt);
 
   
@@ -357,6 +361,8 @@ static gavl_video_source_t * connect_blur(void * priv,
   {
   blur_priv_t * vp;
   vp = priv;
+  if(vp->out_src)
+    gavl_video_source_destroy(vp->out_src);
 
   vp->in_src = src;
   gavl_video_format_copy(&vp->format,
@@ -367,10 +373,12 @@ static gavl_video_source_t * connect_blur(void * priv,
   
   gavl_video_source_set_dst(vp->in_src, 0, &vp->format);
   vp->changed = 1;
-  
-  return gavl_video_source_create(read_func,
-                                  vp, 0,
-                                  &vp->format);
+
+  vp->out_src =
+    gavl_video_source_create_source(read_func,
+                                    vp, 0,
+                                    vp->in_src);
+  return vp->out_src;
   }
 
 const bg_fv_plugin_t the_plugin = 

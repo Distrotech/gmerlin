@@ -122,46 +122,46 @@ static void create_sections(bg_transcoder_track_t * t,
       }
     }
 
-  if(t->num_subtitle_text_streams)
+  if(t->num_text_streams)
     {
     general_section = bg_cfg_section_find_subsection(track_defaults_section,
-                                                     "subtitle_text");
+                                                     "text");
     textrenderer_section = bg_cfg_section_find_subsection(track_defaults_section,
                                                           "textrenderer");
-    for(i = 0; i < t->num_subtitle_text_streams; i++)
+    for(i = 0; i < t->num_text_streams; i++)
       {
-      t->subtitle_text_streams[i].general_section = bg_cfg_section_copy(general_section);
-      t->subtitle_text_streams[i].textrenderer_section = bg_cfg_section_copy(textrenderer_section);
+      t->text_streams[i].general_section = bg_cfg_section_copy(general_section);
+      t->text_streams[i].textrenderer_section = bg_cfg_section_copy(textrenderer_section);
 
-      in_index = t->subtitle_text_streams[i].in_index;
+      in_index = t->text_streams[i].in_index;
 
       tag = gavl_metadata_get(&track_info->text_streams[in_index].m,
                               GAVL_META_LANGUAGE);
       
       if(tag)
-        bg_cfg_section_set_parameter_string(t->subtitle_text_streams[i].general_section,
+        bg_cfg_section_set_parameter_string(t->text_streams[i].general_section,
                                             "in_language",
                                             tag);
-      gavl_metadata_copy(&t->subtitle_text_streams[i].m, &track_info->text_streams[in_index].m);
+      gavl_metadata_copy(&t->text_streams[i].m, &track_info->text_streams[in_index].m);
       }
     }
 
-  if(t->num_subtitle_overlay_streams)
+  if(t->num_overlay_streams)
     {
     general_section = bg_cfg_section_find_subsection(track_defaults_section,
-                                                     "subtitle_overlay");
-    for(i = 0; i < t->num_subtitle_overlay_streams; i++)
+                                                     "overlay");
+    for(i = 0; i < t->num_overlay_streams; i++)
       {
-      t->subtitle_overlay_streams[i].general_section = bg_cfg_section_copy(general_section);
-      in_index = t->subtitle_overlay_streams[i].in_index;
+      t->overlay_streams[i].general_section = bg_cfg_section_copy(general_section);
+      in_index = t->overlay_streams[i].in_index;
 
       tag = gavl_metadata_get(&track_info->overlay_streams[in_index].m,
                               GAVL_META_LANGUAGE);
       
       if(tag)
-        bg_cfg_section_set_parameter_string(t->subtitle_overlay_streams[i].general_section,
+        bg_cfg_section_set_parameter_string(t->overlay_streams[i].general_section,
                                             "in_language", tag);
-      gavl_metadata_copy(&t->subtitle_overlay_streams[i].m, &track_info->overlay_streams[in_index].m);
+      gavl_metadata_copy(&t->overlay_streams[i].m, &track_info->overlay_streams[in_index].m);
       }
     }
   
@@ -224,13 +224,13 @@ static const bg_parameter_info_t parameters_general[] =
       .flags =     BG_PARAMETER_HIDE_DIALOG,
     },
     {
-      .name =      "subtitle_text_encoder",
+      .name =      "text_encoder",
       .long_name = "Subtitle text encoder",
       .type =      BG_PARAMETER_STRING,
       .flags =     BG_PARAMETER_HIDE_DIALOG,
     },
     {
-      .name =      "subtitle_overlay_encoder",
+      .name =      "overlay_encoder",
       .long_name = "Subtitle overlay encoder",
       .type =      BG_PARAMETER_STRING,
       .flags =     BG_PARAMETER_HIDE_DIALOG,
@@ -277,7 +277,7 @@ format doesn't support sample accurate seeking.")
 
 /* Subtitle text parameters */
 
-static const bg_parameter_info_t general_parameters_subtitle_text[] =
+static const bg_parameter_info_t general_parameters_text[] =
   {
     {
       .name =        "action",
@@ -342,7 +342,7 @@ static const bg_parameter_info_t general_parameters_subtitle_text[] =
 
 /* Subtitle overlay parameters */
 
-static const bg_parameter_info_t general_parameters_subtitle_overlay[] =
+static const bg_parameter_info_t general_parameters_overlay[] =
   {
     {
       .name =        "action",
@@ -399,12 +399,12 @@ static void create_subtitle_parameters(bg_transcoder_track_t * track)
 
   /* Create subtitle parameters. These depend on the number of video streams */
 
-  for(i = 0; i < track->num_subtitle_text_streams; i++)
+  for(i = 0; i < track->num_text_streams; i++)
     {
     /* Forget, Dump, Blend #1, Blend #2 ... */
-    track->subtitle_text_streams[i].general_parameters =
-      bg_parameter_info_copy_array(general_parameters_subtitle_text);
-    info = track->subtitle_text_streams[i].general_parameters;
+    track->text_streams[i].general_parameters =
+      bg_parameter_info_copy_array(general_parameters_text);
+    info = track->text_streams[i].general_parameters;
 
     if(track->num_video_streams > 1)
       {
@@ -413,13 +413,13 @@ static void create_subtitle_parameters(bg_transcoder_track_t * track)
       }
     
     }
-  for(i = 0; i < track->num_subtitle_overlay_streams; i++)
+  for(i = 0; i < track->num_overlay_streams; i++)
     {
     /* Forget, Blend #1, Blend #2 ... */
 
-    track->subtitle_overlay_streams[i].general_parameters =
-      bg_parameter_info_copy_array(general_parameters_subtitle_overlay);
-    info = track->subtitle_overlay_streams[i].general_parameters;
+    track->overlay_streams[i].general_parameters =
+      bg_parameter_info_copy_array(general_parameters_overlay);
+    info = track->overlay_streams[i].general_parameters;
 
     if(track->num_video_streams > 1)
       {
@@ -680,30 +680,30 @@ static void set_track(bg_transcoder_track_t * track,
 
   /* Subtitle streams */
 
-  track->num_subtitle_text_streams = track_info->num_text_streams;
-  track->num_subtitle_overlay_streams = track_info->num_overlay_streams;
+  track->num_text_streams = track_info->num_text_streams;
+  track->num_overlay_streams = track_info->num_overlay_streams;
   
-  if(track->num_subtitle_text_streams)
-    track->subtitle_text_streams =
-      calloc(track->num_subtitle_text_streams,
-             sizeof(*(track->subtitle_text_streams)));
+  if(track->num_text_streams)
+    track->text_streams =
+      calloc(track->num_text_streams,
+             sizeof(*(track->text_streams)));
   
-  if(track->num_subtitle_overlay_streams)
-    track->subtitle_overlay_streams =
-      calloc(track->num_subtitle_overlay_streams,
-             sizeof(*(track->subtitle_overlay_streams)));
+  if(track->num_overlay_streams)
+    track->overlay_streams =
+      calloc(track->num_overlay_streams,
+             sizeof(*(track->overlay_streams)));
   
   for(i = 0; i < track_info->num_text_streams; i++)
     {
-    track->subtitle_text_streams[i].label =
+    track->text_streams[i].label =
       create_stream_label(&track_info->text_streams[i].m);
-    track->subtitle_text_streams[i].in_index = i;
+    track->text_streams[i].in_index = i;
     }
   for(i = 0; i < track_info->num_overlay_streams; i++)
     {
-    track->subtitle_text_streams[i].label =
+    track->text_streams[i].label =
       create_stream_label(&track_info->overlay_streams[i].m);
-    track->subtitle_text_streams[i].in_index = i;
+    track->text_streams[i].in_index = i;
     }
   
   create_subtitle_parameters(track);
@@ -1140,16 +1140,16 @@ static void free_encoders(bg_transcoder_track_t * track)
     track->video_encoder_section = NULL;
     }
 
-  if(track->subtitle_text_encoder_section)
+  if(track->text_encoder_section)
     {
-    bg_cfg_section_destroy(track->subtitle_text_encoder_section);
-    track->subtitle_text_encoder_section = NULL;
+    bg_cfg_section_destroy(track->text_encoder_section);
+    track->text_encoder_section = NULL;
     }
 
-  if(track->subtitle_overlay_encoder_section)
+  if(track->overlay_encoder_section)
     {
-    bg_cfg_section_destroy(track->subtitle_overlay_encoder_section);
-    track->subtitle_overlay_encoder_section = NULL;
+    bg_cfg_section_destroy(track->overlay_encoder_section);
+    track->overlay_encoder_section = NULL;
     }
   
   for(i = 0; i < track->num_audio_streams; i++)
@@ -1170,26 +1170,26 @@ static void free_encoders(bg_transcoder_track_t * track)
       }
     }
 
-  for(i = 0; i < track->num_subtitle_text_streams; i++)
+  for(i = 0; i < track->num_text_streams; i++)
     {
-    if(track->subtitle_text_streams[i].encoder_section_text)
+    if(track->text_streams[i].encoder_section_text)
       {
-      bg_cfg_section_destroy(track->subtitle_text_streams[i].encoder_section_text);
-      track->subtitle_text_streams[i].encoder_section_text = NULL;
+      bg_cfg_section_destroy(track->text_streams[i].encoder_section_text);
+      track->text_streams[i].encoder_section_text = NULL;
       }
-    if(track->subtitle_text_streams[i].encoder_section_overlay)
+    if(track->text_streams[i].encoder_section_overlay)
       {
-      bg_cfg_section_destroy(track->subtitle_text_streams[i].encoder_section_overlay);
-      track->subtitle_text_streams[i].encoder_section_overlay = NULL;
+      bg_cfg_section_destroy(track->text_streams[i].encoder_section_overlay);
+      track->text_streams[i].encoder_section_overlay = NULL;
       }
     }
 
-  for(i = 0; i < track->num_subtitle_overlay_streams; i++)
+  for(i = 0; i < track->num_overlay_streams; i++)
     {
-    if(track->subtitle_overlay_streams[i].encoder_section)
+    if(track->overlay_streams[i].encoder_section)
       {
-      bg_cfg_section_destroy(track->subtitle_overlay_streams[i].encoder_section);
-      track->subtitle_overlay_streams[i].encoder_section = NULL;
+      bg_cfg_section_destroy(track->overlay_streams[i].encoder_section);
+      track->overlay_streams[i].encoder_section = NULL;
       }
     }
   }
@@ -1231,35 +1231,35 @@ void bg_transcoder_track_destroy(bg_transcoder_track_t * t)
     bg_parameter_info_destroy_array(t->video_streams[i].filter_parameters);
     gavl_metadata_free(&t->video_streams[i].m);
     }
-  for(i = 0; i < t->num_subtitle_text_streams; i++)
+  for(i = 0; i < t->num_text_streams; i++)
     {
-    if(t->subtitle_text_streams[i].general_section)
-      bg_cfg_section_destroy(t->subtitle_text_streams[i].general_section);
-    if(t->subtitle_text_streams[i].encoder_section_text)
-      bg_cfg_section_destroy(t->subtitle_text_streams[i].encoder_section_text);
-    if(t->subtitle_text_streams[i].encoder_section_overlay)
-      bg_cfg_section_destroy(t->subtitle_text_streams[i].encoder_section_overlay);
-    if(t->subtitle_text_streams[i].textrenderer_section)
-      bg_cfg_section_destroy(t->subtitle_text_streams[i].textrenderer_section);
+    if(t->text_streams[i].general_section)
+      bg_cfg_section_destroy(t->text_streams[i].general_section);
+    if(t->text_streams[i].encoder_section_text)
+      bg_cfg_section_destroy(t->text_streams[i].encoder_section_text);
+    if(t->text_streams[i].encoder_section_overlay)
+      bg_cfg_section_destroy(t->text_streams[i].encoder_section_overlay);
+    if(t->text_streams[i].textrenderer_section)
+      bg_cfg_section_destroy(t->text_streams[i].textrenderer_section);
     
-    if(t->subtitle_text_streams[i].general_parameters)
-      bg_parameter_info_destroy_array(t->subtitle_text_streams[i].general_parameters);
+    if(t->text_streams[i].general_parameters)
+      bg_parameter_info_destroy_array(t->text_streams[i].general_parameters);
 
     
-    if(t->subtitle_text_streams[i].label) free(t->subtitle_text_streams[i].label);
-    gavl_metadata_free(&t->subtitle_text_streams[i].m);
+    if(t->text_streams[i].label) free(t->text_streams[i].label);
+    gavl_metadata_free(&t->text_streams[i].m);
     }
-  for(i = 0; i < t->num_subtitle_overlay_streams; i++)
+  for(i = 0; i < t->num_overlay_streams; i++)
     {
-    if(t->subtitle_overlay_streams[i].general_section)
-      bg_cfg_section_destroy(t->subtitle_overlay_streams[i].general_section);
-    if(t->subtitle_overlay_streams[i].encoder_section)
-      bg_cfg_section_destroy(t->subtitle_overlay_streams[i].encoder_section);
+    if(t->overlay_streams[i].general_section)
+      bg_cfg_section_destroy(t->overlay_streams[i].general_section);
+    if(t->overlay_streams[i].encoder_section)
+      bg_cfg_section_destroy(t->overlay_streams[i].encoder_section);
     
-    if(t->subtitle_overlay_streams[i].general_parameters)
-      bg_parameter_info_destroy_array(t->subtitle_overlay_streams[i].general_parameters);
-    if(t->subtitle_overlay_streams[i].label) free(t->subtitle_overlay_streams[i].label);
-    gavl_metadata_free(&t->subtitle_overlay_streams[i].m);
+    if(t->overlay_streams[i].general_parameters)
+      bg_parameter_info_destroy_array(t->overlay_streams[i].general_parameters);
+    if(t->overlay_streams[i].label) free(t->overlay_streams[i].label);
+    gavl_metadata_free(&t->overlay_streams[i].m);
     }
   
   
@@ -1278,10 +1278,10 @@ void bg_transcoder_track_destroy(bg_transcoder_track_t * t)
     bg_cfg_section_destroy(t->audio_encoder_section);
   if(t->video_encoder_section)
     bg_cfg_section_destroy(t->video_encoder_section);
-  if(t->subtitle_text_encoder_section)
-    bg_cfg_section_destroy(t->subtitle_text_encoder_section);
-  if(t->subtitle_overlay_encoder_section)
-    bg_cfg_section_destroy(t->subtitle_overlay_encoder_section);
+  if(t->text_encoder_section)
+    bg_cfg_section_destroy(t->text_encoder_section);
+  if(t->overlay_encoder_section)
+    bg_cfg_section_destroy(t->overlay_encoder_section);
   
   if(t->general_parameters)
     bg_parameter_info_destroy_array(t->general_parameters);
@@ -1396,15 +1396,15 @@ bg_transcoder_track_video_get_general_parameters()
   }
 
 const bg_parameter_info_t *
-bg_transcoder_track_subtitle_text_get_general_parameters()
+bg_transcoder_track_text_get_general_parameters()
   {
-  return general_parameters_subtitle_text;
+  return general_parameters_text;
   }
 
 const bg_parameter_info_t *
-bg_transcoder_track_subtitle_overlay_get_general_parameters()
+bg_transcoder_track_overlay_get_general_parameters()
   {
-  return general_parameters_subtitle_overlay;
+  return general_parameters_overlay;
   }
 
 const bg_parameter_info_t *
@@ -1441,17 +1441,17 @@ const char * bg_transcoder_track_get_video_encoder(bg_transcoder_track_t * t)
   return ret;
   }
 
-const char * bg_transcoder_track_get_subtitle_text_encoder(bg_transcoder_track_t * t)
+const char * bg_transcoder_track_get_text_encoder(bg_transcoder_track_t * t)
   {
   const char * ret;
-  bg_cfg_section_get_parameter_string(t->general_section, "subtitle_text_encoder", &ret);
+  bg_cfg_section_get_parameter_string(t->general_section, "text_encoder", &ret);
   return ret;
   }
 
-const char * bg_transcoder_track_get_subtitle_overlay_encoder(bg_transcoder_track_t * t)
+const char * bg_transcoder_track_get_overlay_encoder(bg_transcoder_track_t * t)
   {
   const char * ret;
-  bg_cfg_section_get_parameter_string(t->general_section, "subtitle_overlay_encoder", &ret);
+  bg_cfg_section_get_parameter_string(t->general_section, "overlay_encoder", &ret);
   return ret;
   }
 
@@ -1530,14 +1530,14 @@ bg_transcoder_track_set_encoders(bg_transcoder_track_t * track,
                                       "video_encoder", info->video_info->name);
 
   bg_cfg_section_set_parameter_string(track->general_section,
-                                      "subtitle_text_encoder",
-                                      (info->subtitle_text_info) ?
-                                      info->subtitle_text_info->name : info->video_info->name);
+                                      "text_encoder",
+                                      (info->text_info) ?
+                                      info->text_info->name : info->video_info->name);
 
   bg_cfg_section_set_parameter_string(track->general_section,
-                                      "subtitle_overlay_encoder",
-                                      (info->subtitle_overlay_info) ?
-                                      info->subtitle_overlay_info->name : info->video_info->name);
+                                      "overlay_encoder",
+                                      (info->overlay_info) ?
+                                      info->overlay_info->name : info->video_info->name);
   
   bg_transcoder_track_create_encoder_sections(track, info);
   }
@@ -1790,58 +1790,58 @@ void bg_transcoder_track_get_encoders(bg_transcoder_track_t * t,
     bg_cfg_section_set_parameter_int(encoder_section, "encode_audio_to_video", 1);
     }
   /* Text subtitles */
-  name = bg_transcoder_track_get_subtitle_text_encoder(t);
+  name = bg_transcoder_track_get_text_encoder(t);
 
   if(name && strcmp(name, video_name))
     {
-    bg_cfg_section_set_parameter_int(encoder_section, "encode_subtitle_text_to_video", 0);
-    bg_cfg_section_set_parameter_string(encoder_section, "subtitle_text_encoder", name);
+    bg_cfg_section_set_parameter_int(encoder_section, "encode_text_to_video", 0);
+    bg_cfg_section_set_parameter_string(encoder_section, "text_encoder", name);
 
-    dst = bg_cfg_section_find_subsection(encoder_section, "subtitle_text_encoder");
+    dst = bg_cfg_section_find_subsection(encoder_section, "text_encoder");
     dst = bg_cfg_section_find_subsection(dst, name);
     
-    if(t->subtitle_text_encoder_section)
-      bg_cfg_section_transfer(t->subtitle_text_encoder_section, dst);
+    if(t->text_encoder_section)
+      bg_cfg_section_transfer(t->text_encoder_section, dst);
     
-    if(t->subtitle_text_streams && t->subtitle_text_streams->encoder_section_text)
+    if(t->text_streams && t->text_streams->encoder_section_text)
       {
-      dst = bg_cfg_section_find_subsection(dst, "$subtitle_text");
-      bg_cfg_section_transfer(t->subtitle_text_streams->encoder_section_text, dst);
+      dst = bg_cfg_section_find_subsection(dst, "$text");
+      bg_cfg_section_transfer(t->text_streams->encoder_section_text, dst);
       }
     
     }
   else
     {
-    bg_cfg_section_set_parameter_int(encoder_section, "encode_subtitle_text_to_video", 1);
-    bg_cfg_section_set_parameter_string(encoder_section, "subtitle_text_encoder", 0);
+    bg_cfg_section_set_parameter_int(encoder_section, "encode_text_to_video", 1);
+    bg_cfg_section_set_parameter_string(encoder_section, "text_encoder", 0);
     }
   
   /* Overlay subtitles */
-  name = bg_transcoder_track_get_subtitle_overlay_encoder(t);
+  name = bg_transcoder_track_get_overlay_encoder(t);
   
   if(name && strcmp(name, video_name))
     {
-    bg_cfg_section_set_parameter_int(encoder_section, "encode_subtitle_overlay_to_video", 0);
-    bg_cfg_section_set_parameter_string(encoder_section, "subtitle_overlay_encoder", name);
+    bg_cfg_section_set_parameter_int(encoder_section, "encode_overlay_to_video", 0);
+    bg_cfg_section_set_parameter_string(encoder_section, "overlay_encoder", name);
 
-    dst = bg_cfg_section_find_subsection(encoder_section, "subtitle_overlay_encoder");
+    dst = bg_cfg_section_find_subsection(encoder_section, "overlay_encoder");
     dst = bg_cfg_section_find_subsection(dst, name);
     
-    if(t->subtitle_overlay_encoder_section)
-      bg_cfg_section_transfer(t->subtitle_overlay_encoder_section, dst);
+    if(t->overlay_encoder_section)
+      bg_cfg_section_transfer(t->overlay_encoder_section, dst);
     
-    dst = bg_cfg_section_find_subsection(dst, "$subtitle_overlay");
+    dst = bg_cfg_section_find_subsection(dst, "$overlay");
     
-    if(t->subtitle_overlay_streams && t->subtitle_overlay_streams->encoder_section)
-      bg_cfg_section_transfer(t->subtitle_overlay_streams->encoder_section, dst);
+    if(t->overlay_streams && t->overlay_streams->encoder_section)
+      bg_cfg_section_transfer(t->overlay_streams->encoder_section, dst);
     
-    else if(t->subtitle_text_streams && t->subtitle_text_streams->encoder_section_overlay)
-      bg_cfg_section_transfer(t->subtitle_text_streams->encoder_section_overlay, dst);
+    else if(t->text_streams && t->text_streams->encoder_section_overlay)
+      bg_cfg_section_transfer(t->text_streams->encoder_section_overlay, dst);
     }
   else
     {
-    bg_cfg_section_set_parameter_int(encoder_section, "encode_subtitle_overlay_to_video", 1);
-    bg_cfg_section_set_parameter_string(encoder_section, "subtitle_overlay_encoder", NULL);
+    bg_cfg_section_set_parameter_int(encoder_section, "encode_overlay_to_video", 1);
+    bg_cfg_section_set_parameter_string(encoder_section, "overlay_encoder", NULL);
     }
   }
 
@@ -1856,8 +1856,8 @@ static void clean_section(bg_cfg_section_t * s)
   {
   delete_subsection(s, "$audio");
   delete_subsection(s, "$video");
-  delete_subsection(s, "$subtitle_text");
-  delete_subsection(s, "$subtitle_overlay");
+  delete_subsection(s, "$text");
+  delete_subsection(s, "$overlay");
   }
 
 #define DELETE_SECTION(s) if(s) { bg_cfg_section_destroy(s); s = NULL; }
@@ -1873,27 +1873,27 @@ void bg_transcoder_track_set_encoders(bg_transcoder_track_t * t,
 
   static const uint32_t stream_flags = BG_STREAM_AUDIO |
     BG_STREAM_VIDEO |
-    BG_STREAM_SUBTITLE_TEXT |
-    BG_STREAM_SUBTITLE_OVERLAY;
+    BG_STREAM_TEXT |
+    BG_STREAM_OVERLAY;
   
   
   /* Delete config sections */
   DELETE_SECTION(t->audio_encoder_section);
   DELETE_SECTION(t->video_encoder_section);
-  DELETE_SECTION(t->subtitle_text_encoder_section);
-  DELETE_SECTION(t->subtitle_overlay_encoder_section);
+  DELETE_SECTION(t->text_encoder_section);
+  DELETE_SECTION(t->overlay_encoder_section);
 
   for(i = 0; i < t->num_audio_streams; i++)
     DELETE_SECTION(t->audio_streams[i].encoder_section);
   for(i = 0; i < t->num_video_streams; i++)
     DELETE_SECTION(t->video_streams[i].encoder_section);
-  for(i = 0; i < t->num_subtitle_text_streams; i++)
+  for(i = 0; i < t->num_text_streams; i++)
     {
-    DELETE_SECTION(t->subtitle_text_streams[i].encoder_section_text);
-    DELETE_SECTION(t->subtitle_text_streams[i].encoder_section_overlay);
+    DELETE_SECTION(t->text_streams[i].encoder_section_text);
+    DELETE_SECTION(t->text_streams[i].encoder_section_overlay);
     }
-  for(i = 0; i < t->num_subtitle_overlay_streams; i++)
-    DELETE_SECTION(t->subtitle_overlay_streams[i].encoder_section);
+  for(i = 0; i < t->num_overlay_streams; i++)
+    DELETE_SECTION(t->overlay_streams[i].encoder_section);
   
   /* Audio encoder */
   name = bg_encoder_section_get_plugin(plugin_reg,
@@ -1971,81 +1971,81 @@ void bg_transcoder_track_set_encoders(bg_transcoder_track_t * t,
 
   name = bg_encoder_section_get_plugin(plugin_reg,
                                        encoder_section,
-                                       BG_STREAM_SUBTITLE_TEXT,
+                                       BG_STREAM_TEXT,
                                        stream_flags);
   
-  bg_cfg_section_set_parameter_string(t->general_section, "subtitle_text_encoder", name);
+  bg_cfg_section_set_parameter_string(t->general_section, "text_encoder", name);
 
   bg_encoder_section_get_plugin_config(plugin_reg,
                                        encoder_section,
-                                       BG_STREAM_SUBTITLE_TEXT,
+                                       BG_STREAM_TEXT,
                                        stream_flags,
                                        &s,
                                        NULL);
   if(s)
     {
-    t->subtitle_text_encoder_section = bg_cfg_section_copy(s);
-    clean_section(t->subtitle_text_encoder_section);
+    t->text_encoder_section = bg_cfg_section_copy(s);
+    clean_section(t->text_encoder_section);
     }
   
   bg_encoder_section_get_stream_config(plugin_reg,
                                        encoder_section,
-                                       BG_STREAM_SUBTITLE_TEXT,
+                                       BG_STREAM_TEXT,
                                        stream_flags,
                                        &s,
                                        NULL);
 
   bg_encoder_section_get_stream_config(plugin_reg,
                                        encoder_section,
-                                       BG_STREAM_SUBTITLE_OVERLAY,
+                                       BG_STREAM_OVERLAY,
                                        stream_flags,
                                        &s1,
                                        NULL);
 
   if(s)
     {
-    for(i = 0; i < t->num_subtitle_text_streams; i++)
-      t->subtitle_text_streams[i].encoder_section_text = bg_cfg_section_copy(s);
+    for(i = 0; i < t->num_text_streams; i++)
+      t->text_streams[i].encoder_section_text = bg_cfg_section_copy(s);
     }
 
   if(s1)
     {
-    for(i = 0; i < t->num_subtitle_text_streams; i++)
-      t->subtitle_text_streams[i].encoder_section_overlay = bg_cfg_section_copy(s);
+    for(i = 0; i < t->num_text_streams; i++)
+      t->text_streams[i].encoder_section_overlay = bg_cfg_section_copy(s1);
     }
   
   /* Subtitle overlay encoder */
 
   name = bg_encoder_section_get_plugin(plugin_reg,
                                        encoder_section,
-                                       BG_STREAM_SUBTITLE_OVERLAY,
+                                       BG_STREAM_OVERLAY,
                                        stream_flags);
   
-  bg_cfg_section_set_parameter_string(t->general_section, "subtitle_overlay_encoder", name);
+  bg_cfg_section_set_parameter_string(t->general_section, "overlay_encoder", name);
 
   bg_encoder_section_get_plugin_config(plugin_reg,
                                        encoder_section,
-                                       BG_STREAM_SUBTITLE_OVERLAY,
+                                       BG_STREAM_OVERLAY,
                                        stream_flags,
                                        &s,
                                        NULL);
   if(s)
     {
-    t->subtitle_overlay_encoder_section = bg_cfg_section_copy(s);
-    clean_section(t->subtitle_overlay_encoder_section);
+    t->overlay_encoder_section = bg_cfg_section_copy(s);
+    clean_section(t->overlay_encoder_section);
     }
     
   bg_encoder_section_get_stream_config(plugin_reg,
                                        encoder_section,
-                                       BG_STREAM_SUBTITLE_OVERLAY,
+                                       BG_STREAM_OVERLAY,
                                        stream_flags,
                                        &s,
                                        NULL);
 
   if(s)
     {
-    for(i = 0; i < t->num_subtitle_overlay_streams; i++)
-      t->subtitle_overlay_streams[i].encoder_section = bg_cfg_section_copy(s);
+    for(i = 0; i < t->num_overlay_streams; i++)
+      t->overlay_streams[i].encoder_section = bg_cfg_section_copy(s);
     }
 
   

@@ -66,19 +66,27 @@ typedef struct
 typedef struct
   {
   stream_common_t com;
-  gavl_packet_sink_t * psink;
   int timescale;
   } text_stream_t;
+
+typedef struct
+  {
+  stream_common_t com;
+  gavl_video_format_t format;
+  gavl_video_sink_t * sink;
+  } overlay_stream_t;
 
 typedef struct
   {
   int num_audio_streams;
   int num_video_streams;
   int num_text_streams;
+  int num_overlay_streams;
   
   audio_stream_t * audio_streams;
   video_stream_t * video_streams;
   text_stream_t * text_streams;
+  overlay_stream_t * overlay_streams;
   
   int flags;
   
@@ -95,6 +103,7 @@ typedef struct
 
   bg_parameter_info_t * audio_parameters;
   bg_parameter_info_t * video_parameters;
+  bg_parameter_info_t * overlay_parameters;
   
   gavf_program_header_t * ph;
   } bg_gavf_t;
@@ -123,7 +132,9 @@ static void bg_gavf_destroy(void * data)
     free(f->video_streams);
   if(f->text_streams)
     free(f->text_streams);
-
+  if(f->overlay_streams)
+    free(f->overlay_streams);
+  
   if(f->enc)
     gavf_close(f->enc);
   
@@ -241,6 +252,21 @@ bg_gavf_get_video_parameters(void * data)
   return f->video_parameters;
   }
 
+static const bg_parameter_info_t *
+bg_gavf_get_subtitle_overlay_parameters(void * data)
+  {
+  bg_gavf_t * f = data;
+
+  if(!f->overlay_parameters)
+    {
+    f->overlay_parameters =
+      bg_plugin_registry_create_compressor_parameters(f->plugin_reg,
+                                                      BG_PLUGIN_OVERLAY_COMPRESSOR);
+    }
+  return f->video_parameters;
+  }
+
+
 /* Set parameters */
 
 static void
@@ -261,6 +287,16 @@ bg_gavf_set_video_parameter(void * data, int stream, const char * name,
   bg_gavf_t * f = data;
   bg_plugin_registry_set_compressor_parameter(f->plugin_reg,
                                               &f->video_streams[stream].com.plugin,
+                                              name, val);
+  }
+
+static void
+bg_gavf_set_overlay_parameter(void * data, int stream, const char * name,
+                            const bg_parameter_value_t * val)
+  {
+  bg_gavf_t * f = data;
+  bg_plugin_registry_set_compressor_parameter(f->plugin_reg,
+                                              &f->overlay_streams[stream].com.plugin,
                                               name, val);
   }
 
@@ -307,6 +343,14 @@ static int
 bg_gavf_writes_compressed_video(void * priv,
                                 const gavl_video_format_t * format,
                                 const gavl_compression_info_t * info)
+  {
+  return 1;
+  }
+
+static int
+bg_gavf_writes_compressed_overlay(void * priv,
+                                  const gavl_video_format_t * format,
+                                  const gavl_compression_info_t * info)
   {
   return 1;
   }
@@ -363,6 +407,25 @@ append_text_stream(bg_gavf_t * f, const gavl_metadata_t * m)
   return ret;
   }
 
+static overlay_stream_t *
+append_overlay_stream(bg_gavf_t * f, const gavl_metadata_t * m,
+                      const gavl_video_format_t * format)
+  {
+  overlay_stream_t * ret;
+
+  f->overlay_streams =
+    realloc(f->overlay_streams,
+            (f->num_overlay_streams+1)*sizeof(*f->overlay_streams));
+
+  ret = f->overlay_streams + f->num_overlay_streams;
+  f->num_overlay_streams++;
+  memset(ret, 0, sizeof(*ret));
+  gavl_video_format_copy(&ret->format, format);
+  if(m)
+    gavl_metadata_copy(&ret->com.m, m);
+  return ret;
+  }
+
 static int
 bg_gavf_add_audio_stream(void * data,
                          const gavl_metadata_t * m,
@@ -398,6 +461,19 @@ bg_gavf_add_text_stream(void * data,
   s->timescale = *timescale;
   return f->num_text_streams-1;
   }
+
+static int
+bg_gavf_add_overlay_stream(void * data,
+                           const gavl_metadata_t * m,
+                           const gavl_video_format_t * format)
+  {
+  overlay_stream_t * s;
+  bg_gavf_t * f = data;
+  s = append_overlay_stream(f, m, format);
+  gavl_metadata_delete_compression_fields(&s->com.m);
+  return f->num_overlay_streams-1;
+  }
+
 
 static int
 bg_gavf_add_audio_stream_compressed(void * data,
@@ -668,6 +744,12 @@ static gavl_video_sink_t * bg_gavf_get_video_sink(void * data, int stream)
   return f->video_streams[stream].sink;
   }
 
+static gavl_video_sink_t * bg_gavf_get_overlay_sink(void * data, int stream)
+  {
+  bg_gavf_t * f = data;
+  return f->overlay_streams[stream].sink;
+  }
+
 static gavl_packet_sink_t *
 bg_gavf_get_audio_packet_sink(void * data, int stream)
   {
@@ -709,21 +791,25 @@ const bg_encoder_plugin_t the_plugin =
     
     .max_audio_streams =         -1,
     .max_video_streams =         -1,
-    .max_subtitle_text_streams = -1,
+    .max_text_streams = -1,
+    .max_overlay_streams = -1,
     
     .get_audio_parameters = bg_gavf_get_audio_parameters,
     .get_video_parameters = bg_gavf_get_video_parameters,
-
+    .get_overlay_parameters = bg_gavf_get_subtitle_overlay_parameters,
+    
     .set_callbacks =        bg_gavf_set_callbacks,
     
     .open =                 bg_gavf_open,
 
     .writes_compressed_audio = bg_gavf_writes_compressed_audio,
     .writes_compressed_video = bg_gavf_writes_compressed_video,
+    .writes_compressed_overlay = bg_gavf_writes_compressed_overlay,
     
     .add_audio_stream =     bg_gavf_add_audio_stream,
     .add_video_stream =     bg_gavf_add_video_stream,
-    .add_subtitle_text_stream =     bg_gavf_add_text_stream,
+    .add_text_stream =     bg_gavf_add_text_stream,
+    .add_overlay_stream =     bg_gavf_add_overlay_stream,
 
     .add_audio_stream_compressed =     bg_gavf_add_audio_stream_compressed,
     .add_video_stream_compressed =     bg_gavf_add_video_stream_compressed,
@@ -731,6 +817,7 @@ const bg_encoder_plugin_t the_plugin =
     // .set_video_pass =       bg_gavf_set_video_pass,
     .set_audio_parameter =  bg_gavf_set_audio_parameter,
     .set_video_parameter =  bg_gavf_set_video_parameter,
+    .set_overlay_parameter =  bg_gavf_set_overlay_parameter,
     
     //    .get_audio_format =     bg_gavf_get_audio_format,
     //    .get_video_format =     bg_gavf_get_video_format,
@@ -741,15 +828,10 @@ const bg_encoder_plugin_t the_plugin =
     .get_video_sink =        bg_gavf_get_video_sink,
     .get_audio_packet_sink = bg_gavf_get_audio_packet_sink,
     .get_video_packet_sink = bg_gavf_get_video_packet_sink,
-    .get_subtitle_text_sink = bg_gavf_get_text_sink,
+    .get_text_sink = bg_gavf_get_text_sink,
+    .get_overlay_sink = bg_gavf_get_overlay_sink,
+    //    .get_subtitle__sink = bg_gavf_get_text_sink,
     
-    //    .write_audio_frame =    bg_gavf_write_audio_frame,
-    //    .write_video_frame =    bg_gavf_write_video_frame,
-    //    .write_subtitle_text =    bg_gavf_write_subtitle_text,
-
-    //    .write_audio_packet =    bg_gavf_write_audio_packet,
-    //    .write_video_packet =    bg_gavf_write_video_packet,
-
     .close =                bg_gavf_close,
   };
 
@@ -785,9 +867,13 @@ bg_plugin_info_t * bg_gavfenc_info(bg_plugin_registry_t * reg)
     bg_plugin_registry_create_compressor_parameters(reg, BG_PLUGIN_AUDIO_COMPRESSOR);
   ret->video_parameters =
     bg_plugin_registry_create_compressor_parameters(reg, BG_PLUGIN_VIDEO_COMPRESSOR);
+  ret->overlay_parameters =
+    bg_plugin_registry_create_compressor_parameters(reg, BG_PLUGIN_OVERLAY_COMPRESSOR);
 
   ret->max_audio_streams = -1;
   ret->max_video_streams = -1;
+  ret->max_text_streams = -1;
+  ret->max_overlay_streams = -1;
   
   return ret;
 

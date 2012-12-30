@@ -96,8 +96,8 @@ add_subtitle_overlay_stream_ovl2text(void * priv,
   gavl_video_format_copy(&e->format, format);
   
   if(!e->enc_plugin ||
-     (e->enc_plugin->add_subtitle_text_stream(e->enc_handle->priv, m,
-                                              &e->format.timescale) < 0))
+     (e->enc_plugin->add_text_stream(e->enc_handle->priv, m,
+                                     &e->format.timescale) < 0))
     return -1;
   return 0;
   }
@@ -128,7 +128,7 @@ static int start_ovl2text(void * priv)
   ovl2text_t * e = priv;
   if(e->enc_plugin->start && !e->enc_plugin->start(e->enc_handle->priv))
     return 0;
-  e->sink_int = e->enc_plugin->get_subtitle_text_sink(e->enc_handle->priv, 0);
+  e->sink_int = e->enc_plugin->get_text_sink(e->enc_handle->priv, 0);
   e->sink_ext = gavl_video_sink_create(NULL, write_ovl2text, e, &e->format);
   return 1;
   }
@@ -184,7 +184,7 @@ static bg_parameter_info_t * create_parameters(bg_plugin_registry_t * plugin_reg
   bg_parameter_info_t * ret;
   enc = bg_parameter_info_copy_array(enc_section);
   bg_plugin_registry_set_parameter_info(plugin_reg,
-                                        BG_PLUGIN_ENCODER_SUBTITLE_TEXT,
+                                        BG_PLUGIN_ENCODER_TEXT,
                                         BG_PLUGIN_FILE, &enc[0]);
   info[0] = bg_ocr_get_parameters();
   info[1] = enc;
@@ -248,7 +248,7 @@ static const bg_encoder_plugin_t the_plugin =
       .name =           "e_ovl2text",       /* Unique short name */
       .long_name =      TRS("Overlay to text converter"),
       .description =    TRS("Exports overlay subtitles to a text format by performing an OCR."),
-      .type =           BG_PLUGIN_ENCODER_SUBTITLE_OVERLAY,
+      .type =           BG_PLUGIN_ENCODER_OVERLAY,
       .flags =          BG_PLUGIN_FILE,
       .priority =       BG_PLUGIN_PRIORITY_MAX,
       .destroy =        destroy_ovl2text,
@@ -256,17 +256,17 @@ static const bg_encoder_plugin_t the_plugin =
       .set_parameter =  set_parameter_ovl2text,
     },
 
-    .max_subtitle_overlay_streams = 1,
+    .max_overlay_streams = 1,
     
     .set_callbacks =        set_callbacks_ovl2text,
     
     .open =                 open_ovl2text,
 
-    .add_subtitle_overlay_stream =     add_subtitle_overlay_stream_ovl2text,
+    .add_overlay_stream =     add_subtitle_overlay_stream_ovl2text,
     
     .start =                start_ovl2text,
 
-    .get_subtitle_overlay_sink = get_sink_ovl2text,
+    .get_overlay_sink = get_sink_ovl2text,
 
     .close =             close_ovl2text,
   };

@@ -354,9 +354,9 @@ int main(int argc, char ** argv)
   
   global_options[0].parameters = rec.as.parameters;
   global_options[1].parameters = rec.vs.parameters;
-  global_options[2].parameters = gavftools_ac_params();
-  global_options[3].parameters = gavftools_vc_params();
   
+  gavftools_set_compresspor_options(global_options);
+    
   /* Handle commandline options */
   bg_cmdline_init(&app_data);
   bg_cmdline_parse(global_options, &argc, &argv, NULL);
@@ -364,7 +364,7 @@ int main(int argc, char ** argv)
   out_plug = bg_plug_create_writer(plugin_reg);
   bg_plug_set_compressor_config(out_plug,
                                 gavftools_ac_params(),
-                                gavftools_vc_params());
+                                gavftools_vc_params(), NULL);
   
   /* Open plugins */
   if(!recorder_open(&rec, &conn))

@@ -40,7 +40,8 @@ typedef struct
   int samples_per_line;
 
   gavl_video_source_t * in_src;
-  
+  gavl_video_source_t * out_src;
+
   } shift_priv_t;
 
 static void * create_shift()
@@ -54,6 +55,10 @@ static void destroy_shift(void * priv)
   {
   shift_priv_t * vp;
   vp = priv;
+
+  if(vp->out_src)
+    gavl_video_source_destroy(vp->out_src);
+  
   free(vp);
   }
 
@@ -106,15 +111,18 @@ static gavl_source_status_t read_func(void * priv,
   {
   gavl_source_status_t st;
   shift_priv_t * vp;
-  gavl_video_frame_t * f = NULL;
   int i, j;
   uint16_t * ptr;
+  gavl_video_frame_t * f;
+
   
   vp = priv;
   
-  if((st = gavl_video_source_read_frame(vp->in_src, &f)) != GAVL_SOURCE_OK)
+  if((st = gavl_video_source_read_frame(vp->in_src, frame)) != GAVL_SOURCE_OK)
     return st;
 
+  f = *frame;
+  
   if(vp->shift)
     {
     for(i = 0; i < vp->format.image_height; i++)
@@ -128,7 +136,6 @@ static gavl_source_status_t read_func(void * priv,
         }
       }
     }
-  *frame = f;
   return GAVL_SOURCE_OK;
   }
 
@@ -141,6 +148,9 @@ connect_shift(void * priv, gavl_video_source_t * src,
 
   vp = priv;
 
+  if(vp->out_src)
+    gavl_video_source_destroy(vp->out_src);
+  
   vp->in_src = src;
   gavl_video_format_copy(&vp->format,
                          gavl_video_source_get_src_format(vp->in_src));
@@ -158,13 +168,13 @@ connect_shift(void * priv, gavl_video_source_t * src,
     width_mult++;
   vp->samples_per_line = vp->format.image_width * width_mult;
   
-  gavl_video_source_set_dst(vp->in_src,
-                            GAVL_SOURCE_DST_OVERWRITES,
-                            &vp->format);
-    
-  return gavl_video_source_create(read_func,
-                                  vp, GAVL_SOURCE_SRC_ALLOC,
-                                  &vp->format);
+  gavl_video_source_set_dst(vp->in_src, 0, &vp->format);
+
+  vp->out_src =
+    gavl_video_source_create_source(read_func,
+                                    vp, 0,
+                                    vp->in_src);
+  return vp->out_src;
   }
 
 const bg_fv_plugin_t the_plugin = 

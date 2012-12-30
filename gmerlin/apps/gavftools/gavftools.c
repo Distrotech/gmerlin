@@ -349,3 +349,19 @@ bg_stream_action_t * gavftools_get_stream_actions(int num, gavf_stream_type_t ty
   return ret;
   }
 
+void
+gavftools_set_compresspor_options(bg_cmdline_arg_t * global_options)
+  {
+  int i = 0;
+
+  while(global_options[i].arg)
+    {
+    if(!strcmp(global_options[i].arg, "-ac"))
+      global_options[i].parameters = gavftools_ac_params();
+    if(!strcmp(global_options[i].arg, "-vc"))
+      global_options[i].parameters = gavftools_vc_params();
+    if(!strcmp(global_options[i].arg, "-oc"))
+      global_options[i].parameters = gavftools_oc_params();
+    i++;
+    }
+  }

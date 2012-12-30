@@ -116,6 +116,7 @@ struct bg_plug_s
 
   const bg_parameter_info_t * ac_params;
   const bg_parameter_info_t * vc_params;
+  const bg_parameter_info_t * oc_params;
 
   pthread_mutex_t mutex;
   
@@ -124,10 +125,12 @@ struct bg_plug_s
 
 void bg_plug_set_compressor_config(bg_plug_t * p,
                                    const bg_parameter_info_t * ac_params,
-                                   const bg_parameter_info_t * vc_params)
+                                   const bg_parameter_info_t * vc_params,
+                                   const bg_parameter_info_t * oc_params)
   {
   p->ac_params = ac_params;
   p->vc_params = vc_params;
+  p->oc_params = oc_params;
   }
 
 static bg_plug_t * create_common()
@@ -1201,11 +1204,10 @@ int bg_plug_add_overlay_stream(bg_plug_t * p,
     sc.s = s;
     sc.plugin_reg = p->plugin_reg;
     bg_cfg_section_apply(encode_section,
-                         p->vc_params,
+                         p->oc_params,
                          set_codec_parameter,
                          &sc);
     }
-  
   return p->num_overlay_streams-1;
   }
 
