@@ -156,10 +156,8 @@ const bg_input_plugin_t the_plugin =
     .get_video_packet_source = bg_avdec_get_video_packet_source,
     .get_audio_packet_source = bg_avdec_get_audio_packet_source,
     .get_text_source = bg_avdec_get_text_packet_source,
-
-    .has_subtitle =          bg_avdec_has_subtitle,
-
-    .read_subtitle_overlay = bg_avdec_read_subtitle_overlay,
+    .get_overlay_source = bg_avdec_get_overlay_source,
+    .get_overlay_packet_source = bg_avdec_get_overlay_packet_source,
 
     .read_audio_packet = bg_avdec_read_audio_packet,
     .read_video_packet = bg_avdec_read_video_packet,

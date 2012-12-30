@@ -177,10 +177,9 @@ int bgav_audio_start(bgav_stream_t * s)
 #if 1
   if(s->action == BGAV_STREAM_READRAW)
     s->psrc =
-      gavl_packet_source_create(bgav_stream_read_packet_func, // get_packet,
-                                s, GAVL_SOURCE_SRC_ALLOC,
-                                &s->ci, &s->data.audio.format,
-                                NULL);
+      gavl_packet_source_create_audio(bgav_stream_read_packet_func, // get_packet,
+                                      s, GAVL_SOURCE_SRC_ALLOC,
+                                      &s->ci, &s->data.audio.format);
 #endif
   
   //  if(s->data.audio.pre_skip && s->data.audio.source)

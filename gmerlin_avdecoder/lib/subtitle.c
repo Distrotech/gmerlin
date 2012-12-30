@@ -211,10 +211,8 @@ int bgav_text_start(bgav_stream_t * s)
     bgav_subtitle_converter_create(s);
   
   s->psrc =
-    gavl_packet_source_create(bgav_stream_read_packet_func, // get_packet,
-                              s,
-                              GAVL_SOURCE_SRC_ALLOC,
-                              NULL, NULL, NULL);
+    gavl_packet_source_create_text(bgav_stream_read_packet_func, // get_packet,
+                                   s, GAVL_SOURCE_SRC_ALLOC, s->timescale);
   return 1;
   }
 
@@ -285,11 +283,11 @@ int bgav_overlay_start(bgav_stream_t * s)
   else if(s->action == BGAV_STREAM_READRAW)
     {
     s->psrc =
-      gavl_packet_source_create(bgav_stream_read_packet_func, // get_packet,
-                                s,
-                                GAVL_SOURCE_SRC_ALLOC,
-                                &s->ci,
-                                NULL, &s->data.subtitle.format);
+      gavl_packet_source_create_video(bgav_stream_read_packet_func, // get_packet,
+                                      s,
+                                      GAVL_SOURCE_SRC_ALLOC,
+                                      &s->ci,
+                                      &s->data.subtitle.format);
     }
   
   return 1;

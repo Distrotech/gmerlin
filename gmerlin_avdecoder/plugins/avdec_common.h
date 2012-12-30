@@ -59,6 +59,13 @@ bg_avdec_get_audio_packet_source(void * priv, int stream);
 gavl_packet_source_t *
 bg_avdec_get_text_packet_source(void * priv, int stream);
 
+gavl_video_source_t *
+bg_avdec_get_overlay_source(void * priv, int stream);
+
+gavl_packet_source_t *
+bg_avdec_get_overlay_packet_source(void * priv, int stream);
+
+
 int bg_avdec_read_video(void * priv,
                         gavl_video_frame_t * frame,
                         int stream);
@@ -74,17 +81,6 @@ int bg_avdec_read_audio(void * priv,
                         gavl_audio_frame_t * frame,
                         int stream,
                         int num_samples);
-
-int bg_avdec_read_subtitle_overlay(void * priv,
-                                   gavl_overlay_t * ovl, int stream);
-  
-int bg_avdec_read_subtitle_text(void * priv,
-                                char ** text, int * text_alloc,
-                                int64_t * start_time,
-                                int64_t * duration,
-                                int stream);
-
-int bg_avdec_has_subtitle(void * priv, int stream);
 
 int bg_avdec_set_audio_stream(void * priv,
                                   int stream,
