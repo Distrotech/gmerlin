@@ -330,6 +330,8 @@ gavl_overlay_t * bg_ov_create_overlay(bg_ov_t * ov, int id)
 
 void bg_ov_set_overlay(bg_ov_t * ov, int stream, gavl_overlay_t * ovl)
   {
+  //  fprintf(stderr, "bg_ov_set_overlay\n");
+  
   if(ov->flags & FLAG_EMULATE_OVL)
     {
     gavl_overlay_blend_context_set_overlay(ov->ovl_str[stream].ctx, ovl);
@@ -348,10 +350,7 @@ void bg_ov_set_overlay(bg_ov_t * ov, int stream, gavl_overlay_t * ovl)
 void bg_ov_destroy_overlay(bg_ov_t * ov, int id, gavl_overlay_t * ovl)
   {
   if(ov->flags & FLAG_EMULATE_OVL)
-    {
     gavl_video_frame_destroy(ovl);
-    free(ovl);
-    }
   else
     ov->plugin->destroy_overlay(ov->priv, id, ovl);
   }

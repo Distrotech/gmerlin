@@ -896,13 +896,13 @@ bg_plugin_handle_t * bg_ov_plugin_load(bg_plugin_registry_t * reg,
  *  \brief Lock a plugin
  *  \param h A plugin handle
  */
-void bg_plugin_lock(bg_plugin_handle_t * h);
+void bg_plugin_lock(void * h);
 
 /** \ingroup plugin_registry
  *  \brief Unlock a plugin
  *  \param h A plugin handle
  */
-void bg_plugin_unlock(bg_plugin_handle_t * h);
+void bg_plugin_unlock(void * h);
 
 /* Reference counting for input plugins */
 

@@ -92,6 +92,18 @@ typedef struct
 
 typedef struct
   {
+  int quicktime_index;
+  int timescale;
+  int64_t pts_offset;
+  quicktime_t * file; // Points to global struct
+  
+  char * text;
+  int text_alloc;
+  gavl_packet_source_t * src;
+  } text_stream_t;
+
+typedef struct
+  {
   quicktime_t * file;
   bg_parameter_info_t * parameters;
 
@@ -102,13 +114,8 @@ typedef struct
 
   audio_stream_t * audio_streams;
   video_stream_t * video_streams;
+  text_stream_t * text_streams;
   
-  struct
-    {
-    int quicktime_index;
-    int timescale;
-    int64_t pts_offset;
-    } * text_streams;
   } i_lqt_t;
 
 static void * create_lqt()
@@ -299,7 +306,8 @@ static int open_lqt(void * data, const char * arg)
       else
         {
         m = &e->track_info.text_streams[e->track_info.num_text_streams].m;
-        
+
+        e->text_streams[e->track_info.num_text_streams].file = e->file;
         e->text_streams[e->track_info.num_text_streams].quicktime_index = i;
         e->text_streams[e->track_info.num_text_streams].timescale =
           lqt_text_time_scale(e->file, i);
@@ -369,27 +377,6 @@ int read_audio_samples_lqt(void * data, gavl_audio_frame_t * f, int stream,
                                         num_samples);
   }
 
-
-static int has_subtitle_lqt(void * data, int stream)
-  {
-  return 1;
-  }
-
-static int read_subtitle_text_lqt(void * priv,
-                                  char ** text, int * text_alloc,
-                                  int64_t * start_time,
-                                  int64_t * duration, int stream)
-  {
-  i_lqt_t * e = priv;
-  int ret =  lqt_read_text(e->file,
-                           e->text_streams[stream].quicktime_index,
-                           text, text_alloc,
-                           start_time, duration);
-  if(ret)
-    *start_time += e->text_streams[stream].pts_offset;
-  return ret;
-  }
-
 /* Read one video frame (returns FALSE on EOF) */
 
 static gavl_source_status_t
@@ -444,6 +431,16 @@ static void close_lqt(void * data)
       }
     free(e->video_streams);
     e->video_streams = NULL;
+    }
+  if(e->text_streams)
+    {
+    for(i = 0; i < e->track_info.num_text_streams; i++)
+      {
+      if(e->text_streams[i].src)
+        gavl_packet_source_destroy(e->text_streams[i].src);
+      }
+    free(e->text_streams);
+    e->text_streams = NULL;
     }
   bg_track_info_free(&e->track_info);  
   }
@@ -591,6 +588,34 @@ static int read_video_packet_lqt(void * data, int stream, gavl_packet_t * p)
   return ret;
   }
 
+static gavl_source_status_t read_text_func(void * priv,
+                                           gavl_packet_t ** ret)
+  {
+  int len;
+  int64_t start_time;
+  int64_t duration;
+
+  text_stream_t * ts = priv;
+  
+  int result =  lqt_read_text(ts->file,
+                              ts->quicktime_index,
+                              &ts->text, &ts->text_alloc,
+                              &start_time, &duration);
+  if(!result)
+    return GAVL_SOURCE_EOF;
+  start_time += ts->pts_offset;
+
+  len = strlen(ts->text);
+  
+  gavl_packet_alloc(*ret, len);
+  memcpy((*ret)->data, ts->text, len);
+  (*ret)->data_len = len;
+  (*ret)->pts = start_time;
+  (*ret)->duration = duration;
+  
+  return GAVL_SOURCE_OK;
+  }
+
 static int start_lqt(void * data)
   {
   int i;
@@ -620,6 +645,15 @@ static int start_lqt(void * data)
     vs->file = e->file;
     vs->fmt = &e->track_info.video_streams[i].format;
     }
+  for(i = 0; i < e->track_info.num_text_streams; i++)
+    {
+    text_stream_t * ts = &e->text_streams[i];
+
+    ts->src =
+      gavl_packet_source_create_text(read_text_func, ts, 0, e->text_streams[i].timescale);
+    ts->file = e->file;
+    }
+  
   return 1;
   }
 
@@ -635,6 +669,13 @@ get_video_source_lqt(void * data, int stream)
   {
   i_lqt_t * e = data;
   return e->video_streams[stream].src;
+  }
+
+static gavl_packet_source_t *
+get_text_source_lqt(void * data, int stream)
+  {
+  i_lqt_t * e = data;
+  return e->text_streams[stream].src;
   }
 
 char const * const extensions = "mov";
@@ -679,9 +720,11 @@ const bg_input_plugin_t the_plugin =
     .read_audio = read_audio_samples_lqt,
     .read_video =   read_video_frame_lqt,
 
-    .has_subtitle =       has_subtitle_lqt,
-    .read_subtitle_text = read_subtitle_text_lqt,
+    //    .has_subtitle =       has_subtitle_lqt,
+    //    .read_subtitle_text = read_subtitle_text_lqt,
 
+    .get_text_source = get_text_source_lqt,
+    
     .read_audio_packet = read_audio_packet_lqt,
     .read_video_packet = read_video_packet_lqt,
     

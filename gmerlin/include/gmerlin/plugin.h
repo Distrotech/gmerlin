@@ -815,7 +815,7 @@ struct bg_input_plugin_s
    *  \returns 1 if a subtitle is available, 0 else.
    */
   
-  int (*has_subtitle)(void * priv, int stream);
+  //  int (*has_subtitle)(void * priv, int stream);
     
   /** \brief Read one pixmap subtitle
    *  \param priv The handle returned by the create() method
@@ -828,8 +828,8 @@ struct bg_input_plugin_s
    *  - read_subtitle_overlay() returned 0
    */
   
-  int (*read_subtitle_overlay)(void * priv,
-                               gavl_overlay_t*ovl, int stream);
+  //  int (*read_subtitle_overlay)(void * priv,
+  //                               gavl_overlay_t*ovl, int stream);
 
   /** \brief Get the overlay source for a stream
    *  \param priv The handle returned by the create() method
@@ -859,10 +859,10 @@ struct bg_input_plugin_s
    *  after the last call (if non-NULL).
    */
   
-  int (*read_subtitle_text)(void * priv,
-                            char ** text, int * text_alloc,
-                            int64_t * start_time,
-                            int64_t * duration, int stream);
+  //  int (*read_subtitle_text)(void * priv,
+  //                            char ** text, int * text_alloc,
+  //                            int64_t * start_time,
+  //                            int64_t * duration, int stream);
 
   /** \brief Get the text source for a stream
    *  \param priv The handle returned by the create() method
@@ -1903,6 +1903,14 @@ struct bg_encoder_plugin_s
    */
   
   gavl_video_sink_t * (*get_subtitle_overlay_sink)(void * priv, int stream);
+
+  /** \brief Get overlay subtitle sink
+   *  \param priv The handle returned by the create() method
+   *  \returns The packet sink for this stream
+   */
+
+  gavl_packet_sink_t * (*get_subtitle_overlay_packet_sink)(void * priv, int stream);
+
   
   /** \brief Update metadata
    *  \param priv The handle returned by the create() method

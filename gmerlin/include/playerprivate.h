@@ -41,7 +41,6 @@
 
 /* Each thread get it's private context */
 
-
 typedef enum
   {
     SYNC_SOFTWARE,
@@ -136,19 +135,16 @@ typedef struct
 typedef struct
   {
   bg_text_renderer_t * renderer;
-  gavl_video_converter_t * cnv;
-  int do_convert;
+
+  //  gavl_video_converter_t * cnv;
+  //  int do_convert;
 
   pthread_mutex_t config_mutex;
+
+  gavl_video_source_t * vsrc;
   
   gavl_video_format_t input_format;
   gavl_video_format_t output_format;
-
-  /* For text subtitles */
-  char * buffer;
-  int buffer_alloc;
-  
-  gavl_overlay_t * input_subtitle;
   
   gavl_overlay_t * current_subtitle;
   gavl_overlay_t * next_subtitle;
@@ -528,11 +524,6 @@ void bg_player_subtitle_destroy(bg_player_t * p);
 
 void bg_player_subtitle_init_converter(bg_player_t * player);
 
-int bg_player_has_subtitle(bg_player_t * p);
-int bg_player_read_subtitle(bg_player_t * p, gavl_overlay_t * ovl);
-
-
-
 void bg_player_accel_pressed(bg_player_t * player, int id);
 
 void bg_player_set_duration(bg_player_t * player, gavl_time_t duration, int can_seek);
@@ -540,3 +531,5 @@ void bg_player_set_duration(bg_player_t * player, gavl_time_t duration, int can_
 void bg_player_set_metadata(bg_player_t * player, const gavl_metadata_t *);
 
 int bg_player_get_subtitle_index(bg_track_info_t * info, int stream_index, int * is_text);
+
+void bg_player_subtitle_unscale_time(bg_player_subtitle_stream_t * s, gavl_overlay_t * ovl);

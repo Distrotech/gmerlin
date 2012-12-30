@@ -1838,7 +1838,7 @@ static gavl_source_status_t read_video(void * priv, gavl_video_frame_t ** frame)
   gavl_source_status_t st;
   bg_text_renderer_t * r = priv;
   
-  if((st = gavl_packet_source_read_packet(r->psrc, &p) != GAVL_SOURCE_OK))
+  if((st = gavl_packet_source_read_packet(r->psrc, &p)) != GAVL_SOURCE_OK)
     return st;
 
   bg_text_renderer_render(r, (char*)p->data, // Assume the text is properly zero padded

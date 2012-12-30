@@ -435,14 +435,10 @@ static void skip_shm_packet(gavf_t * gavf,
   }
 
 static int init_read_common(bg_plug_t * p,
-                            stream_t * s,
-                            const gavl_compression_info_t * ci,
-                            const gavl_audio_format_t * afmt,
-                            const gavl_video_format_t * vfmt)
+                            stream_t * s)
   {
-  
   gavl_metadata_get_int(&s->h->m, META_SHM_SIZE, &s->shm_size);
-
+  
   if(s->shm_size)
     {
     /* Create shared memory pool */
@@ -453,20 +449,21 @@ static int init_read_common(bg_plug_t * p,
     bg_log(BG_LOG_INFO, LOG_DOMAIN, "Using shm for reading (segment size: %d)",
            s->shm_size);
     }
-  
+
   if(s->action == BG_STREAM_ACTION_OFF)
     {
     gavf_stream_set_skip(p->g, s->h->id, s->shm_size ? skip_shm_packet : NULL, s);
     return 0;
     }
+  
   s->src_int = gavf_get_packet_source(p->g, s->h->id);
   gavl_packet_source_set_lock_funcs(s->src_int, lock_func, unlock_func, p);
-  
+
   if(s->shm_size)
     s->src_ext =
-      gavl_packet_source_create(read_packet_shm, s,
-                                GAVL_SOURCE_SRC_ALLOC,
-                                ci, afmt, vfmt);
+      gavl_packet_source_create_source(read_packet_shm, s,
+                                       GAVL_SOURCE_SRC_ALLOC,
+                                       s->src_int);
   else
     s->src_ext = s->src_int;
   return 1;
@@ -552,9 +549,7 @@ static int init_read(bg_plug_t * p)
     {
     s = p->audio_streams + i;
     
-    if(!init_read_common(p, s, &s->h->ci,
-                         &s->h->format.audio,
-                         NULL))
+    if(!init_read_common(p, s))
       continue; // Stream is switched off
     
     if(s->h->ci.id == GAVL_CODEC_ID_NONE)
@@ -587,9 +582,39 @@ static int init_read(bg_plug_t * p)
     {
     s = p->video_streams + i;
 
-    if(!init_read_common(p, s, &s->h->ci,
-                         NULL,
-                         &s->h->format.video))
+    if(!init_read_common(p, s))
+      continue;
+    
+    if(s->h->ci.id == GAVL_CODEC_ID_NONE)
+      {
+      s->vsrc =
+        gavl_video_source_create(read_video_func, s,
+                                 GAVL_SOURCE_SRC_ALLOC,
+                                 &s->h->format.video);
+      s->vframe = gavl_video_frame_create(NULL);
+      }
+    else if(s->action == BG_STREAM_ACTION_DECODE)
+      {
+      bg_codec_plugin_t * codec;
+      /* Add decoder */
+      if(!(s->codec_handle = load_decompressor(p->plugin_reg,
+                                               s->h->ci.id,
+                                               BG_PLUGIN_VIDEO_DECOMPRESSOR)))
+        return 0;
+      codec = (bg_codec_plugin_t*)s->codec_handle->plugin;
+      
+      s->vsrc = codec->connect_decode_video(s->codec_handle->priv,
+                                            s->src_ext,
+                                            &s->h->ci,
+                                            &s->h->format.video,
+                                            &s->h->m);
+      }
+    }
+  for(i = 0; i < p->num_overlay_streams; i++)
+    {
+    s = p->overlay_streams + i;
+
+    if(!init_read_common(p, s))
       continue;
     
     if(s->h->ci.id == GAVL_CODEC_ID_NONE)
@@ -621,7 +646,7 @@ static int init_read(bg_plug_t * p)
   for(i = 0; i < p->num_text_streams; i++)
     {
     s = p->text_streams + i;
-    if(!init_read_common(p, s, NULL, NULL, NULL))
+    if(!init_read_common(p, s))
       continue;
     }
   return 1;

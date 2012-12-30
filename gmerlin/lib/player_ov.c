@@ -32,6 +32,7 @@
 #include <gmerlin/log.h>
 #define LOG_DOMAIN "player.video_output"
 
+// #define DUMP_SUBTITLE
 // #define DUMP_TIMESTAMPS
 
 static int accel_callback(void * data, int id)
@@ -242,8 +243,21 @@ static int overlay_is_early(gavl_overlay_t * ovl,
   return 0;
   }
 
+#ifdef DUMP_SUBTITLE
+static void dump_subtitle(gavl_overlay_t * ovl)
+  {
+  bg_dprintf("Got subtitle %f -> %f (%f)\n",
+             gavl_time_to_seconds(ovl->timestamp),
+             gavl_time_to_seconds(ovl->timestamp +
+                                  ovl->duration),
+             gavl_time_to_seconds(ovl->duration));
+  }
+#endif
+
+
 static void handle_subtitle(bg_player_t * p)
   {
+  gavl_source_status_t st;
   bg_player_video_stream_t * s = &p->video_stream;
   gavl_overlay_t * swp;
 
@@ -265,23 +279,41 @@ static void handle_subtitle(bg_player_t * p)
     }
   
   /* Try to read as many subtitles as possible */
-  
+  st = GAVL_SOURCE_AGAIN;
+
   if((s->ss->current_subtitle->timestamp == GAVL_TIME_UNDEFINED) &&
-     bg_player_has_subtitle(p) && !s->ss->eof)
+     !s->ss->eof)
     {
-    if(!bg_player_read_subtitle(p, s->ss->current_subtitle))
+    st = gavl_video_source_read_frame(s->ss->vsrc, &s->ss->current_subtitle);
+    if(st == GAVL_SOURCE_EOF)
       {
       s->ss->eof = 1;
-      fprintf(stderr, "Subtitle EOF");
+      bg_log(BG_LOG_INFO, LOG_DOMAIN, "Subtitle stream finished");
+      }
+    if(st == GAVL_SOURCE_OK)
+      {
+      bg_player_subtitle_unscale_time(s->ss, s->ss->current_subtitle);
+#ifdef DUMP_SUBTITLE
+      dump_subtitle(s->ss->current_subtitle);
+#endif
       }
     }
+
   if((s->ss->next_subtitle->timestamp == GAVL_TIME_UNDEFINED) &&
-     bg_player_has_subtitle(p) && !s->ss->eof)
+     !s->ss->eof)
     {
-    if(!bg_player_read_subtitle(p, s->ss->next_subtitle))
+    st = gavl_video_source_read_frame(s->ss->vsrc, &s->ss->next_subtitle);
+    if(st == GAVL_SOURCE_EOF)
       {
       s->ss->eof = 1;
-      fprintf(stderr, "Subtitle EOF");
+      bg_log(BG_LOG_INFO, LOG_DOMAIN, "Subtitle stream finished");
+      }
+    if(st == GAVL_SOURCE_OK)
+      {
+      bg_player_subtitle_unscale_time(s->ss, s->ss->next_subtitle);
+#ifdef DUMP_SUBTITLE
+      dump_subtitle(s->ss->next_subtitle);
+#endif
       }
     }
   

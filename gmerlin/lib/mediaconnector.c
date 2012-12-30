@@ -166,10 +166,8 @@ static void create_connector(bg_mediaconnector_stream_t * ret)
     if(ret->flags & BG_MEDIACONNECTOR_FLAG_DISCONT)
       {
       ret->discont_psrc =
-        gavl_packet_source_create(read_packet_discont, ret, GAVL_SOURCE_SRC_ALLOC,
-                                  gavl_packet_source_get_ci(ret->psrc),
-                                  gavl_packet_source_get_audio_format(ret->psrc),
-                                  gavl_packet_source_get_video_format(ret->psrc));
+        gavl_packet_source_create_source(read_packet_discont, ret, GAVL_SOURCE_SRC_ALLOC,
+                                         ret->psrc);
       ret->pconn = gavl_packet_connector_create(ret->discont_psrc);
       }
     else

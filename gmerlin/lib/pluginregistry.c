@@ -1756,13 +1756,15 @@ bg_plugin_handle_t * bg_ov_plugin_load(bg_plugin_registry_t * reg,
   return ret;
   }
 
-void bg_plugin_lock(bg_plugin_handle_t * h)
+void bg_plugin_lock(void * p)
   {
+  bg_plugin_handle_t * h = p;
   pthread_mutex_lock(&h->mutex);
   }
 
-void bg_plugin_unlock(bg_plugin_handle_t * h)
+void bg_plugin_unlock(void * p)
   {
+  bg_plugin_handle_t * h = p;
   pthread_mutex_unlock(&h->mutex);
   }
 

@@ -30,14 +30,12 @@
 
 void bg_player_subtitle_create(bg_player_t * p)
   {
-  p->subtitle_stream.cnv = gavl_video_converter_create();
   p->subtitle_stream.renderer = bg_text_renderer_create();
   pthread_mutex_init(&p->subtitle_stream.config_mutex, NULL);
   }
 
 void bg_player_subtitle_destroy(bg_player_t * p)
   {
-  gavl_video_converter_destroy(p->subtitle_stream.cnv);
   pthread_mutex_destroy(&p->subtitle_stream.config_mutex);
   bg_text_renderer_destroy(p->subtitle_stream.renderer);
   }
@@ -57,12 +55,23 @@ int bg_player_subtitle_init(bg_player_t * player)
   
   if(is_text)
     {
+    gavl_packet_source_t * psrc =
+      player->input_plugin->get_text_source(player->input_handle->priv, index);
+
+    if(!psrc)
+      {
+      return 0;
+      }
+    gavl_packet_source_set_lock_funcs(psrc, bg_plugin_lock, bg_plugin_unlock,
+                                      player->input_handle);
+    
     pthread_mutex_lock(&s->config_mutex);
     if(DO_SUBTITLE_ONLY(player->flags))
       {
-      bg_text_renderer_init(s->renderer,
-                            NULL,
-                            &player->subtitle_stream.input_format);
+      s->vsrc = bg_text_renderer_connect(s->renderer,
+                                         psrc,
+                                         NULL,
+                                         player->track_info->text_streams[index].timescale);
       
       bg_text_renderer_get_frame_format(player->subtitle_stream.renderer,
                                         &player->video_stream.input_format);
@@ -71,14 +80,26 @@ int bg_player_subtitle_init(bg_player_t * player)
       }
     else
       {
-      bg_text_renderer_init(player->subtitle_stream.renderer,
-                            &player->video_stream.output_format,
-                            &player->subtitle_stream.input_format);
+      s->vsrc = bg_text_renderer_connect(s->renderer,
+                                         psrc,
+                                         &player->video_stream.output_format,
+                                         player->track_info->text_streams[index].timescale);
       }
     pthread_mutex_unlock(&player->subtitle_stream.config_mutex);
+
+    gavl_video_format_copy(&player->subtitle_stream.input_format,
+                           gavl_video_source_get_src_format(s->vsrc));
+    
+    player->subtitle_stream.input_format.timescale =
+      player->track_info->text_streams[index].timescale;
     }
   else
     {
+    s->vsrc = 
+      player->input_plugin->get_overlay_source(player->input_handle->priv, index);
+    gavl_video_source_set_lock_funcs(s->vsrc, bg_plugin_lock, bg_plugin_unlock,
+                                     player->input_handle);
+    
     gavl_video_format_copy(&player->subtitle_stream.input_format,
                            &player->track_info->overlay_streams[index].format);
     
@@ -103,14 +124,11 @@ int bg_player_subtitle_init(bg_player_t * player)
   return 1;
   }
 
-#define FREE_OVERLAY(ovl) if(ovl) { gavl_video_frame_destroy(ovl); ovl = NULL; }
 
 void bg_player_subtitle_cleanup(bg_player_t * player)
   {
-  FREE_OVERLAY(player->subtitle_stream.input_subtitle);
   }
 
-#undef FREE_OVERLAY
 /* Configuration stuff */
 
 static bg_parameter_info_t general_parameters[] =
@@ -170,104 +188,17 @@ void bg_player_set_subtitle_parameter(void * data, const char * name,
 void bg_player_subtitle_init_converter(bg_player_t * player)
   {
   bg_player_subtitle_stream_t * s;
-
   s = &player->subtitle_stream;
-  
-  s->do_convert =
-    gavl_video_converter_init(s->cnv,
-                              &s->input_format,
-                              &s->output_format);
-  if(s->do_convert)
-    s->input_subtitle = gavl_video_frame_create(&s->input_format);
+  gavl_video_source_set_dst(s->vsrc, 0, &s->output_format);
   }
 
-int bg_player_has_subtitle(bg_player_t * p)
+void bg_player_subtitle_unscale_time(bg_player_subtitle_stream_t * s, gavl_overlay_t * ovl)
   {
-  int ret;
-  bg_plugin_lock(p->input_handle);
-  ret= p->input_plugin->has_subtitle(p->input_priv,
-                                     p->current_subtitle_stream);
-  bg_plugin_unlock(p->input_handle);
-  //  fprintf(stderr, "bg_player_has_subtitle %d\n", ret); 
-  return ret;
-  }
-
-int bg_player_read_subtitle(bg_player_t * p, gavl_overlay_t * ovl)
-  {
-  gavl_time_t start, duration;
-  bg_player_subtitle_stream_t * s = &p->subtitle_stream;
-  
-  if(DO_SUBTITLE_TEXT(p->flags))
-    {
-    bg_plugin_lock(p->input_handle);
-    if(!p->input_plugin->read_subtitle_text(p->input_priv,
-                                            &s->buffer,
-                                            &s->buffer_alloc,
-                                            &start, &duration,
-                                            p->current_subtitle_stream))
-      {
-      bg_plugin_unlock(p->input_handle);
-      return 0;
-      }
-    bg_plugin_unlock(p->input_handle);
-    if(s->do_convert)
-      {
-      bg_text_renderer_render(s->renderer, s->buffer, s->input_subtitle);
-      gavl_video_convert(s->cnv, s->input_subtitle, ovl);
-      gavl_rectangle_i_copy(&ovl->src_rect, &s->input_subtitle->src_rect);
-      ovl->dst_x = s->input_subtitle->dst_x;
-      ovl->dst_y = s->input_subtitle->dst_y;
-      }
-    else
-      {
-      bg_text_renderer_render(s->renderer, s->buffer, ovl);
-      }
-    ovl->timestamp = start;
-    ovl->duration = duration;
-    }
-  else
-    {
-    if(s->do_convert)
-      {
-      bg_plugin_lock(p->input_handle);
-      if(!p->input_plugin->read_subtitle_overlay(p->input_priv, s->input_subtitle,
-                                                 p->current_subtitle_stream))
-        {
-        bg_plugin_unlock(p->input_handle);
-        return 0;
-        }
-      bg_plugin_unlock(p->input_handle);
-      gavl_video_convert(s->cnv, s->input_subtitle, ovl);
-      gavl_rectangle_i_copy(&ovl->src_rect, &s->input_subtitle->src_rect);
-      ovl->dst_x = s->input_subtitle->dst_x;
-      ovl->dst_y = s->input_subtitle->dst_y;
-      }
-    else
-      {
-      if(!p->input_plugin->read_subtitle_overlay(p->input_priv, ovl,
-                                                 p->current_subtitle_stream))
-        {
-        return 0;
-        }
-      }
-    }
-
-  /* Unscale the overlay times */
   ovl->timestamp =
     gavl_time_unscale(s->input_format.timescale, ovl->timestamp) +
     s->time_offset;
   ovl->duration  =
     gavl_time_unscale(s->input_format.timescale, ovl->duration);
-#ifdef DUMP_SUBTITLE
-  bg_dprintf("Got subtitle %f -> %f (%f)\n",
-             gavl_time_to_seconds(ovl->timestamp),
-             gavl_time_to_seconds(ovl->timestamp +
-                                  ovl->duration),
-             gavl_time_to_seconds(ovl->duration));
-  
-#endif
-  
-  return 1;
   }
 
 int bg_player_get_subtitle_index(bg_track_info_t * info, int stream_index, int * is_text)

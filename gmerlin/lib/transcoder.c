@@ -127,9 +127,8 @@ typedef struct
   
   gavl_compression_info_t ci;
   gavl_packet_t packet;
-
   gavl_metadata_t m;
-  
+  gavl_packet_source_t * psrc;  
   } stream_t;
 
 static int set_stream_parameters_general(stream_t * s,
@@ -192,6 +191,7 @@ typedef struct
   char in_language[4];
   char out_language[4];
   int force_language;
+  gavl_audio_source_t * asrc_in;
   } audio_stream_t;
 
 static void set_audio_parameter_general(void * data, const char * name,
@@ -268,6 +268,8 @@ typedef struct
   
   int b_frames_seen;
   int flush_b_frames;
+
+  gavl_video_source_t * vsrc_in;
   
   } video_stream_t;
 
@@ -326,19 +328,17 @@ struct subtitle_stream_s
   int64_t time_offset_scaled;
 
   int64_t subtitle_start_unscaled;
+
+  gavl_packet_source_t * psrc;
+  gavl_video_source_t * vsrc;
   };
 
 typedef struct
   {
   subtitle_stream_t com;
   bg_text_renderer_t * textrenderer;
-
-  char * text;
-  int text_alloc;
-
-  gavl_time_t subtitle_start;
-  gavl_time_t subtitle_duration;
-
+  
+  gavl_packet_t p;
   } subtitle_text_stream_t;
 
 static void set_subtitle_parameter_general(void * data,
@@ -1015,30 +1015,52 @@ static void set_input_formats(bg_transcoder_t * ret)
   int i;
   for(i = 0; i < ret->num_audio_streams; i++)
     {
-    if(ret->audio_streams[i].com.do_decode || ret->audio_streams[i].com.do_copy)
-      gavl_audio_format_copy(&ret->audio_streams[i].in_format,
-                             &ret->track_info->audio_streams[ret->audio_streams[i].com.in_index].format);
+    audio_stream_t * s = &ret->audio_streams[i];
+    
+    if(!s->com.do_decode && !s->com.do_copy)
+      continue;
+    
+    gavl_audio_format_copy(&s->in_format,
+                           &ret->track_info->audio_streams[s->com.in_index].format);
+    
     }
   for(i = 0; i < ret->num_video_streams; i++)
     {
-    if(ret->video_streams[i].com.do_decode || ret->video_streams[i].com.do_copy)
-      gavl_video_format_copy(&ret->video_streams[i].in_format,
-                             &ret->track_info->video_streams[ret->video_streams[i].com.in_index].format);
+    video_stream_t * s = &ret->video_streams[i];
+    
+    if(!s->com.do_decode && !s->com.do_copy)
+      continue;
+    
+    gavl_video_format_copy(&s->in_format,
+                           &ret->track_info->video_streams[s->com.in_index].format);
     }
   for(i = 0; i < ret->num_subtitle_overlay_streams; i++)
     {
-    if(ret->subtitle_overlay_streams[i].com.do_decode)
-      gavl_video_format_copy(&ret->subtitle_overlay_streams[i].in_format,
-                             &ret->track_info->overlay_streams[ret->subtitle_overlay_streams[i].com.in_index].format);
+    subtitle_stream_t * s = &ret->subtitle_overlay_streams[i];
+
+    if(!s->com.do_decode)
+      continue;
+
+    s->vsrc = s->com.in_plugin->get_overlay_source(s->com.in_handle->priv, s->com.in_index);
+    
+    gavl_video_format_copy(&s->in_format,
+                           &ret->track_info->overlay_streams[s->com.in_index].format);
+    
     }
-#if 0
   for(i = 0; i < ret->num_subtitle_text_streams; i++)
     {
-    if(ret->subtitle_text_streams[i].com.com.do_decode)
-      gavl_video_format_copy(&ret->subtitle_text_streams[i].com.in_format,
-                             &ret->track_info->text_streams[ret->subtitle_text_streams[i].com.com.in_index].format);
-    }
+    subtitle_text_stream_t * s = &ret->subtitle_text_streams[i];
+
+    if(!s->com.com.do_decode)
+      continue;
+
+    s->com.com.psrc = s->com.com.in_plugin->get_text_source(s->com.com.in_handle->priv, s->com.com.in_index);
+
+#if 0
+    gavl_video_format_copy(&s->com.in_format,
+                           &ret->track_info->text_streams[s->com.com.in_index].com.format);
 #endif
+    }
   }
 
 static void add_audio_stream(audio_stream_t * ret,
@@ -1406,12 +1428,13 @@ static void correct_subtitle_timestamp(subtitle_stream_t * s,
                                                  *start);
   }
 
-static int decode_subtitle_overlay(subtitle_stream_t * s, bg_transcoder_t * t,
-                                   gavl_overlay_t * ovl)
+static gavl_source_status_t
+decode_subtitle_overlay(subtitle_stream_t * s, bg_transcoder_t * t,
+                        gavl_overlay_t * ovl)
   {
-  int result;
+  gavl_source_status_t st;
+#if 0  
   subtitle_text_stream_t * st;
-
   result = s->com.in_plugin->has_subtitle(s->com.in_handle->priv, s->com.in_index);
   if(!result)
     return 0;
@@ -1457,35 +1480,49 @@ static int decode_subtitle_overlay(subtitle_stream_t * s, bg_transcoder_t * t,
                                &ovl->duration, t);
     }
   return 1;
+#else
+  st = gavl_video_source_read_frame(s->vsrc, &ovl);
+
+  if((t->end_time != GAVL_TIME_UNDEFINED) &&
+     (gavl_time_unscale(s->in_format.timescale, ovl->timestamp) >= t->end_time))
+    st = GAVL_SOURCE_EOF;
+  
+  if(st != GAVL_SOURCE_OK)
+    return st;
+
+  correct_subtitle_timestamp(s, &ovl->timestamp, &ovl->duration, t);
+  return st;
+#endif
   }
 
-static int decode_subtitle_text(subtitle_text_stream_t * s, bg_transcoder_t * t)
+static gavl_source_status_t
+decode_subtitle_text(subtitle_text_stream_t * s, bg_transcoder_t * t)
   {
-  int result;
-  result =
-    s->com.com.in_plugin->has_subtitle(s->com.com.in_handle->priv,
-                                       s->com.com.in_index);
-  if(!result)
-    return 0;
-
-  result = s->com.com.in_plugin->read_subtitle_text(s->com.com.in_handle->priv,
-                                                    &s->text, &s->text_alloc,
-                                                    &s->subtitle_start,
-                                                    &s->subtitle_duration,
-                                                    s->com.com.in_index);
+  gavl_source_status_t st;
+  gavl_packet_t * pp = &s->p;
   
-  if(!result ||
-     ((t->end_time != GAVL_TIME_UNDEFINED) &&
-      (gavl_time_unscale(s->com.in_format.timescale, s->subtitle_start) >= t->end_time)))
+  if(s->com.eof)
+    return GAVL_SOURCE_EOF;
+  
+  st = gavl_packet_source_read_packet(s->com.psrc, &pp);
+
+  if(st == GAVL_SOURCE_EOF)
+    s->com.eof = 1;
+  
+  if(st != GAVL_SOURCE_OK)
+    return st;
+
+  if((t->end_time != GAVL_TIME_UNDEFINED) &&
+     (gavl_time_unscale(s->com.in_format.timescale, pp->pts) >= t->end_time))
     {
     s->com.eof = 1;
-    return 0;
+    return GAVL_SOURCE_EOF;
     }
-
-  correct_subtitle_timestamp(&s->com, &s->subtitle_start,
-                             &s->subtitle_duration, t);
   
-  return 1;
+  correct_subtitle_timestamp(&s->com, &s->p.pts,
+                             &s->p.duration, t);
+  
+  return GAVL_SOURCE_OK;
   }
 
 
@@ -1767,15 +1804,15 @@ static int subtitle_iteration(bg_transcoder_t * t)
           {
           ret =
             bg_encoder_write_subtitle_text(t->enc,
-                                           st->text, st->subtitle_start,
-                                           st->subtitle_duration,
+                                           (char*)(st->p.data), st->p.pts,
+                                           st->p.duration,
                                            st->com.com.out_index);
 
           st->com.com.time = gavl_time_unscale(st->com.out_format.timescale,
-                                               st->subtitle_start);
+                                               st->p.pts);
           
-          if(st->subtitle_start > t->time)
-            t->time = st->subtitle_start;
+          if(st->com.com.time > t->time)
+            t->time = st->com.com.time;
           }
         else if(st->com.com.action == STREAM_ACTION_TRANSCODE_OVERLAY)
           {
@@ -2790,7 +2827,6 @@ static int init_video_converter(video_stream_t * ret, bg_transcoder_t * t)
 
 static void subtitle_init_blend(subtitle_stream_t * ss, video_stream_t * vs)
   {
-  subtitle_text_stream_t * sst;
   vs->subtitle_streams =
     realloc(vs->subtitle_streams,
             sizeof(*(vs->subtitle_streams))*(vs->num_subtitle_streams+1));
@@ -2800,17 +2836,23 @@ static void subtitle_init_blend(subtitle_stream_t * ss, video_stream_t * vs)
   /* Check whether to initialize the text renderer */
   if(ss->com.type == STREAM_TYPE_SUBTITLE_TEXT)
     {
-    sst = (subtitle_text_stream_t*)ss;
-    bg_text_renderer_init(sst->textrenderer,
-                          &vs->out_format,
-                          &ss->in_format);
+    subtitle_text_stream_t * sst = (subtitle_text_stream_t*)ss;
+
+    ss->vsrc = bg_text_renderer_connect(sst->textrenderer,
+                                        sst->com.com.psrc,
+                                        &vs->out_format,
+                                        ss->in_format.timescale);
     }
+  else
+    {
+    
+    }
+  
   if(!ss->ovl1) ss->ovl1 = gavl_video_frame_create(&ss->in_format);
   if(!ss->ovl2) ss->ovl2 = gavl_video_frame_create(&ss->in_format);
 
   ss->current_ovl = ss->ovl1;
   ss->next_ovl    = ss->ovl2;
-
   
   gavl_overlay_blend_context_init(ss->blend_context,
                                   &vs->out_format, &ss->in_format);
