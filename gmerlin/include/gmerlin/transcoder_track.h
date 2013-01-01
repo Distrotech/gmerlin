@@ -185,13 +185,6 @@ void
 bg_transcoder_track_create_parameters(bg_transcoder_track_t * track,
                                       bg_plugin_registry_t * plugin_reg);
 
-#if 0
-void
-bg_transcoder_track_set_encoders(bg_transcoder_track_t * track,
-                                 bg_plugin_registry_t * plugin_reg,
-                                 const bg_encoder_info_t * info);
-#endif
-
 void bg_transcoder_track_get_encoders(bg_transcoder_track_t * t,
                                       bg_plugin_registry_t * plugin_reg,
                                       bg_cfg_section_t * encoder_section);
@@ -199,12 +192,6 @@ void bg_transcoder_track_get_encoders(bg_transcoder_track_t * t,
 void bg_transcoder_track_set_encoders(bg_transcoder_track_t * t,
                                       bg_plugin_registry_t * plugin_reg,
                                       bg_cfg_section_t * encoder_section);
-  
-
-#if 0
-void bg_transcoder_track_create_encoder_sections(bg_transcoder_track_t * t,
-                                                 const bg_encoder_info_t * info);
-#endif
 
 /*
  *  Global options

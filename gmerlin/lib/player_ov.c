@@ -32,7 +32,7 @@
 #include <gmerlin/log.h>
 #define LOG_DOMAIN "player.video_output"
 
-// #define DUMP_SUBTITLE
+#define DUMP_SUBTITLE
 // #define DUMP_TIMESTAMPS
 
 static int accel_callback(void * data, int id)
@@ -246,11 +246,14 @@ static int overlay_is_early(gavl_overlay_t * ovl,
 #ifdef DUMP_SUBTITLE
 static void dump_subtitle(gavl_overlay_t * ovl)
   {
-  bg_dprintf("Got subtitle %f -> %f (%f)\n",
+  bg_dprintf("Got subtitle %f -> %f (%f) ",
              gavl_time_to_seconds(ovl->timestamp),
              gavl_time_to_seconds(ovl->timestamp +
                                   ovl->duration),
              gavl_time_to_seconds(ovl->duration));
+  
+  gavl_rectangle_i_dump(&ovl->src_rect);
+  bg_dprintf(" dst: %d %d\n", ovl->dst_x, ovl->dst_y);
   }
 #endif
 

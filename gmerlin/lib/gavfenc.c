@@ -553,6 +553,24 @@ static int bg_gavf_start(void * data)
     text_stream_t * s = priv->text_streams + i;
     s->com.index = gavf_add_text_stream(priv->enc, s->timescale, &s->com.m);
     }
+
+  for(i = 0; i < priv->num_overlay_streams; i++)
+    {
+    overlay_stream_t * s = priv->overlay_streams + i;
+
+    if(s->com.plugin && (s->com.ci.id == GAVL_CODEC_ID_NONE))
+      {
+      bg_codec_plugin_t * p = (bg_codec_plugin_t*)s->com.plugin->plugin;
+      /* Switch on codec */
+      s->sink = p->open_encode_video(s->com.plugin->priv,
+                                     &s->com.ci,
+                                     &s->format,
+                                     &s->com.m);
+      if(!s->sink)
+        return 0;
+      }
+    s->com.index = gavf_add_overlay_stream(priv->enc, &s->com.ci, &s->format, &s->com.m);
+    }
   
   if(!gavf_start(priv->enc))
     return 0;
@@ -576,6 +594,21 @@ static int bg_gavf_start(void * data)
   for(i = 0; i < priv->num_video_streams; i++)
     {
     video_stream_t * s = priv->video_streams + i;
+    s->com.h = priv->ph->streams + s->com.index;
+    if(s->sink) // Codec present and active
+      {
+      bg_codec_plugin_t * p = (bg_codec_plugin_t*)s->com.plugin->plugin;
+      s->com.psink = gavf_get_packet_sink(priv->enc, s->com.h->id);
+      p->set_packet_sink(s->com.plugin->priv,s->com.psink);
+      }
+    else if(s->com.ci.id == GAVL_CODEC_ID_NONE) // Write uncompressed
+      s->sink = gavf_get_video_sink(priv->enc, s->com.h->id);
+    else // Write compressed
+      s->com.psink = gavf_get_packet_sink(priv->enc, s->com.h->id);
+    }
+  for(i = 0; i < priv->num_overlay_streams; i++)
+    {
+    overlay_stream_t * s = priv->overlay_streams + i;
     s->com.h = priv->ph->streams + s->com.index;
     if(s->sink) // Codec present and active
       {

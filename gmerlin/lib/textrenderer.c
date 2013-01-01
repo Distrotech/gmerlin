@@ -33,7 +33,8 @@
 
 #include <config.h>
 #include <gmerlin/translation.h>
-
+#include <gmerlin/log.h>
+#define LOG_DOMAIN "textrenderer"
 
 #include <bgfreetype.h>
 
@@ -41,6 +42,7 @@
 #include <gmerlin/textrenderer.h>
 #include <gmerlin/utils.h>
 #include <gmerlin/charset.h>
+
 
 // #undef FT_STROKER_H
 
@@ -1382,12 +1384,139 @@ void init_nolock(bg_text_renderer_t * r)
   
   /* Copy formats */
 
-  gavl_video_format_copy(&r->overlay_format, &r->frame_format);
+  // gavl_video_format_copy(&r->overlay_format, &r->frame_format);
+  
+  if(!r->overlay_format.image_width || !r->overlay_format.image_height)
+    {
+    r->overlay_format.image_width = r->frame_format.image_width;
+    r->overlay_format.image_height = r->frame_format.image_height;
+    r->overlay_format.frame_width = r->frame_format.frame_width;
+    r->overlay_format.frame_height = r->frame_format.frame_height;
+    r->overlay_format.pixel_width = r->frame_format.pixel_width;
+    r->overlay_format.pixel_height = r->frame_format.pixel_height;
+    }
+  if(!gavl_pixelformat_has_alpha(r->overlay_format.pixelformat))
+    {
+    gavl_video_format_t fmt;
+    
+    gavl_overlay_blend_context_t * ctx;
+    ctx = gavl_overlay_blend_context_create();
+    gavl_video_format_copy(&fmt,
+                           &r->frame_format);
+
+    gavl_overlay_blend_context_init(ctx,
+                                    &r->frame_format, &fmt);
+    r->overlay_format.pixelformat = fmt.pixelformat;
+    gavl_overlay_blend_context_destroy(ctx);
+    }
+  if(!r->overlay_format.timescale)
+    {
+    r->overlay_format.timescale      = r->frame_format.timescale;
+    r->overlay_format.frame_duration = r->frame_format.frame_duration;
+    r->overlay_format.framerate_mode = r->frame_format.framerate_mode;
+    }
   
   /* Decide about overlay format */
 
   gavl_pixelformat_chroma_sub(r->frame_format.pixelformat,
                               &r->sub_h, &r->sub_v);
+
+  switch(r->overlay_format.pixelformat)
+    {
+    case GAVL_RGBA_32:
+      r->alpha_i = (int)(r->alpha_f*255.0+0.5);
+#ifdef FT_STROKER_H 
+      r->color_i[0] = (int)(r->color_config[0]*255.0+0.5);
+      r->color_i[1] = (int)(r->color_config[1]*255.0+0.5);
+      r->color_i[2] = (int)(r->color_config[2]*255.0+0.5);
+      r->color_i[3] = (int)(r->color_config[3]*255.0+0.5);
+#endif
+      r->render_func = render_rgba_32;
+      break;
+    case GAVL_RGBA_64:
+      r->alpha_i = (int)(r->alpha_f*65535.0+0.5);
+#ifdef FT_STROKER_H 
+      r->color_i[0] = (int)(r->color_config[0]*65535.0+0.5);
+      r->color_i[1] = (int)(r->color_config[1]*65535.0+0.5);
+      r->color_i[2] = (int)(r->color_config[2]*65535.0+0.5);
+      r->color_i[3] = (int)(r->color_config[3]*65535.0+0.5);
+#endif
+      r->render_func = render_rgba_64;
+      break;
+    case GAVL_RGBA_FLOAT:
+      r->render_func = render_rgba_float;
+      r->color[0] = r->color_config[0];
+      r->color[1] = r->color_config[1];
+      r->color[2] = r->color_config[2];
+      break;
+    case GAVL_YUVA_32:
+      r->alpha_i = (int)(r->alpha_f*255.0+0.5);
+#ifdef FT_STROKER_H 
+      RGB_FLOAT_TO_YUV_8(r->color_config[0],
+                         r->color_config[1],
+                         r->color_config[2],
+                         r->color_i[0],
+                         r->color_i[1],
+                         r->color_i[2]);
+      r->color_i[3] = (int)(r->color[3]*255.0+0.5);
+#endif
+      r->render_func = render_rgba_32;
+      break;
+    case GAVL_YUVA_64:
+      r->alpha_i = (int)(r->alpha_f*65535.0+0.5);
+#ifdef FT_STROKER_H 
+      RGB_FLOAT_TO_YUV_16(r->color_config[0],
+                          r->color_config[1],
+                          r->color_config[2],
+                          r->color_i[0],
+                          r->color_i[1],
+                          r->color_i[2]);
+      r->color_i[3] = (int)(r->color[3]*65535.0+0.5);
+#endif
+      r->render_func = render_rgba_64;
+      break;
+    case GAVL_YUVA_FLOAT:
+#ifdef FT_STROKER_H 
+      RGB_FLOAT_TO_YUV_FLOAT(r->color_config[0],
+                             r->color_config[1],
+                             r->color_config[2],
+                             r->color[0],
+                             r->color[1],
+                             r->color[2]);
+#endif
+      r->render_func = render_rgba_float;
+      break;
+    case GAVL_GRAYA_16:
+      r->alpha_i = (int)(r->alpha_f*255.0+0.5);
+#ifdef FT_STROKER_H 
+      RGB_FLOAT_TO_GRAY_8(r->color_config[0],
+                          r->color_config[1],
+                          r->color_config[2],
+                          r->color_i[0]);
+#endif
+      r->render_func = render_graya_16;
+      break;      
+    case GAVL_GRAYA_32:
+      r->alpha_i = (int)(r->alpha_f*65535.0+0.5);
+#ifdef FT_STROKER_H 
+      RGB_FLOAT_TO_GRAY_16(r->color_config[0],
+                           r->color_config[1],
+                           r->color_config[2],
+                           r->color_i[0]);
+#endif
+      r->render_func = render_graya_32;
+      break;
+    case GAVL_GRAYA_FLOAT:
+      r->render_func = render_graya_float;
+      RGB_FLOAT_TO_GRAY_FLOAT(r->color_config[0],
+                              r->color_config[1],
+                              r->color_config[2],
+                              r->color[0]);
+      break;      
+    default:
+      bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Unknown pixelformat %s",
+             gavl_pixelformat_to_string(r->overlay_format.pixelformat));
+    }
   
   if(gavl_pixelformat_is_rgb(r->frame_format.pixelformat))
     {
@@ -1563,50 +1692,6 @@ void init_nolock(bg_text_renderer_t * r)
   
   }
 
-void bg_text_renderer_init(bg_text_renderer_t * r,
-                           const gavl_video_format_t * frame_format,
-                           gavl_video_format_t * overlay_format)
-  {
-  int timescale, frame_duration;
-  
-  pthread_mutex_lock(&r->config_mutex);
-
-  timescale      = overlay_format->timescale;
-  frame_duration = overlay_format->frame_duration;
-    
-  if(frame_format)
-    {
-    gavl_video_format_copy(&r->frame_format, frame_format);
-    }
-  else
-    {
-    memset(&r->frame_format, 0, sizeof(r->frame_format));
-    r->frame_format.image_width  = r->default_width;
-    r->frame_format.image_height = r->default_height;
-
-    r->frame_format.frame_width  = r->default_width;
-    r->frame_format.frame_height = r->default_height;
-
-    r->frame_format.pixel_width = 1;
-    r->frame_format.pixel_height = 1;
-    r->frame_format.pixelformat = r->default_csp;
-    r->frame_format.timescale = (int)(r->default_framerate * 1000 + 0.5);
-    r->frame_format.frame_duration = 1000;
-    
-    }
-  
-  init_nolock(r);
-
-  r->overlay_format.timescale      = timescale;
-  r->overlay_format.frame_duration = frame_duration;
-
-  gavl_video_format_copy(overlay_format, &r->overlay_format);
-
-  r->config_changed = 0;
-
-  
-  pthread_mutex_unlock(&r->config_mutex);
-  }
 
 void bg_text_renderer_get_frame_format(bg_text_renderer_t * r,
                                        gavl_video_format_t * frame_format)
@@ -1848,21 +1933,68 @@ static gavl_source_status_t read_video(void * priv, gavl_video_frame_t ** frame)
   return GAVL_SOURCE_OK;
   }
 
+static void init_common(bg_text_renderer_t * r,
+                        const gavl_video_format_t * frame_format,
+                        gavl_video_format_t * overlay_format)
+  {
+  if(overlay_format)
+    gavl_video_format_copy(&r->overlay_format, overlay_format);
+  else
+    memset(&r->overlay_format, 0, sizeof(r->overlay_format));
+  
+  if(frame_format)
+    {
+    gavl_video_format_copy(&r->frame_format, frame_format);
+    }
+  else
+    {
+    memset(&r->frame_format, 0, sizeof(r->frame_format));
+    r->frame_format.image_width  = r->default_width;
+    r->frame_format.image_height = r->default_height;
+
+    r->frame_format.frame_width  = r->default_width;
+    r->frame_format.frame_height = r->default_height;
+
+    r->frame_format.pixel_width = 1;
+    r->frame_format.pixel_height = 1;
+    r->frame_format.pixelformat = r->default_csp;
+    r->frame_format.timescale = (int)(r->default_framerate * 1000 + 0.5);
+    r->frame_format.frame_duration = 1000;
+    
+    }
+  
+  init_nolock(r);
+  
+  gavl_video_format_copy(overlay_format, &r->overlay_format);
+
+  r->config_changed = 0;
+  }
+
 gavl_video_source_t * bg_text_renderer_connect(bg_text_renderer_t * r,
                                                gavl_packet_source_t * src,
                                                const gavl_video_format_t * frame_format,
-                                               int timescale)
+                                               gavl_video_format_t * overlay_format)
   {
-  gavl_video_format_t overlay_format;
+  pthread_mutex_lock(&r->config_mutex);
+  
   r->psrc = src;
 
-  memset(&overlay_format, 0, sizeof(overlay_format));
-  
-  bg_text_renderer_init(r, frame_format, &overlay_format);
+  init_common(r, frame_format, overlay_format);
+  pthread_mutex_unlock(&r->config_mutex);
 
+  
   if(r->vsrc)
     gavl_video_source_destroy(r->vsrc);
   
-  r->vsrc = gavl_video_source_create(read_video, r, 0, &overlay_format);
+  r->vsrc = gavl_video_source_create(read_video, r, 0, overlay_format);
   return r->vsrc;
+  }
+
+void bg_text_renderer_init(bg_text_renderer_t * r,
+                           const gavl_video_format_t * frame_format,
+                           gavl_video_format_t * overlay_format)
+  {
+  pthread_mutex_lock(&r->config_mutex);
+  init_common(r, frame_format, overlay_format);
+  pthread_mutex_unlock(&r->config_mutex);
   }

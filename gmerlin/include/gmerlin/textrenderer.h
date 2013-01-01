@@ -47,4 +47,4 @@ void bg_text_renderer_render(bg_text_renderer_t*,
 gavl_video_source_t * bg_text_renderer_connect(bg_text_renderer_t * r,
                                                gavl_packet_source_t * src,
                                                const gavl_video_format_t * frame_format,
-                                               int timescale);
+                                               gavl_video_format_t * overlay_format);

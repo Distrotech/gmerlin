@@ -64,6 +64,10 @@ int bg_player_subtitle_init(bg_player_t * player)
       }
     gavl_packet_source_set_lock_funcs(psrc, bg_plugin_lock, bg_plugin_unlock,
                                       player->input_handle);
+
+    player->subtitle_stream.input_format.timescale = player->track_info->text_streams[index].timescale;
+    player->subtitle_stream.input_format.frame_duration = 0;
+    player->subtitle_stream.input_format.framerate_mode = GAVL_FRAMERATE_VARIABLE;
     
     pthread_mutex_lock(&s->config_mutex);
     if(DO_SUBTITLE_ONLY(player->flags))
@@ -71,7 +75,7 @@ int bg_player_subtitle_init(bg_player_t * player)
       s->vsrc = bg_text_renderer_connect(s->renderer,
                                          psrc,
                                          NULL,
-                                         player->track_info->text_streams[index].timescale);
+                                         &player->subtitle_stream.input_format);
       
       bg_text_renderer_get_frame_format(player->subtitle_stream.renderer,
                                         &player->video_stream.input_format);
@@ -83,7 +87,7 @@ int bg_player_subtitle_init(bg_player_t * player)
       s->vsrc = bg_text_renderer_connect(s->renderer,
                                          psrc,
                                          &player->video_stream.output_format,
-                                         player->track_info->text_streams[index].timescale);
+                                         &player->subtitle_stream.input_format);
       }
     pthread_mutex_unlock(&player->subtitle_stream.config_mutex);
 
