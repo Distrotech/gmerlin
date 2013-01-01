@@ -508,7 +508,21 @@ static gavl_source_status_t read_video_func(void * priv,
   // fprintf(stderr, "Read video func done\n");
   
   return GAVL_SOURCE_OK;
-    
+  }
+
+static gavl_source_status_t read_overlay_func(void * priv,
+                                              gavl_video_frame_t ** f)
+  {
+  gavl_source_status_t st;
+  gavl_packet_t * p = NULL;
+  stream_t * s = priv;
+  // fprintf(stderr, "Read video func\n");
+  if((st = gavl_packet_source_read_packet(s->src_ext, &p))
+     != GAVL_SOURCE_OK)
+    return st;
+  gavf_packet_to_overlay(p, *f, &s->h->format.video);
+  // fprintf(stderr, "Read video func done\n");
+  return GAVL_SOURCE_OK;
   }
 
 static bg_plugin_handle_t * load_decompressor(bg_plugin_registry_t * plugin_reg,
@@ -623,9 +637,8 @@ static int init_read(bg_plug_t * p)
     if(s->h->ci.id == GAVL_CODEC_ID_NONE)
       {
       s->vsrc =
-        gavl_video_source_create(read_video_func, s,
-                                 GAVL_SOURCE_SRC_ALLOC,
-                                 &s->h->format.video);
+        gavl_video_source_create(read_overlay_func, s,
+                                 0, &s->h->format.video);
       s->vframe = gavl_video_frame_create(NULL);
       }
     else if(s->action == BG_STREAM_ACTION_DECODE)
@@ -705,6 +718,22 @@ static gavl_sink_status_t put_video_func(void * priv,
 #endif
   return gavl_packet_sink_put_packet(vs->sink_ext, vs->p_ext);;
   }
+
+static gavl_sink_status_t put_overlay_func(void * priv,
+                                           gavl_video_frame_t * f)
+  {
+  stream_t * vs = priv;
+  vs->p_ext = gavl_packet_sink_get_packet(vs->sink_ext);
+  gavl_packet_alloc(vs->p_ext, vs->h->ci.max_packet_size);
+  gavf_overlay_to_packet(f, vs->p_ext, &vs->h->format.video);
+#ifdef DUMP_PACKETS
+  fprintf(stderr, "Got video packet\n");
+  gavl_packet_dump(vs->p_ext);
+#endif
+  return gavl_packet_sink_put_packet(vs->sink_ext, vs->p_ext);;
+  }
+
+
 
 /* Packet */
 
@@ -893,7 +922,7 @@ static int init_write(bg_plug_t * p)
     if(s->h->ci.id == GAVL_CODEC_ID_NONE)
       {
       s->vsink = gavl_video_sink_create(get_video_func,
-                                       put_video_func,
+                                        put_video_func,
                                        s, &s->h->format.video);
       s->vframe = gavl_video_frame_create(NULL);
       }
@@ -905,8 +934,8 @@ static int init_write(bg_plug_t * p)
     
     if(s->h->ci.id == GAVL_CODEC_ID_NONE)
       {
-      s->vsink = gavl_video_sink_create(get_video_func,
-                                        put_video_func,
+      s->vsink = gavl_video_sink_create(NULL,
+                                        put_overlay_func,
                                         s, &s->h->format.video);
       s->vframe = gavl_video_frame_create(NULL);
       }
