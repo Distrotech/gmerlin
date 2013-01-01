@@ -105,6 +105,19 @@ read_video_func(void * priv, gavl_video_frame_t ** frame)
   return GAVL_SOURCE_OK;
   }
 
+static gavl_source_status_t
+read_overlay_func(void * priv, gavl_video_frame_t ** frame)
+  {
+  gavl_packet_t * p = NULL;
+  gavl_source_status_t st;
+  gavf_stream_t * s = priv;
+  
+  if((st = gavl_packet_source_read_packet(s->psrc, &p)) != GAVL_SOURCE_OK)
+    return st;
+  gavf_packet_to_overlay(p, *frame, &s->h->format.video);
+  return GAVL_SOURCE_OK;
+  }
+
 gavl_video_source_t *
 gavf_get_video_source(gavf_t * g, uint32_t id)
   {
@@ -119,9 +132,15 @@ gavf_get_video_source(gavf_t * g, uint32_t id)
     return NULL;
 
   if(!s->vsrc)
-    s->vsrc = gavl_video_source_create(read_video_func, s,
-                                       GAVL_SOURCE_SRC_ALLOC,
-                                       &s->h->format.video);
+    {
+    if(s->h->type == GAVF_STREAM_VIDEO)
+      s->vsrc = gavl_video_source_create(read_video_func, s,
+                                         GAVL_SOURCE_SRC_ALLOC,
+                                         &s->h->format.video);
+    else if(s->h->type == GAVF_STREAM_OVERLAY)
+      s->vsrc = gavl_video_source_create(read_overlay_func, s,
+                                         0, &s->h->format.video);
+    }
   return s->vsrc;
   }
 
@@ -197,7 +216,6 @@ get_video_func(void * priv)
   gavf_stream_t * s = priv;
 
   s->p = gavl_packet_sink_get_packet(s->psink);
-  
   gavl_packet_reset(s->p);
   gavl_packet_alloc(s->p, s->h->ci.max_packet_size);
 
@@ -221,6 +239,21 @@ put_video_func(void * priv, gavl_video_frame_t * frame)
   return st;
   }
 
+static gavl_sink_status_t
+put_overlay_func(void * priv, gavl_video_frame_t * frame)
+  {
+  gavl_sink_status_t st;
+  gavf_stream_t * s = priv;
+
+  s->p = gavl_packet_sink_get_packet(s->psink);
+  gavl_packet_reset(s->p);
+  gavl_packet_alloc(s->p, s->h->ci.max_packet_size);
+  gavf_overlay_to_packet(frame, s->p, &s->h->format.video);
+  st = gavl_packet_sink_put_packet(s->psink, s->p);
+  s->p = NULL;
+  return st;
+  }
+
 gavl_video_sink_t *
 gavf_get_video_sink(gavf_t * g, uint32_t id)
   {
@@ -234,9 +267,16 @@ gavf_get_video_sink(gavf_t * g, uint32_t id)
     return NULL;
 
   if(!s->vsink)
-    s->vsink = gavl_video_sink_create(get_video_func,
-                                      put_video_func, s,
-                                      &s->h->format.video);
-
+    {
+    if(s->h->type == GAVF_STREAM_VIDEO)
+      s->vsink = gavl_video_sink_create(get_video_func,
+                                        put_video_func, s,
+                                        &s->h->format.video);
+    else if(s->h->type == GAVF_STREAM_OVERLAY)
+      s->vsink = gavl_video_sink_create(NULL,
+                                        put_overlay_func, s,
+                                        &s->h->format.video);
+    }
+  
   return s->vsink;
   }

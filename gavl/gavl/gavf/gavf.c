@@ -1005,10 +1005,11 @@ int gavf_write_video_frame(gavf_t * g,
 void gavf_packet_to_video_frame(gavl_packet_t * p, gavl_video_frame_t * frame,
                                 const gavl_video_format_t * format)
   {
-  frame->timecode  = p->timecode;
   frame->timestamp = p->pts;
-  frame->interlace_mode = p->interlace_mode;
   frame->duration = p->duration;
+
+  frame->interlace_mode = p->interlace_mode;
+  frame->timecode  = p->timecode;
 
   gavl_rectangle_i_copy(&frame->src_rect, &p->src_rect);
   frame->dst_x = p->dst_x;
@@ -1016,6 +1017,82 @@ void gavf_packet_to_video_frame(gavl_packet_t * p, gavl_video_frame_t * frame,
   
   frame->strides[0] = 0;
   gavl_video_frame_set_planes(frame, format, p->data);
+  }
+
+static void get_overlay_format(const gavl_video_format_t * src,
+                               gavl_video_format_t * dst,
+                               const gavl_rectangle_i_t * src_rect)
+  {
+  gavl_video_format_copy(dst, src);
+  dst->image_width  = src_rect->w + src_rect->x;
+  dst->image_height = src_rect->h + src_rect->y;
+  gavl_video_format_set_frame_size(dst, 0, 0);
+  }
+
+void gavf_packet_to_overlay(gavl_packet_t * p, gavl_video_frame_t * frame,
+                            const gavl_video_format_t * format)
+  {
+  gavl_video_format_t copy_format;
+  gavl_video_frame_t tmp_frame_src;
+  
+  frame->timestamp = p->pts;
+  frame->duration  = p->duration;
+  
+  memset(&tmp_frame_src, 0, sizeof(tmp_frame_src));
+
+  get_overlay_format(format, &copy_format, &p->src_rect);
+  gavl_video_frame_set_planes(&tmp_frame_src, &copy_format, p->data);
+  
+  gavl_video_frame_copy(&copy_format, frame, &tmp_frame_src);
+
+  gavl_rectangle_i_copy(&frame->src_rect, &p->src_rect);
+  frame->dst_x = p->dst_x;
+  frame->dst_y = p->dst_y;
+  }
+
+void gavf_overlay_to_packet(gavl_video_frame_t * frame, 
+                            gavl_packet_t * p,
+                            const gavl_video_format_t * format)
+  {
+  gavl_video_format_t copy_format;
+  gavl_video_frame_t tmp_frame_src;
+  gavl_video_frame_t tmp_frame_dst;
+  int sub_h, sub_v; // Not necessary yet but well....
+  gavl_rectangle_i_t rect;
+  p->pts      = frame->timestamp;
+  p->duration = frame->duration;
+  
+  memset(&tmp_frame_src, 0, sizeof(tmp_frame_src));
+  memset(&tmp_frame_dst, 0, sizeof(tmp_frame_dst));
+  gavl_pixelformat_chroma_sub(format->pixelformat, &sub_h, &sub_v);
+  
+  gavl_rectangle_i_copy(&p->src_rect, &frame->src_rect);
+
+  /* Shift rectangles */
+
+  p->src_rect.x = frame->src_rect.x % sub_h;
+  p->src_rect.y = frame->src_rect.y % sub_v;
+  
+  get_overlay_format(format, &copy_format, &p->src_rect);
+
+  rect.x = frame->src_rect.x - p->src_rect.x;
+  rect.y = frame->src_rect.y - p->src_rect.y;
+  rect.w = copy_format.image_width;
+  rect.h = copy_format.image_height;
+  
+  gavl_video_frame_get_subframe(format->pixelformat,
+                                frame,
+                                &tmp_frame_src,
+                                &rect);
+
+  /* p->data is assumed to have the proper allocation already!! */
+  gavl_video_frame_set_planes(&tmp_frame_dst, &copy_format, p->data);
+
+  gavl_video_frame_copy(&copy_format, &tmp_frame_dst, &tmp_frame_src);
+  
+  p->dst_x = frame->dst_x;
+  p->dst_y = frame->dst_y;
+  p->data_len = gavl_video_format_get_image_size(&copy_format);
   }
 
 void gavf_audio_frame_to_packet_metadata(const gavl_audio_frame_t * frame,

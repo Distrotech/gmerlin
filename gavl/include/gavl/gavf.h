@@ -200,6 +200,19 @@ GAVL_PUBLIC
 void gavf_packet_to_audio_frame(gavl_packet_t * p, gavl_audio_frame_t * frame,
                                 const gavl_audio_format_t * format);
 
+/* frame must be allocated with the maximum size already! */
+
+GAVL_PUBLIC
+void gavf_packet_to_overlay(gavl_packet_t * p,
+                            gavl_video_frame_t * frame,
+                            const gavl_video_format_t * format);
+
+/* Packet must be allocated with the maximum size already! */
+GAVL_PUBLIC
+void gavf_overlay_to_packet(gavl_video_frame_t * frame, 
+                            gavl_packet_t * p,
+                            const gavl_video_format_t * format);
+
 /* These copy *only* the metadata */
 GAVL_PUBLIC
 void gavf_video_frame_to_packet_metadata(const gavl_video_frame_t * frame,
