@@ -1512,6 +1512,9 @@ void gavl_video_frame_copy_metadata(gavl_video_frame_t * dst,
   dst->duration        = src->duration;
   dst->timecode        = src->timecode;
   dst->interlace_mode  = src->interlace_mode;
+  dst->dst_x           = src->dst_x;
+  dst->dst_y           = src->dst_y;
+  gavl_rectangle_i_copy(&dst->src_rect, &src->src_rect);
   }
 
 void gavl_video_frame_set_strides(gavl_video_frame_t * frame,

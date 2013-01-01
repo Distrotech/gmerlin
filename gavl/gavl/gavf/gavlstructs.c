@@ -768,15 +768,11 @@ int gavf_write_gavl_packet_header(gavf_io_t * io,
       buf.len = 0;
       if(!gavf_io_write_int32v(&bufio, p->dst_x) ||
          !gavf_io_write_int32v(&bufio, p->dst_y) ||
-         !gavf_extension_write(io, GAVF_EXT_PK_SRC_RECT,
+         !gavf_extension_write(io, GAVF_EXT_PK_DST_COORDS,
                                buf.len, buf.buf))
         return 0;
       }
     }
-  
-  /* Payload */
-  //  if(gavf_io_write_data(io, p->data, p->data_len) < p->data_len)
-  //    return 0;
   return 1;
   }
 

@@ -19,6 +19,7 @@ read_packet_func_nobuffer(void * priv, gavl_packet_t ** p)
   
   if(!gavf_read_gavl_packet(s->g->io, s, *p))
     return GAVL_SOURCE_EOF;
+  
   return GAVL_SOURCE_OK;
   }
 
@@ -69,7 +70,6 @@ read_packet_func_buffer_discont(void * priv, gavl_packet_t ** p)
     return GAVL_SOURCE_AGAIN;
   }
 
-
 void gavf_stream_create_packet_src(gavf_t * g, gavf_stream_t * s)
   {
   gavl_packet_source_func_t func;
@@ -97,14 +97,17 @@ void gavf_stream_create_packet_src(gavf_t * g, gavf_stream_t * s)
   switch(s->h->type)
     {
     case GAVF_STREAM_AUDIO:
-      s->psrc = gavl_packet_source_create_audio(func, s, flags, &s->h->ci, &s->h->format.audio);
+      s->psrc = gavl_packet_source_create_audio(func, s, flags,
+                                                &s->h->ci, &s->h->format.audio);
       break;
     case GAVF_STREAM_OVERLAY:
     case GAVF_STREAM_VIDEO:
-      s->psrc = gavl_packet_source_create_video(func, s, flags, &s->h->ci, &s->h->format.video);
+      s->psrc = gavl_packet_source_create_video(func, s, flags,
+                                                &s->h->ci, &s->h->format.video);
       break;
     case GAVF_STREAM_TEXT:
-      s->psrc = gavl_packet_source_create_text(func, s, flags, s->h->format.text.timescale);
+      s->psrc = gavl_packet_source_create_text(func, s, flags,
+                                               s->h->format.text.timescale);
       break;
     }
   }

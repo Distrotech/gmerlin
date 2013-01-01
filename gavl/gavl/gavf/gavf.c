@@ -381,7 +381,8 @@ static void gavf_stream_init_video(gavf_t * g, gavf_stream_t * s)
   {
   s->timescale = s->h->format.video.timescale;
 
-  if(s->h->ci.flags & GAVL_COMPRESSION_HAS_B_FRAMES)
+  if((s->h->ci.flags & GAVL_COMPRESSION_HAS_B_FRAMES) ||
+     (s->h->type == GAVF_STREAM_OVERLAY))
     s->flags |= STREAM_FLAG_HAS_PTS;
   
   if(s->h->ci.flags & GAVL_COMPRESSION_HAS_P_FRAMES)

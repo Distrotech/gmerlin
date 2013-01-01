@@ -73,8 +73,8 @@ gavl_overlay_blend_context_init(gavl_overlay_blend_context_t * ctx,
   
   /* Check for non alpha capable overlay format */
 
-  if(!gavl_pixelformat_has_alpha(ovl_format->pixelformat))
-    return 0;
+  //  if(!gavl_pixelformat_has_alpha(ovl_format->pixelformat))
+  //    return 0;
   
   /* Copy formats */
   gavl_video_format_copy(&ctx->dst_format, dst_format);

@@ -327,7 +327,7 @@ static const char * coding_type_strings[4] =
 
 void gavl_packet_dump(const gavl_packet_t * p)
   {
-  fprintf(stderr, "Packet: sz: %d ", p->data_len);
+  fprintf(stderr, "sz: %d ", p->data_len);
 
   if(p->pts != GAVL_TIME_UNDEFINED)
     fprintf(stderr, "pts: %"PRId64" ", p->pts);
@@ -339,8 +339,17 @@ void gavl_packet_dump(const gavl_packet_t * p)
   fprintf(stderr, " head: %d, f2: %d",
           p->header_size, p->field2_offset);
 
-  fprintf(stderr, " type: %s\n", coding_type_strings[p->flags & GAVL_PACKET_TYPE_MASK]);
-          
+  fprintf(stderr, " type: %s ", coding_type_strings[p->flags & GAVL_PACKET_TYPE_MASK]);
+
+  if(p->src_rect.w && p->src_rect.h)
+    {
+    fprintf(stderr, " src_rect: ");
+    gavl_rectangle_i_dump(&p->src_rect);
+    }
+  if(p->dst_x || p->dst_y)
+    fprintf(stderr, " dst: %d %d", p->dst_x, p->dst_y);
+
+  fprintf(stderr, "\n");
   hexdump(p->data, p->data_len < 16 ? p->data_len : 16, 16);
   
   }
