@@ -333,11 +333,14 @@ static int start_subtitle(void * data, bgav_stream_t * s)
     return 0;
     }
     
-  /* For text subtitles, copy the video format */
+  /*
+   *  For text subtitles, copy the video format.
+   *  TODO: This shouldn't be necessary!!
+   */
     
   if(s->type == BGAV_STREAM_SUBTITLE_TEXT)
     {
-    gavl_video_format_copy(&s->data.subtitle.format,
+    gavl_video_format_copy(&s->data.subtitle.video.format,
                            video_format);
     }
     

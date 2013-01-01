@@ -119,7 +119,7 @@ read_header_tiff(bgav_stream_t * s,
                  gavl_video_format_t * format)
   {
   gavl_source_status_t st;
-  tiff_t *p = s->data.video.decoder->priv;
+  tiff_t *p = s->decoder_priv;
 
   p->packet = NULL;
 
@@ -184,7 +184,7 @@ static int read_image_tiff(bgav_stream_t * s, gavl_video_frame_t * frame)
   uint8_t * frame_ptr_start;
   int i, j;
   
-  tiff_t *p = s->data.video.decoder->priv;
+  tiff_t *p = s->decoder_priv;
 
   if(!p->raster)
     p->raster =
@@ -245,7 +245,7 @@ static int init_tiff(bgav_stream_t * s)
   {
   tiff_t * priv;
   priv = calloc(1, sizeof(*priv));
-  s->data.video.decoder->priv = priv;
+  s->decoder_priv = priv;
   s->flags |= STREAM_INTRA_ONLY;
   
   /* We support RGBA for streams with a depth of 32 */
@@ -267,7 +267,7 @@ decode_tiff(bgav_stream_t * s, gavl_video_frame_t * frame)
   {
   gavl_source_status_t st;
   tiff_t * priv;
-  priv = s->data.video.decoder->priv;
+  priv = s->decoder_priv;
 
   
   /* We decode only if we have a frame */
@@ -292,7 +292,7 @@ decode_tiff(bgav_stream_t * s, gavl_video_frame_t * frame)
 static void close_tiff(bgav_stream_t * s)
   {
   tiff_t * priv;
-  priv = s->data.video.decoder->priv;
+  priv = s->decoder_priv;
 
   if (priv->raster) _TIFFfree(priv->raster);
 
@@ -301,7 +301,7 @@ static void close_tiff(bgav_stream_t * s)
 
 static void resync_tiff(bgav_stream_t * s)
   {
-  tiff_t *p = s->data.video.decoder->priv;
+  tiff_t *p = s->decoder_priv;
   
   if(p->packet)
     {

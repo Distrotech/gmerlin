@@ -36,7 +36,7 @@ static gavl_source_status_t decode_frame_gavf_audio(bgav_stream_t * s)
   {
   gavl_source_status_t st;
   gavl_packet_t p;
-  gavf_audio_t * priv = s->data.audio.decoder->priv;
+  gavf_audio_t * priv = s->decoder_priv;
 
   if(priv->p)
     {
@@ -62,7 +62,7 @@ static gavl_source_status_t decode_frame_gavf_audio(bgav_stream_t * s)
 
 static void close_gavf_audio(bgav_stream_t * s)
   {
-  gavf_audio_t * priv = s->data.audio.decoder->priv;
+  gavf_audio_t * priv = s->decoder_priv;
   
   if(priv->frame)
     {
@@ -74,7 +74,7 @@ static void close_gavf_audio(bgav_stream_t * s)
 
 static void resync_gavf_audio(bgav_stream_t * s)
   {
-  gavf_audio_t * priv = s->data.audio.decoder->priv;
+  gavf_audio_t * priv = s->decoder_priv;
 
   if(priv->p)
     {
@@ -87,7 +87,7 @@ static int init_gavf_audio(bgav_stream_t * s)
   {
   gavf_audio_t * priv;
   priv = calloc(1, sizeof(*priv));
-  s->data.audio.decoder->priv = priv;
+  s->decoder_priv = priv;
 
   priv->frame = gavl_audio_frame_create(NULL);
   return 1;

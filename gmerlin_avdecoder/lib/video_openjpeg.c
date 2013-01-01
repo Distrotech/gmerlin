@@ -120,7 +120,7 @@ static gavl_source_status_t decode_openjpeg(bgav_stream_t * s, gavl_video_frame_
   opj_cio_t *cio;
   gavl_source_status_t st;
   
-  priv = s->data.video.decoder->priv;
+  priv = s->decoder_priv;
 
   if(!(s->flags & STREAM_HAVE_FRAME))
     {
@@ -193,7 +193,7 @@ static int init_openjpeg(bgav_stream_t * s)
   {
   openjpeg_priv_t * priv;
   priv = calloc(1, sizeof(*priv));
-  s->data.video.decoder->priv = priv;
+  s->decoder_priv = priv;
   s->flags |= STREAM_INTRA_ONLY;
   
   priv->event_mgr.error_handler = error_callback;
@@ -242,7 +242,7 @@ static int init_openjpeg(bgav_stream_t * s)
 static void close_openjpeg(bgav_stream_t * s)
   {
   openjpeg_priv_t * priv;
-  priv = s->data.video.decoder->priv;
+  priv = s->decoder_priv;
   
   /* free remaining structures */
   if(priv->dinfo)
@@ -255,7 +255,7 @@ static void close_openjpeg(bgav_stream_t * s)
 static void resync_openjpeg(bgav_stream_t * s)
   {
   openjpeg_priv_t * priv;
-  priv = s->data.video.decoder->priv;
+  priv = s->decoder_priv;
   }
 #endif
 

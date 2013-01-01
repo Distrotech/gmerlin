@@ -57,8 +57,6 @@ typedef struct bgav_subtitle_reader_s bgav_subtitle_reader_t;
 typedef struct bgav_subtitle_reader_context_s bgav_subtitle_reader_context_t;
 typedef struct bgav_subtitle_converter_s bgav_subtitle_converter_t;
 
-typedef struct bgav_audio_decoder_context_s bgav_audio_decoder_context_t;
-typedef struct bgav_video_decoder_context_s bgav_video_decoder_context_t;
 // typedef struct bgav_subtitle_overlay_decoder_context_s
 // bgav_subtitle_overlay_decoder_context_t;
 
@@ -160,26 +158,6 @@ struct bgav_subtitle_overlay_decoder_s
   void (*resync)(bgav_stream_t*);
   // void (*parse)(bgav_stream_t*);
   bgav_subtitle_overlay_decoder_t * next;
-  };
-#endif
-
-struct bgav_audio_decoder_context_s
-  {
-  void * priv;
-  const bgav_audio_decoder_t * decoder;
-  };
-
-struct bgav_video_decoder_context_s
-  {
-  void * priv;
-  const bgav_video_decoder_t * decoder;
-  };
-
-#if 0
-struct bgav_subtitle_overlay_decoder_context_s
-  {
-  void * priv;
-  const bgav_subtitle_overlay_decoder_t * decoder;
   };
 #endif
 
@@ -423,6 +401,34 @@ typedef enum
 #define STREAM_IS_STILL(s) \
   (s->data.video.format.framerate_mode == GAVL_FRAMERATE_STILL)
 
+typedef struct
+  {
+  int depth;
+  int planes;     /* For M$ formats only */
+  int image_size; /* For M$ formats only */
+      
+  bgav_video_decoder_t * decoder;
+  gavl_video_format_t format;
+  //      int palette_changed;
+      
+  bgav_video_parser_t * parser;
+  bgav_keyframe_table_t * kft;
+      
+  int max_ref_frames; /* Needed for VDPAU */
+      
+  bgav_video_format_tracker_t * ft;
+
+  struct
+    {
+    bgav_palette_entry_t * entries;
+    int size;
+    int sent;
+    } pal;
+      
+  gavl_video_source_t * vsrc;
+
+  } bgav_stream_video_t;
+
   
 struct bgav_stream_s
   {
@@ -430,7 +436,8 @@ struct bgav_stream_s
   uint32_t max_packet_size_tmp; // Incremented during parsing
   
   void * priv;
-
+  void * decoder_priv;
+  
   int initialized; /* Mostly means, that the format is valid */
   
   const bgav_options_t * opt;
@@ -552,13 +559,17 @@ struct bgav_stream_s
 
   /* Compression info */
   gavl_compression_info_t ci;
+
+  /* If this is set, we will pass this to the
+     source */
+  gavl_video_frame_t * vframe;
   
   union
     {
     struct
       {
       gavl_audio_format_t format;
-      bgav_audio_decoder_context_t * decoder;
+      bgav_audio_decoder_t * decoder;
       int bits_per_sample; /* In some cases, this must be set from the
                               Container to distinguish between 8 and 16 bit
                               PCM codecs. For compressed codecs like mp3, this
@@ -596,54 +607,22 @@ struct bgav_stream_s
       gavl_audio_source_t * source;
       
       } audio;
+    bgav_stream_video_t video;
     struct
       {
-      int depth;
-      int planes;     /* For M$ formats only */
-      int image_size; /* For M$ formats only */
-      
-      bgav_video_decoder_context_t * decoder;
-      gavl_video_format_t format;
-      //      int palette_changed;
-      
+      bgav_stream_video_t video;
       bgav_video_parser_t * parser;
-      bgav_keyframe_table_t * kft;
-      
-      int max_ref_frames; /* Needed for VDPAU */
-      
-      bgav_video_format_tracker_t * ft;
-
-      struct
-        {
-        bgav_palette_entry_t * entries;
-        int size;
-        int sent;
-        } pal;
-      
-      gavl_video_source_t * vsrc;
-
-      /* If this is set, we will pass this to the
-         source */
-      gavl_video_frame_t * frame;
-      } video;
-    struct
-      {
-      bgav_video_parser_t * parser;
-      /* Video format for overlays */
-      gavl_video_format_t format;
       /* Charset converter for text subtitles */
       bgav_subtitle_converter_t * cnv;
       
-      bgav_video_decoder_context_t * decoder;
       bgav_subtitle_reader_context_t * subreader;
-      gavl_video_source_t * vsrc;
       
       char * charset;
       
       /* The video stream, onto which the subtitles will be
          displayed */
       bgav_stream_t * video_stream;
-      
+
       } subtitle;
     } data;
   };

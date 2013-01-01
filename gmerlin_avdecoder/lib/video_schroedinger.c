@@ -139,7 +139,7 @@ get_data(bgav_stream_t * s, SchroBuffer ** ret_p)
   SchroBuffer * ret;
   int size;
   uint8_t * data;
-  priv = s->data.video.decoder->priv;
+  priv = s->decoder_priv;
   
   if(priv->eof)
     return GAVL_SOURCE_EOF;
@@ -231,7 +231,7 @@ static void get_format(bgav_stream_t * s)
   {
   SchroVideoFormat * format;
   schroedinger_priv_t* priv;
-  priv = s->data.video.decoder->priv;
+  priv = s->decoder_priv;
   
   format = schro_decoder_get_video_format(priv->dec);
 
@@ -295,7 +295,7 @@ static gavl_source_status_t decode_picture(bgav_stream_t * s)
   SchroFrame * frame = NULL;
   schroedinger_priv_t* priv;
   gavl_source_status_t st;
-  priv = s->data.video.decoder->priv;
+  priv = s->decoder_priv;
 
   while(1)
     {
@@ -381,12 +381,12 @@ static int init_schroedinger(bgav_stream_t * s)
   priv = calloc(1, sizeof(*priv));
   priv->last_pts = GAVL_TIME_UNDEFINED;
   
-  s->data.video.decoder->priv = priv;
+  s->decoder_priv = priv;
 
   priv->dec = schro_decoder_new();
 
   priv->frame = gavl_video_frame_create(NULL);
-  s->data.video.frame = priv->frame;
+  s->vframe = priv->frame;
   
   if(decode_picture(s) != GAVL_SOURCE_OK) /* Get format */
     return 0;
@@ -407,7 +407,7 @@ decode_schroedinger(bgav_stream_t * s, gavl_video_frame_t * frame)
   {
   gavl_source_status_t st;
   schroedinger_priv_t * priv;
-  priv = s->data.video.decoder->priv;
+  priv = s->decoder_priv;
 
   if(!priv->dec_frame && ((st = decode_picture(s)) != GAVL_SOURCE_OK))
     return st;
@@ -443,7 +443,7 @@ decode_schroedinger(bgav_stream_t * s, gavl_video_frame_t * frame)
 static void close_schroedinger(bgav_stream_t * s)
   {
   schroedinger_priv_t * priv;
-  priv = s->data.video.decoder->priv;
+  priv = s->decoder_priv;
 
   if(priv->dec)
     schro_decoder_free(priv->dec);
@@ -457,7 +457,7 @@ static void close_schroedinger(bgav_stream_t * s)
 static void resync_schroedinger(bgav_stream_t * s)
   {
   schroedinger_priv_t * priv;
-  priv = s->data.video.decoder->priv;
+  priv = s->decoder_priv;
 
   /* TODO: Skip non-keyframes and update out_time */
   

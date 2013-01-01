@@ -35,7 +35,7 @@ static gavl_source_status_t decode_frame_gavl(bgav_stream_t * s)
   gavl_t * priv;
   gavl_source_status_t st;
 
-  priv = s->data.audio.decoder->priv;
+  priv = s->decoder_priv;
 
   if(priv->p)
     {
@@ -58,7 +58,7 @@ static int init_gavl(bgav_stream_t * s)
     return 1;
   
   priv = calloc(1, sizeof(*priv));
-  s->data.audio.decoder->priv = priv;
+  s->decoder_priv = priv;
 
   /* Need to get the first packet because the dv avi decoder
      won't know the format before */
@@ -75,7 +75,7 @@ static int init_gavl(bgav_stream_t * s)
 static void close_gavl(bgav_stream_t * s)
   {
   gavl_t * priv;
-  priv = s->data.audio.decoder->priv;
+  priv = s->decoder_priv;
   if(priv)
     free(priv);
   }
@@ -83,7 +83,7 @@ static void close_gavl(bgav_stream_t * s)
 static void resync_gavl(bgav_stream_t * s)
   {
   gavl_t * priv;
-  priv = s->data.audio.decoder->priv;
+  priv = s->decoder_priv;
 
   if(priv->p)
     {

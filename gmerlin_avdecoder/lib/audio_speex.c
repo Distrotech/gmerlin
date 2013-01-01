@@ -55,7 +55,7 @@ static int init_speex(bgav_stream_t * s)
   speex_priv_t * priv;
   
   priv = calloc(1, sizeof(*priv));
-  s->data.audio.decoder->priv = priv;
+  s->decoder_priv = priv;
 
   speex_bits_init(&priv->bits);
   
@@ -117,7 +117,7 @@ static gavl_source_status_t decode_frame_speex(bgav_stream_t * s)
   speex_priv_t * priv;
   gavl_source_status_t st;
 
-  priv = s->data.audio.decoder->priv;
+  priv = s->decoder_priv;
 
   if((st = bgav_stream_get_packet_read(s, &p)) != GAVL_SOURCE_OK)
     return st;
@@ -176,7 +176,7 @@ static void close_speex(bgav_stream_t * s)
   {
   speex_priv_t * priv;
 
-  priv = s->data.audio.decoder->priv;
+  priv = s->decoder_priv;
 
   speex_bits_destroy(&priv->bits);
 

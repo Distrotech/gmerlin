@@ -190,13 +190,13 @@ static int init_real(bgav_stream_t * s)
   uint32_t version;
   
   priv = calloc(1, sizeof(*priv));
-  s->data.video.decoder->priv = priv;
+  s->decoder_priv = priv;
   
   /* Check which codec we must open */
 
   for(i = 0; i < sizeof(real_codecs) / sizeof(real_codecs[0]); i++)
     {
-    if(&real_codecs[i].decoder == s->data.video.decoder->decoder)
+    if(&real_codecs[i].decoder == s->data.video.decoder)
       {
       info = &real_codecs[i];
       break;
@@ -318,7 +318,7 @@ decode_real(bgav_stream_t * s, gavl_video_frame_t * f)
   char * dp_data;
   gavl_source_status_t st;
 
-  priv = s->data.video.decoder->priv;
+  priv = s->decoder_priv;
 
   if((st = bgav_stream_get_packet_read(s, &p)) != GAVL_SOURCE_OK)
     return st;  
@@ -353,7 +353,7 @@ decode_real(bgav_stream_t * s, gavl_video_frame_t * f)
 static void close_real(bgav_stream_t * s)
   {
   real_priv_t * priv;
-  priv = s->data.video.decoder->priv;
+  priv = s->decoder_priv;
   
   if(priv->gavl_frame)
     gavl_video_frame_destroy(priv->gavl_frame);

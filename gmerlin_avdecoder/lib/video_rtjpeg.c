@@ -42,7 +42,7 @@ static int init_rtjpeg(bgav_stream_t * s)
   rtjpeg_priv_t * priv;
   priv = calloc(1, sizeof(*priv));
   
-  s->data.video.decoder->priv = priv;
+  s->decoder_priv = priv;
 
   priv->rtjpeg = RTjpeg_init();
 
@@ -63,7 +63,7 @@ static gavl_source_status_t decode_rtjpeg(bgav_stream_t * s, gavl_video_frame_t 
   rtjpeg_priv_t * priv;
   bgav_packet_t * p = NULL;
   gavl_source_status_t st;
-  priv = s->data.video.decoder->priv;
+  priv = s->decoder_priv;
 
   /* We assume one frame per packet */
    
@@ -92,7 +92,7 @@ static gavl_source_status_t decode_rtjpeg(bgav_stream_t * s, gavl_video_frame_t 
 static void close_rtjpeg(bgav_stream_t * s)
   {
   rtjpeg_priv_t * priv;
-  priv = s->data.video.decoder->priv;
+  priv = s->decoder_priv;
 
   RTjpeg_close(priv->rtjpeg);
   gavl_video_frame_destroy(priv->frame);

@@ -80,7 +80,7 @@ static int do_resync(bgav_stream_t * s, int * flags,
 
 static void resync_dts(bgav_stream_t * s)
   {
-  dts_priv * priv = s->data.audio.decoder->priv;
+  dts_priv * priv = s->decoder_priv;
   priv->blocks_left = 0;
 
   if(priv->packet)
@@ -107,7 +107,7 @@ static gavl_source_status_t decode_frame_dts(bgav_stream_t * s)
   sample_t level = 1.0;
  
   dts_priv * priv;
-  priv = s->data.audio.decoder->priv;
+  priv = s->decoder_priv;
 
   if(!priv->blocks_left)
     {
@@ -195,7 +195,7 @@ static int init_dts(bgav_stream_t * s)
   priv->state = dts_init(0);
   priv->samples = dts_samples(priv->state);
   
-  s->data.audio.decoder->priv = priv;
+  s->decoder_priv = priv;
 
   //  dts_header_dump(&priv->header);
     
@@ -213,7 +213,7 @@ static int init_dts(bgav_stream_t * s)
 static void close_dts(bgav_stream_t * s)
   {
   dts_priv * priv;
-  priv = s->data.audio.decoder->priv;
+  priv = s->decoder_priv;
 
   if(priv->frame)
     gavl_audio_frame_destroy(priv->frame);

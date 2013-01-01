@@ -88,14 +88,14 @@ read_video_nocopy(void * sp,
   //  fprintf(stderr, "Read video nocopy\n");
   if(!check_still(s))
     return GAVL_SOURCE_AGAIN;
-  if((st = s->data.video.decoder->decoder->decode(sp, NULL)) != GAVL_SOURCE_OK)
+  if((st = s->data.video.decoder->decode(sp, NULL)) != GAVL_SOURCE_OK)
     return st;
   if(frame)
-    *frame = s->data.video.frame;
+    *frame = s->vframe;
 #ifdef DUMP_TIMESTAMPS
   bgav_dprintf("Video timestamp: %"PRId64"\n", s->data.video.frame->timestamp);
 #endif    
-  s->out_time = s->data.video.frame->timestamp + s->data.video.frame->duration;
+  s->out_time = s->vframe->timestamp + s->vframe->duration;
   s->flags &= ~STREAM_HAVE_FRAME;
   return GAVL_SOURCE_OK;
   }
@@ -110,13 +110,13 @@ static gavl_source_status_t read_video_copy(void * sp,
   
   if(frame)
     {
-    if((st = s->data.video.decoder->decoder->decode(sp, *frame)) != GAVL_SOURCE_OK)
+    if((st = s->data.video.decoder->decode(sp, *frame)) != GAVL_SOURCE_OK)
       return st;
     s->out_time = (*frame)->timestamp + (*frame)->duration;
     }
   else
     {
-    if((st = s->data.video.decoder->decoder->decode(sp, NULL)) != GAVL_SOURCE_OK)
+    if((st = s->data.video.decoder->decode(sp, NULL)) != GAVL_SOURCE_OK)
       return st;
     }
 #ifdef DUMP_TIMESTAMPS
@@ -130,7 +130,6 @@ int bgav_video_start(bgav_stream_t * s)
   {
   int result;
   bgav_video_decoder_t * dec;
-  bgav_video_decoder_context_t * ctx;
 
   if(!s->timescale && s->data.video.format.timescale)
     s->timescale = s->data.video.format.timescale;
@@ -248,19 +247,15 @@ int bgav_video_start(bgav_stream_t * s)
                s->fourcc);
       return 0;
       }
-    ctx = calloc(1, sizeof(*ctx));
-    s->data.video.decoder = ctx;
-    s->data.video.decoder->decoder = dec;
-
+    s->data.video.decoder = dec;
+    
     result = dec->init(s);
     if(!result)
       return 0;
     
-    if(s->data.video.frame)
+    if(s->vframe)
       {
       int src_flags = GAVL_SOURCE_SRC_ALLOC | s->src_flags;
-      if(!(s->flags & STREAM_INTRA_ONLY))
-        src_flags |= GAVL_SOURCE_SRC_REF;
       
       s->data.video.vsrc =
         gavl_video_source_create(read_video_nocopy,
@@ -312,8 +307,6 @@ static int bgav_video_decode(bgav_stream_t * s,
   gavl_source_status_t result;
   result = gavl_video_source_read_frame(s->data.video.vsrc,
                                         frame ? &frame : NULL);
-  if(result != GAVL_SOURCE_OK)
-    fprintf(stderr, "read video returned: %d\n", result);
   return (result == GAVL_SOURCE_OK) ? 1 : 0;
   }
 
@@ -367,8 +360,7 @@ void bgav_video_stop(bgav_stream_t * s)
     }
   if(s->data.video.decoder)
     {
-    s->data.video.decoder->decoder->close(s);
-    free(s->data.video.decoder);
+    s->data.video.decoder->close(s);
     s->data.video.decoder = NULL;
     }
   /* Clear still mode flag (it will be set during reinit) */
@@ -433,8 +425,8 @@ void bgav_video_resync(bgav_stream_t * s)
       }
     }
   
-  if(s->data.video.decoder->decoder->resync)
-    s->data.video.decoder->decoder->resync(s);
+  if(s->data.video.decoder->resync)
+    s->data.video.decoder->resync(s);
   }
 
 /* Skipping to a specified time can happen in 3 ways:
@@ -503,9 +495,9 @@ int bgav_video_skipto(bgav_stream_t * s, int64_t * time, int scale)
     return 1;
     }
   
-  if(s->data.video.decoder->decoder->skipto)
+  if(s->data.video.decoder->skipto)
     {
-    if(!s->data.video.decoder->decoder->skipto(s, time_scaled))
+    if(!s->data.video.decoder->skipto(s, time_scaled))
       return 0;
     }
   else

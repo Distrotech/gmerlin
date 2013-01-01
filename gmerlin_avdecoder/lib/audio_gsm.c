@@ -55,7 +55,7 @@ static int init_gsm(bgav_stream_t * s)
   /* Allocate stuff */
   priv = calloc(1, sizeof(*priv));
   priv->gsm_state = gsm_create();
-  s->data.audio.decoder->priv = priv;
+  s->decoder_priv = priv;
 
   if(s->data.audio.format.num_channels > 1)
     {
@@ -93,7 +93,7 @@ static int init_gsm(bgav_stream_t * s)
 static void close_gsm(bgav_stream_t * s)
   {
   gsm_priv * priv;
-  priv = s->data.audio.decoder->priv;
+  priv = s->decoder_priv;
 
   if(priv->frame)
     gavl_audio_frame_destroy(priv->frame);
@@ -106,7 +106,7 @@ static gavl_source_status_t decode_frame_gsm(bgav_stream_t * s)
   gavl_source_status_t st;
   gsm_priv * priv;
 
-  priv = s->data.audio.decoder->priv;
+  priv = s->decoder_priv;
   
   if(!priv->packet)
     {
@@ -146,7 +146,7 @@ static gavl_source_status_t decode_frame_gsm(bgav_stream_t * s)
 static void resync_gsm(bgav_stream_t * s)
   {
   gsm_priv * priv;
-  priv = s->data.audio.decoder->priv;
+  priv = s->decoder_priv;
   
   priv->frame->valid_samples = 0;
 

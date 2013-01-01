@@ -186,7 +186,7 @@ static int vdpau_get_buffer(struct AVCodecContext *c, AVFrame *pic)
   ffmpeg_video_priv * priv;
   int i = 0;
   bgav_stream_t * s = c->opaque;
-  priv = s->data.video.decoder->priv;
+  priv = s->decoder_priv;
 
   
   for(i = 0; i < VDPAU_MAX_STATES; i++)
@@ -250,7 +250,7 @@ static void vdpau_draw_horiz_band(struct AVCodecContext *c,
   ffmpeg_video_priv * priv;
   struct vdpau_render_state *state;
   bgav_stream_t * s = c->opaque;
-  priv = s->data.video.decoder->priv;
+  priv = s->decoder_priv;
 
 
   state = (struct vdpau_render_state *)src->data[0];
@@ -279,13 +279,11 @@ get_data(bgav_stream_t * s, bgav_packet_t ** ret_p)
   {
   bgav_packet_t * ret;
   gavl_source_status_t st;
-  ffmpeg_video_priv * priv = s->data.video.decoder->priv;
+  ffmpeg_video_priv * priv = s->decoder_priv;
   
   if((st = bgav_stream_get_packet_read(s, ret_p)) != GAVL_SOURCE_OK)
-    {
-    fprintf(stderr, "get packet returned %d\n", st);
     return st;
-    }
+  
   ret = *ret_p;
 
 #ifdef DUMP_PACKET
@@ -327,7 +325,7 @@ get_data(bgav_stream_t * s, bgav_packet_t ** ret_p)
 
 static void done_data(bgav_stream_t * s, bgav_packet_t * p)
   {
-  ffmpeg_video_priv * priv = s->data.video.decoder->priv;
+  ffmpeg_video_priv * priv = s->decoder_priv;
   if(p != priv->p)
     bgav_stream_done_packet_read(s, p);
   }
@@ -360,7 +358,7 @@ static void update_palette(bgav_stream_t * s, bgav_packet_t * p)
   uint32_t * pal_i;
   int i, imax;
   ffmpeg_video_priv * priv;
-  priv = s->data.video.decoder->priv;
+  priv = s->decoder_priv;
   
   imax =
     (p->palette_size > AVPALETTE_COUNT)
@@ -401,7 +399,7 @@ static gavl_source_status_t decode_picture(bgav_stream_t * s)
   bgav_packet_t * p;
   gavl_source_status_t st;
   
-  priv = s->data.video.decoder->priv;
+  priv = s->decoder_priv;
 
   if(priv->flags & GOT_EOS)
     {
@@ -630,7 +628,7 @@ static int skipto_ffmpeg(bgav_stream_t * s, int64_t time)
   {
   ffmpeg_video_priv * priv;
   
-  priv = s->data.video.decoder->priv;
+  priv = s->decoder_priv;
   priv->skip_time = time;
   priv->skip_mode = SKIP_MODE_FAST;
   
@@ -664,7 +662,7 @@ decode_ffmpeg(bgav_stream_t * s, gavl_video_frame_t * f)
   ffmpeg_video_priv * priv;
   /* We get the DV format info ourselfes, since the values
      ffmpeg returns are not reliable */
-  priv = s->data.video.decoder->priv;
+  priv = s->decoder_priv;
   
   if(!(s->flags & STREAM_HAVE_FRAME))
     {
@@ -718,7 +716,7 @@ static AVCodec * find_decoder(enum CodecID id, bgav_stream_t * s)
 static void cleanup_vdpau(bgav_stream_t * s)
   {
   int i;
-  ffmpeg_video_priv * priv = s->data.video.decoder->priv;
+  ffmpeg_video_priv * priv = s->decoder_priv;
 
   if(priv->vdpau_decoder != VDP_INVALID_HANDLE)
     {
@@ -746,7 +744,7 @@ static void cleanup_vdpau(bgav_stream_t * s)
 static int init_vdpau(bgav_stream_t * s, enum CodecID id)
   {
   int i;
-  ffmpeg_video_priv * priv = s->data.video.decoder->priv;
+  ffmpeg_video_priv * priv = s->decoder_priv;
   VdpDecoderProfile profile;
   
   /* Create VDPAU context */
@@ -822,7 +820,7 @@ static int init_ffmpeg(bgav_stream_t * s)
   priv->ip_age[1] = 256*256*256*64;
   priv->b_age = 256*256*256*64;
   
-  s->data.video.decoder->priv = priv;
+  s->decoder_priv = priv;
   
   /* Set up coded specific details */
   
@@ -1055,7 +1053,7 @@ static int init_ffmpeg(bgav_stream_t * s)
   init_put_frame(s);
 
   if(!priv->put_frame)
-    s->data.video.frame = priv->gavl_frame;
+    s->vframe = priv->gavl_frame;
   
   return 1;
   }
@@ -1065,7 +1063,7 @@ static int init_ffmpeg(bgav_stream_t * s)
 static void resync_ffmpeg(bgav_stream_t * s)
   {
   ffmpeg_video_priv * priv;
-  priv = s->data.video.decoder->priv;
+  priv = s->decoder_priv;
   avcodec_flush_buffers(priv->ctx);
 
   priv->ip_age[0] = 256*256*256*64;
@@ -1079,7 +1077,7 @@ static void resync_ffmpeg(bgav_stream_t * s)
 static void close_ffmpeg(bgav_stream_t * s)
   {
   ffmpeg_video_priv * priv;
-  priv= (s->data.video.decoder->priv);
+  priv= (s->decoder_priv);
 
   if(!priv)
     return;
@@ -1760,7 +1758,7 @@ static codec_info_t * lookup_codec(bgav_stream_t * s)
   int i;
   for(i = 0; i < real_num_codecs; i++)
     {
-    if(s->data.video.decoder->decoder == &codecs[i].decoder)
+    if(s->data.video.decoder == &codecs[i].decoder)
       return codecs[i].info;
     }
   return NULL;
@@ -2212,7 +2210,7 @@ static void init_pp(bgav_stream_t * s)
   int pp_flags;
   int level;
   ffmpeg_video_priv * priv;
-  priv = s->data.video.decoder->priv;
+  priv = s->decoder_priv;
 
   
   /* Initialize postprocessing */
@@ -2274,7 +2272,7 @@ static void init_pp(bgav_stream_t * s)
 static void put_frame_palette(bgav_stream_t * s, gavl_video_frame_t * f)
   {
   ffmpeg_video_priv * priv;
-  priv = s->data.video.decoder->priv;
+  priv = s->decoder_priv;
   
   if(s->data.video.format.pixelformat == GAVL_RGBA_32)
     pal8_to_rgba32(f, priv->frame,
@@ -2289,7 +2287,7 @@ static void put_frame_palette(bgav_stream_t * s, gavl_video_frame_t * f)
 #ifdef HAVE_VDPAU
 static void put_frame_vdpau(bgav_stream_t * s, gavl_video_frame_t * f)
   {
-  ffmpeg_video_priv * priv = s->data.video.decoder->priv;
+  ffmpeg_video_priv * priv = s->decoder_priv;
   struct vdpau_render_state * state =
     (struct vdpau_render_state *)priv->frame->data[0];
   bgav_vdpau_context_surface_to_frame(priv->vdpau_ctx,
@@ -2299,7 +2297,7 @@ static void put_frame_vdpau(bgav_stream_t * s, gavl_video_frame_t * f)
 
 static void put_frame_rgba32(bgav_stream_t * s, gavl_video_frame_t * f)
   {
-  ffmpeg_video_priv * priv = s->data.video.decoder->priv;
+  ffmpeg_video_priv * priv = s->decoder_priv;
   rgba32_to_rgba32(f, priv->frame,
                    s->data.video.format.image_width,
                    s->data.video.format.image_height, !!(priv->flags & FLIP_Y));
@@ -2307,7 +2305,7 @@ static void put_frame_rgba32(bgav_stream_t * s, gavl_video_frame_t * f)
 
 static void put_frame_yuva420(bgav_stream_t * s, gavl_video_frame_t * f)
   {
-  ffmpeg_video_priv * priv = s->data.video.decoder->priv;
+  ffmpeg_video_priv * priv = s->decoder_priv;
   yuva420_to_yuva32(f, priv->frame,
                     s->data.video.format.image_width,
                     s->data.video.format.image_height, !!(priv->flags & FLIP_Y));
@@ -2315,7 +2313,7 @@ static void put_frame_yuva420(bgav_stream_t * s, gavl_video_frame_t * f)
 
 static void put_frame_pp(bgav_stream_t * s, gavl_video_frame_t * f)
   {
-  ffmpeg_video_priv * priv = s->data.video.decoder->priv;
+  ffmpeg_video_priv * priv = s->decoder_priv;
   if(priv->flags & FLIP_Y)
     {
     pp_postprocess((const uint8_t**)priv->frame->data, priv->frame->linesize,
@@ -2338,7 +2336,7 @@ static void put_frame_pp(bgav_stream_t * s, gavl_video_frame_t * f)
 
 static void put_frame_flip(bgav_stream_t * s, gavl_video_frame_t * f)
   {
-  ffmpeg_video_priv * priv = s->data.video.decoder->priv;
+  ffmpeg_video_priv * priv = s->decoder_priv;
   priv->gavl_frame->planes[0]  = priv->frame->data[0];
   priv->gavl_frame->planes[1]  = priv->frame->data[1];
   priv->gavl_frame->planes[2]  = priv->frame->data[2];
@@ -2353,7 +2351,7 @@ static void put_frame_flip(bgav_stream_t * s, gavl_video_frame_t * f)
 
 static void put_frame_swapfields(bgav_stream_t * s, gavl_video_frame_t * f)
   {
-  ffmpeg_video_priv * priv = s->data.video.decoder->priv;
+  ffmpeg_video_priv * priv = s->decoder_priv;
   priv->gavl_frame->planes[0]  = priv->frame->data[0];
   priv->gavl_frame->planes[1]  = priv->frame->data[1];
   priv->gavl_frame->planes[2]  = priv->frame->data[2];
@@ -2392,7 +2390,7 @@ static void put_frame_swapfields(bgav_stream_t * s, gavl_video_frame_t * f)
 #ifdef HAVE_LIBSWSCALE
 static void put_frame_swscale(bgav_stream_t * s, gavl_video_frame_t * f)
   {
-  ffmpeg_video_priv * priv = s->data.video.decoder->priv;
+  ffmpeg_video_priv * priv = s->decoder_priv;
   sws_scale(priv->swsContext,
             (const uint8_t * const *)priv->frame->data, priv->frame->linesize,
             0, s->data.video.format.image_height,
@@ -2408,7 +2406,7 @@ static void init_put_frame(bgav_stream_t * s)
 #endif
   
   ffmpeg_video_priv * priv;
-  priv = s->data.video.decoder->priv;
+  priv = s->decoder_priv;
   if(priv->ctx->pix_fmt == PIX_FMT_PAL8)
     priv->put_frame = put_frame_palette;
 #ifdef HAVE_VDPAU

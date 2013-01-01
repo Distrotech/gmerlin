@@ -434,15 +434,20 @@ void bgav_stream_set_from_gavl(bgav_stream_t * s,
     {
     gavl_audio_format_copy(&s->data.audio.format, afmt);
     s->data.audio.pre_skip = ci->pre_skip;
+    s->timescale = s->data.audio.format.samplerate;
     }
   else if(vfmt)
     {
-    gavl_video_format_copy(&s->data.video.format, vfmt);
-
+    if(s->type == BGAV_STREAM_SUBTITLE_OVERLAY)
+      gavl_video_format_copy(&s->data.subtitle.video.format, vfmt);
+    else if(s->type == BGAV_STREAM_VIDEO)
+      gavl_video_format_copy(&s->data.video.format, vfmt);
+    
     if(!(ci->id & GAVL_COMPRESSION_HAS_P_FRAMES))
       s->flags |= STREAM_INTRA_ONLY;
     if(ci->id & GAVL_COMPRESSION_HAS_B_FRAMES)
       s->flags |= STREAM_B_FRAMES;
+    s->timescale = vfmt->timescale;
     }
   
   s->fourcc = bgav_compression_id_2_fourcc(ci->id);

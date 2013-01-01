@@ -51,7 +51,7 @@ static void decode_8(bgav_stream_t * s)
   {
   pcm_t * priv;
   int num_samples, num_bytes;
-  priv = s->data.audio.decoder->priv;
+  priv = s->decoder_priv;
 
   num_samples = priv->bytes_in_packet / (s->data.audio.format.num_channels);
   
@@ -71,7 +71,7 @@ static void decode_s_16(bgav_stream_t * s)
   {
   pcm_t * priv;
   int num_samples, num_bytes;
-  priv = s->data.audio.decoder->priv;
+  priv = s->decoder_priv;
 
   num_samples = priv->bytes_in_packet / (2 * s->data.audio.format.num_channels);
   
@@ -95,7 +95,7 @@ static void decode_s_16_swap(bgav_stream_t * s)
   int num_samples, num_bytes, i;
   int16_t * src, *dst;
   
-  priv = s->data.audio.decoder->priv;
+  priv = s->decoder_priv;
 
   num_samples = priv->bytes_in_packet / (2 * s->data.audio.format.num_channels);
 
@@ -128,7 +128,7 @@ static void decode_s_24_le(bgav_stream_t * s)
   int num_samples, num_bytes, i;
   uint8_t * src;
   uint32_t * dst;
-  priv = s->data.audio.decoder->priv;
+  priv = s->decoder_priv;
 
   num_samples = priv->bytes_in_packet / (3 * s->data.audio.format.num_channels);
 
@@ -163,7 +163,7 @@ static void decode_s_24_be(bgav_stream_t * s)
   int num_samples, num_bytes, i;
   uint8_t * src;
   uint32_t * dst;
-  priv = s->data.audio.decoder->priv;
+  priv = s->decoder_priv;
 
   num_samples = priv->bytes_in_packet / (3 * s->data.audio.format.num_channels);
 
@@ -197,7 +197,7 @@ static void decode_s_24_lpcm(bgav_stream_t * s)
   int num_samples, num_bytes, i;
   uint8_t * src;
   uint32_t * dst;
-  priv = s->data.audio.decoder->priv;
+  priv = s->decoder_priv;
 
   num_samples = priv->bytes_in_packet / (3 * s->data.audio.format.num_channels);
 
@@ -231,7 +231,7 @@ static void decode_s_24_lpcm_mono(bgav_stream_t * s)
   int num_samples, num_bytes, i;
   uint8_t * src;
   uint32_t * dst;
-  priv = s->data.audio.decoder->priv;
+  priv = s->decoder_priv;
 
   num_samples = priv->bytes_in_packet / 3;
 
@@ -263,7 +263,7 @@ static void decode_s_20_lpcm(bgav_stream_t * s)
   int num_samples, num_bytes, i;
   uint8_t * src;
   uint32_t * dst;
-  priv = s->data.audio.decoder->priv;
+  priv = s->decoder_priv;
 
   /* 5 bytes -> 2 samples */
   num_samples = (2*priv->bytes_in_packet) / (5 * s->data.audio.format.num_channels);
@@ -298,7 +298,7 @@ static void decode_s_20_lpcm_mono(bgav_stream_t * s)
   int num_samples, num_bytes, i;
   uint8_t * src;
   uint32_t * dst;
-  priv = s->data.audio.decoder->priv;
+  priv = s->decoder_priv;
 
   num_samples = (2*priv->bytes_in_packet) / (5 * s->data.audio.format.num_channels);
   
@@ -329,7 +329,7 @@ static void decode_s_32(bgav_stream_t * s)
   {
   pcm_t * priv;
   int num_samples, num_bytes;
-  priv = s->data.audio.decoder->priv;
+  priv = s->decoder_priv;
 
   num_samples = priv->bytes_in_packet / (4 * s->data.audio.format.num_channels);
 
@@ -354,7 +354,7 @@ static void decode_s_32_swap(bgav_stream_t * s)
   int num_samples, num_bytes, i;
   int32_t * src, *dst;
   
-  priv = s->data.audio.decoder->priv;
+  priv = s->decoder_priv;
 
   num_samples = priv->bytes_in_packet / (4 * s->data.audio.format.num_channels);
   
@@ -526,7 +526,7 @@ static void decode_float_32_be(bgav_stream_t * s)
   int num_samples, num_bytes, i;
   uint8_t * src;
   float * dst;
-  priv = s->data.audio.decoder->priv;
+  priv = s->decoder_priv;
 
   num_samples = priv->bytes_in_packet / (4 * s->data.audio.format.num_channels);
 
@@ -557,7 +557,7 @@ static void decode_float_32_le(bgav_stream_t * s)
   int num_samples, num_bytes, i;
   uint8_t * src;
   float * dst;
-  priv = s->data.audio.decoder->priv;
+  priv = s->decoder_priv;
 
   num_samples = priv->bytes_in_packet / (4 * s->data.audio.format.num_channels);
 
@@ -588,7 +588,7 @@ static void decode_float_64_be(bgav_stream_t * s)
   int num_samples, num_bytes, i;
   uint8_t * src;
   double * dst;
-  priv = s->data.audio.decoder->priv;
+  priv = s->decoder_priv;
 
   num_samples = priv->bytes_in_packet / (8 * s->data.audio.format.num_channels);
 
@@ -619,7 +619,7 @@ static void decode_float_64_le(bgav_stream_t * s)
   int num_samples, num_bytes, i;
   uint8_t * src;
   double * dst;
-  priv = s->data.audio.decoder->priv;
+  priv = s->decoder_priv;
 
   num_samples = priv->bytes_in_packet / (8 * s->data.audio.format.num_channels);
 
@@ -688,7 +688,7 @@ static void decode_ulaw(bgav_stream_t * s)
   int num_samples, num_bytes, i;
   uint8_t * src;
   int16_t * dst;
-  priv = s->data.audio.decoder->priv;
+  priv = s->decoder_priv;
 
   num_samples = priv->bytes_in_packet / (s->data.audio.format.num_channels);
 
@@ -758,7 +758,7 @@ static void decode_alaw(bgav_stream_t * s)
   int num_samples, num_bytes, i;
   uint8_t * src;
   int16_t * dst;
-  priv = s->data.audio.decoder->priv;
+  priv = s->decoder_priv;
 
   num_samples = priv->bytes_in_packet / (s->data.audio.format.num_channels);
 
@@ -787,7 +787,7 @@ static gavl_source_status_t get_packet(bgav_stream_t * s)
   {
   pcm_t * priv;
   gavl_source_status_t st;
-  priv = s->data.audio.decoder->priv;
+  priv = s->decoder_priv;
 
   if((st = bgav_stream_get_packet_read(s, &priv->p)) != GAVL_SOURCE_OK)
     return st;
@@ -814,7 +814,7 @@ static int init_pcm(bgav_stream_t * s)
   uint32_t formatSpecificFlags;
   
   priv = calloc(1, sizeof(*priv));
-  s->data.audio.decoder->priv = priv;
+  s->decoder_priv = priv;
 
   switch(s->fourcc)
     {
@@ -1239,7 +1239,7 @@ static gavl_source_status_t decode_frame_pcm(bgav_stream_t * s)
   pcm_t * priv;
   gavl_source_status_t st;
   
-  priv = s->data.audio.decoder->priv;
+  priv = s->decoder_priv;
 
   if(!priv->p && ((st = get_packet(s)) != GAVL_SOURCE_OK))
     return st;
@@ -1262,7 +1262,7 @@ static gavl_source_status_t decode_frame_pcm(bgav_stream_t * s)
 static void close_pcm(bgav_stream_t * s)
   {
   pcm_t * priv;
-  priv = s->data.audio.decoder->priv;
+  priv = s->decoder_priv;
 
   if(priv->frame)
     gavl_audio_frame_destroy(priv->frame);
@@ -1272,7 +1272,7 @@ static void close_pcm(bgav_stream_t * s)
 static void resync_pcm(bgav_stream_t * s)
   {
   pcm_t * priv;
-  priv = s->data.audio.decoder->priv;
+  priv = s->decoder_priv;
   priv->frame->valid_samples = 0;
 
   if(priv->p)

@@ -92,7 +92,7 @@ static int set_palette(bgav_stream_t * s, bgav_packet_t * p)
   {
   int i;
   tga_priv_t * priv;
-  priv = s->data.video.decoder->priv;
+  priv = s->decoder_priv;
   if(priv->ctab_size && (priv->ctab_size != p->palette_size * 4))
     {
     bgav_log(s->opt, BGAV_LOG_ERROR, LOG_DOMAIN,
@@ -124,7 +124,7 @@ static gavl_source_status_t decode_tga(bgav_stream_t * s, gavl_video_frame_t * f
   int result;
   tga_priv_t * priv;
   
-  priv = s->data.video.decoder->priv;
+  priv = s->decoder_priv;
   s->flags |= STREAM_INTRA_ONLY;
   
   if(!(s->flags & STREAM_HAVE_FRAME))
@@ -256,7 +256,7 @@ static int init_tga(bgav_stream_t * s)
   priv = calloc(1, sizeof(*priv));
 
   
-  s->data.video.decoder->priv = priv;
+  s->decoder_priv = priv;
   
   /* Get format by decoding first frame */
 
@@ -274,7 +274,7 @@ static int init_tga(bgav_stream_t * s)
 static void close_tga(bgav_stream_t * s)
   {
   tga_priv_t * priv;
-  priv = s->data.video.decoder->priv;
+  priv = s->decoder_priv;
   gavl_video_frame_null(priv->frame);
   gavl_video_frame_destroy(priv->frame);
   if(priv->ctab)

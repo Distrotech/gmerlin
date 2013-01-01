@@ -58,7 +58,7 @@ static int init_theora(bgav_stream_t * s)
   ogg_packet op;
   theora_priv_t * priv;
   priv = calloc(1, sizeof(*priv));
-  s->data.video.decoder->priv = priv;
+  s->decoder_priv = priv;
 
   /* Initialize theora structures */
   th_info_init(&priv->ti);
@@ -179,7 +179,7 @@ static int init_theora(bgav_stream_t * s)
   priv->frame = gavl_video_frame_create(NULL);
 
   //  if(!priv->offset_x && !priv->offset_y)
-  s->data.video.frame = priv->frame;
+  s->vframe = priv->frame;
   
   gavl_metadata_set_nocpy(&s->m, GAVL_META_FORMAT,
                            bgav_sprintf("Theora (Version %d.%d.%d)",
@@ -200,7 +200,7 @@ decode_theora(bgav_stream_t * s, gavl_video_frame_t * frame)
   gavl_source_status_t st;  
   th_ycbcr_buffer yuv;
   theora_priv_t * priv;
-  priv = s->data.video.decoder->priv;
+  priv = s->decoder_priv;
   
   while(1)
     {
@@ -251,7 +251,7 @@ decode_theora(bgav_stream_t * s, gavl_video_frame_t * frame)
 static void close_theora(bgav_stream_t * s)
   {
   theora_priv_t * priv;
-  priv = s->data.video.decoder->priv;
+  priv = s->decoder_priv;
   
   th_decode_free(priv->ctx);
   th_setup_free(priv->ts);

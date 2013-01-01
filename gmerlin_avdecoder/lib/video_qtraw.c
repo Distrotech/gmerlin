@@ -227,7 +227,7 @@ static int init_qtraw(bgav_stream_t * s)
   raw_priv_t * priv;
   int width;
   priv = calloc(1, sizeof(*priv));
-  s->data.video.decoder->priv = priv;
+  s->decoder_priv = priv;
   s->flags |= STREAM_INTRA_ONLY;
   
   width = s->data.video.format.image_width;
@@ -383,7 +383,7 @@ static gavl_source_status_t decode_qtraw(bgav_stream_t * s, gavl_video_frame_t *
   bgav_packet_t * p = NULL;
   gavl_source_status_t st;
 
-  priv = s->data.video.decoder->priv;
+  priv = s->decoder_priv;
   
   /* We assume one frame per packet */
   if((st = bgav_stream_get_packet_read(s, &p)) != GAVL_SOURCE_OK)
@@ -414,7 +414,7 @@ static gavl_source_status_t decode_qtraw(bgav_stream_t * s, gavl_video_frame_t *
 static void close_qtraw(bgav_stream_t * s)
   {
   raw_priv_t * priv;
-  priv = s->data.video.decoder->priv;
+  priv = s->decoder_priv;
   free(priv);
   }
 

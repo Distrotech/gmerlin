@@ -40,12 +40,6 @@ typedef struct
   gavl_video_format_t format;
   } png_priv_t;
 
-static png_priv_t * get_priv(bgav_stream_t * s)
-  {
-  return s->type == BGAV_STREAM_VIDEO ?
-    s->data.video.decoder->priv : s->data.subtitle.decoder->priv;
-  }
-
 static gavl_source_status_t
 decode_png(bgav_stream_t * s, gavl_video_frame_t * frame)
   {
@@ -53,7 +47,7 @@ decode_png(bgav_stream_t * s, gavl_video_frame_t * frame)
   bgav_packet_t * p = NULL;
   gavl_source_status_t st;
   
-  priv = get_priv(s);
+  priv = s->decoder_priv;
   
   if((st = bgav_stream_get_packet_read(s, &p)) != GAVL_SOURCE_OK)
     return st;
@@ -91,11 +85,8 @@ static int init_png(bgav_stream_t * s)
   {
   png_priv_t * priv;
   priv = calloc(1, sizeof(*priv));
-  
-  if(s->type == BGAV_STREAM_VIDEO)
-    s->data.video.decoder->priv = priv;
-  else
-    s->data.subtitle.decoder->priv = priv;
+
+  s->decoder_priv = priv;
   
   priv->png_reader = bgav_png_reader_create(s->data.video.depth);
   gavl_metadata_set(&s->m, GAVL_META_FORMAT, "PNG");
@@ -104,7 +95,7 @@ static int init_png(bgav_stream_t * s)
 
 static void close_png(bgav_stream_t * s)
   {
-  png_priv_t * priv = get_priv(s);
+  png_priv_t * priv = s->decoder_priv;
   if(priv->png_reader)
     bgav_png_reader_destroy(priv->png_reader);
   free(priv);
@@ -112,8 +103,8 @@ static void close_png(bgav_stream_t * s)
 
 static void resync_png(bgav_stream_t * s)
   {
-  png_priv_t * priv = get_priv(s);
-  priv = s->data.video.decoder->priv;
+  png_priv_t * priv = s->decoder_priv;
+  priv = s->decoder_priv;
   bgav_png_reader_reset(priv->png_reader);
   priv->have_header = 0;
   }

@@ -28,6 +28,8 @@
 
 #define LOG_DOMAIN "subtitle"
 
+// #define DUMP_TIMESTAMPS
+
 int bgav_num_subtitle_streams(bgav_t * bgav, int track)
   {
   return bgav->tt->tracks[track].num_text_streams +
@@ -68,7 +70,7 @@ int bgav_set_overlay_stream(bgav_t * b, int stream, bgav_stream_action_t action)
 const gavl_video_format_t * bgav_get_subtitle_format(bgav_t * b, int stream)
   {
   bgav_stream_t * s = bgav_track_get_subtitle_stream(b->tt->cur, stream);
-  return &s->data.subtitle.format;
+  return &s->data.subtitle.video.format;
   }
 
 int bgav_subtitle_is_text(bgav_t * b, int stream)
@@ -98,7 +100,7 @@ int bgav_read_subtitle_overlay(bgav_t * b, gavl_overlay_t * ovl, int stream)
     }
   else
     return 0;
-  return gavl_video_source_read_frame(s->data.subtitle.vsrc, &ovl) == GAVL_SOURCE_OK;
+  return gavl_video_source_read_frame(s->data.subtitle.video.vsrc, &ovl) == GAVL_SOURCE_OK;
   }
 
 /* LEGACY */
@@ -171,7 +173,7 @@ void bgav_subtitle_dump(bgav_stream_t * s)
   else
     {
     bgav_dprintf( "  Format:\n");
-    gavl_video_format_dump(&s->data.subtitle.format);
+    gavl_video_format_dump(&s->data.subtitle.video.format);
     }
   }
 
@@ -183,21 +185,41 @@ static gavl_source_status_t read_video_copy(void * sp,
   
   if(frame)
     {
-    if((st = s->data.subtitle.decoder->decoder->decode(sp, *frame)) != GAVL_SOURCE_OK)
+    if((st = s->data.subtitle.video.decoder->decode(sp, *frame)) != GAVL_SOURCE_OK)
       return st;
     s->out_time = (*frame)->timestamp + (*frame)->duration;
     }
   else
     {
-    if((st = s->data.subtitle.decoder->decoder->decode(sp, NULL)) != GAVL_SOURCE_OK)
+    if((st = s->data.subtitle.video.decoder->decode(sp, NULL)) != GAVL_SOURCE_OK)
       return st;
     }
 #ifdef DUMP_TIMESTAMPS
-  bgav_dprintf("Overlay timestamp: %"PRId64"\n", s->data.video.frame->timestamp);
+  bgav_dprintf("Overlay timestamp: %"PRId64"\n", s->vframe->timestamp);
 #endif
   // s->flags &= ~STREAM_HAVE_FRAME;
   return GAVL_SOURCE_OK;
   }
+
+static gavl_source_status_t
+read_video_nocopy(void * sp,
+                  gavl_video_frame_t ** frame)
+  {
+  gavl_source_status_t st;
+  bgav_stream_t * s = sp;
+  //  fprintf(stderr, "Read video nocopy\n");
+  if((st = s->data.subtitle.video.decoder->decode(sp, NULL)) != GAVL_SOURCE_OK)
+    return st;
+  if(frame)
+    *frame = s->vframe;
+#ifdef DUMP_TIMESTAMPS
+  bgav_dprintf("Overlay timestamp: %"PRId64"\n", s->vframe->timestamp);
+#endif    
+  s->out_time = s->vframe->timestamp + s->vframe->duration;
+  //  s->flags &= ~STREAM_HAVE_FRAME;
+  return GAVL_SOURCE_OK;
+  }
+
 
 int bgav_text_start(bgav_stream_t * s)
   {
@@ -219,7 +241,6 @@ int bgav_text_start(bgav_stream_t * s)
 int bgav_overlay_start(bgav_stream_t * s)
   {
   bgav_video_decoder_t * dec;
-  bgav_video_decoder_context_t * ctx;
   
   s->flags &= ~(STREAM_EOF_C|STREAM_EOF_D);
   
@@ -267,18 +288,27 @@ int bgav_overlay_start(bgav_stream_t * s)
                s->fourcc);
       return 0;
       }
-    ctx = calloc(1, sizeof(*ctx));
-    s->data.subtitle.decoder = ctx;
-    s->data.subtitle.decoder->decoder = dec;
+    s->data.subtitle.video.decoder = dec;
     
     if(!dec->init(s))
       return 0;
 
-    s->data.subtitle.format.timescale = s->timescale;
-    s->data.subtitle.vsrc =
-      gavl_video_source_create(read_video_copy,
-                               s, 0,
-                               &s->data.subtitle.format);
+    s->data.subtitle.video.format.timescale = s->timescale;
+
+    if(s->vframe)
+      {
+      s->data.subtitle.video.vsrc =
+        gavl_video_source_create(read_video_nocopy,
+                                 s, GAVL_SOURCE_SRC_ALLOC | s->src_flags,
+                                 &s->data.subtitle.video.format);
+      }
+    else
+      {
+      s->data.subtitle.video.vsrc =
+        gavl_video_source_create(read_video_copy,
+                                 s, 0,
+                                 &s->data.subtitle.video.format);
+      }
     }
   else if(s->action == BGAV_STREAM_READRAW)
     {
@@ -287,7 +317,7 @@ int bgav_overlay_start(bgav_stream_t * s)
                                       s,
                                       GAVL_SOURCE_SRC_ALLOC,
                                       &s->ci,
-                                      &s->data.subtitle.format);
+                                      &s->data.subtitle.video.format);
     }
   
   return 1;
@@ -304,16 +334,15 @@ void bgav_subtitle_stop(bgav_stream_t * s)
     {
     bgav_subtitle_reader_stop(s);
     }
-  if(s->data.subtitle.decoder)
+  if(s->data.subtitle.video.decoder)
     {
-    s->data.subtitle.decoder->decoder->close(s);
-    free(s->data.subtitle.decoder);
-    s->data.subtitle.decoder = NULL;
+    s->data.subtitle.video.decoder->close(s);
+    s->data.subtitle.video.decoder = NULL;
     }
-  if(s->data.subtitle.vsrc)
+  if(s->data.subtitle.video.vsrc)
     {
-    gavl_video_source_destroy(s->data.subtitle.vsrc);
-    s->data.subtitle.vsrc = NULL;
+    gavl_video_source_destroy(s->data.subtitle.video.vsrc);
+    s->data.subtitle.video.vsrc = NULL;
     }
   }
 
@@ -323,15 +352,15 @@ void bgav_subtitle_resync(bgav_stream_t * s)
   if(s->type == BGAV_STREAM_SUBTITLE_TEXT)
     return;
 
-  if(s->data.subtitle.decoder &&
-     s->data.subtitle.decoder->decoder->resync)
-    s->data.subtitle.decoder->decoder->resync(s);
+  if(s->data.subtitle.video.decoder &&
+     s->data.subtitle.video.decoder->resync)
+    s->data.subtitle.video.decoder->resync(s);
 
   if(s->data.subtitle.cnv)
     bgav_subtitle_converter_reset(s->data.subtitle.cnv);
   
-  if(s->data.subtitle.vsrc)
-    gavl_video_source_reset(s->data.subtitle.vsrc);
+  if(s->data.subtitle.video.vsrc)
+    gavl_video_source_reset(s->data.subtitle.video.vsrc);
   }
 
 int bgav_subtitle_skipto(bgav_stream_t * s, int64_t * time, int scale)
@@ -372,7 +401,7 @@ bgav_get_text_packet_source(bgav_t * b, int stream)
 
 const gavl_video_format_t * bgav_get_overlay_format(bgav_t * bgav, int stream)
   {
-  return &bgav->tt->cur->overlay_streams[stream].data.subtitle.format;
+  return &bgav->tt->cur->overlay_streams[stream].data.subtitle.video.format;
   }
 
 
@@ -390,5 +419,5 @@ bgav_get_overlay_packet_source(bgav_t * b, int stream)
 gavl_video_source_t *
 bgav_get_overlay_source(bgav_t * b, int stream)
   {
-  return b->tt->cur->overlay_streams[stream].data.subtitle.vsrc;
+  return b->tt->cur->overlay_streams[stream].data.subtitle.video.vsrc;
   }

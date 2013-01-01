@@ -76,7 +76,7 @@ static gavl_source_status_t read_data(bgav_stream_t * s)
   bgav_packet_t * p;
   vorbis_audio_priv * priv;
   
-  priv = s->data.audio.decoder->priv;
+  priv = s->decoder_priv;
   
   if((st = bgav_stream_get_packet_read(s, &p)) != GAVL_SOURCE_OK)
     return st;
@@ -93,7 +93,7 @@ static gavl_source_status_t next_page(bgav_stream_t * s)
   gavl_source_status_t st;
   int result = 0;
   vorbis_audio_priv * priv;
-  priv = s->data.audio.decoder->priv;
+  priv = s->decoder_priv;
   
   while(result < 1)
     {
@@ -125,7 +125,7 @@ static gavl_source_status_t next_packet(bgav_stream_t * s)
   int result = 0;
   vorbis_audio_priv * priv;
   
-  priv = s->data.audio.decoder->priv;
+  priv = s->decoder_priv;
   
   if(s->fourcc == BGAV_VORBIS)
     {
@@ -205,7 +205,7 @@ static int init_vorbis(bgav_stream_t * s)
   vorbis_info_init(&priv->dec_vi);
   vorbis_comment_init(&priv->dec_vc);
 
-  s->data.audio.decoder->priv = priv;
+  s->decoder_priv = priv;
   
   /* Heroine Virtual way:
      The 3 header packets are in the first audio chunk */
@@ -494,7 +494,7 @@ static gavl_source_status_t decode_frame_vorbis(bgav_stream_t * s)
   gavl_source_status_t st;
   int samples_decoded = 0;
   
-  priv = s->data.audio.decoder->priv;
+  priv = s->decoder_priv;
     
   /* Decode stuff */
   
@@ -541,7 +541,7 @@ static gavl_source_status_t decode_frame_vorbis(bgav_stream_t * s)
 static void resync_vorbis(bgav_stream_t * s)
   {
   vorbis_audio_priv * priv;
-  priv = s->data.audio.decoder->priv;
+  priv = s->decoder_priv;
   priv->dec_op.bytes = 0;
   if(s->fourcc == BGAV_VORBIS)
     {
@@ -605,7 +605,7 @@ static void resync_vorbis(bgav_stream_t * s)
 static void close_vorbis(bgav_stream_t * s)
   {
   vorbis_audio_priv * priv;
-  priv = s->data.audio.decoder->priv;
+  priv = s->decoder_priv;
 
   ogg_stream_clear(&priv->dec_os);
   ogg_sync_clear(&priv->dec_oy);

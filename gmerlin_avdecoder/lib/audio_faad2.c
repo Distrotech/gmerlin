@@ -50,7 +50,7 @@ static gavl_source_status_t get_data(bgav_stream_t * s)
   faad_priv_t * priv;
   bgav_packet_t * p = NULL;
   
-  priv = s->data.audio.decoder->priv;
+  priv = s->decoder_priv;
 
   if((st = bgav_stream_get_packet_read(s, &p)) != GAVL_SOURCE_OK)
     return st;
@@ -77,7 +77,7 @@ static gavl_source_status_t decode_frame_faad2(bgav_stream_t * s)
   faacDecFrameInfo frame_info;
   faad_priv_t * priv;
     
-  priv = s->data.audio.decoder->priv;
+  priv = s->decoder_priv;
 
   memset(&frame_info, 0, sizeof(&frame_info));
   
@@ -193,7 +193,7 @@ static int init_faad2(bgav_stream_t * s)
   
   priv = calloc(1, sizeof(*priv));
   priv->dec = faacDecOpen();
-  s->data.audio.decoder->priv = priv;
+  s->decoder_priv = priv;
   
   /* Init the library using a DecoderSpecificInfo */
   
@@ -266,7 +266,7 @@ static int init_faad2(bgav_stream_t * s)
 static void close_faad2(bgav_stream_t * s)
   {
   faad_priv_t * priv;
-  priv = s->data.audio.decoder->priv;
+  priv = s->decoder_priv;
   if(priv->dec)
     faacDecClose(priv->dec);
 
@@ -277,7 +277,7 @@ static void close_faad2(bgav_stream_t * s)
 static void resync_faad2(bgav_stream_t * s)
   {
   faad_priv_t * priv;
-  priv = s->data.audio.decoder->priv;
+  priv = s->decoder_priv;
 
   bgav_bytebuffer_flush(&priv->buf);
   }

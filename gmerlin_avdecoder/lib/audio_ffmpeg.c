@@ -129,7 +129,7 @@ static int init_format(bgav_stream_t * s)
   ffmpeg_audio_priv * priv;
   int planar = 0;
 
-  priv= s->data.audio.decoder->priv;
+  priv= s->decoder_priv;
 
   /* These might be set from the codec or the container */
 
@@ -167,7 +167,7 @@ static gavl_source_status_t fill_buffer(bgav_stream_t * s)
   bgav_packet_t * p = NULL;
   gavl_source_status_t st;
  
-  priv= s->data.audio.decoder->priv;
+  priv= s->decoder_priv;
 
   /* Read data if necessary */
   while(!priv->buf.size ||
@@ -199,7 +199,7 @@ static gavl_source_status_t decode_frame_ffmpeg(bgav_stream_t * s)
   AVFrame f;
   int got_frame;
   
-  priv= s->data.audio.decoder->priv;
+  priv= s->decoder_priv;
 
   while(1)
     {
@@ -373,7 +373,7 @@ static int init_ffmpeg_audio(bgav_stream_t * s)
   
   bgav_ffmpeg_unlock();
   
-  s->data.audio.decoder->priv = priv;
+  s->decoder_priv = priv;
 
   /* Set missing format values */
   
@@ -402,7 +402,7 @@ static int init_ffmpeg_audio(bgav_stream_t * s)
 static void resync_ffmpeg(bgav_stream_t * s)
   {
   ffmpeg_audio_priv * priv;
-  priv = s->data.audio.decoder->priv;
+  priv = s->decoder_priv;
   avcodec_flush_buffers(priv->ctx);
   priv->frame->valid_samples = 0;
   bgav_bytebuffer_flush(&priv->buf);
@@ -411,7 +411,7 @@ static void resync_ffmpeg(bgav_stream_t * s)
 static void close_ffmpeg(bgav_stream_t * s)
   {
   ffmpeg_audio_priv * priv;
-  priv= s->data.audio.decoder->priv;
+  priv= s->decoder_priv;
 
   if(!priv)
     return;
@@ -798,7 +798,7 @@ static codec_info_t * lookup_codec(bgav_stream_t * s)
   
   for(i = 0; i < real_num_codecs; i++)
     {
-    if(s->data.audio.decoder->decoder == &codecs[i].decoder)
+    if(s->data.audio.decoder == &codecs[i].decoder)
       return codecs[i].info;
     }
   return NULL;

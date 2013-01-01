@@ -51,7 +51,7 @@ static gavl_source_status_t get_frame(void * sp, gavl_audio_frame_t ** frame)
   bgav_stream_t * s = sp;
   
   if(!(s->flags & STREAM_HAVE_FRAME) &&
-     !s->data.audio.decoder->decoder->decode_frame(s))
+     !s->data.audio.decoder->decode_frame(s))
     {
     s->flags |= STREAM_EOF_C;
     return GAVL_SOURCE_EOF;
@@ -66,7 +66,6 @@ static gavl_source_status_t get_frame(void * sp, gavl_audio_frame_t ** frame)
 int bgav_audio_start(bgav_stream_t * s)
   {
   bgav_audio_decoder_t * dec;
-  bgav_audio_decoder_context_t * ctx;
 
   if((s->flags & (STREAM_PARSE_FULL|STREAM_PARSE_FRAME)) &&
      !s->data.audio.parser)
@@ -137,9 +136,7 @@ int bgav_audio_start(bgav_stream_t * s)
                  s->fourcc);
       return 0;
       }
-    ctx = calloc(1, sizeof(*ctx));
-    s->data.audio.decoder = ctx;
-    s->data.audio.decoder->decoder = dec;
+    s->data.audio.decoder = dec;
     s->data.audio.frame = gavl_audio_frame_create(NULL);
     
     if(!dec->init(s))
@@ -192,8 +189,7 @@ void bgav_audio_stop(bgav_stream_t * s)
   {
   if(s->data.audio.decoder)
     {
-    s->data.audio.decoder->decoder->close(s);
-    free(s->data.audio.decoder);
+    s->data.audio.decoder->close(s);
     s->data.audio.decoder = NULL;
     }
   if(s->data.audio.parser)
@@ -297,8 +293,8 @@ void bgav_audio_resync(bgav_stream_t * s)
 
   
   if(s->data.audio.decoder &&
-     s->data.audio.decoder->decoder->resync)
-    s->data.audio.decoder->decoder->resync(s);
+     s->data.audio.decoder->resync)
+    s->data.audio.decoder->resync(s);
   
   if(s->data.audio.source)
     gavl_audio_source_reset(s->data.audio.source);

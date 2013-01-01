@@ -60,7 +60,7 @@ static gavl_source_status_t decode_frame_a52(bgav_stream_t * s)
   sample_t level = 1.0;
   
   a52_priv * priv;
-  priv = s->data.audio.decoder->priv;
+  priv = s->decoder_priv;
   
   if((st = bgav_stream_get_packet_read(s, &p)) != GAVL_SOURCE_OK)
     return st;
@@ -154,7 +154,7 @@ static int init_a52(bgav_stream_t * s)
   a52_priv * priv;
   
   priv = calloc(1, sizeof(*priv));
-  s->data.audio.decoder->priv = priv;
+  s->decoder_priv = priv;
   
   //  a52_header_dump(&priv->header);
     
@@ -176,7 +176,7 @@ static int init_a52(bgav_stream_t * s)
 static void close_a52(bgav_stream_t * s)
   {
   a52_priv * priv;
-  priv = s->data.audio.decoder->priv;
+  priv = s->decoder_priv;
 
   if(priv->frame)
     gavl_audio_frame_destroy(priv->frame);
@@ -189,7 +189,7 @@ static void resync_a52(bgav_stream_t * s)
   {
   a52_priv * priv;
   
-  priv = s->data.audio.decoder->priv;
+  priv = s->decoder_priv;
   if(!priv->state)
     return;
 

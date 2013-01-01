@@ -189,11 +189,11 @@ static int init_real(bgav_stream_t * s)
   const codec_info_t * info = NULL;
     
   priv = calloc(1, sizeof(*priv));
-  s->data.audio.decoder->priv = priv;
+  s->decoder_priv = priv;
   
   for(i = 0; i < sizeof(real_codecs) / sizeof(real_codecs[0]); i++)
     {
-    if(&real_codecs[i].decoder == s->data.audio.decoder->decoder)
+    if(&real_codecs[i].decoder == s->data.audio.decoder)
       {
       info = &real_codecs[i];
       break;
@@ -346,7 +346,7 @@ static gavl_source_status_t fill_buffer(bgav_stream_t * s)
   bgav_packet_t * p = NULL;
   gavl_source_status_t st;
 
-  priv = s->data.audio.decoder->priv;
+  priv = s->decoder_priv;
 
   if((st = bgav_stream_get_packet_read(s, &p)) != GAVL_SOURCE_OK)
     return st;
@@ -371,7 +371,7 @@ static gavl_source_status_t decode_frame_real(bgav_stream_t * s)
   unsigned int len;
   gavl_source_status_t st;
   real_priv_t * priv;
-  priv = s->data.audio.decoder->priv;
+  priv = s->decoder_priv;
   if(!priv->read_buffer_size)
     {
     if((st = fill_buffer(s)) != GAVL_SOURCE_OK)
@@ -398,7 +398,7 @@ static gavl_source_status_t decode_frame_real(bgav_stream_t * s)
 
 static void close_real(bgav_stream_t * s)
   {
-  real_priv_t * p = s->data.audio.decoder->priv;
+  real_priv_t * p = s->decoder_priv;
 
   if(p->frame)
     gavl_audio_frame_destroy(p->frame);
@@ -417,7 +417,7 @@ static void close_real(bgav_stream_t * s)
 
 static void resync_real(bgav_stream_t * s)
   {
-  real_priv_t * p = s->data.audio.decoder->priv;
+  real_priv_t * p = s->decoder_priv;
   p->frame->valid_samples = 0;
   p->read_buffer_size = 0;
   }

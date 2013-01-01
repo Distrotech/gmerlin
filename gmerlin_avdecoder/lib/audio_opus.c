@@ -53,7 +53,7 @@ static gavl_source_status_t decode_frame_opus(bgav_stream_t * s)
   gavl_source_status_t st;
   gavl_source_status_t ret = GAVL_SOURCE_EOF;
   
-  priv = s->data.audio.decoder->priv;
+  priv = s->decoder_priv;
   
   if((st = bgav_stream_get_packet_read(s, &p)) != GAVL_SOURCE_OK)
     return st;
@@ -102,7 +102,7 @@ static int init_opus(bgav_stream_t * s)
   int ret = 0;
   int err;
   priv = calloc(1, sizeof(*priv));
-  s->data.audio.decoder->priv = priv;
+  s->decoder_priv = priv;
 
   /* Parse extradata */
   input_mem = bgav_input_open_memory(s->ext_data,
@@ -170,7 +170,7 @@ static int init_opus(bgav_stream_t * s)
 static void close_opus(bgav_stream_t * s)
   {
   opus_t * priv;
-  priv = s->data.audio.decoder->priv;
+  priv = s->decoder_priv;
 
   if(priv->dec)
     opus_multistream_decoder_destroy(priv->dec);
@@ -184,7 +184,7 @@ static void close_opus(bgav_stream_t * s)
 static void resync_opus(bgav_stream_t * s)
   {
   opus_t * priv;
-  priv = s->data.audio.decoder->priv;
+  priv = s->decoder_priv;
   opus_multistream_decoder_ctl(priv->dec, OPUS_RESET_STATE);
   }
 

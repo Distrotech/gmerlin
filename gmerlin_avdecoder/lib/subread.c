@@ -456,8 +456,8 @@ static gavl_source_status_t read_spumux(bgav_stream_t * s, bgav_packet_t * p)
     }
   
   p->pts =
-    parse_time_spumux(start_time, s->data.subtitle.format.timescale,
-                      s->data.subtitle.format.frame_duration);
+    parse_time_spumux(start_time, s->data.subtitle.video.format.timescale,
+                      s->data.subtitle.video.format.frame_duration);
   
   if(p->pts == GAVL_TIME_UNDEFINED)
     {
@@ -470,8 +470,8 @@ static gavl_source_status_t read_spumux(bgav_stream_t * s, bgav_packet_t * p)
     {
     p->duration =
       parse_time_spumux(tmp,
-                        s->data.subtitle.format.timescale,
-                        s->data.subtitle.format.frame_duration);
+                        s->data.subtitle.video.format.timescale,
+                        s->data.subtitle.video.format.frame_duration);
     if(p->duration == GAVL_TIME_UNDEFINED)
       return 0;
     p->duration -= p->pts;
@@ -536,17 +536,17 @@ static int init_spumux(bgav_stream_t * s)
   do{
     tmp = bgav_yml_get_attribute_i(priv->cur, "end");
     s->duration = parse_time_spumux(tmp,
-                                    s->data.subtitle.format.timescale,
-                                    s->data.subtitle.format.frame_duration);
+                                    s->data.subtitle.video.format.timescale,
+                                    s->data.subtitle.video.format.frame_duration);
     } while(advance_current_spumux(s));
   
   if(!init_current_spumux(s))
     return 0;
   
-  gavl_video_format_copy(&s->data.subtitle.format,
+  gavl_video_format_copy(&s->data.subtitle.video.format,
                          &s->data.subtitle.video_stream->data.video.format);
-  s->data.subtitle.format.pixelformat = GAVL_PIXELFORMAT_NONE;
-  s->data.subtitle.format.timescale   = GAVL_TIME_SCALE;
+  s->data.subtitle.video.format.pixelformat = GAVL_PIXELFORMAT_NONE;
+  s->data.subtitle.video.format.timescale   = GAVL_TIME_SCALE;
   
   return 1;
   }
@@ -576,8 +576,8 @@ static void seek_spumux(bgav_stream_t * s, int64_t time1, int scale)
     end_time = bgav_yml_get_attribute_i(priv->cur, "end");
 
     start = parse_time_spumux(start_time,
-                              s->data.subtitle.format.timescale,
-                              s->data.subtitle.format.frame_duration);
+                              s->data.subtitle.video.format.timescale,
+                              s->data.subtitle.video.format.frame_duration);
     if(start == GAVL_TIME_UNDEFINED)
       {
       bgav_log(s->opt, BGAV_LOG_ERROR, LOG_DOMAIN,
@@ -587,8 +587,8 @@ static void seek_spumux(bgav_stream_t * s, int64_t time1, int scale)
     
     if(end_time)
       end = parse_time_spumux(end_time,
-                              s->data.subtitle.format.timescale,
-                              s->data.subtitle.format.frame_duration);
+                              s->data.subtitle.video.format.timescale,
+                              s->data.subtitle.video.format.frame_duration);
     
     if(end == GAVL_TIME_UNDEFINED)
       {

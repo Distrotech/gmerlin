@@ -1439,18 +1439,18 @@ static void quicktime_init(bgav_demuxer_context_t * ctx)
       stream_init(bg_ss, &moov->tracks[i], moov->mvhd.time_scale);
 
       /* Set video format */
-      bg_ss->data.subtitle.format.image_width = (int)trak->tkhd.track_width;
-      bg_ss->data.subtitle.format.image_height = (int)trak->tkhd.track_height;
+      bg_ss->data.subtitle.video.format.image_width = (int)trak->tkhd.track_width;
+      bg_ss->data.subtitle.video.format.image_height = (int)trak->tkhd.track_height;
 
-      bg_ss->data.subtitle.format.frame_width  = bg_ss->data.subtitle.format.image_width;
-      bg_ss->data.subtitle.format.frame_height = bg_ss->data.subtitle.format.image_height;
+      bg_ss->data.subtitle.video.format.frame_width  = bg_ss->data.subtitle.video.format.image_width;
+      bg_ss->data.subtitle.video.format.frame_height = bg_ss->data.subtitle.video.format.image_height;
 
       /* Bogus values */
-      bg_ss->data.subtitle.format.pixel_width  = 1;
-      bg_ss->data.subtitle.format.pixel_height = 1;
+      bg_ss->data.subtitle.video.format.pixel_width  = 1;
+      bg_ss->data.subtitle.video.format.pixel_height = 1;
       
-      bg_ss->data.subtitle.format.timescale = trak->mdia.mdhd.time_scale;
-      bg_ss->data.subtitle.format.framerate_mode = GAVL_FRAMERATE_VARIABLE;
+      bg_ss->data.subtitle.video.format.timescale = trak->mdia.mdhd.time_scale;
+      bg_ss->data.subtitle.video.format.framerate_mode = GAVL_FRAMERATE_VARIABLE;
       }
     
     }

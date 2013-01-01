@@ -66,7 +66,7 @@ static gavl_source_status_t get_data(bgav_stream_t * s)
   bgav_packet_t * p = NULL;
   mad_priv_t * priv;
   
-  priv = s->data.audio.decoder->priv;
+  priv = s->decoder_priv;
 
   st = bgav_stream_get_packet_read(s, &p);
 
@@ -92,7 +92,7 @@ static int get_format(bgav_stream_t * s)
 
   struct mad_header h;
   
-  priv = s->data.audio.decoder->priv;
+  priv = s->decoder_priv;
 
   mad_header_init(&h);
   mad_header_decode(&h, &priv->stream);
@@ -162,7 +162,7 @@ static gavl_source_status_t decode_frame_mad(bgav_stream_t * s)
   int got_frame;
   int flush = 0;
   
-  priv = s->data.audio.decoder->priv;
+  priv = s->decoder_priv;
   
   if(priv->eof)
     return GAVL_SOURCE_EOF;
@@ -250,7 +250,7 @@ static int init_mad(bgav_stream_t * s)
   mad_priv_t * priv;
   
   priv = calloc(1, sizeof(*priv));
-  s->data.audio.decoder->priv = priv;
+  s->decoder_priv = priv;
 
   mad_frame_init(&priv->frame);
   mad_synth_init(&priv->synth);
@@ -273,7 +273,7 @@ static int init_mad(bgav_stream_t * s)
 static void resync_mad(bgav_stream_t * s)
   {
   mad_priv_t * priv;
-  priv = s->data.audio.decoder->priv;
+  priv = s->decoder_priv;
   priv->eof = 0;
   priv->partial = 0;
   mad_frame_finish(&priv->frame);
@@ -294,7 +294,7 @@ static void resync_mad(bgav_stream_t * s)
 static void close_mad(bgav_stream_t * s)
   {
   mad_priv_t * priv;
-  priv = s->data.audio.decoder->priv;
+  priv = s->decoder_priv;
 
   mad_synth_finish(&priv->synth);
   mad_frame_finish(&priv->frame);

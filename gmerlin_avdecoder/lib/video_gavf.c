@@ -37,8 +37,8 @@ decode_frame_gavf_video(bgav_stream_t * s, gavl_video_frame_t * frame)
   {
   gavl_source_status_t st;  
   gavl_packet_t gp;
-  gavf_video_t * priv = s->data.video.decoder->priv;
-
+  gavf_video_t * priv = s->decoder_priv;
+  
   if(priv->p)
     {
     bgav_stream_done_packet_read(s, priv->p);
@@ -50,16 +50,26 @@ decode_frame_gavf_video(bgav_stream_t * s, gavl_video_frame_t * frame)
   gavl_packet_init(&gp);
   gp.data     = priv->p->data;
   gp.data_len = priv->p->data_size;
+  gp.dst_x    = priv->p->dst_x;
+  gp.dst_y    = priv->p->dst_y;
+  gavl_rectangle_i_copy(&gp.src_rect, &priv->p->src_rect);
   
-  gavf_packet_to_video_frame(&gp, priv->frame, &s->data.video.format);
-  bgav_set_video_frame_from_packet(priv->p, priv->frame);
+  if(s->type == BGAV_STREAM_VIDEO)
+    {
+    gavf_packet_to_video_frame(&gp, priv->frame, &s->data.video.format);
+    bgav_set_video_frame_from_packet(priv->p, priv->frame);
+    }
+  else
+    {
+    gavf_packet_to_overlay(&gp, frame, &s->data.video.format);
+    bgav_set_video_frame_from_packet(priv->p, frame);
+    }
   return GAVL_SOURCE_OK;
   }
 
 static void close_gavf_video(bgav_stream_t * s)
   {
-  gavf_video_t * priv = s->data.video.decoder->priv;
-  
+  gavf_video_t * priv = s->decoder_priv;
   if(priv->frame)
     {
     gavl_video_frame_null(priv->frame);
@@ -72,16 +82,20 @@ static int init_gavf_video(bgav_stream_t * s)
   {
   gavf_video_t * priv;
   priv = calloc(1, sizeof(*priv));
-  s->data.video.decoder->priv = priv;
 
-  priv->frame = gavl_video_frame_create(NULL);
-  s->data.video.frame = priv->frame;
+  s->decoder_priv = priv;
+
+  if(s->type == BGAV_STREAM_VIDEO)
+    {
+    priv->frame = gavl_video_frame_create(NULL);
+    s->vframe = priv->frame;
+    }
   return 1;
   }
 
 static void resync_gavf_video(bgav_stream_t * s)
   {
-  gavf_video_t * priv = s->data.video.decoder->priv;
+  gavf_video_t * priv = s->decoder_priv;
   if(priv->p)
     {
     bgav_stream_done_packet_read(s, priv->p);
