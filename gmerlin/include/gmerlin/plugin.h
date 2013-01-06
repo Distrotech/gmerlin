@@ -2440,6 +2440,19 @@ struct bg_codec_plugin_s
                                            gavl_video_format_t * fmt,
                                            gavl_metadata_t * m);
 
+  /** \brief Connect overlay encoder
+   *  \param priv The handle returned by the create() method
+   *  \param ci Compression info (must be freed by the caller)
+   *  \param fmt Format of the source
+   *  \param m Stream metadata (might get changed by the call)
+   *  \returns A video sink for sending uncompressed frames
+   */
+  
+  gavl_video_sink_t * (*open_encode_overlay)(void * priv,
+                                             gavl_compression_info_t * ci,
+                                             gavl_video_format_t * fmt,
+                                             gavl_metadata_t * m);
+  
   /** \brief Set a packet sink
    *  \param priv The handle returned by the create() method
    *  \param sink A sink where the encoder can send completed packets

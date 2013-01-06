@@ -53,14 +53,82 @@ flush_function(png_structp png_ptr)
   
   }
 
+void bg_pngwriter_adjust_format(bg_pngwriter_t * png,
+                                gavl_video_format_t * format)
+  {
+  png->bits = 8;
+  switch(png->bit_mode)
+    {
+    case BITS_AUTO:
+      /* Decide according to the input format */
+      if(gavl_pixelformat_is_planar(format->pixelformat))
+        {
+        if(gavl_pixelformat_bytes_per_component(format->pixelformat) > 1)
+          png->bits = 16;
+        }
+      else if(gavl_pixelformat_bytes_per_pixel(format->pixelformat) >
+              gavl_pixelformat_num_channels(format->pixelformat))
+        png->bits = 16;
+      break;
+    case BITS_8:
+      png->bits = 8;
+      break;
+    case BITS_16:
+      png->bits = 16;
+      break;
+    }
+#ifndef WORDS_BIGENDIAN
+  if(png->bits > 8)
+    png->transform_flags |= PNG_TRANSFORM_SWAP_ENDIAN;
+#endif
+
+  if(gavl_pixelformat_is_gray(format->pixelformat))
+    {
+    if(gavl_pixelformat_has_alpha(format->pixelformat))
+      {
+      png->color_type = PNG_COLOR_TYPE_GRAY_ALPHA;
+      if(png->bits == 8)
+        format->pixelformat = GAVL_GRAYA_16;
+      else
+        format->pixelformat = GAVL_GRAYA_32;
+      }
+    else
+      {
+      png->color_type = PNG_COLOR_TYPE_GRAY;
+      if(png->bits == 8)
+        format->pixelformat = GAVL_GRAY_8;
+      else
+        format->pixelformat = GAVL_GRAY_16;
+      }
+    }
+  else
+    {
+    if(gavl_pixelformat_has_alpha(format->pixelformat))
+      {
+      png->color_type = PNG_COLOR_TYPE_RGBA;
+      if(png->bits == 8)
+        format->pixelformat = GAVL_RGBA_32;
+      else
+        format->pixelformat = GAVL_RGBA_64;
+      }
+    else
+      {
+      png->color_type = PNG_COLOR_TYPE_RGB;
+      if(png->bits == 8)
+        format->pixelformat = GAVL_RGB_24;
+      else
+        format->pixelformat = GAVL_RGB_48;
+      }
+    }
+  png->have_format = 1;
+  }
+
 int bg_pngwriter_write_header(void * priv,
                               const char * filename,
                               gavl_packet_t * p,
                               gavl_video_format_t * format,
                               const gavl_metadata_t * metadata)
   {
-  int color_type;
-  int bits = 8;
   int j;
   bg_pngwriter_t * png = priv;
   
@@ -96,77 +164,17 @@ int bg_pngwriter_write_header(void * priv,
                      write_function,
                      flush_function);
     }
-  
-  switch(png->bit_mode)
-    {
-    case BITS_AUTO:
-      /* Decide according to the input format */
-      if(gavl_pixelformat_is_planar(format->pixelformat))
-        {
-        if(gavl_pixelformat_bytes_per_component(format->pixelformat) > 1)
-          bits = 16;
-        }
-      else if(gavl_pixelformat_bytes_per_pixel(format->pixelformat) >
-              gavl_pixelformat_num_channels(format->pixelformat))
-        bits = 16;
-      break;
-    case BITS_8:
-      bits = 8;
-      break;
-    case BITS_16:
-      bits = 16;
-      break;
-      
-    }
-#ifndef WORDS_BIGENDIAN
-  if(bits > 8)
-    png->transform_flags |= PNG_TRANSFORM_SWAP_ENDIAN;
-#endif
 
-  if(gavl_pixelformat_is_gray(format->pixelformat))
-    {
-    if(gavl_pixelformat_has_alpha(format->pixelformat))
-      {
-      color_type = PNG_COLOR_TYPE_GRAY_ALPHA;
-      if(bits == 8)
-        format->pixelformat = GAVL_GRAYA_16;
-      else
-        format->pixelformat = GAVL_GRAYA_32;
-      }
-    else
-      {
-      color_type = PNG_COLOR_TYPE_GRAY;
-      if(bits == 8)
-        format->pixelformat = GAVL_GRAY_8;
-      else
-        format->pixelformat = GAVL_GRAY_16;
-      }
-    }
-  else
-    {
-    if(gavl_pixelformat_has_alpha(format->pixelformat))
-      {
-      color_type = PNG_COLOR_TYPE_RGBA;
-      if(bits == 8)
-        format->pixelformat = GAVL_RGBA_32;
-      else
-        format->pixelformat = GAVL_RGBA_64;
-      }
-    else
-      {
-      color_type = PNG_COLOR_TYPE_RGB;
-      if(bits == 8)
-        format->pixelformat = GAVL_RGB_24;
-      else
-        format->pixelformat = GAVL_RGB_48;
-      }
-    }
+  /* */
+
+  if(!png->have_format)
+    bg_pngwriter_adjust_format(png, format);
   
   png_set_compression_level(png->png_ptr, png->compression_level);
   png_set_IHDR(png->png_ptr, png->info_ptr,
                format->image_width,
                format->image_height,
-               bits, color_type, PNG_INTERLACE_NONE,
+               png->bits, png->color_type, PNG_INTERLACE_NONE,
                PNG_COMPRESSION_TYPE_DEFAULT, PNG_FILTER_TYPE_DEFAULT);
   
   gavl_video_format_copy(&png->format, format);

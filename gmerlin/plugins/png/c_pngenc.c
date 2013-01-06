@@ -45,6 +45,11 @@ typedef struct
   gavl_video_format_t fmt;
   int have_header;
   gavl_packet_t p;
+
+  int overlay;
+  
+  gavl_video_frame_t * frame;
+  
   } stream_codec_t;
 
 static void * create_codec()
@@ -56,6 +61,11 @@ static void * create_codec()
 static void destroy_codec(void * priv)
   {
   stream_codec_t * c = priv;
+  if(c->frame)
+    {
+    gavl_video_frame_null(c->frame);
+    gavl_video_frame_destroy(c->frame);
+    }
   free(c);
   }
 
@@ -95,18 +105,44 @@ static void set_parameter(void * priv, const char * name,
 static gavl_sink_status_t put_frame(void * priv,
                                     gavl_video_frame_t * f)
   {
+  gavl_video_frame_t * write_frame;
+  gavl_video_format_t fmt;
   stream_codec_t * c = priv;
   
-  if(!c->have_header)
+  gavl_packet_reset(&c->p);
+
+  gavl_video_format_copy(&fmt, &c->fmt);
+  
+  if(c->overlay)
     {
-    gavl_packet_reset(&c->p);
-    if(!bg_pngwriter_write_header(&c->png, NULL,
-                                  &c->p,
-                                  &c->fmt,
-                                  NULL))
-      return GAVL_SINK_ERROR;
+    /* Take a subframe */
+    gavl_video_frame_get_subframe(fmt.pixelformat,
+                                  f, c->frame,
+                                  &f->src_rect);
+    fmt.image_width = f->src_rect.w;
+    fmt.image_height = f->src_rect.h;
+    write_frame = c->frame;
+
+    gavl_rectangle_i_copy(&c->p.src_rect, &f->src_rect);
+    
+    c->p.src_rect.x = 0;
+    c->p.src_rect.y = 0;
+    c->p.dst_x = f->dst_x;
+    c->p.dst_y = f->dst_y;
     }
-  bg_pngwriter_write_image(&c->png, f);
+  else
+    {
+    /* Take the whole frame */
+    write_frame = f;
+    }
+  
+  if(!bg_pngwriter_write_header(&c->png, NULL,
+                                &c->p,
+                                &fmt,
+                                NULL))
+    return GAVL_SINK_ERROR;
+  
+  bg_pngwriter_write_image(&c->png, write_frame);
   gavf_video_frame_to_packet_metadata(f, &c->p);
   c->have_header = 0;
   c->p.flags |= GAVL_PACKET_KEYFRAME;
@@ -120,20 +156,28 @@ static gavl_video_sink_t * open_video(void * priv,
   {
   stream_codec_t * c = priv;
   gavl_packet_reset(&c->p);
-  if(!bg_pngwriter_write_header(&c->png, NULL,
-                                &c->p,
-                                fmt,
-                                NULL))
-    return NULL;
+  
+  bg_pngwriter_adjust_format(&c->png, fmt);
+  gavl_video_format_copy(&c->fmt, fmt);
   
   gavl_metadata_set(m, GAVL_META_SOFTWARE, "libpng-" PNG_LIBPNG_VER_STRING);
-  gavl_video_format_copy(&c->fmt, fmt);
-  c->have_header = 1;
   c->vsink = gavl_video_sink_create(NULL, put_frame, c, &c->fmt);
 
   ci->id = GAVL_CODEC_ID_PNG;
 
   return c->vsink;
+  }
+
+static gavl_video_sink_t * open_overlay(void * priv,
+                                        gavl_compression_info_t * ci,
+                                        gavl_video_format_t * fmt,
+                                        gavl_metadata_t * m)
+  {
+  stream_codec_t * c = priv;
+  gavl_video_sink_t * ret = open_video(priv, ci, fmt, m);
+  c->overlay = 1;
+  c->frame = gavl_video_frame_create(NULL);
+  return ret;
   }
 
 static void set_packet_sink(void * priv, gavl_packet_sink_t * s)
@@ -159,6 +203,7 @@ const bg_codec_plugin_t the_plugin =
       .set_parameter =     set_parameter,
     },
     .open_encode_video = open_video,
+    .open_encode_overlay = open_overlay,
     .set_packet_sink = set_packet_sink,
   };
 /* Include this into all plugin modules exactly once

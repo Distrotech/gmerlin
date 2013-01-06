@@ -39,9 +39,17 @@ typedef struct
   int num_text;
   int dont_force_extension;
 
+  int color_type;
+  int have_format;
+  int bits;
+  
   gavl_packet_t * p;
   
   } bg_pngwriter_t;
+
+void bg_pngwriter_adjust_format(bg_pngwriter_t * png,
+                               gavl_video_format_t * format);
+
 
 int bg_pngwriter_write_header(void * priv, const char * filename,
                               gavl_packet_t * p,
