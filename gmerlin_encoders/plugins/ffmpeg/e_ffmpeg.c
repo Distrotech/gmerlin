@@ -201,7 +201,7 @@ const bg_encoder_plugin_t the_plugin =
     
     .max_audio_streams =         -1,
     .max_video_streams =         -1,
-    .max_subtitle_text_streams = -1,
+    .max_text_streams = -1,
     
     .get_audio_parameters = bg_ffmpeg_get_audio_parameters,
     .get_video_parameters = bg_ffmpeg_get_video_parameters,
@@ -217,7 +217,7 @@ const bg_encoder_plugin_t the_plugin =
     
     .add_audio_stream =     bg_ffmpeg_add_audio_stream,
     .add_video_stream =     bg_ffmpeg_add_video_stream,
-    .add_subtitle_text_stream =     bg_ffmpeg_add_text_stream,
+    .add_text_stream =     bg_ffmpeg_add_text_stream,
 
     .add_audio_stream_compressed =     bg_ffmpeg_add_audio_stream_compressed,
     .add_video_stream_compressed =     bg_ffmpeg_add_video_stream_compressed,
@@ -234,7 +234,7 @@ const bg_encoder_plugin_t the_plugin =
     
     .start =                bg_ffmpeg_start,
     
-    .get_subtitle_text_sink = bg_ffmpeg_get_text_packet_sink,
+    .get_text_sink = bg_ffmpeg_get_text_packet_sink,
 
     
     .close =                bg_ffmpeg_close,
