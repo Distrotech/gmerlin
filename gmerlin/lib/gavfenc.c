@@ -562,14 +562,15 @@ static int bg_gavf_start(void * data)
       {
       bg_codec_plugin_t * p = (bg_codec_plugin_t*)s->com.plugin->plugin;
       /* Switch on codec */
-      s->sink = p->open_encode_video(s->com.plugin->priv,
-                                     &s->com.ci,
-                                     &s->format,
-                                     &s->com.m);
+      s->sink = p->open_encode_overlay(s->com.plugin->priv,
+                                       &s->com.ci,
+                                       &s->format,
+                                       &s->com.m);
       if(!s->sink)
         return 0;
       }
-    s->com.index = gavf_add_overlay_stream(priv->enc, &s->com.ci, &s->format, &s->com.m);
+    s->com.index = gavf_add_overlay_stream(priv->enc, &s->com.ci,
+                                           &s->format, &s->com.m);
     }
   
   if(!gavf_start(priv->enc))

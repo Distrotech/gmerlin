@@ -122,13 +122,6 @@ static gavl_sink_status_t put_frame(void * priv,
     fmt.image_width = f->src_rect.w;
     fmt.image_height = f->src_rect.h;
     write_frame = c->frame;
-
-    gavl_rectangle_i_copy(&c->p.src_rect, &f->src_rect);
-    
-    c->p.src_rect.x = 0;
-    c->p.src_rect.y = 0;
-    c->p.dst_x = f->dst_x;
-    c->p.dst_y = f->dst_y;
     }
   else
     {
@@ -144,6 +137,14 @@ static gavl_sink_status_t put_frame(void * priv,
   
   bg_pngwriter_write_image(&c->png, write_frame);
   gavf_video_frame_to_packet_metadata(f, &c->p);
+
+  if(c->overlay)
+    {
+    memset(&c->p.src_rect, 0, sizeof(c->p.src_rect));
+    c->p.dst_x = f->dst_x;
+    c->p.dst_y = f->dst_y;
+    }
+  
   c->have_header = 0;
   c->p.flags |= GAVL_PACKET_KEYFRAME;
   return gavl_packet_sink_put_packet(c->psink, &c->p);

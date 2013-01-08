@@ -855,8 +855,8 @@ static int init_write(bg_plug_t * p)
     if(s->codec_handle)
       {
       bg_codec_plugin_t * codec = (bg_codec_plugin_t*)s->codec_handle->plugin;
-      s->vsink = codec->open_encode_video(s->codec_handle->priv,
-                                          &s->ci, &s->vfmt, &s->m);
+      s->vsink = codec->open_encode_overlay(s->codec_handle->priv,
+                                            &s->ci, &s->vfmt, &s->m);
       if(!s->vsink)
         return 0;
       }
