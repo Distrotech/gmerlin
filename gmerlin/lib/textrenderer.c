@@ -1363,7 +1363,7 @@ void bg_text_renderer_set_parameter(void * data, const char * name,
 static
 void init_nolock(bg_text_renderer_t * r)
   {
-  int bits;
+  //  int bits;
 #ifdef FT_STROKER_H 
   float y_tmp, u_tmp, v_tmp;
 #endif  
@@ -1397,9 +1397,10 @@ void init_nolock(bg_text_renderer_t * r)
     }
   if(!gavl_pixelformat_has_alpha(r->overlay_format.pixelformat))
     {
+    /* Guess overlay format from the frame format */
     gavl_video_format_t fmt;
-    
     gavl_overlay_blend_context_t * ctx;
+
     ctx = gavl_overlay_blend_context_create();
     gavl_video_format_copy(&fmt,
                            &r->frame_format);
@@ -1517,7 +1518,7 @@ void init_nolock(bg_text_renderer_t * r)
       bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Unknown pixelformat %s",
              gavl_pixelformat_to_string(r->overlay_format.pixelformat));
     }
-  
+#if 0  
   if(gavl_pixelformat_is_rgb(r->frame_format.pixelformat))
     {
     bits = 8*gavl_pixelformat_bytes_per_pixel(r->frame_format.pixelformat);
@@ -1680,6 +1681,7 @@ void init_nolock(bg_text_renderer_t * r)
         break;
       }
     }
+#endif
   
   /* */
   

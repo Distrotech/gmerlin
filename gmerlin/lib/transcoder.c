@@ -2879,7 +2879,9 @@ static void subtitle_init_encode_overlay(subtitle_stream_t * ss,
     else
       vs = NULL;
 
-
+    /* We force the text renderer to produce the overlays in the format
+       the output plugin wants. */
+    
     gavl_video_format_copy(&ss->in_format, &ss->out_format);
     
     ss->vsrc = bg_text_renderer_connect(sst->textrenderer,
