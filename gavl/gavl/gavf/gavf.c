@@ -3,6 +3,30 @@
 
 #include <gavfprivate.h>
 
+static struct
+  {
+  gavf_stream_type_t type;
+  const char * name;
+  }
+stream_types[] =
+  {
+    { GAVF_STREAM_AUDIO, "audio" },
+    { GAVF_STREAM_VIDEO, "video" },
+    { GAVF_STREAM_TEXT,  "text"  },
+    { GAVF_STREAM_OVERLAY,  "overlay" },
+  };
+
+GAVL_PUBLIC
+const char * gavf_stream_type_name(gavf_stream_type_t t)
+  {
+  int i;
+  for(i = 0; i < sizeof(stream_types)/sizeof(stream_types[0]); i++)
+    {
+    if(stream_types[i].type == t)
+      return stream_types[i].name;
+    }
+  return NULL;
+  }
 
 gavf_options_t * gavf_get_options(gavf_t * g)
   {

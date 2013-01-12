@@ -69,7 +69,7 @@ gavl_overlay_blend_context_init(gavl_overlay_blend_context_t * ctx,
   /* Clean up from previous initializations */
 
   if(ctx->ovl_win)
-    ctx->has_overlay = 0;
+    ctx->ovl = NULL;
   
   /* Check for non alpha capable overlay format */
 
@@ -101,13 +101,12 @@ void gavl_overlay_blend_context_set_overlay(gavl_overlay_blend_context_t * ctx,
   int diff;
   /* Save overlay */
 
-  if(!ovl)
+  if(!ovl || !ovl->src_rect.w || !ovl->src_rect.h)
     {
-    ctx->has_overlay = 0;
+    ctx->ovl = 0;
     return;
     }
-  ctx->has_overlay = 1;
-  memcpy(ctx->ovl, ovl, sizeof(*ctx->ovl));
+  ctx->ovl = ovl;
   
   /* Crop rectangle to destination format */
 
@@ -181,7 +180,7 @@ void gavl_overlay_blend_context_set_overlay(gavl_overlay_blend_context_t * ctx,
 void gavl_overlay_blend(gavl_overlay_blend_context_t * ctx,
                         gavl_video_frame_t * dst_frame)
   {
-  if(!ctx->has_overlay)
+  if(!ctx->ovl)
     return;
   /* Get subframe from destination */
   

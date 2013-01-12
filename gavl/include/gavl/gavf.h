@@ -53,6 +53,10 @@ typedef enum
     GAVF_STREAM_OVERLAY = 3,
   } gavf_stream_type_t;
 
+/* Return short name */
+GAVL_PUBLIC
+const char * gavf_stream_type_name(gavf_stream_type_t t);
+
 typedef struct
   {
   uint32_t size_min;
