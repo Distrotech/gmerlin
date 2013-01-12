@@ -36,7 +36,6 @@ typedef struct
   int width, height;
 
   /* For overlays only */
-  int active;
   gavl_rectangle_i_t src_rect;
   int dst_x, dst_y;
   } texture_t;
@@ -341,7 +340,8 @@ static void put_frame_gl(driver_data_t * d, gavl_video_frame_t * f)
     
     for(i = 0; i < w->num_overlay_streams; i++)
       {
-      if(!priv->overlays[i].active)
+      if(!priv->overlays[i].src_rect.w ||
+         !priv->overlays[i].src_rect.h)
         continue;
       
       glBindTexture(GL_TEXTURE_2D,priv->overlays[i].texture);
@@ -428,7 +428,7 @@ static void set_overlay_gl(driver_data_t* d, int stream, gavl_overlay_t * ovl)
   priv = (gl_priv_t *)(d->priv);
   w = d->win;
 
-  if(ovl)
+  if(ovl && ovl->src_rect.w && ovl->src_rect.h)
     {
     bg_x11_window_set_gl(w);
     glBindTexture(GL_TEXTURE_2D,priv->overlays[stream].texture);
@@ -439,7 +439,6 @@ static void set_overlay_gl(driver_data_t* d, int stream, gavl_overlay_t * ovl)
                     priv->overlays[stream].type,
                     priv->overlays[stream].format,
                     ovl->planes[0]);
-    priv->overlays[stream].active = 1;
     bg_x11_window_unset_gl(w);
 
     gavl_rectangle_i_copy(&priv->overlays[stream].src_rect, &ovl->src_rect);
@@ -447,8 +446,10 @@ static void set_overlay_gl(driver_data_t* d, int stream, gavl_overlay_t * ovl)
     priv->overlays[stream].dst_y = ovl->dst_y;
     }
   else
-    priv->overlays[stream].active = 0;
-  
+    {
+    priv->overlays[stream].src_rect.w = 0;
+    priv->overlays[stream].src_rect.h = 0;
+    }
   }
 
 
