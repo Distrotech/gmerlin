@@ -211,6 +211,8 @@ process_cb_video(void * priv, gavl_video_frame_t * frame)
   player_t * p;
   video_stream_t * vs = priv;
 
+  /* Handle subtitle */
+  
   //  fprintf(stderr, "Process video\n");
 
   p = vs->p;
@@ -503,7 +505,7 @@ find_stream(gavf_t * g, int type, int index)
     if(!ret)
       {
       bg_log(BG_LOG_ERROR, LOG_DOMAIN, "No %s stream %d",
-             (type == GAVF_STREAM_AUDIO ? "audio" : "video"),
+             gavf_stream_type_name(type),
              index + 1);
       }
     }
@@ -514,6 +516,8 @@ int main(int argc, char ** argv)
   {
   const gavf_stream_header_t * as;
   const gavf_stream_header_t * vs;
+  const gavf_stream_header_t * ss;
+  
   const gavf_program_header_t * ph;
   gavl_time_t delay_time = GAVL_TIME_SCALE / 100; // 10 ms
   
@@ -581,7 +585,6 @@ int main(int argc, char ** argv)
       bg_plug_set_stream_action(in_plug, &ph->streams[i],
                                 BG_STREAM_ACTION_OFF);
    }
-  
   
   /* Start plug and set up media connector */
   

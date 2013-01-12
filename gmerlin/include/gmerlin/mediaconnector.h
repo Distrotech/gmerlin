@@ -76,6 +76,7 @@ struct bg_mediaconnector_s
   {
   bg_mediaconnector_stream_t ** streams;
   int num_streams;
+  int num_threads; // Can be < num_streams
   
   bg_thread_common_t * tc;
 
@@ -129,6 +130,12 @@ void
 bg_mediaconnector_create_threads(bg_mediaconnector_t * conn);
 
 void
+bg_mediaconnector_create_threads_common(bg_mediaconnector_t * conn);
+
+void
+bg_mediaconnector_create_thread(bg_mediaconnector_t * conn, int index);
+
+void
 bg_mediaconnector_start(bg_mediaconnector_t * conn);
 
 void
@@ -138,6 +145,8 @@ int bg_mediaconnector_iteration(bg_mediaconnector_t * conn);
 
 void
 bg_mediaconnector_threads_init_separate(bg_mediaconnector_t * conn);
+
+
 
 void
 bg_mediaconnector_threads_start(bg_mediaconnector_t * conn);

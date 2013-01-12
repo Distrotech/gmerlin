@@ -452,19 +452,29 @@ bg_mediaconnector_get_time(bg_mediaconnector_t * conn)
 /* Thread stuff */
 
 void
+bg_mediaconnector_create_threads_common(bg_mediaconnector_t * conn)
+  {
+  conn->tc = bg_thread_common_create();
+  conn->th = calloc(conn->num_streams, sizeof(*conn->th));
+  }
+
+void
+bg_mediaconnector_create_thread(bg_mediaconnector_t * conn, int index)
+  {
+  bg_mediaconnector_stream_t * s;
+  s = conn->streams[index];
+  s->th = bg_thread_create(conn->tc);
+  conn->th[conn->num_threads] = s->th;
+  conn->num_threads++;
+  }
+
+void
 bg_mediaconnector_create_threads(bg_mediaconnector_t * conn)
   {
   int i;
-  bg_mediaconnector_stream_t * s;
-  conn->tc = bg_thread_common_create();
-  conn->th = calloc(conn->num_streams, sizeof(*conn->th));
-
+  bg_mediaconnector_create_threads_common(conn);
   for(i = 0; i < conn->num_streams; i++)
-    {
-    s = conn->streams[i];
-    s->th = bg_thread_create(conn->tc);
-    conn->th[i] = s->th;
-    }
+    bg_mediaconnector_create_thread(conn, i);
   }
 
 static void * thread_func_separate(void * data)
@@ -499,23 +509,24 @@ bg_mediaconnector_threads_init_separate(bg_mediaconnector_t * conn)
   for(i = 0; i < conn->num_streams; i++)
     {
     s = conn->streams[i];
-    bg_thread_set_func(s->th,
-                       thread_func_separate, s);
+    if(s->th)
+      bg_thread_set_func(s->th,
+                         thread_func_separate, s);
     }
-  conn->running_threads = conn->num_streams;
+  conn->running_threads = conn->num_threads;
   }
 
 void
 bg_mediaconnector_threads_start(bg_mediaconnector_t * conn)
   {
-  bg_threads_init(conn->th, conn->num_streams);
-  bg_threads_start(conn->th, conn->num_streams);
+  bg_threads_init(conn->th, conn->num_threads);
+  bg_threads_start(conn->th, conn->num_threads);
   }
 
 void
 bg_mediaconnector_threads_stop(bg_mediaconnector_t * conn)
   {
-  bg_threads_join(conn->th, conn->num_streams);
+  bg_threads_join(conn->th, conn->num_threads);
   }
 
 int bg_mediaconnector_done(bg_mediaconnector_t * conn)
