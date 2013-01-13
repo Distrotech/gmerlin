@@ -449,7 +449,6 @@ int bg_avdec_set_track(void * priv, int track)
     return 0;
   avdec->current_track = &(avdec->track_info[track]);
   
-
   /* Get formats (need them for compressed output */
   for(i = 0; i < avdec->current_track->num_audio_streams; i++)
     gavl_audio_format_copy(&(avdec->current_track->audio_streams[i].format),
@@ -478,8 +477,9 @@ static void metadata_change_callback(void * priv,
 
   /* Merge metadata */
 
-  gavl_metadata_copy(&avdec->current_track->metadata,
-                     metadata);
+  if(avdec->current_track)
+    gavl_metadata_copy(&avdec->current_track->metadata,
+                       metadata);
   
   if(avdec->bg_callbacks && avdec->bg_callbacks->metadata_changed)
     {

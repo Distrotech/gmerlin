@@ -36,7 +36,6 @@ typedef struct
   {
   bgav_png_reader_t * png_reader;
   int have_header;
-  int need_header;
   gavl_video_format_t format;
   } png_priv_t;
 
