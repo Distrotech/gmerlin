@@ -34,7 +34,6 @@ gavl_overlay_blend_context_t * gavl_overlay_blend_context_create()
 
   ret->ovl_win = gavl_video_frame_create(NULL);
   ret->dst_win = gavl_video_frame_create(NULL);
-  ret->ovl = gavl_video_frame_create(NULL);
   
   gavl_video_options_set_defaults(&ret->opt);
   
@@ -48,9 +47,6 @@ void gavl_overlay_blend_context_destroy(gavl_overlay_blend_context_t * ctx)
   
   gavl_video_frame_null(ctx->ovl_win);
   gavl_video_frame_destroy(ctx->ovl_win);
-
-  gavl_video_frame_null(ctx->ovl);
-  gavl_video_frame_destroy(ctx->ovl);
   
   free(ctx);
   }
@@ -103,7 +99,7 @@ void gavl_overlay_blend_context_set_overlay(gavl_overlay_blend_context_t * ctx,
 
   if(!ovl || !ovl->src_rect.w || !ovl->src_rect.h)
     {
-    ctx->ovl = 0;
+    ctx->ovl = NULL;
     return;
     }
   ctx->ovl = ovl;
