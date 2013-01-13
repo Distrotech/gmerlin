@@ -129,6 +129,7 @@ socket.c \
 streaminfo.c \
 stringutils.c \
 subprocess.c \
+subtitle.c \
 textrenderer.c \
 threadpool.c \
 thumbnail.c \

@@ -206,6 +206,7 @@ int bg_player_ov_init(bg_player_video_stream_t * vs)
   
   bg_osd_init(vs->osd, &vs->output_format,
               &vs->osd_format);
+  
   /* Fixme: Lets just hope, that the OSD format doesn't get changed
      by this call. Otherwise, we would need a gavl_video_converter */
 
@@ -257,10 +258,30 @@ static void dump_subtitle(gavl_overlay_t * ovl)
   }
 #endif
 
+static void read_subtitle(bg_player_subtitle_stream_t * ss,
+                          gavl_video_frame_t * frame)
+  {
+  gavl_source_status_t st;
+  if((frame->timestamp != GAVL_TIME_UNDEFINED) || ss->eof)
+    return;
+
+  st = gavl_video_source_read_frame(ss->vsrc, &frame);
+  if(st == GAVL_SOURCE_EOF)
+    {
+    ss->eof = 1;
+    bg_log(BG_LOG_INFO, LOG_DOMAIN, "Subtitle stream finished");
+    }
+  if(st == GAVL_SOURCE_OK)
+    {
+    bg_player_subtitle_unscale_time(ss, frame);
+#ifdef DUMP_SUBTITLE
+    dump_subtitle(frame);
+#endif
+    }
+  }
 
 static void handle_subtitle(bg_player_t * p)
   {
-  gavl_source_status_t st;
   bg_player_video_stream_t * s = &p->video_stream;
   gavl_overlay_t * swp;
 
@@ -282,43 +303,9 @@ static void handle_subtitle(bg_player_t * p)
     }
   
   /* Try to read as many subtitles as possible */
-  st = GAVL_SOURCE_AGAIN;
-
-  if((s->ss->current_subtitle->timestamp == GAVL_TIME_UNDEFINED) &&
-     !s->ss->eof)
-    {
-    st = gavl_video_source_read_frame(s->ss->vsrc, &s->ss->current_subtitle);
-    if(st == GAVL_SOURCE_EOF)
-      {
-      s->ss->eof = 1;
-      bg_log(BG_LOG_INFO, LOG_DOMAIN, "Subtitle stream finished");
-      }
-    if(st == GAVL_SOURCE_OK)
-      {
-      bg_player_subtitle_unscale_time(s->ss, s->ss->current_subtitle);
-#ifdef DUMP_SUBTITLE
-      dump_subtitle(s->ss->current_subtitle);
-#endif
-      }
-    }
-
-  if((s->ss->next_subtitle->timestamp == GAVL_TIME_UNDEFINED) &&
-     !s->ss->eof)
-    {
-    st = gavl_video_source_read_frame(s->ss->vsrc, &s->ss->next_subtitle);
-    if(st == GAVL_SOURCE_EOF)
-      {
-      s->ss->eof = 1;
-      bg_log(BG_LOG_INFO, LOG_DOMAIN, "Subtitle stream finished");
-      }
-    if(st == GAVL_SOURCE_OK)
-      {
-      bg_player_subtitle_unscale_time(s->ss, s->ss->next_subtitle);
-#ifdef DUMP_SUBTITLE
-      dump_subtitle(s->ss->next_subtitle);
-#endif
-      }
-    }
+  
+  read_subtitle(s->ss, s->ss->current_subtitle);
+  read_subtitle(s->ss, s->ss->next_subtitle);
   
   /* Check if the current subtitle became valid */
   if(!s->subtitle_active &&
@@ -347,7 +334,6 @@ static void handle_subtitle(bg_player_t * p)
     s->subtitle_active = 1;
     }
   }
-
 
 void bg_player_ov_update_still(bg_player_t * p)
   {

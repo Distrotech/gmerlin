@@ -37,6 +37,7 @@ serialize.h \
 singlepic.h \
 streaminfo.h \
 subprocess.h \
+subtitle.h \
 textrenderer.h \
 transcoder.h \
 transcodermsg.h \
