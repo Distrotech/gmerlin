@@ -39,8 +39,6 @@ struct bg_subtitle_handler_s
   gavl_video_frame_t * next;
 
   gavl_video_frame_t * ovl[2];
-
-  int dummy;	
   };
 
 bg_subtitle_handler_t * bg_subtitle_handler_create()
