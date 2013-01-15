@@ -166,30 +166,22 @@ gavl_video_source_t * bg_effectv_connect(void * priv,
                                          const gavl_video_options_t * opt)
   {
   bg_effectv_plugin_t * vp;
-  int dst_flags = 0;
   vp = priv;
 
   vp->in_src = src;
   set_format(vp, gavl_video_source_get_src_format(vp->in_src));
   
   if(vp->out_src)
-    {
     gavl_video_source_destroy(vp->out_src);
-    vp->out_src = NULL;
-    }
   
   if(opt)
     {
     gavl_video_options_copy(gavl_video_source_get_options(vp->in_src), opt);
     }
   gavl_video_source_set_dst(vp->in_src, 0, &vp->format);
-
-  dst_flags = GAVL_SOURCE_SRC_ALLOC;
-  if(vp->flags & BG_EFFECTV_REUSE_OUTPUT)
-    dst_flags |= GAVL_SOURCE_SRC_REF;
   
-  vp->out_src = gavl_video_source_create(read_func,
-                                         vp, dst_flags,
-                                         &vp->format);
+  vp->out_src = gavl_video_source_create_source(read_func,
+                                                vp, GAVL_SOURCE_SRC_ALLOC,
+                                                vp->in_src);
   return vp->out_src;
   }
