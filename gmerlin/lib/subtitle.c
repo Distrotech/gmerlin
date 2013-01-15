@@ -71,11 +71,18 @@ void bg_subtitle_handler_init(bg_subtitle_handler_t * h,
   gavl_video_source_set_dst(h->src, 0, ovl_format);
   
   gavl_video_format_copy(&h->video_format, video_format);
+
+  h->ovl[0] = gavl_video_frame_create(ovl_format);
+  h->ovl[1] = gavl_video_frame_create(ovl_format);
+  h->cur = h->ovl[0];
+  h->next = h->ovl[1];
   }
 
 void bg_subtitle_handler_update(bg_subtitle_handler_t * h,
                                 const gavl_video_frame_t * frame)
   {
+  gavl_source_status_t st;
+  /* Check if the subtitle is expired */
   
   }
 
