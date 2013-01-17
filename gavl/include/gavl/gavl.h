@@ -2621,7 +2621,7 @@ GAVL_PUBLIC
 void gavl_video_frame_get_subframe(gavl_pixelformat_t pixelformat,
                                    const gavl_video_frame_t * src,
                                    gavl_video_frame_t * dst,
-                                   gavl_rectangle_i_t * src_rect);
+                                   const gavl_rectangle_i_t * src_rect);
 
 /*!
   \ingroup video_frame

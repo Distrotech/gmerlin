@@ -543,8 +543,27 @@ void gavl_video_frame_copy_plane(const gavl_video_format_t * format,
   {
   int bytes_per_line;
   int sub_h, sub_v;
-  int height = format->image_height;
+  int height;
+
+  if(src->src_rect.w && src->src_rect.h)
+    {
+    gavl_video_format_t fmt;
+    gavl_video_frame_t s;
+    gavl_video_frame_t d;
+
+    gavl_video_format_copy(&fmt, format);
+    fmt.image_width  = src->src_rect.w;
+    fmt.image_height = src->src_rect.h;
+    
+    memset(&s, 0, sizeof(s));
+    memset(&d, 0, sizeof(d));
+    gavl_video_frame_get_subframe(format->pixelformat, dst, &d, &src->src_rect);
+    gavl_video_frame_get_subframe(format->pixelformat, src, &s, &src->src_rect);
+    gavl_video_frame_copy_plane(&fmt, &d, &s, plane);
+    }
+
   gavl_init_memcpy();
+  height = format->image_height;
   sub_h = 1;
   sub_v = 1;
   
@@ -570,6 +589,24 @@ void gavl_video_frame_copy(const gavl_video_format_t * format,
   int bytes_per_line;
   int sub_h, sub_v;
   int planes;
+
+  if(src->src_rect.w && src->src_rect.h)
+    {
+    gavl_video_format_t fmt;
+    gavl_video_frame_t s;
+    gavl_video_frame_t d;
+
+    gavl_video_format_copy(&fmt, format);
+    fmt.image_width  = src->src_rect.w;
+    fmt.image_height = src->src_rect.h;
+    
+    memset(&s, 0, sizeof(s));
+    memset(&d, 0, sizeof(d));
+    gavl_video_frame_get_subframe(format->pixelformat, dst, &d, &src->src_rect);
+    gavl_video_frame_get_subframe(format->pixelformat, src, &s, &src->src_rect);
+    gavl_video_frame_copy(&fmt, &d, &s);
+    }
+  
   gavl_init_memcpy();
 #if 0
   fprintf(stderr, "gavl_video_frame_copy, %d %d format:\n",
@@ -1014,8 +1051,9 @@ void gavl_video_frame_dump(gavl_video_frame_t * frame,
 void gavl_video_frame_get_subframe(gavl_pixelformat_t pixelformat,
                                    const gavl_video_frame_t * src,
                                    gavl_video_frame_t * dst,
-                                   gavl_rectangle_i_t * src_rect)
+                                   const gavl_rectangle_i_t * src_rect)
   {
+  int x;
   int uv_sub_h, uv_sub_v;
   int i;
   int bytes;
@@ -1032,17 +1070,19 @@ void gavl_video_frame_get_subframe(gavl_pixelformat_t pixelformat,
 
     for(i = 1; i < num_planes; i++)
       {
-      dst->planes[i] = src->planes[i] + (src_rect->y/uv_sub_v) * src->strides[i] + (src_rect->x/uv_sub_h) * bytes;
+      dst->planes[i] = src->planes[i] +
+        (src_rect->y/uv_sub_v) * src->strides[i] + (src_rect->x/uv_sub_h) * bytes;
       dst->strides[i] = src->strides[i];
       }
     }
   else
     {
+    x = src_rect->x;
     if(((pixelformat == GAVL_YUY2) || (pixelformat == GAVL_UYVY)) &&
-       (src_rect->x & 1))
-      src_rect->x--;
+       (x & 1))
+      x--;
     bytes = gavl_pixelformat_bytes_per_pixel(pixelformat);
-    dst->planes[0] = src->planes[0] + src_rect->y * src->strides[0] + src_rect->x * bytes;
+    dst->planes[0] = src->planes[0] + src_rect->y * src->strides[0] + x * bytes;
     }
   }
 
