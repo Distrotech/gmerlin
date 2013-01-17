@@ -137,6 +137,7 @@ static void clear_overlay(bg_subtitle_handler_t * h)
   h->out_ovl->src_rect.w = 0;
   gavl_video_sink_put_frame(h->sink, h->out_ovl);
   }
+
 void bg_subtitle_handler_update(bg_subtitle_handler_t * h,
                                 const gavl_video_frame_t * frame)
   {
@@ -185,16 +186,25 @@ void bg_subtitle_handler_update(bg_subtitle_handler_t * h,
                                       h->next->timestamp);
     if(overlay_start < frame_end)
       {
-      put_overlay(h);
+      h->cur->src_rect.w = 0;
+      
       /* Swap */
       swp = h->cur;
       h->cur = h->next;
       h->next = swp;
+      
+      put_overlay(h);
       }
     }
   }
 
 void bg_subtitle_handler_reset(bg_subtitle_handler_t * h)
   {
-  
+  h->cur->src_rect.w = 0;
+  h->cur->src_rect.h = 0;
+
+  h->next->src_rect.w = 0;
+  h->next->src_rect.h = 0;
+  h->active = 0;
+  h->eof = 0;
   }

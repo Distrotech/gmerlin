@@ -383,7 +383,6 @@ void bg_player_ov_cleanup(bg_player_video_stream_t * s)
     }
   
   bg_ov_close(s->ov);
-  
   }
 
 void bg_player_ov_reset(bg_player_t * p)
@@ -415,8 +414,7 @@ void bg_player_ov_set_subtitle_format(bg_player_video_stream_t * s)
   /* Add subtitle stream for plugin */
   
   s->subtitle_id =
-    bg_ov_add_overlay_stream(s->ov,
-                                    &s->ss->output_format);
+    bg_ov_add_overlay_stream(s->ov, &s->ss->output_format);
   
   /* Allocate overlay frames */
   
