@@ -39,6 +39,7 @@ struct bg_subtitle_handler_s
   gavl_video_frame_t * next;
 
   gavl_video_frame_t * ovl[2];
+  
   };
 
 bg_subtitle_handler_t * bg_subtitle_handler_create()
@@ -83,7 +84,12 @@ void bg_subtitle_handler_update(bg_subtitle_handler_t * h,
   {
   gavl_source_status_t st;
   /* Check if the subtitle is expired */
-  
+
+  if(h->cur->src_rect.w)
+    {
+    if(gavl_time_unscale(
+    }
+       
   }
 
 void bg_subtitle_handler_reset(bg_subtitle_handler_t * h)
