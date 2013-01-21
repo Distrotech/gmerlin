@@ -40,8 +40,9 @@ struct bg_osd_s
   float font_size;
   gavl_timer_t * timer;
   int changed;
-  
-  gavl_video_source_t * src;
+  gavl_video_sink_t * sink;  
+
+  int active;
   };
 
 bg_osd_t * bg_osd_create()
@@ -208,17 +209,32 @@ void bg_osd_set_overlay(bg_osd_t * osd, gavl_overlay_t * ovl)
   ovl->timestamp = -1;
   }
 
-static gavl_source_status_t read_video(void * priv, gavl_overlay_t ** ovl)
-  {
-  
-  }
 
 void bg_osd_init(bg_osd_t * osd, const gavl_video_format_t * format,
                  gavl_video_format_t * overlay_format)
   {
   bg_text_renderer_init(osd->renderer, format, overlay_format);
 
-  osd->src = gavl_video_source_create(read_video, osd, 0, overlay_format);
+  }
+
+void bg_osd_init2(bg_osd_t * osd, gavl_video_sink_t * sink)
+  {
+  gavl_video_format_t fmt;
+  osd->sink = sink;
+  gavl_video_format_copy(&fmt, gavl_video_sink_get_format(osd->sink));
+  bg_text_renderer_init(osd->renderer, NULL, &fmt);
+  }
+
+void bg_osd_update(bg_osd_t * osd)
+  {
+  gavl_time_t current_time;
+  gavl_time_t ovl_start;
+  gavl_time_t ovl_end;
+  
+  /* Check if OSD became invalid */
+
+  current_time = gavl_timer_get(osd->timer);
+  
   }
 
 int bg_osd_overlay_valid(bg_osd_t * osd)
