@@ -38,6 +38,16 @@
 #define FLAG_OPEN            (1<<3)
 #define FLAG_OVERLAY_CHANGED (1<<4)
 
+typedef struct
+  {
+  gavl_overlay_blend_context_t * ctx;
+  gavl_overlay_t * ovl;
+  gavl_video_format_t format;
+    
+  gavl_video_sink_t * sink_int;
+  gavl_video_sink_t * sink_ext;
+  } ovl_stream_t;
+
 struct bg_ov_s
   {
   bg_plugin_handle_t * h;
@@ -47,12 +57,7 @@ struct bg_ov_s
 
   int flags;
 
-  struct
-    {
-    gavl_overlay_blend_context_t * ctx;
-    gavl_overlay_t * ovl;
-    gavl_video_format_t format;
-    } * ovl_str;
+  ovl_stream_t * ovl_str;
   int num_ovl_str;
   gavl_video_frame_t * still_frame;
 
@@ -267,23 +272,40 @@ gavl_video_sink_t * bg_ov_get_sink(bg_ov_t * ov)
   return ov->sink_ext;
   }
 
-int bg_ov_add_overlay_stream(bg_ov_t * ov, gavl_video_format_t * format)
+static gavl_sink_status_t
+put_overlay(void * priv, gavl_video_frame_t * frame)
+  {
+  
+  }
+
+gavl_video_sink_t *
+bg_ov_add_overlay_stream(bg_ov_t * ov, const gavl_video_format_t * format)
   {
   int ret;
+
+  ovl_stream_t * str;
+
+  ov->ovl_str = realloc(ov->ovl_str,
+                        (ov->num_ovl_str+1)*
+                        sizeof(*ov->ovl_str));
+  str = ov->ovl_str + ov->num_ovl_str;
+  memset(str, 0, sizeof(*str));
+  
+  ov->num_ovl_str++;
   
   if(ov->plugin->add_overlay_stream)
     {
     /* Try hardware overlay */
     LOCK(ov);
-    ret = ov->plugin->add_overlay_stream(ov->priv, format);
+    str->sink_int = ov->plugin->add_overlay_stream(ov->priv, format);
     UNLOCK(ov);
     
-    if(ret >= 0)
+    if(str->sink_int)
       {
       bg_log(BG_LOG_INFO, LOG_DOMAIN,
              "Using hardeware overlay for stream %d",
-             ret);
-      return ret;
+             ov->num_ovl_str-1);
+      return str->sink_int;
       }
     }
   /* Software overlay */
@@ -291,25 +313,25 @@ int bg_ov_add_overlay_stream(bg_ov_t * ov, gavl_video_format_t * format)
   
   bg_log(BG_LOG_INFO, LOG_DOMAIN,
          "Using software overlay for stream %d",
-         ov->num_ovl_str);
+         ov->num_ovl_str - 1);
   
-  ov->ovl_str = realloc(ov->ovl_str,
-                        (ov->num_ovl_str+1)*
-                        sizeof(*ov->ovl_str));
-  memset(ov->ovl_str + ov->num_ovl_str, 0, sizeof(*ov->ovl_str));
-  
-  ov->ovl_str[ov->num_ovl_str].ctx =
-    gavl_overlay_blend_context_create();
-  gavl_overlay_blend_context_init(ov->ovl_str[ov->num_ovl_str].ctx,
-                                  &ov->format, format);
-  
-  gavl_video_format_copy(&ov->ovl_str[ov->num_ovl_str].format,
+  str->ctx = gavl_overlay_blend_context_create();
+
+  gavl_video_format_copy(&str->format,
                          format);
   
-  ov->num_ovl_str++;
+  gavl_overlay_blend_context_init(str->ctx,
+                                  &ov->format, &str->format);
+  
   return ov->num_ovl_str-1;
   }
-  
+
+gavl_video_sink_t *
+bg_ov_add_overlay_stream2(bg_ov_t * ov, const gavl_video_format_t * format)
+  {
+  return NULL;
+  }
+
 gavl_overlay_t * bg_ov_create_overlay(bg_ov_t * ov, int id)
   {
   gavl_overlay_t * ret;
@@ -411,7 +433,10 @@ void bg_ov_close(bg_ov_t * ov)
     {
     int i;
     for(i = 0; i < ov->num_ovl_str; i++)
-      gavl_overlay_blend_context_destroy(ov->ovl_str[i].ctx);
+      {
+      if(ov->ovl_str[i].ctx)
+        gavl_overlay_blend_context_destroy(ov->ovl_str[i].ctx);
+      }
     free(ov->ovl_str);
     ov->ovl_str = NULL;
     ov->num_ovl_str = 0;

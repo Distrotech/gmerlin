@@ -1332,7 +1332,7 @@ struct bg_ov_plugin_s
   /** \brief Add a stream for transparent overlays
    *  \param priv The handle returned by the create() method
    *  \param format Format of the overlays
-   *  \returns The index of the overlay stream
+   *  \returns The sink of the overlay stream
    *
    *  It's up to the plugin, if they are realized in hardware or
    *  with a gavl_overlay_blend_context_t, but they must be there.
@@ -1342,7 +1342,8 @@ struct bg_ov_plugin_s
    *  is one for subtitles and one for OSD.
    */
   
-  int (*add_overlay_stream)(void * priv, gavl_video_format_t * format);
+  gavl_video_sink_t * (*add_overlay_stream)(void * priv,
+                                            const gavl_video_format_t * format);
 
   /** \brief Allocate an overlay
    *  \param priv The handle returned by the create() method
