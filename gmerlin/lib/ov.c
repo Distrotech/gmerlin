@@ -29,7 +29,7 @@
 
 #define LOG_DOMAIN "ov"
 
-#define LOCK(p) bg_plugin_lock(p->h)
+#define LOCK(p)   bg_plugin_lock(p->h)
 #define UNLOCK(p) bg_plugin_unlock(p->h)
 
 #define FLAG_EMULATE_OVL     (1<<0)
