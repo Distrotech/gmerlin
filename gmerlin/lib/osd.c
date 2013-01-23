@@ -43,6 +43,7 @@ struct bg_osd_s
   gavl_video_sink_t * sink;  
 
   int active;
+  gavl_video_format_t fmt;
   };
 
 bg_osd_t * bg_osd_create()
@@ -203,13 +204,14 @@ void bg_osd_set_parameter(void * data, const char * name,
     bg_text_renderer_set_parameter(osd->renderer, name, val);
   }
 
+/* Legacy */
 void bg_osd_set_overlay(bg_osd_t * osd, gavl_overlay_t * ovl)
   {
   osd->ovl = ovl;
   ovl->timestamp = -1;
   }
 
-
+/* Legacy */
 void bg_osd_init(bg_osd_t * osd, const gavl_video_format_t * format,
                  gavl_video_format_t * overlay_format)
   {
@@ -219,24 +221,42 @@ void bg_osd_init(bg_osd_t * osd, const gavl_video_format_t * format,
 
 void bg_osd_init2(bg_osd_t * osd, gavl_video_sink_t * sink)
   {
-  gavl_video_format_t fmt;
   osd->sink = sink;
-  gavl_video_format_copy(&fmt, gavl_video_sink_get_format(osd->sink));
-  bg_text_renderer_init(osd->renderer, NULL, &fmt);
+  gavl_video_format_copy(&osd->fmt, gavl_video_sink_get_format(osd->sink));
+  bg_text_renderer_init(osd->renderer, NULL, &osd->fmt);
+  osd->ovl = gavl_video_frame_create(&osd->fmt);
   }
 
+/* Call once before displaying a frame */
 void bg_osd_update(bg_osd_t * osd)
   {
   gavl_time_t current_time;
-  gavl_time_t ovl_start;
-  gavl_time_t ovl_end;
-  
-  /* Check if OSD became invalid */
 
   current_time = gavl_timer_get(osd->timer);
+  /* Check if OSD changed */
+
+  if(osd->changed)
+    {
+    osd->changed = 0;
+    gavl_video_sink_put_frame(osd->sink, osd->ovl);
+    osd->ovl->timestamp = current_time;
+    osd->active = 1;
+    }
   
+  /* Check if OSD became invalid */
+  if(osd->active)
+    {
+    if(current_time > osd->ovl->timestamp + osd->ovl->duration)
+      {
+      osd->ovl->src_rect.w = 0;
+      osd->ovl->src_rect.h = 0;
+      gavl_video_sink_put_frame(osd->sink, osd->ovl);
+      osd->active = 0;
+      }
+    }
   }
 
+/* LEGACY */
 int bg_osd_overlay_valid(bg_osd_t * osd)
   {
   gavl_time_t t;
@@ -262,8 +282,8 @@ int bg_osd_overlay_valid(bg_osd_t * osd)
 
 static void print_float(bg_osd_t * osd, float val, char c)
   {
-  char _buf[FLOAT_BAR_SIZE_TOTAL+3];
-  char * buf = _buf;
+  char buf1[FLOAT_BAR_SIZE_TOTAL+3];
+  char * buf = buf1;
   int i, val_i;
 
   *buf = c; buf++;
@@ -287,14 +307,14 @@ static void print_float(bg_osd_t * osd, float val, char c)
   *buf = ']'; buf++;
   *buf = '\0';
   
-  bg_text_renderer_render(osd->renderer, _buf, osd->ovl);
+  bg_text_renderer_render(osd->renderer, buf1, osd->ovl);
 
-  osd->ovl->timestamp = gavl_timer_get(osd->timer);
   osd->ovl->duration = osd->duration;
 
   osd->changed = 1;
   }
 
+/* LEGACY */
 int bg_osd_changed(bg_osd_t * osd)
   {
   if(osd->changed)
