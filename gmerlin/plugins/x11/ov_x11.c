@@ -872,7 +872,7 @@ static void destroy_overlay_x11(void * data, int id, gavl_overlay_t * ovl)
   }
 
 
-static int
+static gavl_video_sink_t *
 add_overlay_stream_x11(void * data, gavl_video_format_t * format)
   {
   x11_t * priv = data;

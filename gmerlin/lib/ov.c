@@ -275,14 +275,18 @@ gavl_video_sink_t * bg_ov_get_sink(bg_ov_t * ov)
 static gavl_sink_status_t
 put_overlay(void * priv, gavl_video_frame_t * frame)
   {
-  
+  ovl_stream_t * str = priv;
+
+  if(frame->src_rect.w && frame->src_rect.h)
+    str->ovl = frame;
+  else
+    str->ovl = NULL;
+  return GAVL_SINK_OK;
   }
 
 gavl_video_sink_t *
 bg_ov_add_overlay_stream(bg_ov_t * ov, const gavl_video_format_t * format)
   {
-  int ret;
-
   ovl_stream_t * str;
 
   ov->ovl_str = realloc(ov->ovl_str,
@@ -323,13 +327,8 @@ bg_ov_add_overlay_stream(bg_ov_t * ov, const gavl_video_format_t * format)
   gavl_overlay_blend_context_init(str->ctx,
                                   &ov->format, &str->format);
   
-  return ov->num_ovl_str-1;
-  }
-
-gavl_video_sink_t *
-bg_ov_add_overlay_stream2(bg_ov_t * ov, const gavl_video_format_t * format)
-  {
-  return NULL;
+  str->sink_ext = gavl_video_sink_create(NULL, put_overlay, str, &str->format);
+  return str->sink_ext;
   }
 
 gavl_overlay_t * bg_ov_create_overlay(bg_ov_t * ov, int id)
