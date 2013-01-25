@@ -245,7 +245,7 @@ static gavl_sink_status_t put_frame_func(void * priv, gavl_video_frame_t*frame)
     return put_video(ov, frame);
   }
 
-int  bg_ov_open(bg_ov_t * ov, gavl_video_format_t * format, int keep_aspect)
+int bg_ov_open(bg_ov_t * ov, gavl_video_format_t * format, int keep_aspect)
   {
   int ret;
 
@@ -384,14 +384,14 @@ void bg_ov_handle_events(bg_ov_t * ov)
       {
       gavl_video_frame_t * f;
       LOCK(ov);
-      f = ov->plugin->get_frame(ov->priv);
+      f = gavl_video_sink_get_frame(ov->sink_int);
       gavl_video_frame_copy(&ov->format,
                             f, ov->still_frame);
-
+      
       if(ov->flags & FLAG_EMULATE_OVL)
         blend_overlays(ov, f);
-      
-      ov->plugin->put_frame(ov->priv, f);
+
+      gavl_video_sink_put_frame(ov->sink_int, f);
       UNLOCK(ov);
       }
     }

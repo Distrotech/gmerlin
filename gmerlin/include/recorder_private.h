@@ -120,7 +120,8 @@ typedef struct
   /* Monitor section */
   bg_plugin_handle_t     * monitor_handle;
   bg_ov_plugin_t         * monitor_plugin;
-
+  gavl_video_sink_t      * monitor_sink;
+  
   bg_ov_callbacks_t monitor_cb;
   
   int do_convert_monitor;

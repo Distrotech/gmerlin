@@ -821,12 +821,6 @@ static gavl_sink_status_t put_func_x11(void * data, gavl_video_frame_t * frame)
   return GAVL_SINK_OK;
   }
 
-static void put_frame_x11(void * data, gavl_video_frame_t * frame)
-  {
-  x11_t * priv = data;
-  gavl_video_sink_put_frame(priv->sink, frame);
-  }
-
 static int open_x11(void * data, gavl_video_format_t * format, int keep_aspect)
   {
   x11_t * priv = data;
@@ -955,7 +949,7 @@ const bg_ov_plugin_t the_plugin =
     .open               = open_x11,
     .get_sink           = get_sink_x11,
     
-    .get_frame          = get_frame_x11,
+    //.get_frame          = get_frame_x11,
 
     .add_overlay_stream = add_overlay_stream_x11,
 
@@ -963,7 +957,7 @@ const bg_ov_plugin_t the_plugin =
 
     .set_overlay        = set_overlay_x11,
 
-    .put_frame          = put_frame_x11,
+    //    .put_frame          = put_frame_x11,
     
     .handle_events      = handle_events_x11,
     

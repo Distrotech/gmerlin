@@ -229,7 +229,7 @@ static int open_gl(driver_data_t * d)
   gl_priv_t * priv;
   const char * extensions;
   
-  priv = (gl_priv_t *)(d->priv);
+  priv = d->priv;
   w = d->win;
   
   bg_x11_window_start_gl(w);
@@ -278,7 +278,7 @@ static void put_frame_gl(driver_data_t * d, gavl_video_frame_t * f)
   bg_x11_window_t * w;
   float tex_x1, tex_x2, tex_y1, tex_y2;
   float v_x1, v_x2, v_y1, v_y2;
-  priv = (gl_priv_t *)(d->priv);
+  priv = d->priv;
   w = d->win;
 
   bg_x11_window_set_gl(w);
@@ -396,7 +396,7 @@ static void add_overlay_stream_gl(driver_data_t* d)
   gl_priv_t * priv;
   bg_x11_window_t * w;
   
-  priv = (gl_priv_t *)(d->priv);
+  priv = d->priv;
   w = d->win;
 
   priv->overlays =
@@ -425,7 +425,7 @@ static void set_overlay_gl(driver_data_t* d, int stream, gavl_overlay_t * ovl)
   gl_priv_t * priv;
   bg_x11_window_t * w;
   
-  priv = (gl_priv_t *)(d->priv);
+  priv = d->priv;
   w = d->win;
 
   if(ovl && ovl->src_rect.w && ovl->src_rect.h)
@@ -470,7 +470,7 @@ static void close_gl(driver_data_t * d)
   gl_priv_t * priv;
   bg_x11_window_t * w;
   
-  priv = (gl_priv_t *)(d->priv);
+  priv = d->priv;
   w = d->win;
   
   bg_x11_window_set_gl(w);
@@ -490,7 +490,7 @@ static void close_gl(driver_data_t * d)
 static void cleanup_gl(driver_data_t * d)
   {
   gl_priv_t * priv;
-  priv = (gl_priv_t *)(d->priv);
+  priv = d->priv;
   free(priv);
   }
 

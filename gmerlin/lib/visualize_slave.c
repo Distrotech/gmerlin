@@ -64,7 +64,7 @@ typedef struct
   
   gavl_volume_control_t * gain_control;
   pthread_mutex_t gain_mutex;
-  
+
   } audio_buffer_t;
 
 static audio_buffer_t * audio_buffer_create()
@@ -279,7 +279,7 @@ typedef struct
   bg_msg_queue_t * cb_queue; /* Pass events */
 
   bg_ov_callbacks_t   cb;
-  
+  gavl_video_sink_t * sink;
   } bg_visualizer_slave_t;
 
 static int init_plugin(bg_visualizer_slave_t * v);
@@ -596,13 +596,13 @@ static void * video_thread_func(void * data)
       v->vis_plugin->draw_frame(v->vis_handle->priv, NULL);
     else if(v->do_convert_video)
       {
-      out_frame = v->ov_plugin->get_frame(v->ov_handle->priv);
+      out_frame = gavl_video_sink_get_frame(v->sink);
       v->vis_plugin->draw_frame(v->vis_handle->priv, v->video_frame_in);
       gavl_video_convert(v->video_cnv, v->video_frame_in, out_frame);
       }
     else
       {
-      out_frame = v->ov_plugin->get_frame(v->ov_handle->priv);
+      out_frame = gavl_video_sink_get_frame(v->sink);
       v->vis_plugin->draw_frame(v->vis_handle->priv, out_frame);
       }
     pthread_mutex_unlock(&v->vis_mutex);
@@ -621,7 +621,8 @@ static void * video_thread_func(void * data)
     if(v->do_ov)
       {
       pthread_mutex_lock(&v->ov_mutex);
-      v->ov_plugin->put_frame(v->ov_handle->priv, out_frame);
+
+      gavl_video_sink_put_frame(v->sink, out_frame);
       frame_time = gavl_timer_get(v->timer);
       
       v->ov_plugin->handle_events(v->ov_handle->priv);
@@ -742,6 +743,8 @@ static int init_plugin(bg_visualizer_slave_t * v)
     /* Open OV Plugin */
     if(!v->ov_plugin->open(v->ov_handle->priv, &v->video_format_out, 0))
       return 0;
+
+    v->sink = v->ov_plugin->get_sink(v->ov_handle->priv);
     
     /* Initialize video converter */
     

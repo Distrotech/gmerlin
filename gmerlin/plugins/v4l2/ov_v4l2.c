@@ -513,12 +513,6 @@ static gavl_sink_status_t put_func_v4l2(void * data, gavl_video_frame_t * frame)
   return GAVL_SINK_ERROR;
   }
 
-static void put_frame_v4l2(void * data, gavl_video_frame_t * frame)
-  {
-  ov_v4l2_t * v4l = data;
-  gavl_video_sink_put_frame(v4l->sink, frame);
-  }
-
 static int open_v4l2(void * priv,
                     gavl_video_format_t * format, int keep_aspect)
   {
@@ -665,14 +659,12 @@ const bg_ov_plugin_t the_plugin =
     //    .set_window_title =   set_window_title_v4l2,
     .open =               open_v4l2,
     .get_sink = get_sink_v4l2,
-    .get_frame =    get_frame_v4l2,
-
+    
     //    .add_overlay_stream = add_overlay_stream_v4l2,
     //    .create_overlay =    create_overlay_v4l2,
     //    .set_overlay =        set_overlay_v4l2,
 
-    .put_frame =          put_frame_v4l2,
-
+    
     //    .handle_events =  handle_events_v4l2,
     
     //    .destroy_overlay =   destroy_overlay_v4l2,

@@ -1327,7 +1327,7 @@ struct bg_ov_plugin_s
    *  \param priv The handle returned by the create() method
    */
   
-  gavl_video_frame_t * (*get_frame)(void * priv);
+  //  gavl_video_frame_t * (*get_frame)(void * priv);
   
   /** \brief Add a stream for transparent overlays
    *  \param priv The handle returned by the create() method
@@ -1375,7 +1375,7 @@ struct bg_ov_plugin_s
    *  a still image
    */
 
-  void (*put_frame)(void * priv, gavl_video_frame_t*frame);
+  //  void (*put_frame)(void * priv, gavl_video_frame_t*frame);
 
   /** \brief Display a still image
    *  \param priv The handle returned by the create() method
