@@ -148,10 +148,11 @@ gavl_video_sink_t *
 bg_x11_window_add_overlay_stream(bg_x11_window_t*,
                                  const gavl_video_format_t * format);
 
+#if 0
 void bg_x11_window_set_overlay(bg_x11_window_t*, int stream, gavl_overlay_t * ovl);
-
 gavl_overlay_t * bg_x11_window_create_overlay(bg_x11_window_t*, int);
 void bg_x11_window_destroy_overlay(bg_x11_window_t*, int, gavl_overlay_t *);
+#endif
 
 gavl_video_frame_t * bg_x11_window_create_frame(bg_x11_window_t*);
 void bg_x11_window_destroy_frame(bg_x11_window_t*, gavl_video_frame_t *);

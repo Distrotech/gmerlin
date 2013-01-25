@@ -205,6 +205,7 @@ void bg_osd_set_parameter(void * data, const char * name,
   }
 
 /* Legacy */
+#if 0
 void bg_osd_set_overlay(bg_osd_t * osd, gavl_overlay_t * ovl)
   {
   osd->ovl = ovl;
@@ -218,8 +219,9 @@ void bg_osd_init(bg_osd_t * osd, const gavl_video_format_t * format,
   bg_text_renderer_init(osd->renderer, format, overlay_format);
 
   }
+#endif
 
-void bg_osd_init2(bg_osd_t * osd, gavl_video_sink_t * sink)
+void bg_osd_init(bg_osd_t * osd, gavl_video_sink_t * sink)
   {
   osd->sink = sink;
   gavl_video_format_copy(&osd->fmt, gavl_video_sink_get_format(osd->sink));
@@ -257,6 +259,7 @@ void bg_osd_update(bg_osd_t * osd)
   }
 
 /* LEGACY */
+#if 0
 int bg_osd_overlay_valid(bg_osd_t * osd)
   {
   gavl_time_t t;
@@ -276,6 +279,8 @@ int bg_osd_overlay_valid(bg_osd_t * osd)
     }
   return 1;
   }
+#endif
+
 
 #define FLOAT_BAR_SIZE       18
 #define FLOAT_BAR_SIZE_TOTAL 20
@@ -315,6 +320,7 @@ static void print_float(bg_osd_t * osd, float val, char c)
   }
 
 /* LEGACY */
+#if 0
 int bg_osd_changed(bg_osd_t * osd)
   {
   if(osd->changed)
@@ -324,6 +330,7 @@ int bg_osd_changed(bg_osd_t * osd)
     }
   return 0;
   }
+#endif
 
 void bg_osd_set_volume_changed(bg_osd_t * osd, float val)
   {

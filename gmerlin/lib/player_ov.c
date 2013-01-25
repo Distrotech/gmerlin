@@ -77,6 +77,7 @@ static void contrast_callback(void * data, float val)
   bg_osd_set_contrast_changed(p->video_stream.osd, val);
   }
 
+#if 0
 static void handle_osd(bg_player_video_stream_t * ctx)
   {
   /* Display OSD */
@@ -99,6 +100,7 @@ static void handle_osd(bg_player_video_stream_t * ctx)
       }
     }
   }
+#endif
 
 static void
 handle_messages(bg_player_video_stream_t * ctx)
@@ -114,7 +116,7 @@ handle_messages(bg_player_video_stream_t * ctx)
       {
       case BG_PLAYER_MSG_VOLUME_CHANGED:
         arg_f = bg_msg_get_arg_float(msg, 0);
-        if(ctx->osd_ovl)
+        if(ctx->osd_sink)
           bg_osd_set_volume_changed(ctx->osd,
                                     (arg_f - BG_PLAYER_VOLUME_MIN)/
                                     (-BG_PLAYER_VOLUME_MIN));
@@ -203,24 +205,18 @@ int bg_player_ov_init(bg_player_video_stream_t * vs)
     return result;
   
   memset(&vs->osd_format, 0, sizeof(vs->osd_format));
-  
-  bg_osd_init(vs->osd, &vs->output_format,
-              &vs->osd_format);
+
+  vs->osd_sink = bg_ov_add_overlay_stream(vs->ov, &vs->osd_format);
+  bg_osd_init(vs->osd, vs->osd_sink);
   
   /* Fixme: Lets just hope, that the OSD format doesn't get changed
      by this call. Otherwise, we would need a gavl_video_converter */
 
-  vs->osd_id = bg_ov_add_overlay_stream(vs->ov,  &vs->osd_format);
   
   /* create_overlay needs the lock again */
 
   /* Create frame */
   
-  if(vs->osd_id >= 0)
-    {
-    vs->osd_ovl = bg_ov_create_overlay(vs->ov, vs->osd_id);
-    bg_osd_set_overlay(vs->osd, vs->osd_ovl);
-    }
   vs->frames_written = 0;
   return result;
   }
@@ -282,6 +278,8 @@ static void read_subtitle(bg_player_subtitle_stream_t * ss,
 
 static void handle_subtitle(bg_player_t * p)
   {
+  
+#if 0 // Old version
   bg_player_video_stream_t * s = &p->video_stream;
   gavl_overlay_t * swp;
 
@@ -333,6 +331,7 @@ static void handle_subtitle(bg_player_t * p)
     bg_ov_set_overlay(s->ov, s->subtitle_id, s->ss->current_subtitle);
     s->subtitle_active = 1;
     }
+#endif
   }
 
 void bg_player_ov_update_still(bg_player_t * p)
@@ -352,7 +351,7 @@ void bg_player_ov_update_still(bg_player_t * p)
   
   handle_messages(s);
 
-  handle_osd(s);
+  bg_osd_update(s->osd);
 
   frame->duration = -1;
   bg_ov_put_frame(s->ov, frame);
@@ -360,28 +359,12 @@ void bg_player_ov_update_still(bg_player_t * p)
 
 void bg_player_ov_cleanup(bg_player_video_stream_t * s)
   {
-  if(s->osd_ovl)
-    {
-    bg_ov_destroy_overlay(s->ov, s->osd_id, s->osd_ovl);
-    s->osd_ovl = NULL;
-    }
-
-  s->osd_active = 0;
   
   //  destroy_frame(s, s->frame);
   //  s->frame = NULL;
-
-  if(s->ss->subtitles[0])
-    {
-    bg_ov_destroy_overlay(s->ov, s->subtitle_id, s->ss->subtitles[0]);
-    s->ss->subtitles[0] = NULL;
-    }
-  if(s->ss->subtitles[1])
-    {
-    bg_ov_destroy_overlay(s->ov, s->subtitle_id, s->ss->subtitles[1]);
-    s->ss->subtitles[1] = NULL;
-    }
   
+  if(s->sh)
+    bg_subtitle_handler_destroy(s->sh);
   bg_ov_close(s->ov);
   }
 
@@ -391,11 +374,7 @@ void bg_player_ov_reset(bg_player_t * p)
 
   if(DO_SUBTITLE(p->flags))
     {
-    if(s->subtitle_active)
-      bg_ov_set_overlay(s->ov, s->subtitle_id, NULL);
-    s->subtitle_active = 0;
-    s->ss->current_subtitle->timestamp = GAVL_TIME_UNDEFINED;
-    s->ss->next_subtitle->timestamp = GAVL_TIME_UNDEFINED;
+    bg_subtitle_handler_reset(s->sh);
     }
   }
 
@@ -413,24 +392,18 @@ void bg_player_ov_set_subtitle_format(bg_player_video_stream_t * s)
   
   /* Add subtitle stream for plugin */
   
-  s->subtitle_id =
+  s->subtitle_sink =
     bg_ov_add_overlay_stream(s->ov, &s->ss->output_format);
-  
-  /* Allocate overlay frames */
-  
-  s->ss->subtitles[0] = bg_ov_create_overlay(s->ov, s->subtitle_id);
-  s->ss->subtitles[1] = bg_ov_create_overlay(s->ov, s->subtitle_id);
 
-  s->ss->subtitles[0]->timestamp = GAVL_TIME_UNDEFINED;  
-  s->ss->subtitles[1]->timestamp = GAVL_TIME_UNDEFINED;  
-  
-  s->ss->current_subtitle = s->ss->subtitles[0];
-  s->ss->next_subtitle    = s->ss->subtitles[1];
+  bg_subtitle_handler_init(s->sh,
+                           &s->output_format,
+                           s->ss->vsrc,
+                           s->subtitle_sink);
   }
 
 void bg_player_ov_handle_events(bg_player_video_stream_t * s)
   {
-  handle_osd(s);
+  bg_osd_update(s->osd);
   bg_ov_handle_events(s->ov);
   handle_messages(s);
   }
@@ -513,7 +486,7 @@ void * bg_player_ov_thread(void * data)
     
     /* Handle stuff */
     handle_messages(s);
-    handle_osd(s);
+    bg_osd_update(s->osd);
     
     /* Check Timing */
     bg_player_time_get(p, 1, &current_time);

@@ -867,7 +867,7 @@ static void destroy_overlay_x11(void * data, int id, gavl_overlay_t * ovl)
 
 
 static gavl_video_sink_t *
-add_overlay_stream_x11(void * data, gavl_video_format_t * format)
+add_overlay_stream_x11(void * data, const gavl_video_format_t * format)
   {
   x11_t * priv = data;
   return bg_x11_window_add_overlay_stream(priv->win, format);
@@ -953,15 +953,15 @@ const bg_ov_plugin_t the_plugin =
 
     .add_overlay_stream = add_overlay_stream_x11,
 
-    .create_overlay     = create_overlay_x11,
+    //    .create_overlay     = create_overlay_x11,
 
-    .set_overlay        = set_overlay_x11,
+    //    .set_overlay        = set_overlay_x11,
 
     //    .put_frame          = put_frame_x11,
     
     .handle_events      = handle_events_x11,
     
-    .destroy_overlay    = destroy_overlay_x11,
+    // .destroy_overlay    = destroy_overlay_x11,
     .close              = close_x11,
     .update_aspect      = update_aspect_x11,
     

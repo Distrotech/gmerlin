@@ -28,17 +28,17 @@ const bg_parameter_info_t * bg_osd_get_parameters(bg_osd_t*);
 void bg_osd_set_parameter(void * data, const char * name,
                           const bg_parameter_value_t * val);
 
-void bg_osd_set_overlay(bg_osd_t*, gavl_overlay_t *);
+// void bg_osd_set_overlay(bg_osd_t*, gavl_overlay_t *);
 
-void bg_osd_init(bg_osd_t*,
-                 const gavl_video_format_t * format,
-                 gavl_video_format_t * overlay_format);
+void bg_osd_init(bg_osd_t * osd, gavl_video_sink_t * sink);
 
-int bg_osd_overlay_valid(bg_osd_t*);
+void bg_osd_update(bg_osd_t * osd);
+
+// int bg_osd_overlay_valid(bg_osd_t*);
 
 void bg_osd_set_volume_changed(bg_osd_t*, float val);
 void bg_osd_set_brightness_changed(bg_osd_t*, float val);
 void bg_osd_set_contrast_changed(bg_osd_t*, float val);
 void bg_osd_set_saturation_changed(bg_osd_t*, float val);
 
-int bg_osd_changed(bg_osd_t * osd);
+// int bg_osd_changed(bg_osd_t * osd);

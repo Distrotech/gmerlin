@@ -331,6 +331,7 @@ bg_ov_add_overlay_stream(bg_ov_t * ov, const gavl_video_format_t * format)
   return str->sink_ext;
   }
 
+#if 0
 gavl_overlay_t * bg_ov_create_overlay(bg_ov_t * ov, int id)
   {
   gavl_overlay_t * ret;
@@ -375,6 +376,8 @@ void bg_ov_destroy_overlay(bg_ov_t * ov, int id, gavl_overlay_t * ovl)
   else
     ov->plugin->destroy_overlay(ov->priv, id, ovl);
   }
+#endif
+
 
 void bg_ov_handle_events(bg_ov_t * ov)
   {

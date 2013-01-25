@@ -1357,7 +1357,7 @@ struct bg_ov_plugin_s
    *  the destroy_overlay() method.
    */
   
-  gavl_overlay_t * (*create_overlay)(void * priv, int id);
+  //  gavl_overlay_t * (*create_overlay)(void * priv, int id);
   
   /** \brief Set an overlay for a specific stream
    *  \param priv The handle returned by the create() method
@@ -1365,28 +1365,7 @@ struct bg_ov_plugin_s
    *  \param ovl New overlay or NULL
    */
   
-  void (*set_overlay)(void * priv, int stream, gavl_overlay_t * ovl);
-  
-  /** \brief Display a frame of a video stream
-   *  \param priv The handle returned by the create() method
-   *  \param frame Frame to display
-   *  
-   *  If the frame duration is <= 0 the image is supposed to be
-   *  a still image
-   */
-
-  //  void (*put_frame)(void * priv, gavl_video_frame_t*frame);
-
-  /** \brief Display a still image
-   *  \param priv The handle returned by the create() method
-   *  \param frame Frame to display
-   *  
-   *  This function is like put_video() with the difference, that
-   *  the frame will be remembered and redisplayed, when an expose event
-   *  is received.
-   */
-  
-  //  void (*put_still)(void * priv, gavl_video_frame_t*frame);
+  //  void (*set_overlay)(void * priv, int stream, gavl_overlay_t * ovl);
 
   /** \brief Return a video sink
    *  \param priv The handle returned by the create() method
@@ -1419,7 +1398,7 @@ struct bg_ov_plugin_s
    *  \param ovl The overlay to be freed
    */
   
-  void (*destroy_overlay)(void * priv, int id, gavl_overlay_t * ovl);
+  //  void (*destroy_overlay)(void * priv, int id, gavl_overlay_t * ovl);
 
   /** \brief Close the plugin
    *  \param priv The handle returned by the create() method

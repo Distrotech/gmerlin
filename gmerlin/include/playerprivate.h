@@ -33,6 +33,7 @@
 
 #include <gmerlin/translation.h>
 #include <gmerlin/ov.h>
+#include <gmerlin/subtitle.h>
 
 #include <gavl/peakdetector.h>
 
@@ -146,11 +147,6 @@ typedef struct
   gavl_video_format_t input_format;
   gavl_video_format_t output_format;
   
-  gavl_overlay_t * current_subtitle;
-  gavl_overlay_t * next_subtitle;
-
-  gavl_overlay_t * subtitles[2];
-  
   int eof;
 
   bg_parameter_info_t * parameters;
@@ -184,13 +180,12 @@ typedef struct
   bg_ov_callbacks_t callbacks;
   gavl_time_t frame_time;
   
-  int subtitle_id; /* Stream id for subtitles in the output plugin */
+  gavl_video_sink_t * subtitle_sink; /* Stream id for subtitles in the output plugin */
 
   gavl_video_format_t osd_format;
   
   bg_osd_t * osd;
-  int osd_id;
-  gavl_overlay_t * osd_ovl;
+  gavl_video_sink_t * osd_sink;
   
   bg_msg_queue_t * msg_queue;
   
@@ -200,7 +195,8 @@ typedef struct
   bg_accelerator_map_t * accel_map;
   
   bg_player_subtitle_stream_t * ss;
-
+  bg_subtitle_handler_t * sh;
+  
   gavl_video_frame_t * still_frame_in;
   int do_still;
   
@@ -213,10 +209,7 @@ typedef struct
 
   /* 1 if we are currently displaying a subtitle */
   int subtitle_active;
-
-  /* 1 if we are currently displaying OSD */
-  int osd_active;
-    
+  
   int64_t skip;
   int64_t last_frame_time;
   
