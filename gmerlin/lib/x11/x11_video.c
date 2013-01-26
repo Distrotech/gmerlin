@@ -410,6 +410,9 @@ void bg_x11_window_close_video(bg_x11_window_t * w)
     bg_x11_window_destroy_frame(w, w->still_frame);
     w->still_frame = NULL;
     }
+
+  if(w->current_driver->driver->close)
+    w->current_driver->driver->close(w->current_driver);
   
   if(w->overlay_streams)
     {
@@ -417,9 +420,6 @@ void bg_x11_window_close_video(bg_x11_window_t * w)
     w->num_overlay_streams = 0;
     w->overlay_streams = NULL;
     }
-  
-  if(w->current_driver->driver->close)
-    w->current_driver->driver->close(w->current_driver);
   
   CLEAR_FLAG(w, FLAG_VIDEO_OPEN);
   

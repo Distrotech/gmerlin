@@ -78,6 +78,16 @@ bg_x11_screensaver_ping(bg_x11_screensaver_t *);
 void
 bg_x11_screensaver_cleanup(bg_x11_screensaver_t *);
 
+/* Overlay stream */
+
+typedef struct
+  {
+  gavl_overlay_t * ovl;
+  gavl_video_format_t format;
+  bg_x11_window_t * win;
+  gavl_video_sink_t * sink;
+  int active;
+  } overlay_stream_t;
 
 typedef struct video_driver_s video_driver_t;
 
@@ -119,12 +129,13 @@ struct video_driver_s
   int (*init)(driver_data_t* data);
   int (*open)(driver_data_t* data);
   
-  void (*add_overlay_stream)(driver_data_t* data);
-  void (*set_overlay)(driver_data_t* data, int stream, gavl_overlay_t * ovl);
+  void (*init_overlay_stream)(driver_data_t* data, overlay_stream_t * str);
+  void (*set_overlay)(driver_data_t* data, overlay_stream_t * str);
   
+#if 0
   gavl_video_frame_t * (*create_overlay)(driver_data_t* data, int stream);
   void (*destroy_overlay)(driver_data_t* data, int stream, gavl_video_frame_t*);
-  
+#endif  
   gavl_video_frame_t * (*create_frame)(driver_data_t* data);
   
   void (*destroy_frame)(driver_data_t* data, gavl_video_frame_t *);
@@ -169,6 +180,7 @@ typedef struct
   bg_accelerator_map_t * child_accel_map;
   int modality;
   } window_t;
+
 
 #define FLAG_IS_FULLSCREEN                  (1<<0)
 #define FLAG_DO_DELETE                      (1<<1)
@@ -298,14 +310,9 @@ struct bg_x11_window_s
   int num_overlay_streams;
   
   int has_overlay; /* 1 if there are overlays to blend, 0 else */
+  overlay_stream_t * overlay_streams;
+  gavl_video_sink_t * sink;
   
-  struct
-    {
-    gavl_overlay_t * ovl;
-    unsigned long texture; /* For OpenGL only */
-    gavl_video_format_t format;
-    } * overlay_streams;
-
   float brightness;
   float saturation;
   float contrast;
@@ -317,7 +324,9 @@ struct bg_x11_window_s
 
   /* Screensaver */
   bg_x11_screensaver_t scr;
-  
+
+  /* Frame from the sink */
+  gavl_video_frame_t * frame;
   };
 
 void bg_x11_window_put_frame_internal(bg_x11_window_t * win,

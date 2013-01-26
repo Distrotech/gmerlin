@@ -160,8 +160,10 @@ static void entry_from_track_info(bg_album_common_t * com,
     
     if(!name_set)
       {
-      const char * name = gavl_metadata_get(&track_info->metadata, GAVL_META_LABEL);
-      if(name)
+      const char * name;
+
+      if((name = gavl_metadata_get(&track_info->metadata, GAVL_META_STATION)) ||
+         (name = gavl_metadata_get(&track_info->metadata, GAVL_META_LABEL)))
         entry->name = bg_strdup(entry->name, name);
       /* Take filename minus extension */
       else

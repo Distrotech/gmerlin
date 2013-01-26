@@ -1138,7 +1138,8 @@ bg_media_tree_get_current_track(bg_media_tree_t * t, int * index)
   bg_album_update_entry(t->com.current_album,
                         t->com.current_entry, track_info, 1, 0);
   /* Set the displayed name in the player */
-  gavl_metadata_set(&track_info->metadata, GAVL_META_LABEL, t->com.current_entry->name);
+  gavl_metadata_set(&track_info->metadata, GAVL_META_LABEL,
+                    t->com.current_entry->name);
   
   bg_album_common_set_auth_info(&t->com, t->com.current_entry);
   

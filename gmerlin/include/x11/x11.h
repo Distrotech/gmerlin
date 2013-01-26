@@ -146,7 +146,7 @@ int bg_x11_window_open_video(bg_x11_window_t*, gavl_video_format_t * format);
 
 gavl_video_sink_t *
 bg_x11_window_add_overlay_stream(bg_x11_window_t*,
-                                 const gavl_video_format_t * format);
+                                 gavl_video_format_t * format);
 
 #if 0
 void bg_x11_window_set_overlay(bg_x11_window_t*, int stream, gavl_overlay_t * ovl);

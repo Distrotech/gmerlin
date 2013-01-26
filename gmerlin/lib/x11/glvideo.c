@@ -44,8 +44,8 @@ typedef struct
   {
   int extensions;
   
-  texture_t video;
-  texture_t * overlays;
+  //  texture_t video;
+  //  texture_t * overlays;
   } gl_priv_t;
 
 static int has_extension(const char * extensions,
@@ -110,62 +110,66 @@ static int init_gl(driver_data_t * d)
   return check_gl(d->win, d->pixelformats, priv);
   }
 
-static void create_texture(gl_priv_t * priv,
-                           texture_t * ret,
-                           int width, int height, gavl_pixelformat_t pixelformat)
+static gavl_video_frame_t *
+create_texture(gl_priv_t * glp,
+               int width, int height,
+               gavl_pixelformat_t pixelformat)
   {
-  gavl_video_frame_t * dummy;
-  
+  gavl_video_frame_t * ret;
+  texture_t * priv;
   gavl_video_format_t texture_format;
+
+  priv = calloc(1, sizeof(*priv));
+  
   switch(pixelformat)
     {
     case GAVL_GRAY_8:
-      ret->type   = GL_LUMINANCE;
-      ret->format = GL_UNSIGNED_BYTE;
+      priv->type   = GL_LUMINANCE;
+      priv->format = GL_UNSIGNED_BYTE;
       break;
     case GAVL_GRAYA_16:
-      ret->type   = GL_LUMINANCE_ALPHA;
-      ret->format = GL_UNSIGNED_BYTE;
+      priv->type   = GL_LUMINANCE_ALPHA;
+      priv->format = GL_UNSIGNED_BYTE;
       break;
     case GAVL_GRAY_16:
-      ret->type   = GL_LUMINANCE;
-      ret->format = GL_UNSIGNED_SHORT;
+      priv->type   = GL_LUMINANCE;
+      priv->format = GL_UNSIGNED_SHORT;
       break;
     case GAVL_GRAYA_32:
-      ret->type   = GL_LUMINANCE_ALPHA;
-      ret->format = GL_UNSIGNED_SHORT;
+      priv->type   = GL_LUMINANCE_ALPHA;
+      priv->format = GL_UNSIGNED_SHORT;
       break;
     case GAVL_GRAY_FLOAT:
-      ret->type   = GL_LUMINANCE;
-      ret->format = GL_FLOAT;
+      priv->type   = GL_LUMINANCE;
+      priv->format = GL_FLOAT;
       break;
     case GAVL_GRAYA_FLOAT:
-      ret->type   = GL_LUMINANCE_ALPHA;
-      ret->format = GL_FLOAT;
+      priv->type   = GL_LUMINANCE_ALPHA;
+      priv->format = GL_FLOAT;
       break;
     case GAVL_RGB_24:
-      ret->type   = GL_RGB;
-      ret->format = GL_UNSIGNED_BYTE;
+      priv->type   = GL_RGB;
+      priv->format = GL_UNSIGNED_BYTE;
       break;
     case GAVL_RGBA_32:
-      ret->type   = GL_RGBA;
-      ret->format = GL_UNSIGNED_BYTE;
+      priv->type   = GL_RGBA;
+      priv->format = GL_UNSIGNED_BYTE;
       break;
     case GAVL_RGB_48:
-      ret->type   = GL_RGB;
-      ret->format = GL_UNSIGNED_SHORT;
+      priv->type   = GL_RGB;
+      priv->format = GL_UNSIGNED_SHORT;
       break;
     case GAVL_RGBA_64:
-      ret->type   = GL_RGBA;
-      ret->format = GL_UNSIGNED_SHORT;
+      priv->type   = GL_RGBA;
+      priv->format = GL_UNSIGNED_SHORT;
       break;
     case GAVL_RGB_FLOAT:
-      ret->type   = GL_RGB;
-      ret->format = GL_FLOAT;
+      priv->type   = GL_RGB;
+      priv->format = GL_FLOAT;
       break;
     case GAVL_RGBA_FLOAT:
-      ret->type   = GL_RGBA;
-      ret->format = GL_FLOAT;
+      priv->type   = GL_RGBA;
+      priv->format = GL_FLOAT;
       break;
     default:
       break;
@@ -178,7 +182,7 @@ static void create_texture(gl_priv_t * priv,
   texture_format.pixel_width = 1;
   texture_format.pixel_height = 1;
   
-  if(!(priv->extensions & texture_non_power_of_two))
+  if(!(glp->extensions & texture_non_power_of_two))
     {
     texture_format.frame_width = 1;
     texture_format.frame_height = 1;
@@ -194,13 +198,14 @@ static void create_texture(gl_priv_t * priv,
     texture_format.frame_height = texture_format.image_height;
     }
 
-  ret->width  = texture_format.frame_width;
-  ret->height = texture_format.frame_height;
+  priv->width  = texture_format.frame_width;
+  priv->height = texture_format.frame_height;
   
-  
-  dummy = gavl_video_frame_create_nopad(&texture_format);
-  glGenTextures(1,&ret->texture);
-  glBindTexture(GL_TEXTURE_2D,ret->texture);
+  ret = gavl_video_frame_create_nopad(&texture_format);
+  ret->user_data = priv;
+
+  glGenTextures(1,&priv->texture);
+  glBindTexture(GL_TEXTURE_2D,priv->texture);
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP);
@@ -208,19 +213,25 @@ static void create_texture(gl_priv_t * priv,
 
   glTexImage2D(GL_TEXTURE_2D, 0,
                GL_RGBA,
-               // ret->type,
+               // priv->type,
                texture_format.frame_width,
                texture_format.frame_height,
                0,
-               ret->type,
-               ret->format,
-               dummy->planes[0]);
-  gavl_video_frame_destroy(dummy);
+               priv->type,
+               priv->format,
+               ret->planes[0]);
+  gavl_video_frame_destroy(ret);
+
+  /* Create real frame */
+  
+  return ret;
   }
 
-static void delete_texture(texture_t * ret)
+static void delete_texture(gavl_video_frame_t * f)
   {
-  glDeleteTextures(1, &ret->texture);
+  texture_t * t = f->user_data;
+  glDeleteTextures(1, &t->texture);
+  gavl_video_frame_destroy(f);
   }
 
 static int open_gl(driver_data_t * d)
@@ -241,11 +252,10 @@ static int open_gl(driver_data_t * d)
   if(has_extension(extensions, "GL_ARB_texture_non_power_of_two"))
     priv->extensions |= texture_non_power_of_two;
   
-  create_texture(priv,
-                 &priv->video,
-                 w->video_format.image_width,
-                 w->video_format.image_height,
-                 d->pixelformat);
+  w->frame = create_texture(priv,
+                            w->video_format.image_width,
+                            w->video_format.image_height,
+                            d->pixelformat);
   
   glDisable(GL_DEPTH_TEST);
   
@@ -278,6 +288,8 @@ static void put_frame_gl(driver_data_t * d, gavl_video_frame_t * f)
   bg_x11_window_t * w;
   float tex_x1, tex_x2, tex_y1, tex_y2;
   float v_x1, v_x2, v_y1, v_y2;
+  texture_t * t = f->user_data;
+  
   priv = d->priv;
   w = d->win;
 
@@ -300,23 +312,23 @@ static void put_frame_gl(driver_data_t * d, gavl_video_frame_t * f)
   /* Put image into texture */
   glEnable(GL_TEXTURE_2D);
   
-  glBindTexture(GL_TEXTURE_2D,priv->video.texture);
+  glBindTexture(GL_TEXTURE_2D, t->texture);
   
   glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0,
                   w->video_format.image_width,
                   w->video_format.image_height,
-                  priv->video.type,
-                  priv->video.format,
+                  t->type,
+                  t->format,
                   f->planes[0]);
   
   /* Draw this */
   
-  tex_x1 = (w->src_rect.x+2.0) / priv->video.width;
-  tex_y1 = (w->src_rect.y+2.0) / priv->video.height;
+  tex_x1 = (w->src_rect.x+2.0) / t->width;
+  tex_y1 = (w->src_rect.y+2.0) / t->height;
   
-  tex_x2 = (w->src_rect.x + w->src_rect.w) / priv->video.width;
-  tex_y2 = (w->src_rect.y + w->src_rect.h) / priv->video.height;
-
+  tex_x2 = (w->src_rect.x + w->src_rect.w) / t->width;
+  tex_y2 = (w->src_rect.y + w->src_rect.h) / t->height;
+  
   glColor4f(w->background_color[0], 
             w->background_color[1], 
             w->background_color[2],
@@ -340,29 +352,30 @@ static void put_frame_gl(driver_data_t * d, gavl_video_frame_t * f)
     
     for(i = 0; i < w->num_overlay_streams; i++)
       {
-      if(!priv->overlays[i].src_rect.w ||
-         !priv->overlays[i].src_rect.h)
+      if(!w->overlay_streams[i].active)
         continue;
+
+      t = w->overlay_streams[i].ovl->user_data;
       
-      glBindTexture(GL_TEXTURE_2D,priv->overlays[i].texture);
+      glBindTexture(GL_TEXTURE_2D,t->texture);
       
-      tex_x1 = (float)(priv->overlays[i].src_rect.x) /
-        priv->overlays[i].width;
+      tex_x1 = (float)(t->src_rect.x) /
+        t->width;
       
-      tex_y1 = (float)(priv->overlays[i].src_rect.y) /
-        priv->overlays[i].height;
+      tex_y1 = (float)(t->src_rect.y) /
+        t->height;
     
-      tex_x2 = (float)(priv->overlays[i].src_rect.x + priv->overlays[i].src_rect.w) /
-        priv->overlays[i].width;
+      tex_x2 = (float)(t->src_rect.x + t->src_rect.w) /
+        t->width;
 
-      tex_y2 = (float)(priv->overlays[i].src_rect.y + priv->overlays[i].src_rect.h) /
-        priv->overlays[i].height;
+      tex_y2 = (float)(t->src_rect.y + t->src_rect.h) /
+        t->height;
       
-      v_x1 = priv->overlays[i].dst_x - w->src_rect.x;
-      v_y1 = priv->overlays[i].dst_y - w->src_rect.y;
+      v_x1 = t->dst_x - w->src_rect.x;
+      v_y1 = t->dst_y - w->src_rect.y;
 
-      v_x2 = v_x1 + priv->overlays[i].src_rect.w;
-      v_y2 = v_y1 + priv->overlays[i].src_rect.h;
+      v_x2 = v_x1 + t->src_rect.w;
+      v_y2 = v_y1 + t->src_rect.h;
       
       v_x1 = (v_x1 * w->dst_rect.w) / w->src_rect.w;
       v_x2 = (v_x2 * w->dst_rect.w) / w->src_rect.w;
@@ -391,36 +404,26 @@ static void destroy_frame_gl(driver_data_t * d, gavl_video_frame_t * f)
 
 /* Overlay support */
 
-static void add_overlay_stream_gl(driver_data_t* d)
+static void init_overlay_stream_gl(driver_data_t* d, overlay_stream_t * str)
   {
   gl_priv_t * priv;
   bg_x11_window_t * w;
   
   priv = d->priv;
   w = d->win;
-
-  priv->overlays =
-    realloc(priv->overlays,
-            (w->num_overlay_streams+1) * sizeof(*(priv->overlays)));
-  memset(&priv->overlays[w->num_overlay_streams], 0,
-         sizeof(priv->overlays[w->num_overlay_streams]));
   
   if(!gavl_pixelformat_is_rgb(w->overlay_streams[w->num_overlay_streams].format.pixelformat))
     w->overlay_streams[w->num_overlay_streams].format.pixelformat = GAVL_RGBA_32;
   
   bg_x11_window_set_gl(w);
-
-  create_texture(priv,
-                 &priv->overlays[w->num_overlay_streams],
-                 w->overlay_streams[w->num_overlay_streams].format.image_width,
-                 w->overlay_streams[w->num_overlay_streams].format.image_height,
-                 w->overlay_streams[w->num_overlay_streams].format.pixelformat);
-  
+  str->ovl = create_texture(priv, str->format.image_width, str->format.image_height,
+                            str->format.pixelformat);
   bg_x11_window_unset_gl(w);
-  
+
+  w->num_overlay_streams++;
   }
 
-static void set_overlay_gl(driver_data_t* d, int stream, gavl_overlay_t * ovl)
+static void set_overlay_gl(driver_data_t* d, overlay_stream_t * str)
   {
   gl_priv_t * priv;
   bg_x11_window_t * w;
@@ -428,41 +431,22 @@ static void set_overlay_gl(driver_data_t* d, int stream, gavl_overlay_t * ovl)
   priv = d->priv;
   w = d->win;
 
-  if(ovl && ovl->src_rect.w && ovl->src_rect.h)
+  if(str->active)
     {
+    texture_t * t = str->ovl->user_data;
+    
     bg_x11_window_set_gl(w);
-    glBindTexture(GL_TEXTURE_2D,priv->overlays[stream].texture);
+    glBindTexture(GL_TEXTURE_2D, t->texture);
     
     glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0,
-                    w->overlay_streams[stream].format.image_width,
-                    w->overlay_streams[stream].format.image_height,
-                    priv->overlays[stream].type,
-                    priv->overlays[stream].format,
-                    ovl->planes[0]);
+                    str->format.image_width,
+                    str->format.image_height,
+                    t->type,
+                    t->format,
+                    str->ovl->planes[0]);
     bg_x11_window_unset_gl(w);
-
-    gavl_rectangle_i_copy(&priv->overlays[stream].src_rect, &ovl->src_rect);
-    priv->overlays[stream].dst_x = ovl->dst_x;
-    priv->overlays[stream].dst_y = ovl->dst_y;
-    }
-  else
-    {
-    priv->overlays[stream].src_rect.w = 0;
-    priv->overlays[stream].src_rect.h = 0;
     }
   }
-
-
-static gavl_video_frame_t * create_overlay_gl(driver_data_t* d, int stream)
-  {
-  return gavl_video_frame_create_nopad(&d->win->overlay_streams[stream].format);
-  }
-
-static void destroy_overlay_gl(driver_data_t* d, int stream, gavl_video_frame_t* ovl)
-  {
-  gavl_video_frame_destroy(ovl);
-  }
-
 
 static void close_gl(driver_data_t * d)
   {
@@ -474,15 +458,11 @@ static void close_gl(driver_data_t * d)
   w = d->win;
   
   bg_x11_window_set_gl(w);
-  delete_texture(&priv->video);
+  delete_texture(w->frame);
   
   for(i = 0; i < w->num_overlay_streams; i++)
-    delete_texture(&priv->overlays[i]);
-  if(priv->overlays)
-    {
-    free(priv->overlays);
-    priv->overlays = NULL; 
-    }
+    delete_texture(w->overlay_streams[i].ovl);
+
   bg_x11_window_unset_gl(w);
   bg_x11_window_stop_gl(w);
   }
@@ -505,8 +485,8 @@ const video_driver_t gl_driver =
     .destroy_frame      = destroy_frame_gl,
     .close              = close_gl,
     .cleanup            = cleanup_gl,
-    .add_overlay_stream = add_overlay_stream_gl,
+    .init_overlay_stream = init_overlay_stream_gl,
     .set_overlay        = set_overlay_gl,
-    .create_overlay     = create_overlay_gl,
-    .destroy_overlay    = destroy_overlay_gl,
+    //    .create_overlay     = create_overlay_gl,
+    //    .destroy_overlay    = destroy_overlay_gl,
   };
