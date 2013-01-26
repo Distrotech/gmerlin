@@ -154,8 +154,12 @@ gavl_overlay_t * bg_x11_window_create_overlay(bg_x11_window_t*, int);
 void bg_x11_window_destroy_overlay(bg_x11_window_t*, int, gavl_overlay_t *);
 #endif
 
+gavl_video_sink_t * bg_x11_window_get_sink(bg_x11_window_t*);
+
+#if 0
 gavl_video_frame_t * bg_x11_window_create_frame(bg_x11_window_t*);
 void bg_x11_window_destroy_frame(bg_x11_window_t*, gavl_video_frame_t *);
+#endif
 
 void bg_x11_window_set_rectangles(bg_x11_window_t * w,
                                   gavl_rectangle_f_t * src_rect,

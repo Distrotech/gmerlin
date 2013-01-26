@@ -50,7 +50,7 @@ gavl_video_sink_t * bg_ov_get_sink(bg_ov_t * ov);
 gavl_video_frame_t * bg_ov_get_frame(bg_ov_t * ov);
   
 gavl_video_sink_t *
-bg_ov_add_overlay_stream(bg_ov_t * ov, const gavl_video_format_t * format);
+bg_ov_add_overlay_stream(bg_ov_t * ov, gavl_video_format_t * format);
 
 #if 0
 gavl_overlay_t * bg_ov_create_overlay(bg_ov_t * ov, int id);

@@ -132,10 +132,10 @@ struct video_driver_s
   void (*init_overlay_stream)(driver_data_t* data, overlay_stream_t * str);
   void (*set_overlay)(driver_data_t* data, overlay_stream_t * str);
   
-#if 0
-  gavl_video_frame_t * (*create_overlay)(driver_data_t* data, int stream);
-  void (*destroy_overlay)(driver_data_t* data, int stream, gavl_video_frame_t*);
-#endif  
+  gavl_video_frame_t * (*create_overlay)(driver_data_t* d, overlay_stream_t * str);
+  void (*destroy_overlay)(driver_data_t* data, overlay_stream_t * str,
+                          gavl_video_frame_t*);
+  
   gavl_video_frame_t * (*create_frame)(driver_data_t* data);
   
   void (*destroy_frame)(driver_data_t* data, gavl_video_frame_t *);
@@ -309,7 +309,6 @@ struct bg_x11_window_s
   /* Overlay stuff */
   int num_overlay_streams;
   
-  int has_overlay; /* 1 if there are overlays to blend, 0 else */
   overlay_stream_t * overlay_streams;
   gavl_video_sink_t * sink;
   
@@ -317,8 +316,6 @@ struct bg_x11_window_s
   float saturation;
   float contrast;
   
-  gavl_video_frame_t * still_frame;
-
   Pixmap icon;
   Pixmap icon_mask;
 
@@ -327,6 +324,7 @@ struct bg_x11_window_s
 
   /* Frame from the sink */
   gavl_video_frame_t * frame;
+  gavl_video_frame_t * still_frame;
   };
 
 void bg_x11_window_put_frame_internal(bg_x11_window_t * win,

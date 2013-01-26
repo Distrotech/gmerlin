@@ -1342,8 +1342,7 @@ struct bg_ov_plugin_s
    *  is one for subtitles and one for OSD.
    */
   
-  gavl_video_sink_t * (*add_overlay_stream)(void * priv,
-                                            const gavl_video_format_t * format);
+  gavl_video_sink_t * (*add_overlay_stream)(void * priv, gavl_video_format_t * format);
 
   /** \brief Allocate an overlay
    *  \param priv The handle returned by the create() method

@@ -227,11 +227,14 @@ create_texture(gl_priv_t * glp,
   return ret;
   }
 
-static void delete_texture(gavl_video_frame_t * f)
+static void destroy_frame_gl(driver_data_t * d, gavl_video_frame_t * f)
   {
   texture_t * t = f->user_data;
+
+  bg_x11_window_set_gl(d->win);
   glDeleteTextures(1, &t->texture);
   gavl_video_frame_destroy(f);
+  bg_x11_window_unset_gl(d->win);
   }
 
 static int open_gl(driver_data_t * d)
@@ -277,7 +280,12 @@ static gavl_video_frame_t * create_frame_gl(driver_data_t * d)
   gavl_video_frame_t * ret;
   bg_x11_window_t * w;
   w = d->win;
-  ret = gavl_video_frame_create_nopad(&w->video_format);
+  
+  ret = create_texture(d->priv,
+                       w->video_format.image_width,
+                       w->video_format.image_height,
+                       w->video_format.pixelformat);
+  
   return ret;
   }
 
@@ -397,12 +405,30 @@ static void put_frame_gl(driver_data_t * d, gavl_video_frame_t * f)
   bg_x11_window_unset_gl(w);
   }
 
-static void destroy_frame_gl(driver_data_t * d, gavl_video_frame_t * f)
+/* Overlay support */
+
+static gavl_video_frame_t *
+create_overlay_gl(driver_data_t* d, overlay_stream_t * str)
   {
-  gavl_video_frame_destroy(f);
+  gavl_video_frame_t * ret;
+  bg_x11_window_set_gl(d->win);
+
+  ret = create_texture(d->priv,
+                       str->format.image_width,
+                       str->format.image_height,
+                       str->format.pixelformat);
+
+  bg_x11_window_unset_gl(d->win);
+  return ret;
   }
 
-/* Overlay support */
+static void
+destroy_overlay_gl(driver_data_t* d, overlay_stream_t * str,
+                  gavl_video_frame_t * frame)
+  {
+  destroy_frame_gl(d, frame);
+  }
+
 
 static void init_overlay_stream_gl(driver_data_t* d, overlay_stream_t * str)
   {
@@ -415,10 +441,6 @@ static void init_overlay_stream_gl(driver_data_t* d, overlay_stream_t * str)
   if(!gavl_pixelformat_is_rgb(w->overlay_streams[w->num_overlay_streams].format.pixelformat))
     w->overlay_streams[w->num_overlay_streams].format.pixelformat = GAVL_RGBA_32;
   
-  bg_x11_window_set_gl(w);
-  str->ovl = create_texture(priv, str->format.image_width, str->format.image_height,
-                            str->format.pixelformat);
-  bg_x11_window_unset_gl(w);
 
   w->num_overlay_streams++;
   }
@@ -450,20 +472,12 @@ static void set_overlay_gl(driver_data_t* d, overlay_stream_t * str)
 
 static void close_gl(driver_data_t * d)
   {
-  int i;
   gl_priv_t * priv;
   bg_x11_window_t * w;
   
   priv = d->priv;
   w = d->win;
   
-  bg_x11_window_set_gl(w);
-  delete_texture(w->frame);
-  
-  for(i = 0; i < w->num_overlay_streams; i++)
-    delete_texture(w->overlay_streams[i].ovl);
-
-  bg_x11_window_unset_gl(w);
   bg_x11_window_stop_gl(w);
   }
 
@@ -487,6 +501,6 @@ const video_driver_t gl_driver =
     .cleanup            = cleanup_gl,
     .init_overlay_stream = init_overlay_stream_gl,
     .set_overlay        = set_overlay_gl,
-    //    .create_overlay     = create_overlay_gl,
-    //    .destroy_overlay    = destroy_overlay_gl,
+    .create_overlay     = create_overlay_gl,
+    .destroy_overlay    = destroy_overlay_gl,
   };

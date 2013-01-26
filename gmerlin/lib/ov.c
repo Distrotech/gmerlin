@@ -285,7 +285,7 @@ put_overlay(void * priv, gavl_video_frame_t * frame)
   }
 
 gavl_video_sink_t *
-bg_ov_add_overlay_stream(bg_ov_t * ov, const gavl_video_format_t * format)
+bg_ov_add_overlay_stream(bg_ov_t * ov, gavl_video_format_t * format)
   {
   ovl_stream_t * str;
 

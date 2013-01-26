@@ -129,9 +129,6 @@ typedef struct
 
   int keep_aspect;
 
-  gavl_video_frame_t * frame;
-  gavl_video_sink_t * sink;
-  
   } x11_t;
 
 /* Utility functions */
@@ -799,28 +796,6 @@ static void set_window_options_x11(void * data,
                             icon, icon_format);
   }
 
-static gavl_video_frame_t * get_frame_x11(void * data)
-  {
-  x11_t * priv = data;
-
-  if(!priv->frame)
-    priv->frame = bg_x11_window_create_frame(priv->win);
-  return priv->frame;
-  }
-
-static gavl_sink_status_t put_func_x11(void * data, gavl_video_frame_t * frame)
-  {
-  x11_t * priv = data;
-
-  /* TODO: Handle errors */
-  if(frame->duration < 0)
-    bg_x11_window_put_still(priv->win, frame);
-  else
-    bg_x11_window_put_frame(priv->win, frame);
-  
-  return GAVL_SINK_OK;
-  }
-
 static int open_x11(void * data, gavl_video_format_t * format, int keep_aspect)
   {
   x11_t * priv = data;
@@ -837,10 +812,6 @@ static int open_x11(void * data, gavl_video_format_t * format, int keep_aspect)
   
   priv->keep_aspect = keep_aspect;
   priv->is_open = 1;
-
-  priv->sink = gavl_video_sink_create(get_frame_x11,
-                                      put_func_x11,
-                                      priv, format);
   
   set_drawing_coords(priv);
   
@@ -850,33 +821,14 @@ static int open_x11(void * data, gavl_video_format_t * format, int keep_aspect)
 static gavl_video_sink_t * get_sink_x11(void * data)
   {
   x11_t * priv = data;
-  return priv->sink;
+  return bg_x11_window_get_sink(priv->win);
   }
-
-static gavl_overlay_t * create_overlay_x11(void * data, int id)
-  {
-  x11_t * priv = data;
-  return bg_x11_window_create_overlay(priv->win, id);
-  }
-
-static void destroy_overlay_x11(void * data, int id, gavl_overlay_t * ovl)
-  {
-  x11_t * priv = data;
-  bg_x11_window_destroy_overlay(priv->win, id, ovl);
-  }
-
 
 static gavl_video_sink_t *
-add_overlay_stream_x11(void * data, const gavl_video_format_t * format)
+add_overlay_stream_x11(void * data, gavl_video_format_t * format)
   {
   x11_t * priv = data;
   return bg_x11_window_add_overlay_stream(priv->win, format);
-  }
-
-static void set_overlay_x11(void * data, int stream, gavl_overlay_t * ovl)
-  {
-  x11_t * priv = data;
-  bg_x11_window_set_overlay(priv->win, stream, ovl);
   }
 
 static void handle_events_x11(void * data)
@@ -892,16 +844,6 @@ static void close_x11(void * data)
     {
     priv->is_open = 0;
     bg_x11_window_close_video(priv->win);
-    }
-  if(priv->frame)
-    {
-    bg_x11_window_destroy_frame(priv->win, priv->frame);
-    priv->frame = NULL;
-    }
-  if(priv->sink)
-    {
-    gavl_video_sink_destroy(priv->sink);
-    priv->sink = 0;
     }
   }
 

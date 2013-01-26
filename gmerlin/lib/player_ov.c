@@ -220,7 +220,7 @@ int bg_player_ov_init(bg_player_video_stream_t * vs)
   vs->frames_written = 0;
   return result;
   }
-
+#if 0
 static int overlay_is_expired(gavl_overlay_t * ovl,
                               gavl_time_t frame_time)
   {
@@ -275,6 +275,8 @@ static void read_subtitle(bg_player_subtitle_stream_t * ss,
 #endif
     }
   }
+
+#endif
 
 static void handle_subtitle(bg_player_t * p)
   {
@@ -362,9 +364,6 @@ void bg_player_ov_cleanup(bg_player_video_stream_t * s)
   
   //  destroy_frame(s, s->frame);
   //  s->frame = NULL;
-  
-  if(s->sh)
-    bg_subtitle_handler_destroy(s->sh);
   bg_ov_close(s->ov);
   }
 

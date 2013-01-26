@@ -37,6 +37,24 @@ static video_driver_t const * const drivers[] =
 #endif
   };
 
+static gavl_video_frame_t * create_frame(bg_x11_window_t * w)
+  {
+  if(!TEST_FLAG(w, FLAG_DO_SW_SCALE) &&
+     w->current_driver->driver->create_frame)
+    return w->current_driver->driver->create_frame(w->current_driver);
+  else
+    return gavl_video_frame_create(&w->video_format);
+  }
+
+static void destroy_frame(bg_x11_window_t * w, gavl_video_frame_t * f)
+  {
+  if(!TEST_FLAG(w, FLAG_DO_SW_SCALE) &&
+     w->current_driver->driver->destroy_frame)
+    w->current_driver->driver->destroy_frame(w->current_driver, f);
+  else
+    gavl_video_frame_destroy(f);
+  }
+
 static int set_brightness(bg_x11_window_t * w)
   {
   if(TEST_FLAG(w, FLAG_VIDEO_OPEN) &&
@@ -135,6 +153,55 @@ void bg_x11_window_cleanup_video(bg_x11_window_t * w)
 
 /* For Video output */
 
+
+static gavl_video_frame_t * get_frame(void * priv)
+  {
+  bg_x11_window_t * w = priv;
+  if(!w->frame)
+    w->frame = create_frame(w);
+  return w->frame;
+  }
+
+#if 0
+void bg_x11_window_put_frame(bg_x11_window_t * w, gavl_video_frame_t * f)
+  {
+  CLEAR_FLAG(w, FLAG_STILL_MODE);
+  bg_x11_window_put_frame_internal(w, f);
+  }
+
+void bg_x11_window_put_still(bg_x11_window_t * w, gavl_video_frame_t * f)
+  {
+  SET_FLAG(w, FLAG_STILL_MODE);
+  if(!w->still_frame)
+    {
+    w->still_frame = bg_x11_window_create_frame(w);
+    }
+  gavl_video_frame_copy(&w->video_format, w->still_frame, f);
+  bg_x11_window_put_frame_internal(w, w->still_frame);
+  }
+#endif
+
+static gavl_sink_status_t put_frame(void * priv, gavl_video_frame_t * f)
+  {
+  bg_x11_window_t * w = priv;
+  if(f->duration >= 0)
+    {
+    CLEAR_FLAG(w, FLAG_STILL_MODE);
+    bg_x11_window_put_frame_internal(w, f);
+    }
+  else
+    {
+    SET_FLAG(w, FLAG_STILL_MODE);
+
+    if(!w->still_frame)
+      w->still_frame = create_frame(w);
+    gavl_video_frame_copy(&w->video_format, w->still_frame, f);
+    bg_x11_window_put_frame_internal(w, w->still_frame);
+    }
+  
+  return GAVL_SINK_OK;
+  }
+
 #define PAD_SIZE 16
 #define PAD(sz) (((sz+PAD_SIZE-1) / PAD_SIZE) * PAD_SIZE)
 
@@ -144,9 +211,9 @@ int bg_x11_window_open_video(bg_x11_window_t * w,
   int num_drivers;
   int i;
   int force_hw_scale;
-  
   int min_penalty, min_index;
-
+  gavl_video_sink_get_func get_func;
+  
   CLEAR_FLAG(w, FLAG_DO_SW_SCALE);
   w->current_driver = NULL;  
   if(!TEST_FLAG(w, FLAG_DRIVERS_INITIALIZED))
@@ -228,7 +295,6 @@ int bg_x11_window_open_video(bg_x11_window_t * w,
       w->current_driver = &w->drivers[min_index];
       break;
       }
-    /* Flag as unusable */
     bg_log(BG_LOG_DEBUG, LOG_DOMAIN, "Trying %s driver",
            w->drivers[min_index].driver->name);
     if(!w->drivers[min_index].driver->open(&w->drivers[min_index]))
@@ -236,6 +302,7 @@ int bg_x11_window_open_video(bg_x11_window_t * w,
       bg_log(BG_LOG_DEBUG, LOG_DOMAIN, "Opening %s driver failed",
              w->drivers[min_index].driver->name);
       
+      /* Flag as unusable */
       w->drivers[min_index].pixelformat = GAVL_PIXELFORMAT_NONE;
       }
     else
@@ -248,7 +315,6 @@ int bg_x11_window_open_video(bg_x11_window_t * w,
     }
   if(!w->current_driver)
     return 0;
-
   
   w->video_format.pixelformat = w->current_driver->pixelformat;
   
@@ -258,45 +324,28 @@ int bg_x11_window_open_video(bg_x11_window_t * w,
   w->window_format.pixelformat = format->pixelformat;
   
   if(!w->current_driver->driver->can_scale)
-    {
     SET_FLAG(w, FLAG_DO_SW_SCALE);
-    }
-
+  
   set_contrast(w);
   set_saturation(w);
   set_brightness(w);
 
   XSync(w->dpy, False);
   bg_x11_window_handle_events(w, 0);
+
+  if(TEST_FLAG(w, FLAG_DO_SW_SCALE) ||
+     !w->current_driver->driver->create_frame)
+    get_func = NULL;
+  else
+    get_func = get_frame;
+  
+  w->sink =
+    gavl_video_sink_create(TEST_FLAG(w, FLAG_DO_SW_SCALE) ? NULL : get_frame,
+                           put_frame, w, &w->window_format);
   
   return 1;
   }
 
-gavl_video_frame_t * bg_x11_window_create_frame(bg_x11_window_t * w)
-  {
-  if(!TEST_FLAG(w, FLAG_DO_SW_SCALE))
-    {
-    if(w->current_driver->driver->create_frame)
-      return w->current_driver->driver->create_frame(w->current_driver);
-    else
-      return gavl_video_frame_create(&w->video_format);
-    }
-  else
-    return gavl_video_frame_create(&w->video_format);
-  }
-
-void bg_x11_window_destroy_frame(bg_x11_window_t * w, gavl_video_frame_t * f)
-  {
-  if(!TEST_FLAG(w, FLAG_DO_SW_SCALE))
-    {
-    if(w->current_driver->driver->destroy_frame)
-      w->current_driver->driver->destroy_frame(w->current_driver, f);
-    else
-      gavl_video_frame_destroy(f);
-    }
-  else
-    gavl_video_frame_destroy(f);
-  }
 
 #define PADD_SIZE 128
 #define PAD_IMAGE_SIZE(s) \
@@ -377,26 +426,11 @@ void bg_x11_window_put_frame_internal(bg_x11_window_t * w,
   CLEAR_FLAG(w, FLAG_OVERLAY_CHANGED);
   }
 
-void bg_x11_window_put_frame(bg_x11_window_t * w, gavl_video_frame_t * f)
-  {
-  CLEAR_FLAG(w, FLAG_STILL_MODE);
-  bg_x11_window_put_frame_internal(w, f);
-  }
-
-void bg_x11_window_put_still(bg_x11_window_t * w, gavl_video_frame_t * f)
-  {
-  SET_FLAG(w, FLAG_STILL_MODE);
-  if(!w->still_frame)
-    {
-    w->still_frame = bg_x11_window_create_frame(w);
-    }
-  gavl_video_frame_copy(&w->video_format, w->still_frame, f);
-  bg_x11_window_put_frame_internal(w, w->still_frame);
-  }
 
 
 void bg_x11_window_close_video(bg_x11_window_t * w)
   {
+  int i;
   if(w->window_frame)
     {
     if(w->current_driver->driver->destroy_frame)
@@ -405,12 +439,38 @@ void bg_x11_window_close_video(bg_x11_window_t * w)
       gavl_video_frame_destroy(w->window_frame);
     w->window_frame = NULL;
     }
+
   if(w->still_frame)
     {
-    bg_x11_window_destroy_frame(w, w->still_frame);
+    destroy_frame(w, w->still_frame);
     w->still_frame = NULL;
     }
 
+  if(w->frame)
+    {
+    destroy_frame(w, w->frame);
+    w->frame = NULL;
+    }
+
+  for(i = 0; i < w->num_overlay_streams; i++)
+    {
+    overlay_stream_t * str = w->overlay_streams + i;
+    if(str->ovl)
+      {
+      if(w->current_driver->driver->destroy_overlay)
+        w->current_driver->driver->destroy_overlay(w->current_driver, str, str->ovl);
+      else
+        gavl_video_frame_destroy(str->ovl);
+      }
+    if(str->sink)
+      gavl_video_sink_destroy(str->sink);
+    }
+
+  if(w->sink)
+    {
+    gavl_video_sink_destroy(w->sink);
+    w->sink = NULL;
+    }
   if(w->current_driver->driver->close)
     w->current_driver->driver->close(w->current_driver);
   

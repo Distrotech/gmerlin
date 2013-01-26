@@ -48,6 +48,7 @@ void bg_player_video_create(bg_player_t * p,
   
   s->accel_map = bg_accelerator_map_create();
   s->osd = bg_osd_create();
+  s->sh = bg_subtitle_handler_create();
   
   }
 
@@ -63,6 +64,7 @@ void bg_player_video_destroy(bg_player_t * p)
 
   bg_osd_destroy(s->osd);
   bg_accelerator_map_destroy(s->accel_map);
+  bg_subtitle_handler_destroy(s->sh);
   }
 
 int bg_player_video_init(bg_player_t * player, int video_stream)

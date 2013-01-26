@@ -57,6 +57,11 @@ bg_x11_window_destroy_overlay(bg_x11_window_t * w, int stream,
 static gavl_video_frame_t * get_frame(void * priv)
   {
   overlay_stream_t * str = priv;
+  if(!str->ovl)
+    {
+    str->ovl =
+      str->win->current_driver->driver->create_overlay(str->win->current_driver, str);
+    }
   return str->ovl;
   }
 
@@ -64,24 +69,13 @@ static gavl_sink_status_t put_frame(void * priv, gavl_video_frame_t * frame)
   {
   bg_x11_window_t * w;
   overlay_stream_t * str = priv;
-  int i;
-
+  
   w = str->win;
 
   if(frame && frame->src_rect.w && frame->src_rect.h)
     str->active = 1;
   else
     str->active = 0;
-  
-  w->has_overlay = 0;
-  for(i = 0; i < w->num_overlay_streams; i++)
-    {
-    if(w->overlay_streams[i].active)
-      {
-      w->has_overlay = 1;
-      break;
-      }
-    }
   
   SET_FLAG(w, FLAG_OVERLAY_CHANGED);
   return GAVL_SINK_OK;
@@ -115,7 +109,7 @@ bg_x11_window_add_overlay_stream(bg_x11_window_t * w,
   
   w->num_overlay_streams++;
 
-  str->sink = gavl_video_sink_create(str->ovl ? get_frame : NULL,
+  str->sink = gavl_video_sink_create(w->current_driver->driver->create_overlay ? get_frame : NULL,
                                      put_frame, str, &str->format);
   
   return str->sink;
