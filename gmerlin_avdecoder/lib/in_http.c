@@ -149,9 +149,9 @@ static int open_http(bgav_input_context_t * ctx, const char * url, char ** r)
     }
 
   /* Get Metadata */
-
+  
   set_metadata_string(header,
-                      title_vars, &ctx->metadata, GAVL_META_TITLE);
+                      title_vars, &ctx->metadata, GAVL_META_STATION);
   set_metadata_string(header,
                       genre_vars, &ctx->metadata, GAVL_META_GENRE);
   set_metadata_string(header,

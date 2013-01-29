@@ -133,7 +133,11 @@
 
 /** \brief Label
  *
- * Stream label (e.g. "Directors comments")
+ * For streams it's the label (e.g. "Directors comments")
+ * to display in the stream menu
+ *
+ * In global metadata it's the label which should be displayed when
+ * this file is played
  */
 
 #define GAVL_META_LABEL       "Label"
@@ -165,6 +169,12 @@
  */
 
 #define GAVL_META_DEVICE      "Device"
+
+/** \brief Name of the station for Radio or TV streams
+ */
+
+#define GAVL_META_STATION     "Station"
+
 
 /**
  * @}
