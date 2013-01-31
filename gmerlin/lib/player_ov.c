@@ -207,7 +207,7 @@ int bg_player_ov_init(bg_player_video_stream_t * vs)
   memset(&vs->osd_format, 0, sizeof(vs->osd_format));
 
   vs->osd_sink = bg_ov_add_overlay_stream(vs->ov, &vs->osd_format);
-  bg_osd_init(vs->osd, vs->osd_sink);
+  bg_osd_init(vs->osd, vs->osd_sink, &vs->output_format);
   
   /* Fixme: Lets just hope, that the OSD format doesn't get changed
      by this call. Otherwise, we would need a gavl_video_converter */

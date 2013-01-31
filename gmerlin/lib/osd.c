@@ -221,12 +221,16 @@ void bg_osd_init(bg_osd_t * osd, const gavl_video_format_t * format,
   }
 #endif
 
-void bg_osd_init(bg_osd_t * osd, gavl_video_sink_t * sink)
+void bg_osd_init(bg_osd_t * osd, gavl_video_sink_t * sink, 
+                 const gavl_video_format_t * frame_format)
   {
   osd->sink = sink;
   gavl_video_format_copy(&osd->fmt, gavl_video_sink_get_format(osd->sink));
-  bg_text_renderer_init(osd->renderer, NULL, &osd->fmt);
+  osd->fmt.timescale = GAVL_TIME_SCALE;
+  bg_text_renderer_init(osd->renderer, frame_format, &osd->fmt);
   osd->ovl = gavl_video_frame_create(&osd->fmt);
+  gavl_timer_stop(osd->timer);
+  gavl_timer_start(osd->timer);
   }
 
 /* Call once before displaying a frame */
@@ -240,8 +244,10 @@ void bg_osd_update(bg_osd_t * osd)
   if(osd->changed)
     {
     osd->changed = 0;
-    gavl_video_sink_put_frame(osd->sink, osd->ovl);
     osd->ovl->timestamp = current_time;
+//    fprintf(stderr, "OSD changed\n");
+//    gavl_video_frame_dump_metadata(&osd->fmt, osd->ovl);
+    gavl_video_sink_put_frame(osd->sink, osd->ovl);
     osd->active = 1;
     }
   
@@ -250,6 +256,7 @@ void bg_osd_update(bg_osd_t * osd)
     {
     if(current_time > osd->ovl->timestamp + osd->ovl->duration)
       {
+//      fprintf(stderr, "OSD Invalid\n");
       osd->ovl->src_rect.w = 0;
       osd->ovl->src_rect.h = 0;
       gavl_video_sink_put_frame(osd->sink, osd->ovl);

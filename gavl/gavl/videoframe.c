@@ -1686,3 +1686,29 @@ int gavl_video_frame_continuous(const gavl_video_format_t * format,
     }
   return 1;
   }
+
+void gavl_video_frame_dump_metadata(const gavl_video_format_t * format,
+                                    const gavl_video_frame_t * frame)
+  {
+  int i;
+  fprintf(stderr, "PTS: %"PRId64" (%f), D: %"PRId64" (%f) ", 
+          frame->timestamp, gavl_time_to_seconds(gavl_time_unscale(format->timescale, frame->timestamp)),
+          frame->duration,  gavl_time_to_seconds(gavl_time_unscale(format->timescale, frame->duration)));
+  if(format->timecode_format.int_framerate && (frame->timecode != GAVL_TIMECODE_UNDEFINED))
+    {
+    fprintf(stderr, " TC: ");
+    gavl_timecode_dump(&format->timecode_format, frame->timecode);
+    }
+  fprintf(stderr, "\n");
+  fprintf(stderr, "Strides:");
+  for(i = 0; i < GAVL_MAX_PLANES; i++)
+    {
+    if(frame->strides[i])
+      fprintf(stderr, " %d", frame->strides[i]);
+    else
+      break;
+    }
+  fprintf(stderr, "\nsrc_rect: ");
+  gavl_rectangle_i_dump(&frame->src_rect);
+  fprintf(stderr, " dst: %d %d\n", frame->dst_x, frame->dst_y);
+  }

@@ -2665,6 +2665,20 @@ void gavl_video_frame_dump(gavl_video_frame_t * frame,
 
 /*!
   \ingroup video_frame
+  \brief Dump a metadata of a video frame
+  \param frame Video frame
+
+  Metadata (= everything except the image data) are
+  written to stderr for debugging purposes
+
+*/
+
+GAVL_PUBLIC
+void gavl_video_frame_dump_metadata(const gavl_video_format_t * format,
+                                    const gavl_video_frame_t * frame);
+
+/*!
+  \ingroup video_frame
   \brief Set the strides according to the format
   \param frame Video frame
   \param format Format of the video data in the frame

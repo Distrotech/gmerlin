@@ -346,6 +346,11 @@ int bg_x11_window_open_video(bg_x11_window_t * w,
   return 1;
   }
 
+gavl_video_sink_t * bg_x11_window_get_sink(bg_x11_window_t * w)
+  {
+  return w->sink;
+  }
+
 
 #define PADD_SIZE 128
 #define PAD_IMAGE_SIZE(s) \

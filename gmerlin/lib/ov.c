@@ -181,7 +181,7 @@ static void blend_overlays(bg_ov_t * ov, gavl_video_frame_t * f)
     {
     if(ov->ovl_str[i].ovl)
       {
-      //      fprintf(stderr, "Blend overlay\n");
+//      fprintf(stderr, "Blend overlay\n");
       gavl_overlay_blend(ov->ovl_str[i].ctx, f);
       }
     }
@@ -278,7 +278,11 @@ put_overlay(void * priv, gavl_video_frame_t * frame)
   ovl_stream_t * str = priv;
 
   if(frame->src_rect.w && frame->src_rect.h)
+    {
     str->ovl = frame;
+    gavl_overlay_blend_context_set_overlay(str->ctx,
+                                           str->ovl);
+    }
   else
     str->ovl = NULL;
   return GAVL_SINK_OK;
@@ -320,6 +324,16 @@ bg_ov_add_overlay_stream(bg_ov_t * ov, gavl_video_format_t * format)
          ov->num_ovl_str - 1);
   
   str->ctx = gavl_overlay_blend_context_create();
+
+  if(!format->image_width || !format->image_height)
+    {
+    format->image_width = ov->format.image_width;
+    format->image_height = ov->format.image_height;
+    format->pixel_width = ov->format.pixel_width;
+    format->pixel_height = ov->format.pixel_height;
+    gavl_video_format_set_frame_size(format, 0, 0);
+ 
+    }
 
   gavl_video_format_copy(&str->format,
                          format);
