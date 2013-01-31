@@ -300,7 +300,17 @@ bg_ov_add_overlay_stream(bg_ov_t * ov, gavl_video_format_t * format)
   memset(str, 0, sizeof(*str));
   
   ov->num_ovl_str++;
-  
+ 
+  if(!format->image_width || !format->image_height)
+    {
+    format->image_width = ov->format.image_width;
+    format->image_height = ov->format.image_height;
+    format->pixel_width = ov->format.pixel_width;
+    format->pixel_height = ov->format.pixel_height;
+    gavl_video_format_set_frame_size(format, 0, 0);
+
+    }
+ 
   if(ov->plugin->add_overlay_stream)
     {
     /* Try hardware overlay */
@@ -324,16 +334,6 @@ bg_ov_add_overlay_stream(bg_ov_t * ov, gavl_video_format_t * format)
          ov->num_ovl_str - 1);
   
   str->ctx = gavl_overlay_blend_context_create();
-
-  if(!format->image_width || !format->image_height)
-    {
-    format->image_width = ov->format.image_width;
-    format->image_height = ov->format.image_height;
-    format->pixel_width = ov->format.pixel_width;
-    format->pixel_height = ov->format.pixel_height;
-    gavl_video_format_set_frame_size(format, 0, 0);
- 
-    }
 
   gavl_video_format_copy(&str->format,
                          format);

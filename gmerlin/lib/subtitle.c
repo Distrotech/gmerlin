@@ -31,6 +31,7 @@
 #include <gmerlin/log.h>
 #define LOG_DOMAIN "subtitle"
 
+// #define DUMP_SUBTITLE
 
 struct bg_subtitle_handler_s
   {
@@ -45,7 +46,7 @@ struct bg_subtitle_handler_s
 
   gavl_video_frame_t * ovl[2];
 
-  gavl_video_frame_t * out_ovl;
+//  gavl_video_frame_t * out_ovl;
   
   int eof;
   int active; // Current subtitle is active
@@ -54,14 +55,11 @@ bg_subtitle_handler_t * bg_subtitle_handler_create()
   {
   bg_subtitle_handler_t * ret;
   ret = calloc(1, sizeof(*ret));
-  ret->out_ovl = gavl_video_frame_create(NULL);
   return ret;
   }
 
 void bg_subtitle_handler_destroy(bg_subtitle_handler_t * h)
   {
-  gavl_video_frame_null(h->out_ovl);
-  gavl_video_frame_destroy(h->out_ovl);
   free(h);
   }
 
@@ -70,7 +68,11 @@ void bg_subtitle_handler_init(bg_subtitle_handler_t * h,
                               gavl_video_source_t * src,
                               gavl_video_sink_t * sink)
   {
-  
+  if(h->ovl[0])
+    gavl_video_frame_destroy(h->ovl[0]);
+  if(h->ovl[1])
+    gavl_video_frame_destroy(h->ovl[1]);
+ 
   h->src = src;
   h->sink = sink;
 
@@ -88,21 +90,10 @@ void bg_subtitle_handler_init(bg_subtitle_handler_t * h,
   h->ovl[1] = gavl_video_frame_create(&h->ovl_format);
   h->cur = h->ovl[0];
   h->next = h->ovl[1];
+
+  bg_subtitle_handler_reset(h);
   }
 
-#ifdef DUMP_SUBTITLE
-static void dump_subtitle(gavl_overlay_t * ovl)
-  {
-  bg_dprintf("Got subtitle %f -> %f (%f) ",
-             gavl_time_to_seconds(ovl->timestamp),
-             gavl_time_to_seconds(ovl->timestamp +
-                                  ovl->duration),
-             gavl_time_to_seconds(ovl->duration));
-  
-  gavl_rectangle_i_dump(&ovl->src_rect);
-  bg_dprintf(" dst: %d %d\n", ovl->dst_x, ovl->dst_y);
-  }
-#endif
 static void read_subtitle(bg_subtitle_handler_t * h,
                           gavl_video_frame_t * frame)
   {
@@ -119,7 +110,9 @@ static void read_subtitle(bg_subtitle_handler_t * h,
   if(st == GAVL_SOURCE_OK)
     {
 #ifdef DUMP_SUBTITLE
-    dump_subtitle(frame);
+    bg_dprintf("Got subtitle\n");
+    gavl_video_frame_dump_metadata(gavl_video_source_get_dst_format(h->src),
+                                   frame);
 #endif
     }
   }
@@ -127,15 +120,14 @@ static void read_subtitle(bg_subtitle_handler_t * h,
 static void put_overlay(bg_subtitle_handler_t * h)
   {
   h->active = 1;
-  memcpy(h->out_ovl, h->cur, sizeof(*h->cur));
-  gavl_video_sink_put_frame(h->sink, h->out_ovl);
+  gavl_video_sink_put_frame(h->sink, h->cur);
   }
 
 static void clear_overlay(bg_subtitle_handler_t * h)
   {
   h->active = 0;
-  h->out_ovl->src_rect.w = 0;
-  gavl_video_sink_put_frame(h->sink, h->out_ovl);
+  h->cur->src_rect.w = 0;
+  gavl_video_sink_put_frame(h->sink, h->cur);
   }
 
 void bg_subtitle_handler_update(bg_subtitle_handler_t * h,

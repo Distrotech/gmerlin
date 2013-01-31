@@ -349,7 +349,7 @@ void bg_player_ov_update_still(bg_player_t * p)
                       frame->timestamp);
   
   if(DO_SUBTITLE(p->flags))
-    handle_subtitle(p);
+    bg_subtitle_handler_update(s->sh, frame);
   
   handle_messages(s);
 
@@ -481,7 +481,8 @@ void * bg_player_ov_thread(void * data)
     
     /* Subtitle handling */
     if(DO_SUBTITLE(p->flags))
-      handle_subtitle(p);
+      bg_subtitle_handler_update(s->sh, frame);
+//      handle_subtitle(p);
     
     /* Handle stuff */
     handle_messages(s);
