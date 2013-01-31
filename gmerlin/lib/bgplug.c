@@ -231,8 +231,10 @@ void bg_plug_destroy(bg_plug_t * p)
   free_streams(p->text_streams, p->num_text_streams);
   free_streams(p->overlay_streams, p->num_overlay_streams);
   gavf_close(p->g);
-  gavf_io_destroy(p->io);
 
+  if(p->io)
+    gavf_io_destroy(p->io);
+  
   gavl_packet_free(&p->skip_packet);
   
   pthread_mutex_destroy(&p->mutex);
