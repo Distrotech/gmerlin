@@ -58,22 +58,11 @@ int main(int argc, char ** argv)
   
   while(1)
     {
-    h = gavf_packet_read_header(dec);
-    if(!h)
-      {
-      fprintf(stderr, "Got no packet header\n");
+    if(!(h = gavf_packet_read_header(dec)) ||
+       !gavf_packet_read_packet(dec, &p))
       break;
-      }
-    fprintf(stderr, "Reading packet for stream %d\n", h->stream_id);
-    
-    if(!gavf_packet_read_packet(dec, &p))
-      {
-      fprintf(stderr, "Failed\n");
-      break;
-      }
-    gavl_packet_dump(&p);
     }
-
+  
   /* Cleanup */
 
   gavf_close(dec);

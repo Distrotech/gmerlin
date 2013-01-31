@@ -519,7 +519,7 @@ int gavf_read_gavl_packet(gavf_io_t * io,
   uint32_t len;
   
   if(!gavf_io_read_uint32v(io, &len))
-    return 0;
+    goto fail;
   
   start_pos = io->position;
 
@@ -527,13 +527,13 @@ int gavf_read_gavl_packet(gavf_io_t * io,
   
   /* Flags */
   if(!gavf_io_read_uint32v(io, (uint32_t*)&p->flags))
-    return 0;
+    goto fail;
   
   /* PTS */
   if(s->flags & STREAM_FLAG_HAS_PTS)
     {
     if(!gavf_io_read_int64v(io, &p->pts))
-      return 0;
+      goto fail;
     p->pts += s->last_sync_pts;
     }
   else
@@ -543,21 +543,21 @@ int gavf_read_gavl_packet(gavf_io_t * io,
   if(s->flags & STREAM_FLAG_HAS_DURATION)
     {
     if(!gavf_io_read_int64v(io, &p->duration))
-      return 0;
+      goto fail;
     }
   
   /* Field2 */
   if(s->h->ci.flags & GAVL_COMPRESSION_HAS_FIELD_PICTURES)
     {
     if(!gavf_io_read_uint32v(io, &p->field2_offset))
-      return 0;
+      goto fail;
     }
 
   /* Interlace mode */
   if(s->flags & STREAM_FLAG_HAS_INTERLACE)
     {
-    if(!gavf_io_write_uint32v(io, p->interlace_mode))
-      return 0;
+    if(!gavf_io_read_uint32v(io, (uint32_t*)&p->interlace_mode))
+      goto fail;
     }
 
   
@@ -569,41 +569,41 @@ int gavf_read_gavl_packet(gavf_io_t * io,
     
     /* Extensions */
     if(!gavf_io_read_uint32v(io, &num_extensions))
-      return 0;
+      goto fail;
 
     for(i = 0; i < num_extensions; i++)
       {
       if(!gavf_extension_header_read(io, &eh))
-        return 0;
+        goto fail;
       switch(eh.key)
         {
         case GAVF_EXT_PK_DURATION:
           if(!gavf_io_read_int64v(io, &p->duration))
-            return 0;
+            goto fail;
           break;
         case GAVF_EXT_PK_HEADER_SIZE:
           if(!gavf_io_read_uint32v(io, &p->header_size))
-            return 0;
+            goto fail;
           break;
         case GAVF_EXT_PK_SEQ_END:
           if(!gavf_io_read_uint32v(io, &p->sequence_end_pos))
-            return 0;
+            goto fail;
           break;
         case GAVF_EXT_PK_TIMECODE:
           if(!gavf_io_read_uint64f(io, &p->timecode))
-            return 0;
+            goto fail;
           break;
         case GAVF_EXT_PK_SRC_RECT:
           if(!gavf_io_read_int32v(io, &p->src_rect.x) ||
              !gavf_io_read_int32v(io, &p->src_rect.y) ||
              !gavf_io_read_int32v(io, &p->src_rect.w) ||
              !gavf_io_read_int32v(io, &p->src_rect.h))
-            return 0;
+            goto fail;
           break;
         case GAVF_EXT_PK_DST_COORDS:
           if(!gavf_io_read_int32v(io, &p->dst_x) ||
              !gavf_io_read_int32v(io, &p->dst_y))
-            return 0;
+            goto fail;
           break;
         default:
           /* Skip */
@@ -619,7 +619,7 @@ int gavf_read_gavl_packet(gavf_io_t * io,
   p->data_len = len - (io->position - start_pos);
   gavl_packet_alloc(p, p->data_len);
   if(gavf_io_read_data(io, p->data, p->data_len) < p->data_len)
-    return 0;
+    goto fail;
 
   /* Duration */
   if(!p->duration)
@@ -631,8 +631,19 @@ int gavf_read_gavl_packet(gavf_io_t * io,
   
   /* Set pts */
   s->next_pts += p->duration;
-  
+
+  if(s->g->opt.flags & GAVF_OPT_FLAG_DUMP_PACKETS)
+    {
+    fprintf(stderr, "ID: %d ", s->g->pkthdr.stream_id);
+    gavl_packet_dump(p);
+    }
   return 1;
+  
+  fail:
+
+  if(s->g->opt.flags & GAVF_OPT_FLAG_DUMP_PACKETS)
+    fprintf(stderr, "Got EOF while reading packet\n");
+  return 0;
   }
 
 int gavf_write_gavl_packet_header(gavf_io_t * io,

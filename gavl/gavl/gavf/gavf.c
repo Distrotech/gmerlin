@@ -831,6 +831,7 @@ int gavf_packet_read_packet(gavf_t * g, gavl_packet_t * p)
   
   if(!gavf_read_gavl_packet(g->io, s, p))
     return 0;
+  
   return 1;
   }
 

@@ -18,12 +18,14 @@ benchmark \
 colorspace_time \
 deinterlace_time \
 dump_frame_table \
-gavfdump \
 pixelformat_penalty \
 plot_scale_kernels \
 scale_time \
 timescale_test \
 volume_test
+
+bin_PROGRAMS = \
+gavfdump
 
 pixelformat_penalty_SOURCES = pixelformat_penalty.c
 pixelformat_penalty_LDADD = ../gavl/libgavl.la
