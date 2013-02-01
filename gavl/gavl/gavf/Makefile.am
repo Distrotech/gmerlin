@@ -5,7 +5,6 @@ noinst_LTLIBRARIES = libgavf.la
 libgavf_la_SOURCES = \
 avconn.c        \
 buffer.c        \
-fileindex.c     \
 footer.c        \
 gavf.c          \
 gavfoptions.c   \

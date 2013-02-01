@@ -291,7 +291,6 @@ int gavf_extension_write(gavf_io_t * io, uint32_t key, uint32_t len,
 
 /* File index */
 
-#define GAVF_TAG_FILE_INDEX     "GAVFFIDX"
 #define GAVF_TAG_PROGRAM_HEADER "GAVFPHDR"
 #define GAVF_TAG_SYNC_HEADER    "GAVFSYNC"
 #define GAVF_TAG_SYNC_INDEX     "GAVFSIDX"
@@ -304,25 +303,6 @@ int gavf_extension_write(gavf_io_t * io, uint32_t key, uint32_t len,
 
 #define GAVF_TAG_METADATA_HEADER   "M"
 #define GAVF_TAG_METADATA_HEADER_C 'M'
-
-typedef struct
-  {
-  uint32_t num_entries;
-  uint32_t entries_alloc;
-  
-  struct
-    {
-    uint8_t tag[8];
-    uint64_t position;
-    } * entries;
-  } gavf_file_index_t;
-
-void gavf_file_index_init(gavf_file_index_t * fi, int num_entries);
-int gavf_file_index_read(gavf_io_t * io, gavf_file_index_t * fi);
-int gavf_file_index_write(gavf_io_t * io, const gavf_file_index_t * fi);
-void gavf_file_index_free(gavf_file_index_t * fi);
-void gavf_file_index_add(gavf_file_index_t * fi, char * tag, int64_t position);
-void gavf_file_index_dump(const gavf_file_index_t * fi);
 
 typedef struct
   {
@@ -396,7 +376,6 @@ struct gavf_s
   {
   gavf_io_t * io;
   gavf_program_header_t ph;
-  gavf_file_index_t     fi;
   gavf_sync_index_t     si;
   gavf_packet_index_t   pi;
 

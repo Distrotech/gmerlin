@@ -102,10 +102,8 @@ static int write_sync_header(gavf_t * g, int stream, const gavl_packet_t * p)
   /* If that's the first sync header, update file index */
 
   if(!g->first_sync_pos)
-    {
-    gavf_file_index_add(&g->fi, GAVF_TAG_SYNC_HEADER, g->io->position);
     g->first_sync_pos = g->io->position;
-    }
+  
   /* Write the sync header */
   if(gavf_io_write_data(g->io, (uint8_t*)GAVF_TAG_SYNC_HEADER, 8) < 8)
     return 0;
@@ -553,21 +551,6 @@ static int handle_chunk(gavf_t * g, char * sig)
     {
     g->first_sync_pos = g->io->position;
     }  
-  else if(!strncmp(sig, GAVF_TAG_SYNC_INDEX, 8))
-    {
-    if(gavf_sync_index_read(g->io, &g->si))
-      g->opt.flags |= GAVF_OPT_FLAG_SYNC_INDEX;
-    }
-  else if(!strncmp(sig, GAVF_TAG_PACKET_INDEX, 8))
-    {
-    if(gavf_packet_index_read(g->io, &g->pi))
-      g->opt.flags |= GAVF_OPT_FLAG_PACKET_INDEX;
-    }
-  else if(!strncmp(sig, GAVF_TAG_CHAPTER_LIST, 8))
-    {
-    if(!(g->cl = gavf_read_chapter_list(g->io)))
-      return 0;
-    }
   return 1;
   }
 
@@ -596,7 +579,6 @@ static int read_sync_header(gavf_t * g)
   
 int gavf_open_read(gavf_t * g, gavf_io_t * io)
   {
-  int i;
   char sig[8];
   
   g->io = io;
@@ -614,34 +596,10 @@ int gavf_open_read(gavf_t * g, gavf_io_t * io)
     {
     if(gavf_io_read_data(g->io, (uint8_t*)sig, 8) < 8)
       return 0;
-
-    if(!strncmp(sig, GAVF_TAG_FILE_INDEX, 8))
-      {
-      if(!gavf_file_index_read(g->io, &g->fi))
-        return 0;
-     
-      if(g->io->seek_func)
-        {
-        for(i = 0; i < g->fi.num_entries; i++)
-          {
-          gavf_io_seek(io, g->fi.entries[i].position, SEEK_SET);
-
-          if(gavf_io_read_data(g->io, (uint8_t*)sig, 8) < 8)
-            return 0;
-
-          if(strncmp(sig, (char*)g->fi.entries[i].tag, 8))
-            return 0;
-
-          if(!handle_chunk(g, sig))
-            return 0;
-          }
-        }
-      }
-    else
-      {
-      if(!handle_chunk(g, sig))
-        return 0;
-      }
+    
+    if(!handle_chunk(g, sig))
+      return 0;
+    
     if(g->first_sync_pos > 0)
       break;
     }
@@ -652,9 +610,6 @@ int gavf_open_read(gavf_t * g, gavf_io_t * io)
   
   if(g->opt.flags & GAVF_OPT_FLAG_DUMP_HEADERS)
     {
-    if(g->fi.num_entries)
-      gavf_file_index_dump(&g->fi);
-    
     gavf_program_header_dump(&g->ph);
 
     if(g->cl)
@@ -923,13 +878,6 @@ int gavf_open_write(gavf_t * g, gavf_io_t * io,
   if(cl)
     g->cl = gavl_chapter_list_copy(cl);
   
-  if(g->io->seek_func)
-    {
-    gavf_file_index_init(&g->fi, 8);
-    gavf_file_index_write(g->io, &g->fi);
-    if(!gavf_io_flush(g->io))
-      return 0; 
-    }
   return 1;
   }
 
@@ -992,8 +940,6 @@ int gavf_start(gavf_t * g)
       g->final_encoding_mode = ENC_SYNCHRONOUS;
     }
   
-  gavf_file_index_add(&g->fi, GAVF_TAG_PROGRAM_HEADER, g->io->position);
-
   if(g->opt.flags & GAVF_OPT_FLAG_DUMP_HEADERS)
     gavf_program_header_dump(&g->ph);
   
@@ -1177,45 +1123,12 @@ void gavf_close(gavf_t * g)
       write_sync_header(g, -1, NULL);
       }
     
-    /* Write indices */
-
-    if(g->opt.flags & GAVF_OPT_FLAG_SYNC_INDEX)
-      {
-      gavf_file_index_add(&g->fi, GAVF_TAG_SYNC_INDEX, g->io->position);
-      if(g->opt.flags & GAVF_OPT_FLAG_DUMP_INDICES)
-        gavf_sync_index_dump(&g->si);
-      if(!gavf_sync_index_write(g->io, &g->si))
-        return;
-      }
+    /* Write footer */
     
-    if(g->opt.flags & GAVF_OPT_FLAG_PACKET_INDEX)
-      {
-      gavf_file_index_add(&g->fi, GAVF_TAG_PACKET_INDEX, g->io->position);
-      if(g->opt.flags & GAVF_OPT_FLAG_DUMP_INDICES)
-        gavf_packet_index_dump(&g->pi);
-      if(!gavf_packet_index_write(g->io, &g->pi))
-        return;
-      }
-
-    if(g->cl)
-      {
-      gavf_file_index_add(&g->fi, GAVF_TAG_CHAPTER_LIST, g->io->position);
-      if(!gavf_write_chapter_list(g->io, g->cl))
-        return;
-      }
-
     if(!gavf_footer_write(g))
       return;
-    
-    /* Rewrite file index */
-    if(g->io->seek_func)
-      {
-      gavf_io_seek(g->io, 0, SEEK_SET);
-      gavf_file_index_write(g->io, &g->fi);
-      }
-    
     }
-
+  
   /* Free stuff */
 
   if(g->streams)
@@ -1224,7 +1137,6 @@ void gavf_close(gavf_t * g)
       gavf_stream_free(&g->streams[i]);
     free(g->streams);
     }
-  gavf_file_index_free(&g->fi);
   gavf_sync_index_free(&g->si);
   gavf_packet_index_free(&g->pi);
   gavf_program_header_free(&g->ph);

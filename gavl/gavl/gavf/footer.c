@@ -19,7 +19,7 @@ int gavf_footer_check(gavf_t * g)
   uint64_t footer_start_pos;
   int i;
   gavf_stream_header_t * s;
-  
+  char sig[8];
   int ret = 0;
 
   gavf_footer_init(g);
@@ -61,8 +61,32 @@ int gavf_footer_check(gavf_t * g)
     /* Set some useful values from the footer */
     gavf_stream_header_apply_footer(s);
     }
-  
+
+  /* Read remaining stuff */
   ret = 1;
+
+  while(1)
+    {
+    if(gavf_io_read_data(g->io, (uint8_t*)sig, 8) < 8)
+      return 0;
+
+    if(!strncmp(sig, GAVF_TAG_SYNC_INDEX, 8))
+      {
+      if(gavf_sync_index_read(g->io, &g->si))
+        g->opt.flags |= GAVF_OPT_FLAG_SYNC_INDEX;
+      }
+    else if(!strncmp(sig, GAVF_TAG_PACKET_INDEX, 8))
+      {
+      if(gavf_packet_index_read(g->io, &g->pi))
+        g->opt.flags |= GAVF_OPT_FLAG_PACKET_INDEX;
+      }
+    else if(!strncmp(sig, GAVF_TAG_CHAPTER_LIST, 8))
+      {
+      if(!(g->cl = gavf_read_chapter_list(g->io)))
+        return 0;
+      }
+    }
+  
   end:
     
   gavf_io_seek(g->io, last_pos, SEEK_SET);
@@ -106,6 +130,29 @@ int gavf_footer_write(gavf_t * g)
        !gavf_io_write_int64v(g->io, s->foot.duration_max) ||
        !gavf_io_write_int64v(g->io, s->foot.pts_start) ||
        !gavf_io_write_int64v(g->io, s->foot.pts_end))
+      return 0;
+    }
+
+  /* Write indices */  
+  if(g->opt.flags & GAVF_OPT_FLAG_SYNC_INDEX)
+    {
+    if(g->opt.flags & GAVF_OPT_FLAG_DUMP_INDICES)
+      gavf_sync_index_dump(&g->si);
+    if(!gavf_sync_index_write(g->io, &g->si))
+      return 0;
+    }
+    
+  if(g->opt.flags & GAVF_OPT_FLAG_PACKET_INDEX)
+    {
+    if(g->opt.flags & GAVF_OPT_FLAG_DUMP_INDICES)
+      gavf_packet_index_dump(&g->pi);
+    if(!gavf_packet_index_write(g->io, &g->pi))
+      return 0;
+    }
+
+  if(g->cl)
+    {
+    if(!gavf_write_chapter_list(g->io, g->cl))
       return 0;
     }
   

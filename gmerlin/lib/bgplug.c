@@ -976,14 +976,11 @@ int bg_plug_open(bg_plug_t * p, gavf_io_t * io,
   
   if(p->wr)
     {
-    /* Force writing at least a sync index if the output
-       is seekable */
-    if(p->io_flags & BG_PLUG_IO_CAN_SEEK)
-      {
-      flags = gavf_options_get_flags(p->opt);
-      flags |= GAVF_OPT_FLAG_SYNC_INDEX;
-      gavf_options_set_flags(p->opt, flags);
-      }
+    /* Force writing at least a sync index */
+    
+    flags = gavf_options_get_flags(p->opt);
+    flags |= GAVF_OPT_FLAG_SYNC_INDEX;
+    gavf_options_set_flags(p->opt, flags);
     
     if(!gavf_open_write(p->g, p->io, m, cl))
       {
