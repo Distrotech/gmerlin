@@ -139,11 +139,25 @@ const char * gavl_channel_id_to_string(gavl_channel_id_t id)
   return NULL;
   }
 
-void gavl_audio_format_dump(const gavl_audio_format_t * f)
+static void do_indent(int num)
   {
   int i;
+  for(i = 0; i < num; i++)
+    fprintf(stderr, " ");
+  }
+
+void gavl_audio_format_dump(const gavl_audio_format_t * format)
+  {
+  gavl_audio_format_dumpi(format, 0);
+  }
+
+void gavl_audio_format_dumpi(const gavl_audio_format_t * f, int indent)
+  {
+  int i;
+  do_indent(indent);
   fprintf(stderr, "  Channels:          %d\n", f->num_channels);
 
+  do_indent(indent);
   fprintf(stderr, "  Channel order:     ");
   for(i = 0; i < f->num_channels; i++)
     {
@@ -153,15 +167,23 @@ void gavl_audio_format_dump(const gavl_audio_format_t * f)
     }
   fprintf(stderr, "\n");
 
+  do_indent(indent);
   fprintf(stderr, "  Samplerate:        %d\n", f->samplerate);
+
+  do_indent(indent);
   fprintf(stderr, "  Samples per frame: %d\n", f->samples_per_frame);
+
+  do_indent(indent);
   fprintf(stderr, "  Interleave Mode:   %s\n",
           gavl_interleave_mode_to_string(f->interleave_mode));
+
+  do_indent(indent);
   fprintf(stderr, "  Sample format:     %s\n",
           gavl_sample_format_to_string(f->sample_format));
   
   if(gavl_front_channels(f) == 3)
     {
+    do_indent(indent);
     if(f->center_level > 0.0)
       fprintf(stderr, "  Center level:      %0.1f dB\n", 20 * log10(f->center_level));
     else
@@ -169,14 +191,12 @@ void gavl_audio_format_dump(const gavl_audio_format_t * f)
     }
   if(gavl_rear_channels(f))
     {
+    do_indent(indent);
     if(f->rear_level > 0.0)
       fprintf(stderr, "  Rear level:        %0.1f dB\n", 20 * log10(f->rear_level));
     else
       fprintf(stderr, "  Rear level:        Zero\n");
     }
-
-  
-
   }
 
 void gavl_set_channel_setup(gavl_audio_format_t * dst)

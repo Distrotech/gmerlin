@@ -25,7 +25,7 @@
 #include <gavl/gavl.h>
 #include <gavl/compression.h>
 
-static void hexdump(const uint8_t * data, int len, int linebreak)
+static void hexdump(const uint8_t * data, int len, int linebreak, int indent)
   {
   int i;
   int bytes_written = 0;
@@ -33,6 +33,8 @@ static void hexdump(const uint8_t * data, int len, int linebreak)
   
   while(bytes_written < len)
     {
+    for(i = 0; i < indent; i++)
+      fprintf(stderr, " ");
     imax = (bytes_written + linebreak > len) ? len - bytes_written : linebreak;
     for(i = 0; i < imax; i++)
       fprintf(stderr, "%02x ", data[bytes_written + i]);
@@ -199,19 +201,35 @@ gavl_codec_id_t gavl_get_compression(int index)
   return compression_ids[index].id;
   }
 
-
 void gavl_compression_info_dump(const gavl_compression_info_t * info)
   {
+  gavl_compression_info_dumpi(info, 0);
+  }
+
+static void do_indent(int num)
+  {
+  int i;
+  for(i = 0; i < num; i++)
+    fprintf(stderr, " ");
+  }
+
+void gavl_compression_info_dumpi(const gavl_compression_info_t * info, int indent)
+  {
+  do_indent(indent);
   fprintf(stderr, "Compression info\n");
-  fprintf(stderr, "  Codec:        %s [%s]\n",
+  do_indent(indent+2);
+  fprintf(stderr, "Codec:        %s [%s]\n",
           gavl_compression_get_long_name(info->id),
           gavl_compression_get_short_name(info->id));
-  fprintf(stderr, "  Bitrate:      %d bps\n", info->bitrate);
+  do_indent(indent+2);
+  fprintf(stderr, "Bitrate:      %d bps\n", info->bitrate);
 
   if(info->id >= 0x10000)
     {
-    fprintf(stderr, "  Palette size: %d\n", info->palette_size);
-    fprintf(stderr, "  Frame types:  I");
+    do_indent(indent+2);
+    fprintf(stderr, "Palette size: %d\n", info->palette_size);
+    do_indent(indent+2);
+    fprintf(stderr, "Frame types:  I");
     if(info->flags & GAVL_COMPRESSION_HAS_P_FRAMES)
       fprintf(stderr, ",P");
     if(info->flags & GAVL_COMPRESSION_HAS_B_FRAMES)
@@ -220,16 +238,17 @@ void gavl_compression_info_dump(const gavl_compression_info_t * info)
     }
   else
     {
-    fprintf(stderr, "  SBR:          %s\n",
+    do_indent(indent+2);
+    fprintf(stderr, "SBR:          %s\n",
             (info->flags & GAVL_COMPRESSION_SBR ? "Yes" : "No"));
     }
-  
-  fprintf(stderr, "  Global header %d bytes", info->global_header_len);
+  do_indent(indent+2);
+  fprintf(stderr, "Global header %d bytes", info->global_header_len);
   if(info->global_header_len)
     {
     fprintf(stderr, " (hexdump follows)\n");
     hexdump(info->global_header,
-            info->global_header_len, 16);
+            info->global_header_len, 16, indent+2);
     }
   else
     fprintf(stderr, "\n");
@@ -350,7 +369,7 @@ void gavl_packet_dump(const gavl_packet_t * p)
     fprintf(stderr, " dst: %d %d", p->dst_x, p->dst_y);
 
   fprintf(stderr, "\n");
-  hexdump(p->data, p->data_len < 16 ? p->data_len : 16, 16);
+  hexdump(p->data, p->data_len < 16 ? p->data_len : 16, 16, 0);
   
   }
 

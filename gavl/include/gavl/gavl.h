@@ -341,6 +341,21 @@ const char * gavl_interleave_mode_to_string(gavl_interleave_mode_t mode);
 GAVL_PUBLIC
 void gavl_audio_format_dump(const gavl_audio_format_t * format);
 
+/*! 
+  \ingroup audio_format
+  \brief Dump an audio format to stderr
+  \param format An audio format
+  \param indent Indentation
+ 
+   Like \ref gavl_audio_format_dump but it places indent whitespaces
+   in front of each line
+
+   Since 1.5.0
+ */
+
+GAVL_PUBLIC
+void gavl_audio_format_dumpi(const gavl_audio_format_t * format, int indent);
+
 /*!
   \ingroup audio_format
   \brief Get the index of a particular channel for a given format. 
@@ -2305,6 +2320,21 @@ void gavl_get_field_format(const gavl_video_format_t * frame_format,
   
 GAVL_PUBLIC
 void gavl_video_format_dump(const gavl_video_format_t * format);
+
+/*! 
+  \ingroup video_format
+  \brief Dump a video format to stderr
+  \param format A video format
+  \param indent Indentation
+ 
+   Like \ref gavl_video_format_dump but it places indent whitespaces
+   in front of each line
+
+   Since 1.5.0
+ */
+
+GAVL_PUBLIC
+void gavl_video_format_dumpi(const gavl_video_format_t * format, int indent);
 
   
 /** \defgroup video_frame Video frames

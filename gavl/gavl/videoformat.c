@@ -29,14 +29,30 @@ void gavl_video_format_copy(gavl_video_format_t * dst,
   memcpy(dst, src, sizeof(*dst));
   }
 
+static void do_indent(int num)
+  {
+  int i;
+  for(i = 0; i < num; i++)
+    fprintf(stderr, " ");
+  }
+
 void gavl_video_format_dump(const gavl_video_format_t * format)
   {
+  gavl_video_format_dumpi(format, 0);
+  }
+
+void gavl_video_format_dumpi(const gavl_video_format_t * format, int indent)
+  {
+  do_indent(indent);
   fprintf(stderr, "  Frame size:       %d x %d\n",
           format->frame_width, format->frame_height);
+  do_indent(indent);
   fprintf(stderr, "  Image size:       %d x %d\n",
           format->image_width, format->image_height);
+  do_indent(indent);
   fprintf(stderr, "  Pixel size:       %d x %d\n",
           format->pixel_width, format->pixel_height);
+  do_indent(indent);
   fprintf(stderr, "  Pixel format:     %s\n",
           gavl_pixelformat_to_string(format->pixelformat));
 
@@ -45,11 +61,13 @@ void gavl_video_format_dump(const gavl_video_format_t * format)
     if((!format->frame_duration) &&
        (format->framerate_mode == GAVL_FRAMERATE_VARIABLE))
       {
+      do_indent(indent);
       fprintf(stderr, "  Framerate:        Variable (timescale: %d)\n",
               format->timescale);
       }
     else
       {
+      do_indent(indent);
       fprintf(stderr, "  Framerate:        %f",
               (float)(format->timescale)/((float)format->frame_duration));
       fprintf(stderr, " [%d / %d]", format->timescale,
@@ -64,17 +82,22 @@ void gavl_video_format_dump(const gavl_video_format_t * format)
     }
   else
     {
+    do_indent(indent);
     fprintf(stderr, "  Still image\n");
     }
+  do_indent(indent);
   fprintf(stderr, "  Interlace mode:   %s\n", gavl_interlace_mode_to_string(format->interlace_mode));  
 
   if((format->pixelformat == GAVL_YUV_420_P) || (format->pixelformat == GAVL_YUVJ_420_P))
     {
+    do_indent(indent);
     fprintf(stderr, "  Chroma placement: %s\n", gavl_chroma_placement_to_string(format->chroma_placement));
     }
   if(format->timecode_format.int_framerate)
     {
+    do_indent(indent);
     fprintf(stderr, "  Timecode framerate: %d\n", format->timecode_format.int_framerate);
+    do_indent(indent);
     fprintf(stderr, "  Timecode flags:     ");
     if(format->timecode_format.flags & GAVL_TIMECODE_DROP_FRAME)
       fprintf(stderr, "Drop");

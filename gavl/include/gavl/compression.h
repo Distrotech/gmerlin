@@ -139,6 +139,17 @@ void gavl_compression_info_free(gavl_compression_info_t* info);
 GAVL_PUBLIC
 void gavl_compression_info_dump(const gavl_compression_info_t * info);
 
+/** \brief Dump a compression info to stderr
+ *  \param info A compression info
+ *  \param indent Indentation
+ *
+ *  Same as \ref gavl_compression_info_dump but it puts indent whitespaces
+ *  in front of each line.
+ */
+
+GAVL_PUBLIC
+void gavl_compression_info_dumpi(const gavl_compression_info_t * info, int num);
+
 /** \brief Copy a compression info
  *  \param dst Destination
  *  \param src Source
