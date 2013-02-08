@@ -204,9 +204,9 @@ create_texture(gl_priv_t * glp,
     texture_format.frame_height = texture_format.image_height;
     }
 
-  fprintf(stderr, "Create texture:\n");
-  gavl_video_format_dump(&image_format);
-  gavl_video_format_dump(&texture_format);
+//  fprintf(stderr, "Create texture:\n");
+//  gavl_video_format_dump(&image_format);
+//  gavl_video_format_dump(&texture_format);
   
   priv->width  = texture_format.frame_width;
   priv->height = texture_format.frame_height;
