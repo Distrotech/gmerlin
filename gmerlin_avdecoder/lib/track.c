@@ -655,7 +655,6 @@ void bgav_track_resync(bgav_track_t * track)
   {
   int i;
   bgav_stream_t * s;
-  
   for(i = 0; i < track->num_audio_streams; i++)
     {
     s = &track->audio_streams[i];

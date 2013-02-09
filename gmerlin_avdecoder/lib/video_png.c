@@ -39,6 +39,8 @@ typedef struct
   gavl_video_format_t format;
   } png_priv_t;
 
+// static int frame_counter = 0;
+
 static gavl_source_status_t
 decode_png(bgav_stream_t * s, gavl_video_frame_t * frame)
   {
@@ -50,6 +52,8 @@ decode_png(bgav_stream_t * s, gavl_video_frame_t * frame)
   
   if((st = bgav_stream_get_packet_read(s, &p)) != GAVL_SOURCE_OK)
     return st;
+  
+  //  bgav_packet_save(p, "frame.png");
   
   if(!bgav_png_reader_read_header(s->opt,
                                   priv->png_reader,

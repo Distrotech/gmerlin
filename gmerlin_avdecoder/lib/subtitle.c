@@ -182,6 +182,9 @@ static gavl_source_status_t read_video_copy(void * sp,
   {
   gavl_source_status_t st;
   bgav_stream_t * s = sp;
+
+  if((st = bgav_stream_peek_packet_read(s, NULL, 0)) != GAVL_SOURCE_OK)
+    return st;
   
   if(frame)
     {
@@ -208,6 +211,9 @@ read_video_nocopy(void * sp,
   gavl_source_status_t st;
   bgav_stream_t * s = sp;
   //  fprintf(stderr, "Read video nocopy\n");
+  if((st = bgav_stream_peek_packet_read(s, NULL, 0)) != GAVL_SOURCE_OK)
+    return st;
+  
   if((st = s->data.subtitle.video.decoder->decode(sp, NULL)) != GAVL_SOURCE_OK)
     return st;
   if(frame)

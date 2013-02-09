@@ -157,11 +157,11 @@ typedef struct
 typedef struct
   {
   bg_video_filter_chain_t * fc;
-  
+#if 0  
   bg_read_video_func_t in_func;
   void * in_data;
   int    in_stream;
-    
+#endif
   pthread_mutex_t config_mutex;
 
   bg_gavl_video_options_t options;
@@ -197,8 +197,8 @@ typedef struct
   bg_player_subtitle_stream_t * ss;
   bg_subtitle_handler_t * sh;
   
-  gavl_video_frame_t * still_frame_in;
-  int do_still;
+  //  gavl_video_frame_t * still_frame_in;
+  //  int do_still;
   
   int eof;
   pthread_mutex_t eof_mutex;
@@ -212,6 +212,11 @@ typedef struct
   
   int64_t skip;
   int64_t last_frame_time;
+
+  gavl_video_source_t * in_src_int;
+  gavl_video_source_t * in_src;
+
+  gavl_video_source_t * src;
   
   } bg_player_video_stream_t;
 
@@ -234,6 +239,7 @@ typedef struct
 #define PLAYER_DO_REPORT_PEAK      (1<<16)
 #define PLAYER_FREEZE_FRAME        (1<<17)
 #define PLAYER_FREEZE_VIS          (1<<18)
+#define PLAYER_DO_STILL            (1<<19)
 
 #define DO_SUBTITLE_TEXT(f) \
  (f & PLAYER_DO_SUBTITLE_TEXT)
@@ -258,6 +264,9 @@ typedef struct
 
 #define DO_PEAK(f) \
  (f & PLAYER_DO_REPORT_PEAK)
+
+#define DO_STILL(f)                              \
+ (f & PLAYER_DO_STILL)
 
 /* The player */
 
@@ -460,7 +469,7 @@ void bg_player_video_create(bg_player_t * p, bg_plugin_registry_t * plugin_reg);
 void bg_player_video_destroy(bg_player_t * p);
 
 int bg_player_read_video(bg_player_t * p,
-                         gavl_video_frame_t * frame);
+                         gavl_video_frame_t ** frame);
 
 void bg_player_video_set_eof(bg_player_t * p);
 

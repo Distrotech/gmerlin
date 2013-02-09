@@ -334,14 +334,13 @@ bg_ov_add_overlay_stream(bg_ov_t * ov, gavl_video_format_t * format)
          ov->num_ovl_str - 1);
   
   str->ctx = gavl_overlay_blend_context_create();
-
-  gavl_video_format_copy(&str->format,
-                         format);
   
   gavl_overlay_blend_context_init(str->ctx,
-                                  &ov->format, &str->format);
+                                  &ov->format, format);
+  str->sink_ext = gavl_video_sink_create(NULL, put_overlay, str, format);
   
-  str->sink_ext = gavl_video_sink_create(NULL, put_overlay, str, &str->format);
+  gavl_video_format_copy(&str->format, format);
+  
   return str->sink_ext;
   }
 

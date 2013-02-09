@@ -83,13 +83,6 @@ void bg_player_input_select_streams(bg_player_t * p)
   bg_player_video_stream_t * vs = &p->video_stream;
   bg_player_subtitle_stream_t * ss = &p->subtitle_stream;
   
-  vs->do_still = 0;
-  if(vs->still_frame_in)
-    {
-    gavl_video_frame_destroy(vs->still_frame_in);
-    vs->still_frame_in = NULL;
-    }
-  
   /* Adjust stream indices */
   if(p->current_audio_stream >= p->track_info->num_audio_streams)
     p->current_audio_stream = 0;
@@ -257,7 +250,7 @@ int bg_player_input_start(bg_player_t * p)
       &p->track_info->video_streams[p->current_video_stream].format;
     
     if(video_format->framerate_mode == GAVL_FRAMERATE_STILL)
-      p->video_stream.do_still = 1;
+      p->flags |= PLAYER_DO_STILL;
     }
   p->audio_stream.has_first_timestamp_i = 0;
   return 1;
@@ -353,11 +346,6 @@ void bg_player_input_cleanup(bg_player_t * p)
   p->input_handle = NULL;
   p->input_plugin = NULL;
 
-  if(p->video_stream.still_frame_in)
-    {
-    gavl_video_frame_destroy(p->video_stream.still_frame_in);
-    p->video_stream.still_frame_in = NULL;
-    }
 #ifdef DEBUG_COUNTER
   sprintf(tmp_string, "%" PRId64, p->audio_stream.samples_read);
   
@@ -378,19 +366,129 @@ int bg_player_input_get_audio_format(bg_player_t * p)
   return 1;
   }
 
+/* Video input */
+
+static gavl_source_status_t
+read_video_still(void * priv, gavl_video_frame_t ** frame)
+  {
+  gavl_source_status_t st;
+
+  bg_player_t * p = priv;
+  bg_player_video_stream_t * vs = &p->video_stream;
+  const gavl_video_format_t * format;
+  
+  format = gavl_video_source_get_dst_format(vs->in_src_int);
+  
+  if((st = gavl_video_source_read_frame(vs->in_src_int, frame)) != GAVL_SOURCE_OK)
+    return st;
+  
+  if(!DO_AUDIO(p->flags) &&
+     (p->track_info->duration != GAVL_TIME_UNDEFINED) &&
+     gavl_time_unscale(format->timescale,
+                       (*frame)->timestamp) > p->track_info->duration)
+    
+    return GAVL_SOURCE_EOF;
+  
+#ifdef DUMP_TIMESTAMPS
+  bg_debug("Input timestamp: %"PRId64" (timescale: %d)\n",
+           gavl_time_unscale(format->timescale,
+                             (*frame)->timestamp), format->timescale);
+#endif
+  return st;
+  }
+
+static gavl_source_status_t
+read_video_subtitle_only(void * priv,
+                         gavl_video_frame_t ** frame)
+  {
+  bg_player_t * p = priv;
+  bg_player_video_stream_t * vs = &p->video_stream;
+  
+  gavl_video_frame_fill(*frame, &vs->output_format, vs->bg_color);
+
+  (*frame)->duration  = vs->output_format.frame_duration;
+  
+  (*frame)->timestamp = (int64_t)vs->frames_read * vs->output_format.frame_duration;
+  vs->frames_read++;
+  return GAVL_SOURCE_OK;
+  }
+
+static gavl_source_status_t
+read_video(void * priv, gavl_video_frame_t ** frame)
+  {
+  gavl_source_status_t st;
+  bg_player_t * p = priv;
+  bg_player_video_stream_t * vs = &p->video_stream;
+  
+  /* Skip */
+
+  if((vs->skip > 0) && p->input_plugin->skip_video)
+    {
+    gavl_time_t skip_time = 
+      vs->frame_time + vs->skip;
+    
+    p->input_plugin->skip_video(p->input_priv, p->current_video_stream,
+                                &skip_time, GAVL_TIME_SCALE, 0);
+    }
+
+  if((st = gavl_video_source_read_frame(vs->in_src_int, frame)) != GAVL_SOURCE_OK)
+    return st;
+
+#ifdef DUMP_TIMESTAMPS
+  bg_debug("Input timestamp: %"PRId64"\n",
+           gavl_time_unscale(vs->input_format.timescale,
+                              (*frame)->timestamp));
+#endif
+  vs->frames_read++;
+  
+  //  if(!result)
+  //    fprintf(stderr, "Read video failed\n");
+  return st;
+  }
+
 int bg_player_input_get_video_format(bg_player_t * p)
   {
+  p->video_stream.in_src_int =
+    p->input_plugin->get_video_source(p->input_priv, p->current_video_stream);
+  
   gavl_video_format_copy(&p->video_stream.input_format,
-                         &p->track_info->video_streams[p->current_video_stream].format);
-
-  if(p->video_stream.do_still)
+                         gavl_video_source_get_src_format(p->video_stream.in_src_int));
+  
+  if(DO_STILL(p->flags))
     {
-    p->video_stream.input_format.timescale = GAVL_TIME_SCALE;
+    gavl_video_format_t fmt;
+
+    gavl_video_format_copy(&fmt, &p->video_stream.input_format);
+    
+    fmt.timescale = GAVL_TIME_SCALE;
+    fmt.framerate_mode = GAVL_FRAMERATE_CONSTANT;
+    
     pthread_mutex_lock(&p->config_mutex);
-    p->video_stream.input_format.frame_duration =
+    fmt.frame_duration =
       (int)((float)GAVL_TIME_SCALE / p->still_framerate);
     pthread_mutex_unlock(&p->config_mutex);
+
+    gavl_video_source_set_dst(p->video_stream.in_src_int, 0, &fmt);
+    
+    p->video_stream.in_src = gavl_video_source_create(read_video_still, p, GAVL_SOURCE_SRC_ALLOC, &fmt);
     }
+  else if(DO_SUBTITLE_ONLY(p->flags))
+    {
+    gavl_video_source_set_dst(p->video_stream.in_src_int, 0, &p->video_stream.input_format);
+    p->video_stream.in_src = gavl_video_source_create(read_video_subtitle_only, p, 0,
+                                                      &p->video_stream.input_format);
+    }
+
+  
+  else
+    {
+    gavl_video_source_set_dst(p->video_stream.in_src_int, 0, &p->video_stream.input_format);
+    p->video_stream.in_src = gavl_video_source_create(read_video, p, GAVL_SOURCE_SRC_ALLOC,
+                                                      &p->video_stream.input_format);
+    }
+
+  gavl_video_source_set_lock_funcs(p->video_stream.in_src, bg_plugin_lock, bg_plugin_unlock,
+                                   p->input_handle);
   
   return 1;
   }
@@ -416,111 +514,6 @@ bg_player_input_read_audio(void * priv, gavl_audio_frame_t * frame, int stream, 
   return result;
   }
 
-int
-bg_player_input_read_video_still(void * priv,
-                                 gavl_video_frame_t * frame, int stream)
-  {
-  int result;
-  bg_player_t * p = priv;
-  bg_player_video_stream_t * vs = &p->video_stream;
-
-  gavl_video_format_t * format;
-  format = &vs->input_format;
-
-  if(!vs->still_frame_in)
-    {
-    vs->still_frame_in = gavl_video_frame_create(&vs->input_format);
-    vs->still_frame_in->timestamp = 0;
-    }
-  
-  bg_plugin_lock(p->input_handle);
-
-  if(p->input_plugin->has_still(p->input_priv, stream))
-    result = p->input_plugin->read_video(p->input_priv, frame,
-                                         stream);
-    
-  else
-    result = 0;
-    
-  bg_plugin_unlock(p->input_handle);
-  
-  if(result)
-    gavl_video_frame_copy(&vs->input_format, vs->still_frame_in, frame);
-  else
-    {
-    if(!DO_AUDIO(p->flags) &&
-       (p->track_info->duration != GAVL_TIME_UNDEFINED) &&
-       gavl_time_unscale(vs->input_format.timescale,
-                         vs->still_frame_in->timestamp) > p->track_info->duration)
-      result = 0;
-    else
-      {
-      gavl_video_frame_copy(&vs->input_format, frame, vs->still_frame_in);
-      frame->timestamp = vs->still_frame_in->timestamp;
-      result = 1;
-      }
-    }
-  vs->still_frame_in->timestamp += vs->input_format.frame_duration;
-#ifdef DUMP_TIMESTAMPS
-  bg_debug("Input timestamp: %"PRId64" (timescale: %d)\n",
-           gavl_time_unscale(vs->input_format.timescale,
-                             frame->timestamp), vs->input_format.timescale);
-#endif
-  return result;
-    
-  }
-
-int
-bg_player_input_read_video(void * priv,
-                           gavl_video_frame_t * frame, int stream)
-  {
-  int result;
-  bg_player_t * p = priv;
-  bg_player_video_stream_t * vs = &p->video_stream;
-  
-  bg_plugin_lock(p->input_handle);
-
-  /* Skip */
-
-  if(vs->skip && p->input_plugin->skip_video)
-    {
-    gavl_time_t skip_time = 
-      vs->frame_time + vs->skip;
-    
-    p->input_plugin->skip_video(p->input_priv, stream,
-                                &skip_time, GAVL_TIME_SCALE, 0);
-    }
-  
-  result = p->input_plugin->read_video(p->input_priv, frame, stream);
-  bg_plugin_unlock(p->input_handle);
-
-#ifdef DUMP_TIMESTAMPS
-  bg_debug("Input timestamp: %"PRId64"\n",
-           gavl_time_unscale(vs->input_format.timescale,
-                             frame->timestamp));
-#endif
-  p->video_stream.frames_read++;
-  
-  //  if(!result)
-  //    fprintf(stderr, "Read video failed\n");
-  return result;
-  }
-
-int
-bg_player_input_read_video_subtitle_only(void * priv,
-                                         gavl_video_frame_t * frame,
-                                         int stream)
-  {
-  bg_player_t * p = priv;
-  bg_player_video_stream_t * vs = &p->video_stream;
-  
-  gavl_video_frame_fill(frame, &vs->output_format, vs->bg_color);
-  
-  frame->timestamp = (int64_t)vs->frames_read * vs->output_format.frame_duration;
-  return 1;
-  }
-
-
 void bg_player_input_seek(bg_player_t * p,
                           gavl_time_t * time, int scale)
   {
@@ -533,10 +526,14 @@ void bg_player_input_seek(bg_player_t * p,
   as = &p->audio_stream;
   vs = &p->video_stream;
   ss = &p->subtitle_stream;
+
+  //  fprintf(stderr, "Seek: %ld (%d)", *time, scale);
   
   bg_plugin_lock(p->input_handle);
   p->input_plugin->seek(p->input_priv, time, scale);
   bg_plugin_unlock(p->input_handle);
+
+  //  fprintf(stderr, " %ld\n", *time);
   
   as->samples_read =
     gavl_time_to_samples(as->input_format.samplerate, *time);
@@ -553,10 +550,11 @@ void bg_player_input_seek(bg_player_t * p,
     vs->frames_written =
       gavl_time_to_frames(vs->input_format.timescale, vs->input_format.frame_duration,
                           *time);
-    if(vs->still_frame_in)
-      vs->still_frame_in->timestamp =
-        gavl_time_scale(vs->input_format.timescale, *time);
     }
+
+  if(vs->in_src)
+    gavl_video_source_reset(vs->in_src);
+  
   // Clear EOF states
   do_audio = DO_AUDIO(p->flags);
   do_video = DO_VIDEO(p->flags);

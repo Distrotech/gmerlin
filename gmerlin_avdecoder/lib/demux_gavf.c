@@ -55,6 +55,9 @@ static int64_t seek_func(void * priv, int64_t pos, int whence)
   {
   bgav_input_context_t * ctx = priv;
   bgav_input_seek(ctx, pos, whence);
+
+  //  fprintf(stderr, "Seek func: %ld\n", pos);
+
   return ctx->position;
   }
 
@@ -226,8 +229,10 @@ static int next_packet_gavf(bgav_demuxer_context_t * ctx)
   
   ph = gavf_packet_read_header(priv->dec);
   if(!ph)
+    {
+    // fprintf(stderr, "Reading packet header failed\n");
     return 0;
-
+    }
   s = bgav_track_find_stream(ctx, ph->stream_id);
   if(!s)
     {
@@ -243,8 +248,10 @@ static int next_packet_gavf(bgav_demuxer_context_t * ctx)
   gp.data_alloc = bp->data_alloc;
     
   if(!gavf_packet_read_packet(priv->dec, &gp))
+    {
+    // fprintf(stderr, "Reading packet failed\n");
     return 0;
-
+    }
   bp->data       = gp.data;
   bp->data_alloc = gp.data_alloc;
   bp->data_size = gp.data_len;

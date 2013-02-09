@@ -666,18 +666,25 @@ const gavf_packet_header_t * gavf_packet_read_header(gavf_t * g)
   
   if(g->eof)
     return NULL;
+
+  //  fprintf(stderr, "gavf_packet_read_header\n");
   
   while(1)
     {
     if(!gavf_io_read_data(g->io, (uint8_t*)c, 1))
+      {
+      // fprintf(stderr, "EOF 1\n");
       goto got_eof;
-    
+      }
     if(c[0] == GAVF_TAG_PACKET_HEADER_C)
       {
       gavf_stream_t * s;
       /* Got new packet */
       if(!gavf_io_read_uint32v(g->io, &g->pkthdr.stream_id))
+        {
+        // fprintf(stderr, "EOF 2\n");
         goto got_eof;
+        }
       
       /* Check whether to skip this stream */
       if((s = gavf_find_stream_by_id(g, g->pkthdr.stream_id)) &&
@@ -718,22 +725,34 @@ const gavf_packet_header_t * gavf_packet_read_header(gavf_t * g)
       else
         {
         if(!gavf_io_read_uint32v(g->io, &len))
+          {
+          // fprintf(stderr, "EOF 3\n");
           goto got_eof;
+          }
         gavf_io_skip(g->io, len);
         }
       }
     else
       {
       if(gavf_io_read_data(g->io, (uint8_t*)&c[1], 7) < 7)
+        {
+        // fprintf(stderr, "EOF 4\n");
         goto got_eof;
+        }
 
       if(!strncmp(c, GAVF_TAG_SYNC_HEADER, 8))
         {
         if(!read_sync_header(g))
+          {
+          // fprintf(stderr, "EOF 5\n");
           goto got_eof;
+          }
         }
       else
+        {
+        // fprintf(stderr, "EOF 6 %8s\n", c);
         goto got_eof;
+        }
       }
     }
   
@@ -821,6 +840,8 @@ const int64_t * gavf_seek(gavf_t * g, int64_t time, int scale)
   if(!(g->opt.flags & GAVF_OPT_FLAG_SYNC_INDEX))
     return NULL;
 
+  g->eof = 0;
+  
   index_position = g->si.num_entries - 1;
   while(!done)
     {
@@ -853,9 +874,13 @@ const int64_t * gavf_seek(gavf_t * g, int64_t time, int scale)
       }
     stream++;
     }
-
+  
   /* Seek to the positon */
   gavf_io_seek(g->io, g->si.entries[index_position].pos, SEEK_SET);
+
+  //  fprintf(stderr, "Index position: %ld, file position: %ld\n", index_position,
+  //          g->si.entries[index_position].pos);
+
   return g->si.entries[index_position].pts;
   }
 

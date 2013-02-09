@@ -193,7 +193,7 @@ void bg_player_ov_destroy(bg_player_t * player)
 int bg_player_ov_init(bg_player_video_stream_t * vs)
   {
   int result;
-  
+  gavl_video_format_copy(&vs->output_format, gavl_video_source_get_src_format(vs->src));
   result = bg_ov_open(vs->ov, &vs->output_format, 1);
   
   bg_ov_set_window_title(vs->ov, "Video output");
@@ -211,11 +211,6 @@ int bg_player_ov_init(bg_player_video_stream_t * vs)
   
   /* Fixme: Lets just hope, that the OSD format doesn't get changed
      by this call. Otherwise, we would need a gavl_video_converter */
-
-  
-  /* create_overlay needs the lock again */
-
-  /* Create frame */
   
   vs->frames_written = 0;
   return result;
@@ -278,6 +273,7 @@ static void read_subtitle(bg_player_subtitle_stream_t * ss,
 
 #endif
 
+#if 0
 static void handle_subtitle(bg_player_t * p)
   {
   
@@ -335,6 +331,8 @@ static void handle_subtitle(bg_player_t * p)
     }
 #endif
   }
+#endif
+
 
 void bg_player_ov_update_still(bg_player_t * p)
   {
@@ -342,7 +340,7 @@ void bg_player_ov_update_still(bg_player_t * p)
   bg_player_video_stream_t * s = &p->video_stream;
   
   frame = bg_ov_get_frame(s->ov);
-  if(!bg_player_read_video(p, frame))
+  if(!bg_player_read_video(p, &frame))
     return;
   s->frame_time =
     gavl_time_unscale(s->output_format.timescale,
@@ -459,7 +457,7 @@ void * bg_player_ov_thread(void * data)
     
     frame = bg_ov_get_frame(s->ov);
     
-    if(!bg_player_read_video(p, frame))
+    if(!bg_player_read_video(p, &frame))
       {
       bg_player_video_set_eof(p);
       if(!bg_thread_wait_for_start(s->th))

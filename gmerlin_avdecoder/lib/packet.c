@@ -253,3 +253,11 @@ void bgav_packet_from_gavl(gavl_packet_t * src,
 
   gavl_rectangle_i_copy(&dst->src_rect, &src->src_rect);
   }
+
+void bgav_packet_save(bgav_packet_t * p, const char * filename)
+  {
+  gavl_packet_t gp;
+  gavl_packet_init(&gp);
+  bgav_packet_2_gavl(p, &gp);
+  gavl_packet_save(&gp, filename);
+  }

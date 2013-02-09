@@ -299,6 +299,8 @@ void bgav_packet_2_gavl(bgav_packet_t * src,
 void bgav_packet_from_gavl(gavl_packet_t * src,
                            bgav_packet_t * dst);
 
+void bgav_packet_save(bgav_packet_t * p, const char * filename);
+
 /* packetbuffer.c */
 
 bgav_packet_buffer_t * bgav_packet_buffer_create(bgav_packet_pool_t * pp);

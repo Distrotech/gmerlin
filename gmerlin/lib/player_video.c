@@ -67,6 +67,7 @@ void bg_player_video_destroy(bg_player_t * p)
   bg_subtitle_handler_destroy(s->sh);
   }
 
+
 int bg_player_video_init(bg_player_t * player, int video_stream)
   {
   bg_player_video_stream_t * s;
@@ -75,37 +76,22 @@ int bg_player_video_init(bg_player_t * player, int video_stream)
   s->skip = 0;
   s->frames_read = 0;
   
-  if(s->do_still)
-    s->in_func = bg_player_input_read_video_still;
-  else
-    s->in_func = bg_player_input_read_video;
-
-  s->in_data = player;
-  s->in_stream = player->current_video_stream;
-  
   if(!DO_VIDEO(player->flags))
     return 1;
   
+  bg_player_input_get_video_format(player);
+  s->src = s->in_src;
+  
   if(!DO_SUBTITLE_ONLY(player->flags))
-    {
-    bg_player_input_get_video_format(player);
-    
-    bg_video_filter_chain_connect_input(s->fc, s->in_func,
-                                        s->in_data, s->in_stream);
-    
-    bg_video_filter_chain_init(s->fc, &s->input_format, &s->output_format);
-    
-    s->in_func = bg_video_filter_chain_read;
-    s->in_data = s->fc;
-    s->in_stream = 0;
-    }
+    s->src = bg_video_filter_chain_connect(s->fc, s->src);
   
   if(!bg_player_ov_init(&player->video_stream))
     return 0;
-
-  if(!DO_SUBTITLE_ONLY(player->flags))
-    bg_video_filter_chain_set_out_format(s->fc, &s->output_format);
   
+  if(!DO_SUBTITLE_ONLY(player->flags))
+    gavl_video_source_set_dst(s->src, 0, &s->output_format);
+
+#if 0  
   if(DO_SUBTITLE_ONLY(player->flags))
     {
     /* Video output already initialized */
@@ -117,7 +103,7 @@ int bg_player_video_init(bg_player_t * player, int video_stream)
     s->in_data = player;
     s->in_stream = 0;
     }
-  
+#endif
   return 1;
   }
 
@@ -267,10 +253,10 @@ void bg_player_set_video_filter_parameter(void * data, const char * name,
   }
 
 int
-bg_player_read_video(bg_player_t * p, gavl_video_frame_t * frame)
+bg_player_read_video(bg_player_t * p, gavl_video_frame_t ** frame)
   {
   bg_player_video_stream_t * s = &p->video_stream;
-  return s->in_func(s->in_data, frame, s->in_stream);
+  return (gavl_video_source_read_frame(s->src, frame) == GAVL_SOURCE_OK);
   }
 
 void bg_player_video_set_eof(bg_player_t * p)
