@@ -204,9 +204,9 @@ create_texture(gl_priv_t * glp,
     texture_format.frame_height = texture_format.image_height;
     }
 
-//  fprintf(stderr, "Create texture:\n");
-//  gavl_video_format_dump(&image_format);
-//  gavl_video_format_dump(&texture_format);
+  //  fprintf(stderr, "Create texture:\n");
+  //  gavl_video_format_dump(&image_format);
+  //  gavl_video_format_dump(&texture_format);
   
   priv->width  = texture_format.frame_width;
   priv->height = texture_format.frame_height;
@@ -233,8 +233,10 @@ create_texture(gl_priv_t * glp,
   gavl_video_frame_destroy(ret);
 
   /* Create real frame */
-  ret = gavl_video_frame_create(&image_format);
+  ret = gavl_video_frame_create_nopad(&image_format);
   ret->user_data = priv;
+
+  //  fprintf(stderr, "create_texture %p\n", ret);
   
   return ret;
   }
@@ -243,6 +245,8 @@ static void destroy_frame_gl(driver_data_t * d, gavl_video_frame_t * f)
   {
   texture_t * t = f->user_data;
 
+  //  fprintf(stderr, "destroy_frame_gl %p\n", f);
+  
   bg_x11_window_set_gl(d->win);
   glDeleteTextures(1, &t->texture);
   gavl_video_frame_destroy(f);

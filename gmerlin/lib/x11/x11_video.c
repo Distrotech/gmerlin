@@ -341,7 +341,7 @@ int bg_x11_window_open_video(bg_x11_window_t * w,
   
   w->sink =
     gavl_video_sink_create(TEST_FLAG(w, FLAG_DO_SW_SCALE) ? NULL : get_frame,
-                           put_frame, w, &w->window_format);
+                           put_frame, w, &w->video_format);
   
   return 1;
   }

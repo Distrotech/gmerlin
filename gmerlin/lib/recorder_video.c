@@ -669,8 +669,11 @@ void * bg_recorder_video_thread(void * data)
       }
 
     if(!vs->pipe_frame)
+      {
+      if(!vs->pipe_frame_priv)
+        vs->pipe_frame_priv = gavl_video_frame_create(&vs->pipe_format);
       vs->pipe_frame = vs->pipe_frame_priv;
-    
+      }
     if(!vs->in_func(vs->in_data, vs->pipe_frame, vs->in_stream))
       {
       bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Read failed (device unplugged?)");
@@ -684,8 +687,20 @@ void * bg_recorder_video_thread(void * data)
     if(vs->flags & STREAM_MONITOR)
       {
       if(vs->do_convert_monitor)
+        {
+        if(!monitor_frame)
+          {
+          if(!vs->monitor_frame_priv)
+            vs->monitor_frame_priv =
+              gavl_video_frame_create(&vs->monitor_format);
+          monitor_frame = vs->monitor_frame_priv;
+          }
         gavl_video_convert(vs->monitor_cnv, vs->pipe_frame, monitor_frame);
-
+          
+        }
+      else if(!monitor_frame)
+        monitor_frame = vs->pipe_frame;
+      
       gavl_video_sink_put_frame(vs->monitor_sink, monitor_frame);
       }
     if(vs->monitor_plugin && vs->monitor_plugin->handle_events)
@@ -757,7 +772,8 @@ int bg_recorder_video_init(bg_recorder_t * rec)
   vs->fps_frame_counter = 0;
 
   /* Open input */
-  if(!vs->input_plugin->open(vs->input_handle->priv, NULL, &vs->input_format, &vs->m))
+  if(!vs->input_plugin->open(vs->input_handle->priv, NULL,
+                             &vs->input_format, &vs->m))
     return 0;
   bg_metadata_date_now(&vs->m, GAVL_META_DATE_CREATE);
   
@@ -789,7 +805,8 @@ int bg_recorder_video_init(bg_recorder_t * rec)
     vs->monitor_plugin->open(vs->monitor_handle->priv, &vs->monitor_format, 1);
     vs->monitor_sink = vs->monitor_plugin->get_sink(vs->monitor_handle->priv);
     
-    vs->do_convert_monitor = gavl_video_converter_init(vs->monitor_cnv, &vs->pipe_format,
+    vs->do_convert_monitor = gavl_video_converter_init(vs->monitor_cnv,
+                                                       &vs->pipe_format,
                                                        &vs->monitor_format);
     vs->flags |= STREAM_MONITOR_OPEN;
 
@@ -822,8 +839,6 @@ int bg_recorder_video_init(bg_recorder_t * rec)
       vs->monitor_frame = gavl_video_frame_create(&vs->monitor_format);
     }
 #endif
-  if(vs->do_convert_monitor || !(vs->flags & STREAM_MONITOR))
-    vs->pipe_frame_priv = gavl_video_frame_create(&vs->pipe_format);
   
   /* Initialize snapshot counter */
   
@@ -871,7 +886,11 @@ void bg_recorder_video_cleanup(bg_recorder_t * rec)
   if(vs->pipe_frame_priv)
     gavl_video_frame_destroy(vs->pipe_frame_priv);
   
+  if(vs->monitor_frame_priv)
+    gavl_video_frame_destroy(vs->monitor_frame_priv);
+
   vs->pipe_frame_priv = NULL;
+  vs->monitor_frame_priv = NULL;
   
   if(vs->flags & STREAM_MONITOR_OPEN)
     vs->monitor_plugin->close(vs->monitor_handle->priv);

@@ -160,6 +160,8 @@ typedef struct
   /* Frames */
   gavl_video_frame_t * pipe_frame;
   gavl_video_frame_t * pipe_frame_priv;
+  gavl_video_frame_t * monitor_frame_priv;
+  
   gavl_video_frame_t * snapshot_frame;
   gavl_video_frame_t * enc_frame;
   
