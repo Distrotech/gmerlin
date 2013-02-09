@@ -372,6 +372,16 @@ void gavl_packet_reset(gavl_packet_t * p);
 GAVL_PUBLIC
 void gavl_packet_dump(const gavl_packet_t * p);
 
+/** \brief Save a packet to a file
+ *  \param p A packet
+ *  \param file Filename
+ *
+ *  Use this for debugging
+ */
+  
+GAVL_PUBLIC
+void gavl_packet_save(const gavl_packet_t * p,
+                      const char * filename);
   
 /**
  *  @}

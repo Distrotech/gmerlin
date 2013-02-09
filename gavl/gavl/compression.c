@@ -373,8 +373,17 @@ void gavl_packet_dump(const gavl_packet_t * p)
   
   }
 
+void gavl_packet_save(const gavl_packet_t * p,
+                      const char * filename)
+  {
+  FILE * out = fopen(filename, "wb");
+  fwrite(p->data, 1, p->data_len, out);
+  fclose(out);
+  }
+
 void gavl_packet_init(gavl_packet_t * p)
   {
   memset(p, 0, sizeof(*p));
   p->timecode   = GAVL_TIMECODE_UNDEFINED;
   }
+
