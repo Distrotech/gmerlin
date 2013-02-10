@@ -382,6 +382,7 @@ typedef enum
 #define STREAM_GOT_NO_CI          (1<<22) // Compression info tested but not present
 #define STREAM_DISCONT            (1<<23) // Stream is discontinuous
 #define STREAM_SUBREADER          (1<<24) // External subtitle file
+#define STREAM_STANDALONE         (1<<25) // Standalone decoder
 
 
 /* Stream could not get exact compression info from the

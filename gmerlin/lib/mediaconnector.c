@@ -459,22 +459,30 @@ bg_mediaconnector_create_threads_common(bg_mediaconnector_t * conn)
   }
 
 void
-bg_mediaconnector_create_thread(bg_mediaconnector_t * conn, int index)
+bg_mediaconnector_create_thread(bg_mediaconnector_t * conn, int index, int all)
   {
   bg_mediaconnector_stream_t * s;
   s = conn->streams[index];
+
+  if(!all &&
+     ((s->type == GAVF_STREAM_TEXT) ||
+      (s->type == GAVF_STREAM_OVERLAY)))
+    return;
+  
   s->th = bg_thread_create(conn->tc);
   conn->th[conn->num_threads] = s->th;
   conn->num_threads++;
   }
 
 void
-bg_mediaconnector_create_threads(bg_mediaconnector_t * conn)
+bg_mediaconnector_create_threads(bg_mediaconnector_t * conn, int all)
   {
   int i;
   bg_mediaconnector_create_threads_common(conn);
   for(i = 0; i < conn->num_streams; i++)
-    bg_mediaconnector_create_thread(conn, i);
+    {
+    bg_mediaconnector_create_thread(conn, i, all);
+    }
   }
 
 static void * thread_func_separate(void * data)

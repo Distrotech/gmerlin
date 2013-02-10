@@ -127,13 +127,13 @@ gavl_time_t
 bg_mediaconnector_get_time(bg_mediaconnector_t * conn);
 
 void
-bg_mediaconnector_create_threads(bg_mediaconnector_t * conn);
+bg_mediaconnector_create_threads(bg_mediaconnector_t * conn, int all);
 
 void
 bg_mediaconnector_create_threads_common(bg_mediaconnector_t * conn);
 
 void
-bg_mediaconnector_create_thread(bg_mediaconnector_t * conn, int index);
+bg_mediaconnector_create_thread(bg_mediaconnector_t * conn, int index, int all);
 
 void
 bg_mediaconnector_start(bg_mediaconnector_t * conn);

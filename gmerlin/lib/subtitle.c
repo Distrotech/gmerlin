@@ -29,6 +29,8 @@
 
 #include <gmerlin/subtitle.h>
 #include <gmerlin/log.h>
+#include <gmerlin/utils.h>
+
 #define LOG_DOMAIN "subtitle"
 
 // #define DUMP_SUBTITLE
@@ -121,6 +123,11 @@ static void put_overlay(bg_subtitle_handler_t * h)
   {
   h->active = 1;
   gavl_video_sink_put_frame(h->sink, h->cur);
+#ifdef DUMP_SUBTITLE
+  bg_dprintf("Put subtitle\n");
+  gavl_video_frame_dump_metadata(gavl_video_source_get_dst_format(h->src),
+                                 h->cur);
+#endif
   }
 
 static void clear_overlay(bg_subtitle_handler_t * h)
@@ -128,6 +135,9 @@ static void clear_overlay(bg_subtitle_handler_t * h)
   h->active = 0;
   h->cur->src_rect.w = 0;
   gavl_video_sink_put_frame(h->sink, h->cur);
+#ifdef DUMP_SUBTITLE
+  bg_dprintf("Clear subtitle\n");
+#endif
   }
 
 void bg_subtitle_handler_update(bg_subtitle_handler_t * h,
@@ -168,6 +178,7 @@ void bg_subtitle_handler_update(bg_subtitle_handler_t * h,
     overlay_start = gavl_time_unscale(h->ovl_format.timescale,
                                       h->cur->timestamp);
 
+    
     if(overlay_start < frame_end)
       put_overlay(h);
     }

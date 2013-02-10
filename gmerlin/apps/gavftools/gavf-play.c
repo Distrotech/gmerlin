@@ -25,6 +25,8 @@
 #include "gavftools.h"
 
 #include <gmerlin/ov.h>
+#include <gmerlin/textrenderer.h>
+#include <gmerlin/subtitle.h>
 
 #define LOG_DOMAIN "gavf-play"
 
@@ -34,9 +36,12 @@ static char * infile = NULL;
 
 static bg_cfg_section_t * audio_section = NULL;
 static bg_cfg_section_t * video_section = NULL;
+static bg_cfg_section_t * subrender_section = NULL;
 
 static int audio_stream = -1;
 static int video_stream = -1;
+static int text_stream = -1;
+static int overlay_stream = -1;
 
 typedef struct player_s player_t;
 
@@ -72,6 +77,9 @@ typedef struct
 
   int flags;
 
+  bg_text_renderer_t * renderer;
+  bg_subtitle_handler_t * sh;
+  
   } video_stream_t;
 
 static const bg_parameter_info_t audio_parameters[] =
@@ -227,6 +235,10 @@ process_cb_video(void * priv, gavl_video_frame_t * frame)
   
   if(diff_time > 0)
     gavl_time_delay(&diff_time);
+
+  if(vs->sh)
+    bg_subtitle_handler_update(vs->sh, frame);
+  
   //  fprintf(stderr, "Process video done\n");
   }
 
@@ -241,6 +253,40 @@ static void open_video(video_stream_t * vs,
   bg_ov_open(vs->ov, &vs->fmt, 1);
   gavl_video_connector_connect(s->vconn, bg_ov_get_sink(vs->ov));
   gavl_video_connector_set_process_func(s->vconn, process_cb_video, vs);
+  }
+
+static void open_subtitle(video_stream_t * vs,
+                          bg_mediaconnector_stream_t * s)
+  {
+  gavl_video_format_t format;
+  gavl_video_sink_t * sink;
+  gavl_video_source_t * src;
+  
+  if(s->type == GAVF_STREAM_TEXT)
+    {
+    vs->renderer = bg_text_renderer_create();
+    bg_cfg_section_apply(subrender_section,
+                         bg_text_renderer_get_parameters(),
+                         bg_text_renderer_set_parameter,
+                         vs->renderer);
+
+    gavl_video_format_copy(&format, &vs->fmt);
+
+    format.framerate_mode = GAVL_FRAMERATE_VARIABLE;
+    format.timescale = s->timescale;
+
+    sink = bg_ov_add_overlay_stream(vs->ov, &format);
+    src = bg_text_renderer_connect(vs->renderer, s->psrc, &vs->fmt, &format);
+    }
+  else if(s->type == GAVF_STREAM_OVERLAY)
+    {
+    src = s->vsrc;
+    gavl_video_format_copy(&format, gavl_video_source_get_src_format(src));
+    sink = bg_ov_add_overlay_stream(vs->ov, &format);
+    }
+  
+  vs->sh = bg_subtitle_handler_create();
+  bg_subtitle_handler_init(vs->sh, &vs->fmt, src, sink);
   }
 
 static void start_video(video_stream_t * vs)
@@ -320,6 +366,10 @@ static void player_init(player_t * p)
   p->vs.p = p;
   init_audio(&p->as);
   init_video(&p->vs);
+  
+  subrender_section =
+    bg_cfg_section_create_from_parameters("subrender",
+                                          bg_text_renderer_get_parameters());
   }
 
 static void player_cleanup(player_t * p)
@@ -334,13 +384,40 @@ static void player_open(player_t * p, bg_mediaconnector_t * conn)
   {
   int i;
 
+  /* A/V */
   for(i = 0; i < conn->num_streams; i++)
     {
-    if(conn->streams[i]->asrc)
-      open_audio(&p->as, conn->streams[i]);
-    else if(conn->streams[i]->vsrc)
-      open_video(&p->vs, conn->streams[i]);
+    switch(conn->streams[i]->type)
+      {
+      case GAVF_STREAM_AUDIO:
+        open_audio(&p->as, conn->streams[i]);
+        break;
+      case GAVF_STREAM_VIDEO:
+        open_video(&p->vs, conn->streams[i]);
+        break;
+      case GAVF_STREAM_TEXT:
+      case GAVF_STREAM_OVERLAY:
+        break;
+      }
     }
+
+  /* subtitle */
+  for(i = 0; i < conn->num_streams; i++)
+    {
+    switch(conn->streams[i]->type)
+      {
+      case GAVF_STREAM_AUDIO:
+      case GAVF_STREAM_VIDEO:
+        break;
+      case GAVF_STREAM_TEXT:
+      case GAVF_STREAM_OVERLAY:
+        open_subtitle(&p->vs, conn->streams[i]);
+        break;
+      }
+    }
+
+  
+
   if(!(p->as.flags & FLAG_HAS_DELAY))
     p->timer = gavl_timer_create();
   
@@ -403,6 +480,23 @@ static void opt_vid(void * data, int * argc, char *** _argv, int arg)
   bg_cmdline_remove_arg(argc, _argv, arg);
   }
 
+static void opt_subrender(void * data, int * argc, char *** _argv, int arg)
+  {
+  if(arg >= *argc)
+    {
+    fprintf(stderr, "Option -subrender requires an argument\n");
+    exit(-1);
+    }
+  if(!bg_cmdline_apply_options(subrender_section,
+                               NULL,
+                               NULL,
+                               bg_text_renderer_get_parameters(),
+                               (*_argv)[arg]))
+    exit(-1);
+  bg_cmdline_remove_arg(argc, _argv, arg);
+  }
+
+
 static void opt_i(void * data, int * argc, char *** _argv, int arg)
   {
   if(arg >= *argc)
@@ -436,6 +530,28 @@ static void opt_vs(void * data, int * argc, char *** _argv, int arg)
   bg_cmdline_remove_arg(argc, _argv, arg);
   }
 
+static void opt_ts(void * data, int * argc, char *** _argv, int arg)
+  {
+  if(arg >= *argc)
+    {
+    fprintf(stderr, "Option -ts requires an argument\n");
+    exit(-1);
+    }
+  text_stream = atoi((*_argv)[arg]) - 1;
+  bg_cmdline_remove_arg(argc, _argv, arg);
+  }
+
+static void opt_os(void * data, int * argc, char *** _argv, int arg)
+  {
+  if(arg >= *argc)
+    {
+    fprintf(stderr, "Option -os requires an argument\n");
+    exit(-1);
+    }
+  overlay_stream = atoi((*_argv)[arg]) - 1;
+  bg_cmdline_remove_arg(argc, _argv, arg);
+  }
+
 static bg_cmdline_arg_t global_options[] =
   {
     {
@@ -463,10 +579,28 @@ static bg_cmdline_arg_t global_options[] =
       .callback =    opt_vs,
     },
     {
+      .arg =         "-ts",
+      .help_arg =    "<stream>",
+      .help_string = "Select text stream (default: disabled)",
+      .callback =    opt_ts,
+    },
+    {
+      .arg =         "-os",
+      .help_arg =    "<stream>",
+      .help_string = "Select overlay stream (default: disabled)",
+      .callback =    opt_os,
+    },
+    {
       .arg =         "-i",
       .help_arg =    "<location>",
       .help_string = "Set input file or location",
       .callback =    opt_i,
+    },
+    {
+      .arg =         "-subrender",
+      .help_arg =    "<options>",
+      .help_string = "Set the options for rendering text subtitles",
+      .callback =    opt_subrender,
     },
     {
       /* End */
@@ -512,11 +646,21 @@ find_stream(gavf_t * g, int type, int index)
   return ret;
   }
 
+static int stream_equal(const gavf_stream_header_t * h1,
+                        const gavf_stream_header_t * h2)
+  {
+  if(!h1 || !h2)
+    return 0;
+  return (h1->id == h2->id);
+  }
+                         
+
 int main(int argc, char ** argv)
   {
   const gavf_stream_header_t * as;
   const gavf_stream_header_t * vs;
-  const gavf_stream_header_t * ss;
+  const gavf_stream_header_t * ts;
+  const gavf_stream_header_t * os;
   
   const gavf_program_header_t * ph;
   gavl_time_t delay_time = GAVL_TIME_SCALE / 100; // 10 ms
@@ -532,11 +676,16 @@ int main(int argc, char ** argv)
 
   player_init(&player);
 
-  global_options[0].parameters = player.as.parameters;
-  global_options[1].parameters = player.vs.parameters;
+  bg_cmdline_arg_set_parameters(global_options, "-aud", player.as.parameters);
+  bg_cmdline_arg_set_parameters(global_options, "-vid", player.vs.parameters);
+  bg_cmdline_arg_set_parameters(global_options, "-subrender",
+                                bg_text_renderer_get_parameters());
   
   bg_cmdline_init(&app_data);
   bg_cmdline_parse(global_options, &argc, &argv, NULL);
+
+  if(!bg_cmdline_check_unsupported(argc, argv))
+    return -1;
   
   in_plug = bg_plug_create_reader(plugin_reg);
 
@@ -551,6 +700,23 @@ int main(int argc, char ** argv)
 
   as = find_stream(g, GAVF_STREAM_AUDIO, audio_stream);
   vs = find_stream(g, GAVF_STREAM_VIDEO, video_stream);
+
+  if(text_stream >= 0)
+    ts = find_stream(g, GAVF_STREAM_TEXT, text_stream);
+  else
+    ts = NULL;
+  
+  if(overlay_stream >= 0)
+    os = find_stream(g, GAVF_STREAM_OVERLAY, overlay_stream);
+  else
+    os = NULL;
+
+  if(os && ts)
+    {
+    bg_log(BG_LOG_ERROR, LOG_DOMAIN,
+           "Both overlay and text stream specified, omitting overlay stream");
+    os = NULL;
+    }
   
   if(!player.as.plugin && as)
     {
@@ -577,21 +743,23 @@ int main(int argc, char ** argv)
   
   for(i = 0; i < ph->num_streams; i++)
     {
-    if((as && (as->id == ph->streams[i].id)) ||
-       (vs && (vs->id == ph->streams[i].id)))
+    if(stream_equal(&ph->streams[i], as) ||
+       stream_equal(&ph->streams[i], vs) ||
+       stream_equal(&ph->streams[i], ts) ||
+       stream_equal(&ph->streams[i], os))
       bg_plug_set_stream_action(in_plug, &ph->streams[i],
                                 BG_STREAM_ACTION_DECODE);
     else
       bg_plug_set_stream_action(in_plug, &ph->streams[i],
                                 BG_STREAM_ACTION_OFF);
-   }
+    }
   
   /* Start plug and set up media connector */
   
   if(!bg_plug_setup_reader(in_plug, &conn))
     return ret;
 
-  bg_mediaconnector_create_threads(&conn);
+  bg_mediaconnector_create_threads(&conn, 0);
   bg_mediaconnector_threads_init_separate(&conn);
   
   /* Initialize output plugins */

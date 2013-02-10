@@ -83,8 +83,12 @@ void bg_cmdline_init(const bg_cmdline_app_data_t * app_data);
 void bg_cmdline_parse(bg_cmdline_arg_t *,
                       int * argc, char *** argv, void * callback_data);
 
+void bg_cmdline_arg_set_parameters(bg_cmdline_arg_t * args, const char * opt,
+                                   const bg_parameter_info_t * params);
 
 char ** bg_cmdline_get_locations_from_args(int * argc, char *** argv);
+
+int bg_cmdline_check_unsupported(int argc, char ** argv);
 
 void bg_cmdline_print_help(char * argv0, bg_help_format_t);
 

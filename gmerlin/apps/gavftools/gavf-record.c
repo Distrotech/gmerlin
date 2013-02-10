@@ -391,7 +391,7 @@ int main(int argc, char ** argv)
 
   /* Initialize threads */
   bg_mediaconnector_start(&conn);
-  bg_mediaconnector_create_threads(&conn);
+  bg_mediaconnector_create_threads(&conn, 0);
   bg_mediaconnector_threads_init_separate(&conn);
 
   bg_mediaconnector_threads_start(&conn);

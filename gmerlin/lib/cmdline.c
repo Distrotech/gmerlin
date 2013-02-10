@@ -33,6 +33,8 @@
 #include <gmerlin/cfg_registry.h>
 #include <gmerlin/cmdline.h>
 #include <gmerlin/utils.h>
+#include <gmerlin/log.h>
+#define LOG_DOMAIN "cmdline"
 
 static const bg_cmdline_app_data_t * app_data;
 
@@ -1127,4 +1129,31 @@ void bg_cmdline_print_help_parameters(const bg_parameter_info_t * parameters,
 void bg_cmdline_init(const bg_cmdline_app_data_t * data)
   {
   app_data = data;
+  }
+
+void bg_cmdline_arg_set_parameters(bg_cmdline_arg_t * args, const char * opt,
+                                   const bg_parameter_info_t * params)
+  {
+  int i = 0;
+  while(args[i].arg)
+    {
+    if(!strcmp(args[i].arg, opt))
+      {
+      args[i].parameters = params;
+      return;
+      }
+    i++;
+    }
+  }
+
+int bg_cmdline_check_unsupported(int argc, char ** argv)
+  {
+  int ret = 1;
+  int i;
+  for(i = 1; i < argc; i++)
+    {
+    bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Unsupported option: %s", argv[i]);
+    ret = 0;
+    }
+  return ret;
   }

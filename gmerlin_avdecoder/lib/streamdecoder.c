@@ -133,8 +133,9 @@ bgav_stream_decoder_connect_audio(bgav_stream_decoder_t * dec,
                                   gavl_metadata_t * m)
   {
   dec->s.type = BGAV_STREAM_AUDIO;
+  dec->s.flags |= STREAM_STANDALONE;
+
   bgav_stream_set_from_gavl(&dec->s, ci, fmt, NULL, m);
-  
   
   if(!init_common(dec, src, ci, m))
     return NULL;
@@ -152,6 +153,7 @@ bgav_stream_decoder_connect_video(bgav_stream_decoder_t * dec,
                                   gavl_metadata_t * m)
   {
   dec->s.type = BGAV_STREAM_VIDEO;
+  dec->s.flags |= STREAM_STANDALONE;
   bgav_stream_set_from_gavl(&dec->s, ci, NULL, fmt, m);
   
   if(!init_common(dec, src, ci, m))
