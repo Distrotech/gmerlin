@@ -38,6 +38,10 @@ struct gavl_io_s
   void * priv;
   
   int64_t position;
+
+  gavf_io_cb_func cb;
+  void * cb_priv;
+  
   };
 
 void gavf_io_init(gavf_io_t * ret,

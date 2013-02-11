@@ -169,6 +169,16 @@ SQLITE3_LIBS=""
 AC_CHECK_LIB(sqlite3, sqlite3_exec, [SQLITE3_LIBS="-lsqlite3"; have_sqlite3="true"], have_sqlite3="false")
 AC_SUBST(SQLITE3_LIBS)
 
+MQ_LIBS=""
+AC_CHECK_LIB(rt, mq_open, MQ_LIBS="-lrt")
+AC_SUBST(MQ_LIBS)
+
+AH_TEMPLATE([HAVE_MQ], [POSIX message queues])
+
+AM_CONDITIONAL(HAVE_MQ, test "x$MQ_LIBS" != "x")
+if test "x$MQ_LIBS" != "x"; then
+  AC_DEFINE(HAVE_MQ)
+fi
 
 dnl
 dnl Gtk

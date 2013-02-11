@@ -32,6 +32,9 @@ int gavf_program_header_read(gavf_io_t * io, gavf_program_header_t * ph)
   if(!gavf_read_metadata(&bufio, &ph->m))
     goto fail;
   
+  if(io->cb && !io->cb(io->cb_priv, GAVF_IO_CB_PROGRAM_HEADER, ph))
+    goto fail;
+  
   ret = 1;
   fail:
   
@@ -67,9 +70,13 @@ int gavf_program_header_write(gavf_io_t * io,
   if(!gavf_write_metadata(&bufio, &ph->m))
     goto fail;
   
-  if(!gavf_io_write_buffer(io, &buf))
+  if(!gavf_io_write_buffer(io, &buf) ||
+     !gavf_io_flush(io))
     goto fail;
-
+  
+  if(io->cb && !io->cb(io->cb_priv, GAVF_IO_CB_PROGRAM_HEADER, ph))
+    goto fail;
+  
   ret = 1;
   fail:
   

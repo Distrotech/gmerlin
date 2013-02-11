@@ -91,7 +91,7 @@ bg_shm_t * bg_shm_alloc_write(int size)
       if(errno != EEXIST)
         {
         bg_log(BG_LOG_ERROR, LOG_DOMAIN,
-               "shm_open failed: %s", strerror(errno));
+               "shm_open of %s failed: %s", name, strerror(errno));
         return NULL;
         }
       }
@@ -131,6 +131,10 @@ bg_shm_t * bg_shm_alloc_write(int size)
     goto fail;
     }
   pthread_mutex_init(&ret->rc->mutex, &attr);
+
+  bg_log(BG_LOG_DEBUG, LOG_DOMAIN,
+         "created shm segment (write) %s", name);
+
   ret->rc->refcount = 0;
   fail:
   
@@ -153,7 +157,7 @@ bg_shm_t * bg_shm_alloc_read(int id, int size)
   if(shm_fd < 0)
     {
     bg_log(BG_LOG_ERROR, LOG_DOMAIN,
-           "shm_open failed: %s", strerror(errno));
+           "shm_open of %s failed: %s", name, strerror(errno));
     goto fail;
     }
   if((addr = mmap(0, real_size, PROT_READ | PROT_WRITE, MAP_SHARED,
@@ -169,6 +173,10 @@ bg_shm_t * bg_shm_alloc_read(int id, int size)
   ret->size = size;
   ret->rc = (refcounter_t*)(ret->addr + align_size(size));
   ret->id = id;
+
+  bg_log(BG_LOG_DEBUG, LOG_DOMAIN,
+         "created shm segment (read) %s", name);
+
   fail:
   if(shm_fd >= 0)
     close(shm_fd);
@@ -193,7 +201,7 @@ void bg_shm_ref(bg_shm_t * s)
   {
   pthread_mutex_lock(&s->rc->mutex);
   s->rc->refcount++;
-  // fprintf(stderr, "bg_shm_ref %d %d\n", s->id, s->rc->refcount);
+  //  fprintf(stderr, "bg_shm_ref %08x %d\n", s->id, s->rc->refcount);
   pthread_mutex_unlock(&s->rc->mutex);
 
   }
@@ -202,7 +210,7 @@ void bg_shm_unref(bg_shm_t * s)
   {
   pthread_mutex_lock(&s->rc->mutex);
   s->rc->refcount--;
-  // fprintf(stderr, "bg_shm_unref %d %d\n", s->id, s->rc->refcount);
+  //  fprintf(stderr, "bg_shm_unref %08x %d\n", s->id, s->rc->refcount);
   pthread_mutex_unlock(&s->rc->mutex);
   }
 
@@ -253,9 +261,11 @@ bg_shm_t * bg_shm_pool_get_read(bg_shm_pool_t * p, int id)
     p->segments = realloc(p->segments,
                           p->segments_alloc * sizeof(*p->segments));
     }
-  p->segments[p->num_segments] =
-    bg_shm_alloc_read(id, p->segment_size);
-  ret = p->segments[p->num_segments];
+  ret = bg_shm_alloc_read(id, p->segment_size);
+
+  if(!ret)
+    return ret;
+  p->segments[p->num_segments] = ret;
   p->num_segments++;
   return ret;
   }

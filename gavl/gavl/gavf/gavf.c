@@ -129,7 +129,8 @@ static int write_sync_header(gavf_t * g, int stream, const gavl_packet_t * p)
   return gavf_io_flush(g->io);
   }
 
-static gavl_sink_status_t write_packet(gavf_t * g, int stream, const gavl_packet_t * p)
+static gavl_sink_status_t
+write_packet(gavf_t * g, int stream, const gavl_packet_t * p)
   {
   int write_sync = 0;
   gavf_stream_t * s = &g->streams[stream];
@@ -203,9 +204,13 @@ static gavl_sink_status_t write_packet(gavf_t * g, int stream, const gavl_packet
   
   if(!gavf_io_flush(g->io))
     return GAVL_SINK_ERROR;
+
   
   s->packets_since_sync++;
 
+  if(g->io->cb && !g->io->cb(g->io->cb_priv, GAVF_IO_CB_PACKET, p))
+    return GAVL_SINK_ERROR;
+  
   return GAVL_SINK_OK;
   }
 
@@ -694,6 +699,9 @@ const gavf_packet_header_t * gavf_packet_read_header(gavf_t * g)
           s->skip_func(g, s->h, s->skip_priv);
         else
           gavf_packet_skip(g);
+
+        if(g->io->cb && !g->io->cb(g->io->cb_priv, GAVF_IO_CB_PACKET, NULL))
+          goto got_eof;
         }
       else
         {
@@ -971,7 +979,7 @@ int gavf_start(gavf_t * g)
   if(!gavf_program_header_write(g->io, &g->ph))
     return 0;
   
-  return gavf_io_flush(g->io);
+  return 1;
   }
 
 

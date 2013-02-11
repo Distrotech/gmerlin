@@ -25,6 +25,20 @@
 #include <string.h>
 #include <unistd.h>
 
+#ifdef HAVE_MQ
+#include <fcntl.h>           /* For O_* constants */
+#include <sys/stat.h>        /* For mode constants */
+#define _XOPEN_SOURCE 600
+#include <mqueue.h>
+#include <errno.h>
+#include <time.h>
+
+#define MQ_NAME_MAX 32
+
+
+#endif
+
+
 #include <bgshm.h>
 
 #include <gmerlin/plugin.h>
@@ -33,9 +47,12 @@
 
 #include <gmerlin/translation.h>
 #include <gmerlin/log.h>
+
+
 #define LOG_DOMAIN "plug"
 
-#define META_SHM_SIZE   "bgplug_shm_size"
+#define META_SHM_SIZE     "bgplug_shm_size"
+#define META_RETURN_QUEUE "bgplug_return_queue"
 
 #define SHM_THRESHOLD 1024 // Minimum max_packet_size to switch to shm
 
@@ -121,7 +138,132 @@ struct bg_plug_s
   pthread_mutex_t mutex;
   
   gavl_packet_t skip_packet;
+
+#ifdef HAVE_MQ
+  mqd_t mq;
+#endif
   };
+
+/* Message queue stuff */
+
+#ifdef HAVE_MQ
+static void gen_mq_name(int id, char * ret)
+  {
+  snprintf(ret, MQ_NAME_MAX, "/gmerlin-mq-%08x", id);
+  }
+
+static void create_messate_queue(bg_plug_t * p, gavl_metadata_t * m)
+  {
+  char name[128];
+  int id = 0;
+
+  struct mq_attr attr =
+    {
+      .mq_flags = 0,             /* Flags: 0 or O_NONBLOCK */
+      .mq_maxmsg = 2,            /* Max. # of messages on queue */
+      .mq_msgsize = sizeof(int), /* Max. message size (bytes) */
+      .mq_curmsgs = 0,           /* # of messages currently in queue */
+    };
+
+  
+  if(p->wr)
+    {
+    while(1)
+      {
+      id++;
+    
+      gen_mq_name(id, name);
+    
+      if((p->mq = mq_open(name, O_RDONLY | O_CREAT | O_EXCL,
+                           S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH, &attr)) < 0)
+        {
+        if(errno != EEXIST)
+          {
+          bg_log(BG_LOG_ERROR, LOG_DOMAIN,
+                 "mq_open of %s failed: %s", name, strerror(errno));
+          return;
+          }
+        }
+      else
+        break;
+      }
+    gavl_metadata_set_int(m, META_RETURN_QUEUE, id);
+    }
+  else
+    {
+    if(!gavl_metadata_get_int(m, META_RETURN_QUEUE, &id))
+      return;
+
+    gen_mq_name(id, name);
+
+    if((p->mq = mq_open(name, O_WRONLY)) < 0)
+      {
+      if(errno != EEXIST)
+        {
+        bg_log(BG_LOG_ERROR, LOG_DOMAIN,
+               "mq_open of %s failed: %s", name, strerror(errno));
+        return;
+        }
+      }
+    }
+  
+  }
+
+static int io_cb_read(void * priv, int type, const void * data)
+  {
+  bg_plug_t * p = priv;
+  /* Write confirmation */
+
+  // fprintf(stderr, "io_cb_read %d\n", type);
+
+  if((type == GAVF_IO_CB_PROGRAM_HEADER) && (p->mq < 0))
+    create_messate_queue(p, &p->ph->m);
+
+  if(p->mq < 0)
+    return 1;
+  
+  if(mq_send(p->mq, (const char *)&type, sizeof(type), 0))
+    {
+    bg_log(BG_LOG_ERROR, LOG_DOMAIN, "mq_open failed: %s",
+           strerror(errno));
+    return 0;
+    }
+  return 1;
+  }
+
+static int io_cb_write(void * priv, int type, const void * data)
+  {
+  int type_ret;
+  ssize_t size_ret;
+  bg_plug_t * p = priv;
+  unsigned msg_prio;
+
+  struct timespec timeout;
+
+  clock_gettime(CLOCK_REALTIME, &timeout);
+  timeout.tv_sec += 1;
+  
+  /* Read confirmation */
+  
+  // fprintf(stderr, "io_cb_write type: %d\n", type);
+  
+  size_ret =
+    mq_timedreceive(p->mq, (char *)&type_ret,
+                    sizeof(type_ret), &msg_prio, &timeout);
+
+  if(size_ret < 0)
+    {
+    bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Reading message failed: %s",
+           strerror(errno));
+    }
+  
+  if((size_ret != sizeof(type_ret)) ||
+     (type_ret != type))
+    return 0;
+  return 1;
+  }
+
+#endif
 
 void bg_plug_set_compressor_config(bg_plug_t * p,
                                    const bg_parameter_info_t * ac_params,
@@ -140,6 +282,10 @@ static bg_plug_t * create_common()
   ret->ph = gavf_get_program_header(ret->g);
   ret->opt = gavf_get_options(ret->g);
 
+#ifdef HAVE_MQ
+  ret->mq = -1;
+#endif
+  
   // gavf_options_set_flags(ret->opt, GAVF_OPT_FLAG_DUMP_HEADERS);
 
   pthread_mutex_init(&ret->mutex, NULL);
@@ -174,7 +320,7 @@ bg_plug_t * bg_plug_create_writer(bg_plugin_registry_t * plugin_reg)
   return ret;
   }
 
-static void free_streams(stream_t * streams, int num)
+static void flush_streams(stream_t * streams, int num)
   {
   int i;
   stream_t * s;
@@ -197,15 +343,24 @@ static void free_streams(stream_t * streams, int num)
       if(s->vsrc)
         gavl_video_source_destroy(s->vsrc);
       }
-    
+    }
+  }
+
+static void free_streams(stream_t * streams, int num)
+  {
+  int i;
+  stream_t * s;
+
+  for(i = 0; i < num; i++)
+    {
+    s = streams + i;
+    if(s->sp)
+      bg_shm_pool_destroy(s->sp);
+
     if(s->src_ext && (s->src_ext != s->src_int))
       gavl_packet_source_destroy(s->src_ext);
     if(s->sink_ext && (s->sink_ext != s->sink_int))
       gavl_packet_sink_destroy(s->sink_ext);
-    if(s->sp)
-      bg_shm_pool_destroy(s->sp);
-
-
     
     if(s->aframe)
       {
@@ -226,14 +381,20 @@ static void free_streams(stream_t * streams, int num)
 
 void bg_plug_destroy(bg_plug_t * p)
   {
+  flush_streams(p->audio_streams, p->num_audio_streams);
+  flush_streams(p->video_streams, p->num_video_streams);
+  flush_streams(p->text_streams, p->num_text_streams);
+  flush_streams(p->overlay_streams, p->num_overlay_streams);
+  
+  gavf_close(p->g);
+  if(p->io)
+    gavf_io_destroy(p->io);
+
   free_streams(p->audio_streams, p->num_audio_streams);
   free_streams(p->video_streams, p->num_video_streams);
   free_streams(p->text_streams, p->num_text_streams);
   free_streams(p->overlay_streams, p->num_overlay_streams);
-  gavf_close(p->g);
 
-  if(p->io)
-    gavf_io_destroy(p->io);
   
   gavl_packet_free(&p->skip_packet);
   
@@ -403,6 +564,9 @@ static gavl_source_status_t read_packet_shm(void * priv,
   
   /* Obtain memory segment */
   s->shm_segment = bg_shm_pool_get_read(s->sp, si.id);
+
+  if(!s->shm_segment)
+    return GAVL_SOURCE_EOF;
   
   /* Copy metadata */
   
@@ -429,7 +593,9 @@ static void skip_shm_packet(gavf_t * gavf,
   /* Sanity check */
   if(s->plug->skip_packet.data_len != sizeof(si))
     return;
-
+  
+  memcpy(&si, s->plug->skip_packet.data, sizeof(si));
+  
   /* Obtain memory segment */
   s->shm_segment = bg_shm_pool_get_read(s->sp, si.id);
   
@@ -771,6 +937,7 @@ static gavl_sink_status_t put_packet_shm(void * priv, gavl_packet_t * pp)
 
 static void check_shm_write(bg_plug_t * p, stream_t * s)
   {
+#ifdef HAVE_MQ
   if((p->io_flags & BG_PLUG_IO_IS_LOCAL) &&
      (s->ci.max_packet_size > SHM_THRESHOLD))
     {
@@ -779,7 +946,18 @@ static void check_shm_write(bg_plug_t * p, stream_t * s)
     gavl_metadata_set_int(&s->m, META_SHM_SIZE, s->shm_size);
     bg_log(BG_LOG_INFO, LOG_DOMAIN, "Using shm for writing (segment size: %d)",
            s->shm_size);
+
+    if(p->mq < 0)
+      {
+      create_messate_queue(p, &p->ph->m);
+      if(p->mq >= 0)
+        gavf_io_set_cb(p->io, io_cb_write, p);
+      }
+    
     }
+
+
+#endif
   }
 
 static int init_write_common(bg_plug_t * p, stream_t * s)
@@ -993,13 +1171,17 @@ int bg_plug_open(bg_plug_t * p, gavf_io_t * io,
   flags = gavf_options_get_flags(p->opt);
   flags |= GAVF_OPT_FLAG_BUFFER_READ;
   gavf_options_set_flags(p->opt, flags);
+
+#ifdef HAVE_MQ
+  gavf_io_set_cb(p->io, io_cb_read, p);
+#endif
   
   if(!gavf_open_read(p->g, p->io))
     {
     bg_log(BG_LOG_ERROR, LOG_DOMAIN, "gavf_open_read failed");
     return 0;
     }
-
+  
   init_streams_read(p);
   return 1;
   }

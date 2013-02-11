@@ -82,6 +82,29 @@ static void opt_out(void * data, int * argc, char *** _argv, int arg)
   bg_cmdline_remove_arg(argc, _argv, arg);
   }
 
+static void opt_v(void * data, int * argc, char *** _argv, int arg)
+  {
+  int val, verbose = 0;
+
+  if(arg >= *argc)
+    {
+    fprintf(stderr, "Option -v requires an argument\n");
+    exit(-1);
+    }
+  val = atoi((*_argv)[arg]);  
+  
+  if(val > 0)
+    verbose |= BG_LOG_ERROR;
+  if(val > 1)
+    verbose |= BG_LOG_WARNING;
+  if(val > 2)
+    verbose |= BG_LOG_INFO;
+  if(val > 3)
+    verbose |= BG_LOG_DEBUG;
+  bg_log_set_verbose(verbose);
+  bg_cmdline_remove_arg(argc, _argv, arg);
+  }
+
 static bg_cmdline_arg_t global_options[] =
   {
     {
@@ -120,6 +143,12 @@ static bg_cmdline_arg_t global_options[] =
       .help_arg =    "<location>",
       .help_string = "Set output file or location",
       .callback =    opt_out,
+    },
+    {
+      .arg =         "-v",
+      .help_arg =    "level",
+      .help_string = "Set verbosity level (0..4)",
+      .callback =    opt_v,
     },
     {
       /* End */
@@ -195,6 +224,9 @@ int main(int argc, char ** argv)
   bg_cmdline_init(&app_data);
   bg_cmdline_parse(global_options, &argc, &argv, NULL);
 
+  if(!bg_cmdline_check_unsupported(argc, argv))
+    return -1;
+  
   /* Create out plug */
   out_plug = bg_plug_create_writer(plugin_reg);
 

@@ -16,6 +16,10 @@
 typedef struct gavf_s gavf_t;
 typedef struct gavf_options_s gavf_options_t;
 
+#define GAVF_IO_CB_PROGRAM_HEADER 0
+#define GAVF_IO_CB_PACKET         1
+#define GAVF_IO_CB_METADATA       2
+
 /* I/O Structure */
 
 typedef int (*gavf_read_func)(void * priv, uint8_t * data, int len);
@@ -23,6 +27,8 @@ typedef int (*gavf_write_func)(void * priv, const uint8_t * data, int len);
 typedef int64_t (*gavf_seek_func)(void * priv, int64_t pos, int whence);
 typedef void (*gavf_close_func)(void * priv);
 typedef int (*gavf_flush_func)(void * priv);
+
+typedef int (*gavf_io_cb_func)(void * priv, int type, const void * data);
 
 typedef struct gavl_io_s gavf_io_t;
 
@@ -42,6 +48,9 @@ int gavf_io_flush(gavf_io_t *);
 
 GAVL_PUBLIC
 gavf_io_t * gavf_io_create_file(FILE * f, int wr, int can_seek, int close);
+
+GAVL_PUBLIC
+void gavf_io_set_cb(gavf_io_t * io, gavf_io_cb_func cb, void * cb_priv);
 
 /* Stream information */
 

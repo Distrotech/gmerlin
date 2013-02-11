@@ -455,3 +455,9 @@ int gavf_io_write_buffer(gavf_io_t * io, const gavf_buffer_t * buf)
     return 0;
   return 1;
   }
+
+void gavf_io_set_cb(gavf_io_t * io, gavf_io_cb_func cb, void * cb_priv)
+  {
+  io->cb = cb;
+  io->cb_priv = cb_priv;
+  }
