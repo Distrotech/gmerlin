@@ -142,6 +142,8 @@ struct bg_plug_s
 #ifdef HAVE_MQ
   mqd_t mq;
   int mq_id;
+
+  int packets;
 #endif
   };
 
@@ -219,10 +221,18 @@ static int io_cb_read(void * priv, int type, const void * data)
   bg_plug_t * p = priv;
   /* Write confirmation */
 
-  // fprintf(stderr, "io_cb_read %d\n", type);
+  //  fprintf(stderr, "io_cb_read %d %d\n", type, p->packets++);
 
   if((type == GAVF_IO_CB_PROGRAM_HEADER) && (p->mq < 0))
     create_messate_queue(p, &p->ph->m);
+#if 0  
+  if(type == GAVF_IO_CB_PACKET)
+    {
+    fprintf(stderr, "Got packet\n");
+    if(data)
+      gavl_packet_dump(data);
+    }
+#endif
 
   if(p->mq < 0)
     return 1;
@@ -250,7 +260,10 @@ static int io_cb_write(void * priv, int type, const void * data)
   
   /* Read confirmation */
   
-  // fprintf(stderr, "io_cb_write type: %d\n", type);
+  // fprintf(stderr, "io_cb_write type: %d %d\n", type, p->packets++);
+
+  //  if((type == GAVF_IO_CB_PACKET) && data)
+  //    gavl_packet_dump(data);
   
   size_ret =
     mq_timedreceive(p->mq, (char *)&type_ret,

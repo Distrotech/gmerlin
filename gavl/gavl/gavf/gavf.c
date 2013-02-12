@@ -698,10 +698,11 @@ const gavf_packet_header_t * gavf_packet_read_header(gavf_t * g)
         if(s->skip_func)
           s->skip_func(g, s->h, s->skip_priv);
         else
+          {
           gavf_packet_skip(g);
-
-        if(g->io->cb && !g->io->cb(g->io->cb_priv, GAVF_IO_CB_PACKET, NULL))
-          goto got_eof;
+          if(g->io->cb && !g->io->cb(g->io->cb_priv, GAVF_IO_CB_PACKET, NULL))
+            goto got_eof;
+          }
         }
       else
         {
