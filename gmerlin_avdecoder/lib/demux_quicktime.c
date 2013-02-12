@@ -150,8 +150,8 @@ static void stream_init(bgav_stream_t * bgav_s, qt_trak_t * trak,
                                      trak->edts.elst.table[0].duration);
   
   if(s->first_pts)
-    bgav_s->flags |= STREAM_NEED_START_TIME;
-
+    bgav_s->start_time = GAVL_TIME_UNDEFINED;
+  
   /* Set encoding software */
   if(trak->mdia.hdlr.component_name)
     gavl_metadata_set(&bgav_s->m, GAVL_META_SOFTWARE,

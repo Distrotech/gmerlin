@@ -567,8 +567,8 @@ static int load_channel_cache(bgav_input_context_t * ctx)
                 bgav_track_add_audio_stream(&ctx->tt->tracks[channel_index],
                                             ctx->opt);
               s->timescale = 90000;
-              s->flags |= (STREAM_PARSE_FULL|STREAM_NEED_START_TIME);
-              
+              s->flags |= STREAM_PARSE_FULL;
+              s->start_time = GAVL_TIME_UNDEFINED;
               stream_child = stream_node->children;
 
               while(stream_child)
@@ -616,7 +616,8 @@ static int load_channel_cache(bgav_input_context_t * ctx)
                 bgav_track_add_video_stream(&ctx->tt->tracks[channel_index], ctx->opt);
 
               s->timescale = 90000;
-              s->flags |= (STREAM_PARSE_FULL|STREAM_NEED_START_TIME);
+              s->flags |= STREAM_PARSE_FULL;
+              s->start_time = GAVL_TIME_UNDEFINED;
               stream_child = stream_node->children;
 
               while(stream_child)

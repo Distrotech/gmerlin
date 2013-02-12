@@ -193,14 +193,13 @@ static gavl_source_status_t decode_frame_mad(bgav_stream_t * s)
   
     if(mad_frame_decode(&priv->frame, &priv->stream) == -1)
       {
+      got_frame = 0;
       if(priv->stream.error != MAD_ERROR_BUFLEN)
         {
         bgav_log(s->opt, BGAV_LOG_ERROR, LOG_DOMAIN, "Decode failed %s\n",
                  mad_stream_errorstr(&priv->stream));
-        got_frame = 0;
         break;
         }
-      got_frame = 0;
       }
     else
       break;

@@ -1059,7 +1059,8 @@ static int init_raw(bgav_demuxer_context_t * ctx, int input_can_seek)
       {
       s->stream_id = priv->packet.pid;
       s->timescale = 90000;
-      s->flags |= (STREAM_PARSE_FULL|STREAM_NEED_START_TIME);
+      s->start_time = GAVL_TIME_UNDEFINED;
+      s->flags |= STREAM_PARSE_FULL;
       }
     if(!next_packet_scan(ctx))
         break;

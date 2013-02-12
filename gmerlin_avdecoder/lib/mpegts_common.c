@@ -512,9 +512,11 @@ int bgav_pmt_section_setup_track(pmt_section_t * pmts,
         }
 
       if(s->fourcc == BGAV_MK_FOURCC('d','r','a','c'))
-        s->flags |= (STREAM_PARSE_FRAME|STREAM_NEED_START_TIME);
+        s->flags |= (STREAM_PARSE_FRAME);
       else
-        s->flags |= (STREAM_PARSE_FULL|STREAM_NEED_START_TIME);
+        s->flags |= (STREAM_PARSE_FULL);
+      
+      s->start_time = GAVL_TIME_UNDEFINED;
       s->timescale = 90000;
       s->stream_id = pmts->streams[i].pid;
       ret++;

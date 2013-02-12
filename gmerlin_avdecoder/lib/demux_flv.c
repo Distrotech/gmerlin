@@ -164,8 +164,8 @@ static int init_audio_stream(bgav_demuxer_context_t * ctx, bgav_stream_t * s,
 
   priv = ctx->priv;
 
-  s->flags |= STREAM_NEED_START_TIME;
-    
+  s->start_time = GAVL_TIME_UNDEFINED;
+  
   if(!s->fourcc) /* Initialize */
     {
     s->data.audio.bits_per_sample = (flags & 2) ? 16 : 8;
@@ -219,7 +219,8 @@ static int init_audio_stream(bgav_demuxer_context_t * ctx, bgav_stream_t * s,
       case 10:
         s->fourcc = FOURCC_AAC;
         //        s->index_mode = INDEX_MODE_MPEG;
-        s->flags |= STREAM_PARSE_FULL | STREAM_NEED_START_TIME;
+        s->flags |= STREAM_PARSE_FULL;
+        s->start_time = GAVL_TIME_UNDEFINED;
         s->index_mode = INDEX_MODE_SIMPLE;
         // ctx->index_mode = 0;
         s->duration = 0;
@@ -243,7 +244,7 @@ static int init_video_stream(bgav_demuxer_context_t * ctx, bgav_stream_t * s,
   uint8_t header[1];
   priv = ctx->priv;
 
-  s->flags |= STREAM_NEED_START_TIME;
+  s->start_time = GAVL_TIME_UNDEFINED;
   
   switch(flags & 0xF)
     {

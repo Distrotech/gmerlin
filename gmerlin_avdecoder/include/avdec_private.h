@@ -362,7 +362,7 @@ typedef enum
 #define STREAM_NEED_FRAMETYPES    (1<<10) /* Need frame types          */
 
 /* Stream can have a nonzero start time */
-#define STREAM_NEED_START_TIME    (1<<11)
+// #define STREAM_NEED_START_TIME    (1<<11)
 
 /* Picture is available for immediate output */
 #define STREAM_HAVE_FRAME         (1<<12)

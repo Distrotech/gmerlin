@@ -95,7 +95,7 @@ int bgav_audio_start(bgav_stream_t * s)
     s->index_mode = INDEX_MODE_SIMPLE;
     }
 
-  if(s->flags & STREAM_NEED_START_TIME)
+  if(s->start_time == GAVL_TIME_UNDEFINED)
     {
     bgav_packet_t * p = NULL;
     char tmp_string[128];

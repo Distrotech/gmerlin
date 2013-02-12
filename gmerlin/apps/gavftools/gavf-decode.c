@@ -293,34 +293,54 @@ int main(int argc, char ** argv)
   overlay_actions = gavftools_get_stream_actions(track_info->num_overlay_streams,
                                                  GAVF_STREAM_OVERLAY);
 
+  /* Check for compressed reading */
+
+  for(i = 0; i < track_info->num_audio_streams; i++)
+    {
+    if((audio_actions[i] == BG_STREAM_ACTION_READRAW) &&
+       (!plugin->get_audio_compression_info ||
+        !plugin->get_audio_compression_info(h->priv, i, NULL)))
+      {
+      audio_actions[i] = BG_STREAM_ACTION_DECODE;
+      bg_log(BG_LOG_WARNING, LOG_DOMAIN, "Audio stream %d cannot be read compressed",
+             i+1);
+      }
+    }
+
+  for(i = 0; i < track_info->num_video_streams; i++)
+    {
+    if((video_actions[i] == BG_STREAM_ACTION_READRAW) &&
+       (!plugin->get_video_compression_info ||
+        !plugin->get_video_compression_info(h->priv, i, NULL)))
+      {
+      video_actions[i] = BG_STREAM_ACTION_DECODE;
+      bg_log(BG_LOG_WARNING, LOG_DOMAIN, "Video stream %d cannot be read compressed",
+             i+1);
+      }
+    }
+
+  for(i = 0; i < track_info->num_overlay_streams; i++)
+    {
+    if((overlay_actions[i] == BG_STREAM_ACTION_READRAW) &&
+       (!plugin->get_overlay_compression_info(h->priv, i, NULL)))
+      {
+      overlay_actions[i] = BG_STREAM_ACTION_DECODE;
+      bg_log(BG_LOG_WARNING, LOG_DOMAIN, "Overlay stream %d cannot be read compressed",
+             i+1);
+      }
+    }
+
+  /* Enable streams */
+  
   if(plugin->set_audio_stream)
     {
     for(i = 0; i < track_info->num_audio_streams; i++)
-      {
-      if((audio_actions[i] == BG_STREAM_ACTION_READRAW) &&
-         (!plugin->get_audio_compression_info(h->priv, i, NULL)))
-        {
-        audio_actions[i] = BG_STREAM_ACTION_DECODE;
-        bg_log(BG_LOG_WARNING, LOG_DOMAIN, "Audio stream %d cannot be read compressed",
-               i+1);
-        }
       plugin->set_audio_stream(h->priv, i, audio_actions[i]);
-      }
     }
   if(plugin->set_video_stream)
     {
-    
     for(i = 0; i < track_info->num_video_streams; i++)
-      {
-      if((video_actions[i] == BG_STREAM_ACTION_READRAW) &&
-         (!plugin->get_video_compression_info(h->priv, i, NULL)))
-        {
-        video_actions[i] = BG_STREAM_ACTION_DECODE;
-        bg_log(BG_LOG_WARNING, LOG_DOMAIN, "Video stream %d cannot be read compressed",
-               i+1);
-        }
       plugin->set_video_stream(h->priv, i, video_actions[i]);
-      }
     }
   if(plugin->set_text_stream)
     {
@@ -330,18 +350,9 @@ int main(int argc, char ** argv)
   if(plugin->set_overlay_stream)
     {
     for(i = 0; i < track_info->num_overlay_streams; i++)
-      {
-      if((overlay_actions[i] == BG_STREAM_ACTION_READRAW) &&
-         (!plugin->get_overlay_compression_info(h->priv, i, NULL)))
-        {
-        overlay_actions[i] = BG_STREAM_ACTION_DECODE;
-        bg_log(BG_LOG_WARNING, LOG_DOMAIN, "Overlay stream %d cannot be read compressed",
-               i+1);
-        }
       plugin->set_overlay_stream(h->priv, i, overlay_actions[i]);
-      }
     }
-
+  
   /* Start plugin */
   if(plugin->start && !plugin->start(h->priv))
     goto fail;

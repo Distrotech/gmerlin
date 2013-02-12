@@ -1230,16 +1230,19 @@ static int open_mpegps(bgav_demuxer_context_t * ctx)
       if(ctx->tt->tracks[i].audio_streams[j].fourcc != BGAV_MK_FOURCC('L', 'P', 'C', 'M'))
         ctx->tt->tracks[i].audio_streams[j].flags |= STREAM_PARSE_FULL;
 
-      ctx->tt->tracks[i].audio_streams[j].flags |= STREAM_NEED_START_TIME;
+      ctx->tt->tracks[i].audio_streams[j].start_time = GAVL_TIME_UNDEFINED;
       }
     for(j = 0; j < ctx->tt->tracks[i].num_video_streams; j++)
       {
-      ctx->tt->tracks[i].video_streams[j].flags |= (STREAM_PARSE_FULL|STREAM_NEED_START_TIME);
+      ctx->tt->tracks[i].video_streams[j].flags |= STREAM_PARSE_FULL;
+      ctx->tt->tracks[i].video_streams[j].start_time = GAVL_TIME_UNDEFINED;
       }
     for(j = 0; j < ctx->tt->tracks[i].num_overlay_streams; j++)
-      ctx->tt->tracks[i].overlay_streams[j].flags |= (STREAM_PARSE_FULL|STREAM_NEED_START_TIME);
+      {
+      ctx->tt->tracks[i].overlay_streams[j].flags |= STREAM_PARSE_FULL;
+      ctx->tt->tracks[i].overlay_streams[j].start_time = GAVL_TIME_UNDEFINED;
+      }
     }
-
   ctx->index_mode = INDEX_MODE_MIXED;
 
   return 1;

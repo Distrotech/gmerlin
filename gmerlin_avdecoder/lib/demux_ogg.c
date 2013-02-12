@@ -649,7 +649,8 @@ static int setup_track(bgav_demuxer_context_t * ctx, bgav_track_t * track,
 
         init_stream(s, serialno, FOURCC_OPUS, ogg_stream);
 
-        s->flags |= STREAM_PARSE_FRAME | STREAM_NEED_START_TIME;
+        s->start_time = GAVL_TIME_UNDEFINED;
+        s->flags |= STREAM_PARSE_FRAME;
         ogg_stream->header_packets_needed = 2;
         bgav_stream_set_extradata(s, priv->op.packet, priv->op.bytes);
         ogg_stream->header_packets_read = 1;
@@ -784,7 +785,8 @@ static int setup_track(bgav_demuxer_context_t * ctx, bgav_track_t * track,
         
         // s->flags |= STREAM_NO_DURATIONS;
         
-        s->flags |= STREAM_PARSE_FRAME | STREAM_NEED_START_TIME;
+        s->flags |= STREAM_PARSE_FRAME;
+        s->start_time = GAVL_TIME_UNDEFINED;
         s->index_mode = INDEX_MODE_SIMPLE;
         
         ogg_stream->header_packets_needed = 2;
