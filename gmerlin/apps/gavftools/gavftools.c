@@ -80,6 +80,12 @@ void gavftools_destroy_registries()
     bg_parameter_info_destroy_array(ac_parameters);
   if(vc_section)
     bg_parameter_info_destroy_array(vc_parameters);
+
+  if(a_actions) free(a_actions);
+  if(v_actions) free(v_actions);
+  if(t_actions) free(t_actions);
+  if(o_actions) free(o_actions);
+ 
   }
 
 const bg_parameter_info_t * gavftools_ac_params(void)
@@ -246,6 +252,7 @@ static bg_stream_action_t * stream_actions_from_arg(const char * arg, int * num_
       ret[i] = BG_STREAM_ACTION_READRAW;
     }
   *num_p = num;
+  bg_strbreak_free(actions_c);
   return ret;
   }
 

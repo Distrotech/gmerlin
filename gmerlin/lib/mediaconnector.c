@@ -253,6 +253,9 @@ bg_mediaconnector_free(bg_mediaconnector_t * conn)
     for(i = 0; i < conn->num_streams; i++)
       {
       s = conn->streams[i];
+   
+      if(s->discont_psrc)
+        gavl_packet_source_destroy(s->discont_psrc);
       if(s->aconn)
         gavl_audio_connector_destroy(s->aconn);
       if(s->vconn)
