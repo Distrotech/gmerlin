@@ -167,35 +167,45 @@ static gavl_source_status_t decode_frame_mad(bgav_stream_t * s)
   if(priv->eof)
     return GAVL_SOURCE_EOF;
 
-  st = get_data(s);
-
-  switch(st)
+  while(1)
     {
-    case GAVL_SOURCE_AGAIN:
-      return st;
-      break;
-    case GAVL_SOURCE_EOF:
-      flush = 1;
-      break;
-    case GAVL_SOURCE_OK:
+    st = get_data(s);
+
+    switch(st)
+      {
+      case GAVL_SOURCE_AGAIN:
+        return st;
+        break;
+      case GAVL_SOURCE_EOF:
+        flush = 1;
+        break;
+      case GAVL_SOURCE_OK:
+        break;
+      }
+  
+    got_frame = 1;
+  
+    mad_stream_buffer(&priv->stream, priv->buf.buffer,
+                      priv->buf.size + flush * MAD_BUFFER_GUARD);
+
+    if(priv->do_init)
+      get_format(s);
+  
+    if(mad_frame_decode(&priv->frame, &priv->stream) == -1)
+      {
+      if(priv->stream.error != MAD_ERROR_BUFLEN)
+        {
+        bgav_log(s->opt, BGAV_LOG_ERROR, LOG_DOMAIN, "Decode failed %s\n",
+                 mad_stream_errorstr(&priv->stream));
+        got_frame = 0;
+        break;
+        }
+      got_frame = 0;
+      }
+    else
       break;
     }
-  
-  got_frame = 1;
-  
-  mad_stream_buffer(&priv->stream, priv->buf.buffer,
-                    priv->buf.size + flush * MAD_BUFFER_GUARD);
 
-  if(priv->do_init)
-    get_format(s);
-  
-  if(mad_frame_decode(&priv->frame, &priv->stream) == -1)
-    {
-    bgav_log(s->opt, BGAV_LOG_ERROR, LOG_DOMAIN, "Decode failed %s\n",
-             mad_stream_errorstr(&priv->stream));
-    got_frame = 0;
-    }
-  
   if(got_frame)
     {
     // fprintf(stderr, "Decodes %ld bytes\n", priv->stream.next_frame - priv->stream.buffer);

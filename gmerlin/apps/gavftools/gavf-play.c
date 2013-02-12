@@ -33,6 +33,7 @@
 static bg_plug_t * in_plug = NULL;
 
 static char * infile = NULL;
+static char * title = "gavf-play";
 
 static bg_cfg_section_t * audio_section = NULL;
 static bg_cfg_section_t * video_section = NULL;
@@ -251,6 +252,8 @@ static void open_video(video_stream_t * vs,
 
   vs->ov = bg_ov_create(vs->h);
   bg_ov_open(vs->ov, &vs->fmt, 1);
+  bg_ov_set_window_title(vs->ov, title);
+
   gavl_video_connector_connect(s->vconn, bg_ov_get_sink(vs->ov));
   gavl_video_connector_set_process_func(s->vconn, process_cb_video, vs);
   }
@@ -575,6 +578,16 @@ static void opt_v(void * data, int * argc, char *** _argv, int arg)
   bg_cmdline_remove_arg(argc, _argv, arg);
   }
 
+static void opt_title(void * data, int * argc, char *** _argv, int arg)
+  {
+  if(arg >= *argc)
+    {
+    fprintf(stderr, "Option -title requires an argument\n");
+    exit(-1);
+    }
+  title = (*_argv)[arg];
+  bg_cmdline_remove_arg(argc, _argv, arg);
+  }
 
 static bg_cmdline_arg_t global_options[] =
   {
@@ -625,6 +638,12 @@ static bg_cmdline_arg_t global_options[] =
       .help_arg =    "<options>",
       .help_string = "Set the options for rendering text subtitles",
       .callback =    opt_subrender,
+    },
+    {
+      .arg =         "-title",
+      .help_arg =    "<title>",
+      .help_string = "Set window title",
+      .callback =    opt_title,
     },
     {
       .arg =         "-v",

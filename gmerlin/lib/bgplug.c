@@ -141,6 +141,7 @@ struct bg_plug_s
 
 #ifdef HAVE_MQ
   mqd_t mq;
+  int mq_id;
 #endif
   };
 
@@ -155,8 +156,6 @@ static void gen_mq_name(int id, char * ret)
 static void create_messate_queue(bg_plug_t * p, gavl_metadata_t * m)
   {
   char name[128];
-  int id = 0;
-
   struct mq_attr attr =
     {
       .mq_flags = 0,             /* Flags: 0 or O_NONBLOCK */
@@ -164,15 +163,16 @@ static void create_messate_queue(bg_plug_t * p, gavl_metadata_t * m)
       .mq_msgsize = sizeof(int), /* Max. message size (bytes) */
       .mq_curmsgs = 0,           /* # of messages currently in queue */
     };
-
+ 
+  p->mq_id = 0;
   
   if(p->wr)
     {
     while(1)
       {
-      id++;
+      p->mq_id++;
     
-      gen_mq_name(id, name);
+      gen_mq_name(p->mq_id, name);
     
       if((p->mq = mq_open(name, O_RDONLY | O_CREAT | O_EXCL,
                            S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH, &attr)) < 0)
@@ -187,24 +187,29 @@ static void create_messate_queue(bg_plug_t * p, gavl_metadata_t * m)
       else
         break;
       }
-    gavl_metadata_set_int(m, META_RETURN_QUEUE, id);
+    gavl_metadata_set_int(m, META_RETURN_QUEUE, p->mq_id);
+    bg_log(BG_LOG_DEBUG, LOG_DOMAIN,
+           "Opened message queue %s for reading", name);
+
     }
   else
     {
-    if(!gavl_metadata_get_int(m, META_RETURN_QUEUE, &id))
+    if(!gavl_metadata_get_int(m, META_RETURN_QUEUE, &p->mq_id))
       return;
 
-    gen_mq_name(id, name);
+    gavl_metadata_set(m, META_RETURN_QUEUE, NULL); /* Clear this */
+    gen_mq_name(p->mq_id, name);
 
     if((p->mq = mq_open(name, O_WRONLY)) < 0)
       {
-      if(errno != EEXIST)
-        {
-        bg_log(BG_LOG_ERROR, LOG_DOMAIN,
-               "mq_open of %s failed: %s", name, strerror(errno));
-        return;
-        }
+      bg_log(BG_LOG_ERROR, LOG_DOMAIN,
+             "mq_open of %s failed: %s", name, strerror(errno));
+      return;
       }
+    bg_log(BG_LOG_DEBUG, LOG_DOMAIN,
+           "Opened message queue %s for writing", name);
+    /* It's save to unlink the queue now */
+    mq_unlink(name);
     }
   
   }
@@ -395,6 +400,10 @@ void bg_plug_destroy(bg_plug_t * p)
   free_streams(p->text_streams, p->num_text_streams);
   free_streams(p->overlay_streams, p->num_overlay_streams);
 
+#if HAVE_MQ
+  if(p->mq >= 0)
+    mq_close(p->mq);
+#endif
   
   gavl_packet_free(&p->skip_packet);
   

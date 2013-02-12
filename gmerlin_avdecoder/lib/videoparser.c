@@ -345,7 +345,10 @@ parse_next_packet(bgav_video_parser_t * parser, int force, int64_t *pts_ret,
   parser->pos = skip;
   
   /* Parse frame */
-  
+
+  if(!(*ret)->data_size)
+    return GAVL_SOURCE_EOF;
+
   if(!parser->parse_frame(parser, *ret, pts))
     {
     bgav_log(parser->s->opt, BGAV_LOG_ERROR, LOG_DOMAIN,
