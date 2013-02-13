@@ -67,7 +67,7 @@ static int num_t_actions = 0;
 static bg_stream_action_t * o_actions = NULL;
 static int num_o_actions = 0;
 
-void gavftools_destroy_registries()
+void gavftools_cleanup()
   {
   bg_plugin_registry_destroy(plugin_reg);
   bg_cfg_registry_destroy(cfg_reg);

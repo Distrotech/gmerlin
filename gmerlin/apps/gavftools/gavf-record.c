@@ -417,7 +417,7 @@ int main(int argc, char ** argv)
 
   recorder_cleanup(&rec);
   
-  gavftools_destroy_registries();
+  gavftools_cleanup();
 
   if(audio_section)
     bg_cfg_section_destroy(audio_section);

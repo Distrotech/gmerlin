@@ -39,8 +39,8 @@ static bg_cfg_section_t * audio_section = NULL;
 static bg_cfg_section_t * video_section = NULL;
 static bg_cfg_section_t * subrender_section = NULL;
 
-static int audio_stream = -1;
-static int video_stream = -1;
+static int audio_stream = 0;
+static int video_stream = 0;
 static int text_stream = -1;
 static int overlay_stream = -1;
 
@@ -320,8 +320,6 @@ static void set_audio_parameter(void * data,
     info = bg_plugin_find_by_name(plugin_reg, val->val_str);
     s->h = bg_plugin_load(plugin_reg, info);
     s->plugin = (bg_oa_plugin_t*)(s->h->plugin);
-    // if(s->input_plugin->set_callbacks)
-    // s->input_plugin->set_callbacks(s->h->priv, &rec->recorder_cb);
     }
   }
 
@@ -348,8 +346,6 @@ static void set_video_parameter(void * data,
     info = bg_plugin_find_by_name(plugin_reg, val->val_str);
     s->h = bg_plugin_load(plugin_reg, info);
     s->plugin = (bg_ov_plugin_t*)(s->h->plugin);
-    // if(s->input_plugin->set_callbacks)
-    // s->input_plugin->set_callbacks(s->h->priv, &rec->recorder_cb);
     }
   }
 
@@ -681,7 +677,7 @@ find_stream(gavf_t * g, int type, int index)
   {
   const gavf_stream_header_t * ret;
   if(index < 0)
-    ret = gavf_get_stream(g, 0, type);
+    return NULL;
   else
     {
     ret = gavf_get_stream(g, index, type);
@@ -769,16 +765,45 @@ int main(int argc, char ** argv)
   
   if(!player.as.plugin && as)
     {
-    bg_log(BG_LOG_ERROR, LOG_DOMAIN,
-           "Won't play audio: No plugin specified");
-    as = NULL;
+    const bg_plugin_info_t * info =
+      bg_plugin_registry_get_default(plugin_reg,
+                                     BG_PLUGIN_OUTPUT_AUDIO, BG_PLUGIN_PLAYBACK);
+
+    if(!info)
+      {
+      bg_log(BG_LOG_ERROR, LOG_DOMAIN, "No audio output plugin found");
+      as = NULL;
+      }
+    else
+      {
+      bg_parameter_value_t val;
+      val.val_str = info->name;
+      set_audio_parameter(&player.as,
+                          "plugin", &val);
+      bg_log(BG_LOG_INFO, LOG_DOMAIN, "Using %s for audio output", info->name);
+      }
+    
     }
   
   if(!player.vs.plugin && vs)
     {
-    bg_log(BG_LOG_ERROR, LOG_DOMAIN,
-           "Won't play video: No plugin specified");
-    vs = NULL;
+    const bg_plugin_info_t * info =
+      bg_plugin_registry_get_default(plugin_reg,
+                                     BG_PLUGIN_OUTPUT_VIDEO, BG_PLUGIN_PLAYBACK);
+
+    if(!info)
+      {
+      bg_log(BG_LOG_ERROR, LOG_DOMAIN, "No video output plugin found");
+      as = NULL;
+      }
+    else
+      {
+      bg_parameter_value_t val;
+      val.val_str = info->name;
+      set_video_parameter(&player.vs,
+                          "plugin", &val);
+      bg_log(BG_LOG_INFO, LOG_DOMAIN, "Using %s for video output", info->name);
+      }
     }
 
   if(!as && !vs)
@@ -841,7 +866,7 @@ int main(int argc, char ** argv)
 
   player_cleanup(&player);
   
-  gavftools_destroy_registries();
+  gavftools_cleanup();
 
   if(audio_section)
     bg_cfg_section_destroy(audio_section);

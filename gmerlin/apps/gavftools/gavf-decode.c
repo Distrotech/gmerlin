@@ -472,17 +472,21 @@ int main(int argc, char ** argv)
   fail:
 
   /* Cleanup */
-  if(audio_actions) free(audio_actions);
-  if(video_actions) free(video_actions);
-  if(text_actions) free(text_actions);
-  if(overlay_actions) free(overlay_actions);
-
+  if(audio_actions)
+    free(audio_actions);
+  if(video_actions)
+    free(video_actions);
+  if(text_actions)
+    free(text_actions);
+  if(overlay_actions)
+    free(overlay_actions);
+  
   bg_mediaconnector_free(&conn);
   bg_plug_destroy(out_plug);
 
   bg_plugin_unref(h);
   
-  gavftools_destroy_registries();
+  gavftools_cleanup();
   
   return ret;
   }
