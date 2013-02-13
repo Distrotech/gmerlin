@@ -39,9 +39,16 @@ static bg_cfg_section_t * audio_section = NULL;
 static bg_cfg_section_t * video_section = NULL;
 static bg_cfg_section_t * subrender_section = NULL;
 
-static int audio_stream = 0;
-static int video_stream = 0;
-static int text_stream = -1;
+/* 
+ * Stream indices:
+ * -2:   Select 0 as default
+ * -1:   Disable
+ *  >= 0: Select by index, complain if stream is missing
+ */
+
+static int audio_stream   = -2; // Select 0 ad default
+static int video_stream   = -2; // Select 0 as default
+static int text_stream    = -1;
 static int overlay_stream = -1;
 
 typedef struct player_s player_t;
@@ -515,6 +522,8 @@ static void opt_as(void * data, int * argc, char *** _argv, int arg)
     exit(-1);
     }
   audio_stream = atoi((*_argv)[arg]) - 1;
+  if(audio_stream < -1)
+    audio_stream = -1;
   bg_cmdline_remove_arg(argc, _argv, arg);
   }
 
@@ -526,6 +535,8 @@ static void opt_vs(void * data, int * argc, char *** _argv, int arg)
     exit(-1);
     }
   video_stream = atoi((*_argv)[arg]) - 1;
+  if(video_stream < -1)
+    video_stream = -1;
   bg_cmdline_remove_arg(argc, _argv, arg);
   }
 
@@ -537,6 +548,8 @@ static void opt_ts(void * data, int * argc, char *** _argv, int arg)
     exit(-1);
     }
   text_stream = atoi((*_argv)[arg]) - 1;
+  if(text_stream < -1)
+    text_stream = -1;
   bg_cmdline_remove_arg(argc, _argv, arg);
   }
 
@@ -548,6 +561,8 @@ static void opt_os(void * data, int * argc, char *** _argv, int arg)
     exit(-1);
     }
   overlay_stream = atoi((*_argv)[arg]) - 1;
+  if(overlay_stream < -1)
+    overlay_stream = -1;
   bg_cmdline_remove_arg(argc, _argv, arg);
   }
 
@@ -676,9 +691,14 @@ static const gavf_stream_header_t *
 find_stream(gavf_t * g, int type, int index)
   {
   const gavf_stream_header_t * ret;
-  if(index < 0)
+  
+  /* No stream was selected, choose first one and
+     be silent if there is none */
+  if(index == -2)
+    return gavf_get_stream(g, 0, type);
+  else if(index == -1)
     return NULL;
-  else
+  else // >= 0
     {
     ret = gavf_get_stream(g, index, type);
     if(!ret)
