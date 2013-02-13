@@ -396,12 +396,16 @@ bgav_stream_read_packet_func(void * sp, gavl_packet_t ** p)
     bgav_stream_done_packet_read(s, s->out_packet_b);
     s->out_packet_b = NULL;
     }
-
+  
   if(s->flags & STREAM_DISCONT)
     {
     /* Check if we have a packet at all */
     if((st = bgav_stream_peek_packet_read(s, NULL, 0)) != GAVL_SOURCE_OK)
+      {
+      if(s->flags & STREAM_EOF_D)
+        st = GAVL_SOURCE_EOF;        
       return st;
+      }
     }
 
   if((st = bgav_stream_get_packet_read(s, &s->out_packet_b)) != GAVL_SOURCE_OK)
