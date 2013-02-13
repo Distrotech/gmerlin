@@ -38,7 +38,7 @@ struct gavl_io_s
   void * priv;
   
   int64_t position;
-
+  int got_error;    // Got write error
   gavf_io_cb_func cb;
   void * cb_priv;
   

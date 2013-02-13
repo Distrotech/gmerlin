@@ -464,10 +464,12 @@ int main(int argc, char ** argv)
 
   bg_mediaconnector_start(&conn);
 
-  while(bg_mediaconnector_iteration(&conn))
-    ;
-
-
+  while(1)
+    {
+    if(bg_plug_got_error(out_plug) ||
+       !bg_mediaconnector_iteration(&conn))
+      break;
+    }
   ret = 0;
   fail:
 

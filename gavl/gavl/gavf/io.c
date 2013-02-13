@@ -47,9 +47,17 @@ void gavf_io_destroy(gavf_io_t * io)
 
 int gavf_io_flush(gavf_io_t * io)
   {
+  int ret = 1;
   if(io->flush_func)
-    return io->flush_func(io->priv);
-  return 1;
+    ret = io->flush_func(io->priv);
+  if(!ret)
+    io->got_error = 1;
+  return ret;
+  }
+
+int gavf_io_got_error(gavf_io_t * io)
+  {
+  return io->got_error;
   }
 
 int gavf_io_read_data(gavf_io_t * io, uint8_t * buf, int len)
@@ -71,6 +79,9 @@ int gavf_io_write_data(gavf_io_t * io, const uint8_t * buf, int len)
   ret = io->write_func(io->priv, buf, len);
   if(ret > 0)
     io->position += ret;
+
+  if(ret < len)
+    io->got_error = 1;
   return ret;
   }
 

@@ -52,6 +52,9 @@ gavf_io_t * gavf_io_create_file(FILE * f, int wr, int can_seek, int close);
 GAVL_PUBLIC
 void gavf_io_set_cb(gavf_io_t * io, gavf_io_cb_func cb, void * cb_priv);
 
+GAVL_PUBLIC
+int gavf_io_got_error(gavf_io_t * io);
+
 /* Stream information */
 
 typedef enum

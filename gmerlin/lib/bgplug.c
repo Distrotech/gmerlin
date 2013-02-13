@@ -139,6 +139,8 @@ struct bg_plug_s
   
   gavl_packet_t skip_packet;
 
+  int got_error;
+
 #ifdef HAVE_MQ
   mqd_t mq;
   int mq_id;
@@ -239,8 +241,9 @@ static int io_cb_read(void * priv, int type, const void * data)
   
   if(mq_send(p->mq, (const char *)&type, sizeof(type), 0))
     {
-    bg_log(BG_LOG_ERROR, LOG_DOMAIN, "mq_open failed: %s",
+    bg_log(BG_LOG_ERROR, LOG_DOMAIN, "mq_send failed: %s",
            strerror(errno));
+    p->got_error = 1;
     return 0;
     }
   return 1;
@@ -273,6 +276,7 @@ static int io_cb_write(void * priv, int type, const void * data)
     {
     bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Reading message failed: %s",
            strerror(errno));
+    p->got_error = 1;
     }
   
   if((size_ret != sizeof(type_ret)) ||
@@ -1648,4 +1652,13 @@ void bg_plug_set_stream_action(bg_plug_t * p,
   if(!s)
     return;
   s->action = action;
+  }
+
+int bg_plug_got_error(bg_plug_t * p)
+  {
+  int ret;
+  pthread_mutex_lock(&p->mutex);
+  ret = p->got_error || gavf_io_got_error(p->io);
+  pthread_mutex_unlock(&p->mutex);
+  return ret;
   }

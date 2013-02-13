@@ -114,6 +114,8 @@ void bg_plug_set_stream_action(bg_plug_t * p,
                                const gavf_stream_header_t * h,
                                bg_stream_action_t action);
 
+int bg_plug_got_error(bg_plug_t * p);
+
 const gavf_stream_header_t *
 bg_plug_header_from_index(bg_plug_t * p, int index);
 
