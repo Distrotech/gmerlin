@@ -203,8 +203,11 @@ static gavl_source_status_t decode_frame_mad(bgav_stream_t * s)
       }
     else
       break;
-    }
 
+    if(!got_frame && flush)
+      return GAVL_SOURCE_EOF;
+    }
+  
   if(got_frame)
     {
     // fprintf(stderr, "Decodes %ld bytes\n", priv->stream.next_frame - priv->stream.buffer);
