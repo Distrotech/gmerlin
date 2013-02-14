@@ -41,7 +41,7 @@ typedef struct
   int init;
 
   int64_t last_duration;
-    
+  
   } faad_priv_t;
 
 static gavl_source_status_t get_data(bgav_stream_t * s)
@@ -63,7 +63,7 @@ static gavl_source_status_t get_data(bgav_stream_t * s)
   if(p->duration > 0)
     bgav_bytebuffer_flush(&priv->buf);
 
-  priv->last_duration = p->duration;
+  priv->last_duration = p->duration * (1 + !!(s->flags & STREAM_SBR));
   
   bgav_bytebuffer_append(&priv->buf, p, 0);
   bgav_stream_done_packet_read(s, p);
@@ -151,6 +151,7 @@ static gavl_source_status_t decode_frame_faad2(bgav_stream_t * s)
     bgav_faad_set_channel_setup(&frame_info,
                                 &s->data.audio.format);
     }
+  
   if(!gavl_metadata_get(&s->m, GAVL_META_FORMAT))
     {
     switch(frame_info.object_type)
@@ -195,10 +196,9 @@ static int init_faad2(bgav_stream_t * s)
   priv->dec = faacDecOpen();
   s->decoder_priv = priv;
   
-  /* Init the library using a DecoderSpecificInfo */
-  
   if(!s->ext_size)
     {
+    /* Init the library From an ADTS header */
     if(get_data(s) != GAVL_SOURCE_OK)
       return 0;
 
@@ -209,6 +209,7 @@ static int init_faad2(bgav_stream_t * s)
     }
   else
     {
+    /* Init the library using a DecoderSpecificInfo */
     result = faacDecInit2(priv->dec, s->ext_data,
                           s->ext_size,
                           &samplerate, &channels);
@@ -218,11 +219,14 @@ static int init_faad2(bgav_stream_t * s)
      so we correct it here */
   if(samplerate == 2 * s->data.audio.format.samplerate)
     {
-    //    fprintf(stderr, "Detected HE-AAC\n");
+    fprintf(stderr, "Detected HE-AAC\n");
     //    bgav_hexdump(s->ext_data, s->ext_size, 16);
 
     if(!s->data.audio.format.samples_per_frame)
       s->data.audio.format.samples_per_frame = 2048;
+
+    s->flags |= STREAM_SBR;
+    
     if(s->duration)
       s->duration *= 2;
     }
@@ -230,7 +234,7 @@ static int init_faad2(bgav_stream_t * s)
     {
     if(!s->data.audio.format.samples_per_frame)
       s->data.audio.format.samples_per_frame = 1024;
-    //    fprintf(stderr, "Detected NO HE-AAC\n");
+    fprintf(stderr, "Detected NO HE-AAC\n");
     //    bgav_hexdump(s->ext_data, s->ext_size, 16);
     }
 

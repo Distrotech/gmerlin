@@ -2,8 +2,9 @@ pkgincludedir=$(includedir)/gmerlin
 pkginclude_HEADERS = avdec.h bgav_version.h bgavdefs.h
 
 noinst_HEADERS = \
-aac_frame.h \
 a52_header.h \
+aac_frame.h \
+adts_header.h \
 asmrp.h \
 audioparser_priv.h \
 avdec_private.h \

@@ -375,6 +375,7 @@ $(vdpau_sources) \
 $(gsm_sources) \
 RTjpeg.c \
 a52_header.c \
+adts_header.c \
 apetag.c \
 audio.c \
 audio_gavf.c \
