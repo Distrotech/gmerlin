@@ -23,11 +23,112 @@
 
 #include <gmerlin/encoder.h>
 
-
 static bg_plug_t * in_plug = NULL;
+
+#define LOG_DOMAIN "gavf-play"
+
+static const char * input_file   = NULL;
+
+static void opt_v(void * data, int * argc, char *** _argv, int arg)
+  {
+  int val, verbose = 0;
+
+  if(arg >= *argc)
+    {
+    fprintf(stderr, "Option -v requires an argument\n");
+    exit(-1);
+    }
+  val = atoi((*_argv)[arg]);
+
+  if(val > 0)
+    verbose |= BG_LOG_ERROR;
+  if(val > 1)
+    verbose |= BG_LOG_WARNING;
+  if(val > 2)
+    verbose |= BG_LOG_INFO;
+  if(val > 3)
+    verbose |= BG_LOG_DEBUG;
+  bg_log_set_verbose(verbose);
+  bg_cmdline_remove_arg(argc, _argv, arg);
+  }
+
+static void opt_in(void * data, int * argc, char *** _argv, int arg)
+  {
+  if(arg >= *argc)
+    {
+    fprintf(stderr, "Option -i requires an argument\n");
+    exit(-1);
+    }
+  input_file = (*_argv)[arg];
+  bg_cmdline_remove_arg(argc, _argv, arg);
+  }
+
+static bg_cmdline_arg_t global_options[] =
+  {
+    {
+      .arg =         "-i",
+      .help_arg =    "<location>",
+      .help_string = "Set input file or location",
+      .callback =    opt_in,
+    },
+    {
+      .arg =         "-v",
+      .help_arg =    "level",
+      .help_string = "Set verbosity level (0..4)",
+      .callback =    opt_v,
+    },
+
+    { /* End */ },
+  };
+
+const bg_cmdline_app_data_t app_data =
+  {
+    .package =  PACKAGE,
+    .version =  VERSION,
+    .name =     "gavf-encode",
+    .long_name = TRS("Encode a gavf stream to another format"),
+    .synopsis = TRS("[options]\n"),
+    .help_before = TRS("gavf encoder\n"),
+    .args = (bg_cmdline_arg_array_t[]) { { TRS("Options"), global_options },
+                                       {  } },
+    .files = (bg_cmdline_ext_doc_t[])
+    { { "~/.gmerlin/plugins.xml",
+        TRS("Cache of the plugin registry (shared by all applicatons)") },
+      { "~/.gmerlin/generic/config.xml",
+        TRS("Default plugin parameters are read from there. Use gmerlin_plugincfg to change them.") },
+      { /* End */ }
+    },
+
+  };
+
 
 int main(int argc, char ** argv)
   {
+  int ret = 1;
+  bg_mediaconnector_t conn;
+
+  bg_mediaconnector_init(&conn);
+  gavftools_init_registries();
   
+  bg_cmdline_init(&app_data);
+  bg_cmdline_parse(global_options, &argc, &argv, NULL);
+
+  in_plug = bg_plug_create_reader(plugin_reg);
+
+  /* Open */
+
+  if(!bg_plug_open_location(in_plug, input_file, NULL, NULL))
+    return ret;
+
+  /* Check for stream copying */
+
+  /* Select streams */
+  
+  /* Set up encoder */
+
+  /* Main loop */
+
+  /* Cleanup */
+
   return 0;
   }
