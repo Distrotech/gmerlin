@@ -308,7 +308,32 @@ gavftools_opt_ts(void * data, int * argc, char *** _argv, int arg)
   bg_cmdline_remove_arg(argc, _argv, arg);
   }
 
-bg_stream_action_t * gavftools_get_stream_actions(int num, gavf_stream_type_t type)
+void gavftools_opt_v(void * data, int * argc, char *** _argv, int arg)
+  {
+  int val, verbose = 0;
+
+  if(arg >= *argc)
+    {
+    fprintf(stderr, "Option -v requires an argument\n");
+    exit(-1);
+    }
+  val = atoi((*_argv)[arg]);  
+  
+  if(val > 0)
+    verbose |= BG_LOG_ERROR;
+  if(val > 1)
+    verbose |= BG_LOG_WARNING;
+  if(val > 2)
+    verbose |= BG_LOG_INFO;
+  if(val > 3)
+    verbose |= BG_LOG_DEBUG;
+  bg_log_set_verbose(verbose);
+  bg_cmdline_remove_arg(argc, _argv, arg);
+  }
+
+
+bg_stream_action_t *
+gavftools_get_stream_actions(int num, gavf_stream_type_t type)
   {
   int i;
   int num_actions;
@@ -372,3 +397,4 @@ gavftools_set_compresspor_options(bg_cmdline_arg_t * global_options)
     i++;
     }
   }
+

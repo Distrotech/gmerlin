@@ -311,6 +311,7 @@ static bg_cmdline_arg_t global_options[] =
       .help_string = "Set output file or location",
       .callback =    opt_out,
     },
+    GAVFTOOLS_VERBOSE_OPTIONS,
     {
       /* End */
     }

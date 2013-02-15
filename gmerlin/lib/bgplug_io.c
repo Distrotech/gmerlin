@@ -79,6 +79,8 @@ static gavf_io_t * open_dash(int wr, int * flags)
     }
   if(S_ISFIFO(st.st_mode)) /* Pipe: Use local connection */
     *flags |= BG_PLUG_IO_IS_LOCAL;
+  else if(S_ISREG(st.st_mode))
+    *flags |= BG_PLUG_IO_IS_REGULAR;
   return gavf_io_create_file(f, wr, 0, 0);
   }
 
@@ -282,12 +284,12 @@ static gavf_io_t * open_file(const char * file, int wr, int * flags)
   if(S_ISFIFO(st.st_mode)) /* Pipe: Use local connection */
     *flags |= BG_PLUG_IO_IS_LOCAL;
   else if(S_ISREG(st.st_mode))
-    *flags |= BG_PLUG_IO_CAN_SEEK;
+    *flags |= BG_PLUG_IO_IS_REGULAR;
   
   f = fopen(file, (wr ? "w" : "r"));
   if(!f)
     return NULL;
-  return gavf_io_create_file(f, wr, !!(*flags & BG_PLUG_IO_CAN_SEEK), 1);
+  return gavf_io_create_file(f, wr, !!(*flags & BG_PLUG_IO_IS_REGULAR), 1);
   }
 
 gavf_io_t * bg_plug_io_open_location(const char * location,

@@ -74,6 +74,9 @@ gavftools_opt_os(void * data, int * argc, char *** _argv, int arg);
 void
 gavftools_opt_ts(void * data, int * argc, char *** _argv, int arg);
 
+void
+gavftools_opt_v(void * data, int * argc, char *** _argv, int arg);
+
 bg_stream_action_t * gavftools_get_stream_actions(int num, gavf_stream_type_t type);
 
 
@@ -132,6 +135,15 @@ bg_stream_action_t * gavftools_get_stream_actions(int num, gavf_stream_type_t ty
     .help_string = "", \
     .callback =    gavftools_opt_os, \
   }
+
+#define GAVFTOOLS_VERBOSE_OPTIONS           \
+  {                                         \
+  .arg =         "-v",                                  \
+    .help_arg =    "level",                             \
+    .help_string = "Set verbosity level (0..4)",        \
+    .callback =    gavftools_opt_v,                               \
+  }
+
 
 bg_stream_action_t * gavftools_get_stream_action(gavf_stream_type_t type,
                                                  int num);

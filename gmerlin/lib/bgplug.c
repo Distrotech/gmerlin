@@ -308,8 +308,10 @@ static bg_plug_t * create_common()
   ret->mq = -1;
 #endif
   
-  // gavf_options_set_flags(ret->opt, GAVF_OPT_FLAG_DUMP_HEADERS);
-
+  gavf_options_set_flags(ret->opt,
+                         GAVF_OPT_FLAG_DUMP_HEADERS |
+                         GAVF_OPT_FLAG_DUMP_METADATA);
+  
   pthread_mutex_init(&ret->mutex, NULL);
 
   return ret;
@@ -1180,11 +1182,13 @@ int bg_plug_open(bg_plug_t * p, gavf_io_t * io,
   
   if(p->wr)
     {
-    /* Force writing at least a sync index */
-    
-    flags = gavf_options_get_flags(p->opt);
-    flags |= GAVF_OPT_FLAG_SYNC_INDEX;
-    gavf_options_set_flags(p->opt, flags);
+    if(p->io_flags & BG_PLUG_IO_IS_REGULAR)
+      {
+      /* Force writing a sync index if we write to a regular file */
+      flags = gavf_options_get_flags(p->opt);
+      flags |= GAVF_OPT_FLAG_SYNC_INDEX;
+      gavf_options_set_flags(p->opt, flags);
+      }
     
     if(!gavf_open_write(p->g, p->io, m, cl))
       {
@@ -1219,7 +1223,12 @@ int bg_plug_open_location(bg_plug_t * p, const char * location,
   gavf_io_t * io = bg_plug_io_open_location(location, p->wr,
                                             &p->io_flags);
   if(io)
-    return bg_plug_open(p, io, m, cl);
+    {
+    if(!bg_plug_open(p, io, m, cl))
+      return 0;
+    else
+      return 1;
+    }
   else
     return 0;
   }

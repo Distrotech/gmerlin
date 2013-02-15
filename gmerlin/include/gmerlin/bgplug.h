@@ -132,8 +132,8 @@ bg_plug_set_compressor_config(bg_plug_t * p,
 
 /* Called by bg_plug_open */
 
-#define BG_PLUG_IO_IS_LOCAL (1<<0)
-#define BG_PLUG_IO_CAN_SEEK (1<<1)
+#define BG_PLUG_IO_IS_LOCAL   (1<<0)
+#define BG_PLUG_IO_IS_REGULAR (1<<1)
 
 gavf_io_t * bg_plug_io_open_location(const char * location,
                                      int wr, int * flags);

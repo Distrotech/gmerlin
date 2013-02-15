@@ -566,28 +566,6 @@ static void opt_os(void * data, int * argc, char *** _argv, int arg)
   bg_cmdline_remove_arg(argc, _argv, arg);
   }
 
-static void opt_v(void * data, int * argc, char *** _argv, int arg)
-  {
-  int val, verbose = 0;
-
-  if(arg >= *argc)
-    {
-    fprintf(stderr, "Option -v requires an argument\n");
-    exit(-1);
-    }
-  val = atoi((*_argv)[arg]);  
-  
-  if(val > 0)
-    verbose |= BG_LOG_ERROR;
-  if(val > 1)
-    verbose |= BG_LOG_WARNING;
-  if(val > 2)
-    verbose |= BG_LOG_INFO;
-  if(val > 3)
-    verbose |= BG_LOG_DEBUG;
-  bg_log_set_verbose(verbose);
-  bg_cmdline_remove_arg(argc, _argv, arg);
-  }
 
 static void opt_title(void * data, int * argc, char *** _argv, int arg)
   {
@@ -656,12 +634,7 @@ static bg_cmdline_arg_t global_options[] =
       .help_string = "Set window title",
       .callback =    opt_title,
     },
-    {
-      .arg =         "-v",
-      .help_arg =    "level",
-      .help_string = "Set verbosity level (0..4)",
-      .callback =    opt_v,
-    },
+    GAVFTOOLS_VERBOSE_OPTIONS,
     {
       /* End */
     }
