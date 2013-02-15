@@ -31,6 +31,8 @@
 
 #define LOG_DOMAIN "adts"
 
+#include <adts_header.h>
+
 /* Supported header types */
 
 #define ADTS_SIZE 9
@@ -40,97 +42,6 @@
 #define IS_ADTS(h) ((h[0] == 0xff) && \
                     ((h[1] & 0xf0) == 0xf0) && \
                     ((h[1] & 0x06) == 0x00))
-
-static const int adts_samplerates[] =
-  {96000,88200,64000,48000,44100,
-   32000,24000,22050,16000,12000,
-   11025,8000,7350,0,0,0};
-
-/* The following struct is not exactly the same as in the spec */
-
-typedef struct
-  {
-  int mpeg_version;
-  int profile;
-  int samplerate;
-  int channel_configuration;
-  int frame_bytes;
-  int num_blocks;
-  } adts_header_t;
-#if 0
-static void adts_header_dump(adts_header_t * adts)
-  {
-  bgav_dprintf( "ADTS\n");
-  bgav_dprintf( "  MPEG Version:          %d\n", adts->mpeg_version);
-  bgav_dprintf( "  Profile:               ");
-  
-  if(adts->mpeg_version == 2)
-    {
-    switch(adts->profile)
-      {
-      case 0:
-        bgav_dprintf( "MPEG-2 AAC Main profile\n");
-        break;
-      case 1:
-        bgav_dprintf( "MPEG-2 AAC Low Complexity profile (LC)\n");
-        break;
-      case 2:
-        bgav_dprintf( "MPEG-2 AAC Scalable Sample Rate profile (SSR)\n");
-        break;
-      case 3:
-        bgav_dprintf( "MPEG-2 AAC (reserved)\n");
-        break;
-      }
-    }
-  else
-    {
-    switch(adts->profile)
-      {
-      case 0:
-        bgav_dprintf( "MPEG-4 AAC Main profile\n");
-        break;
-      case 1:
-        bgav_dprintf( "MPEG-4 AAC Low Complexity profile (LC)\n");
-        break;
-      case 2:
-        bgav_dprintf( "MPEG-4 AAC Scalable Sample Rate profile (SSR)\n");
-        break;
-      case 3:
-        bgav_dprintf( "MPEG-4 AAC Long Term Prediction (LTP)\n");
-        break;
-      }
-    }
-  bgav_dprintf( "  Samplerate:            %d\n", adts->samplerate);
-  bgav_dprintf( "  Channel configuration: %d\n", adts->channel_configuration);
-  bgav_dprintf( "  Frame bytes:           %d\n", adts->frame_bytes);
-  bgav_dprintf( "  Num blocks:            %d\n", adts->num_blocks);
-  }
-#endif
-
-static int adts_header_read(uint8_t * data, adts_header_t * ret)
-  {
-  int protection_absent;
-
-  if(!IS_ADTS(data))
-    return 0;
-  
-  if(data[1] & 0x08)
-    ret->mpeg_version = 2;
-  else
-    ret->mpeg_version = 4;
-
-  protection_absent = data[1] & 0x01;
-
-  ret->profile = (data[2] & 0xC0) >> 6;
-  ret->samplerate = adts_samplerates[(data[2]&0x3C)>>2];
-  ret->channel_configuration = ((data[2]&0x01)<<2)|((data[3]&0xC0)>>6);
-
-  ret->frame_bytes = ((((unsigned int)data[3] & 0x3)) << 11)
-    | (((unsigned int)data[4]) << 3) | (data[5] >> 5);
-  
-  ret->num_blocks = (data[6] & 0x03) + 1;
-  return 1;
-  }
 
 /* AAC demuxer */
 
@@ -147,7 +58,7 @@ static int probe_adts(bgav_input_context_t * input)
   uint8_t * buffer;
   uint8_t header[7];
   
-  adts_header_t h1, h2;
+  bgav_adts_header_t h1, h2;
   
   /* Support aac live streams */
 
@@ -159,7 +70,7 @@ static int probe_adts(bgav_input_context_t * input)
   if(bgav_input_get_data(input, header, 7) < 7)
     return 0;
 
-  if(!adts_header_read(header, &h1))
+  if(!bgav_adts_header_read(header, &h1))
     return 0;
 
   buffer = malloc(ADTS_SIZE + h1.frame_bytes);
@@ -170,7 +81,7 @@ static int probe_adts(bgav_input_context_t * input)
 
   ret = 0;
 
-  if(adts_header_read(buffer + h1.frame_bytes, &h2) &&
+  if(bgav_adts_header_read(buffer + h1.frame_bytes, &h2) &&
      (h1.mpeg_version == h2.mpeg_version) &&
      (h1.samplerate == h2.samplerate) &&
      (h1.channel_configuration == h2.channel_configuration))
@@ -258,8 +169,8 @@ static int open_adts(bgav_demuxer_context_t * ctx)
   bgav_id3v1_tag_t * id3v1 = NULL;
   gavl_metadata_t id3v1_metadata, id3v2_metadata;
   uint8_t buf[ADTS_SIZE];
-  
-  adts_header_t adts;
+
+  bgav_adts_header_t adts;
   
   priv = calloc(1, sizeof(*priv));
   ctx->priv = priv;
@@ -338,7 +249,7 @@ static int open_adts(bgav_demuxer_context_t * ctx)
   if(bgav_input_get_data(ctx->input, buf, ADTS_SIZE) < ADTS_SIZE)
     goto fail;
 
-  if(!adts_header_read(buf, &adts))
+  if(!bgav_adts_header_read(buf, &adts))
     goto fail;
 
   if(adts.profile == 2) 
@@ -376,7 +287,7 @@ static int next_packet_adts(bgav_demuxer_context_t * ctx)
   {
   bgav_packet_t * p;
   bgav_stream_t * s;
-  adts_header_t adts;
+  bgav_adts_header_t adts;
   aac_priv_t * priv;
   uint8_t buf[ADTS_SIZE];
   
@@ -387,7 +298,7 @@ static int next_packet_adts(bgav_demuxer_context_t * ctx)
   if(bgav_input_get_data(ctx->input, buf, ADTS_SIZE) < ADTS_SIZE)
     return 0;
 
-  if(!adts_header_read(buf, &adts))
+  if(!bgav_adts_header_read(buf, &adts))
     return 0;
 
   

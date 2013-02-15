@@ -47,6 +47,7 @@ int bgav_adts_header_read(const uint8_t * data,
   protection_absent = data[1] & 0x01;
 
   ret->profile = (data[2] & 0xC0) >> 6;
+
   ret->samplerate_index = (data[2]&0x3C)>>2;
   ret->samplerate = adts_samplerates[ret->samplerate_index];
   

@@ -19,6 +19,8 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  * *****************************************************************/
 
+/* The following struct is not exactly the same as in the spec */
+
 typedef struct
   {
   int mpeg_version;
