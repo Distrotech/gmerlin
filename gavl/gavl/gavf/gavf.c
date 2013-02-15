@@ -3,6 +3,8 @@
 
 #include <gavfprivate.h>
 
+// #define DUMP_EOF
+
 static struct
   {
   gavf_stream_type_t type;
@@ -678,17 +680,24 @@ const gavf_packet_header_t * gavf_packet_read_header(gavf_t * g)
   {
   char c[8];
   uint32_t len;
+
+#ifdef DUMP_EOF
+  fprintf(stderr, "gavf_packet_read_header\n");
+#endif
   
   if(g->eof)
+    {
+    fprintf(stderr, "EOF 0\n");
     return NULL;
-
-  //  fprintf(stderr, "gavf_packet_read_header\n");
+    }
   
   while(1)
     {
     if(!gavf_io_read_data(g->io, (uint8_t*)c, 1))
       {
-      //      fprintf(stderr, "EOF 1\n");
+#ifdef DUMP_EOF
+      fprintf(stderr, "EOF 1\n");
+#endif
       goto got_eof;
       }
     if(c[0] == GAVF_TAG_PACKET_HEADER_C)
@@ -697,7 +706,9 @@ const gavf_packet_header_t * gavf_packet_read_header(gavf_t * g)
       /* Got new packet */
       if(!gavf_io_read_uint32v(g->io, &g->pkthdr.stream_id))
         {
-        //        fprintf(stderr, "EOF 2\n");
+#ifdef DUMP_EOF
+        fprintf(stderr, "EOF 2\n");
+#endif
         goto got_eof;
         }
       
@@ -711,7 +722,12 @@ const gavf_packet_header_t * gavf_packet_read_header(gavf_t * g)
           {
           gavf_packet_skip(g);
           if(g->io->cb && !g->io->cb(g->io->cb_priv, GAVF_IO_CB_PACKET, NULL))
+            {
+#ifdef DUMP_EOF
+            fprintf(stderr, "EOF 3\n");
+#endif
             goto got_eof;
+            }
           }
         }
       else
@@ -729,10 +745,16 @@ const gavf_packet_header_t * gavf_packet_read_header(gavf_t * g)
         gavl_metadata_t m;
         gavl_metadata_init(&m);
         
+        gavf_buffer_reset(&g->meta_buf);
+        
         if(!gavf_io_read_buffer(g->io, &g->meta_buf) ||
            !gavf_read_metadata(&g->meta_io, &m))
-          return 0;
-
+          {
+#ifdef DUMP_EOF
+          fprintf(stderr, "EOF 4\n");
+#endif
+          goto got_eof;
+          }
         if(!gavl_metadata_equal(&g->metadata, &m))
           {
           gavl_metadata_free(&g->metadata);
@@ -755,7 +777,9 @@ const gavf_packet_header_t * gavf_packet_read_header(gavf_t * g)
         {
         if(!gavf_io_read_uint32v(g->io, &len))
           {
-          //          fprintf(stderr, "EOF 3\n");
+#ifdef DUMP_EOF
+          fprintf(stderr, "EOF 5\n");
+#endif
           goto got_eof;
           }
         gavf_io_skip(g->io, len);
@@ -765,7 +789,9 @@ const gavf_packet_header_t * gavf_packet_read_header(gavf_t * g)
       {
       if(gavf_io_read_data(g->io, (uint8_t*)&c[1], 7) < 7)
         {
-        //        fprintf(stderr, "EOF 4\n");
+#ifdef DUMP_EOF
+        fprintf(stderr, "EOF 6\n");
+#endif
         goto got_eof;
         }
 
@@ -773,13 +799,17 @@ const gavf_packet_header_t * gavf_packet_read_header(gavf_t * g)
         {
         if(!read_sync_header(g))
           {
-          //          fprintf(stderr, "EOF 5\n");
+#ifdef DUMP_EOF
+          fprintf(stderr, "EOF 7\n");
+#endif
           goto got_eof;
           }
         }
       else
         {
-        //        fprintf(stderr, "EOF 6 %8s\n", c);
+#ifdef DUMP_EOF
+       fprintf(stderr, "EOF 8 %8s\n", c);
+#endif
         goto got_eof;
         }
       }
