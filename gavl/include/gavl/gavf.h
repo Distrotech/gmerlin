@@ -128,6 +128,7 @@ typedef void (*gavf_stream_skip_func)(gavf_t * gavf,
 #define GAVF_OPT_FLAG_DUMP_HEADERS (1<<4)
 #define GAVF_OPT_FLAG_DUMP_INDICES (1<<5)
 #define GAVF_OPT_FLAG_DUMP_PACKETS (1<<6)
+#define GAVF_OPT_FLAG_DUMP_METADATA (1<<7)
 
 
 GAVL_PUBLIC

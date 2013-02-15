@@ -87,6 +87,7 @@ void gavf_stream_header_free(gavf_stream_header_t * h)
   gavl_metadata_free(&h->m);
   }
 
+#if 0
 static const struct
   {
   int type;
@@ -112,10 +113,12 @@ static const char * get_type_name(int type)
     }
   return NULL;
   }
+#endif
 
 void gavf_stream_header_dump(gavf_stream_header_t * h)
   {
-  fprintf(stderr, "    Type: %d (%s)\n", h->type, get_type_name(h->type));
+  fprintf(stderr, "    Type: %d (%s)\n", h->type,
+          gavf_stream_type_name(h->type));
   fprintf(stderr, "    ID:   %d\n", h->id);
 
   switch(h->type)
@@ -135,6 +138,9 @@ void gavf_stream_header_dump(gavf_stream_header_t * h)
       fprintf(stderr, "    Timescale: %d\n", h->format.text.timescale);
       break;
     }
+  fprintf(stderr, "    Metadata:\n");
+  gavl_metadata_dump(&h->m, 6);
+  
   fprintf(stderr, "    Footer: ");
   if(h->foot.pts_start == GAVL_TIME_UNDEFINED)
     fprintf(stderr, "Not present\n");
@@ -148,4 +154,5 @@ void gavf_stream_header_dump(gavf_stream_header_t * h)
     fprintf(stderr, "      pts_start:    %"PRId64"\n", h->foot.pts_start);
     fprintf(stderr, "      pts_end:      %"PRId64"\n", h->foot.pts_end);
     }
+  
   }
