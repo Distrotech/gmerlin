@@ -446,11 +446,8 @@ void bgav_stream_set_from_gavl(bgav_stream_t * s,
       gavl_video_format_copy(&s->data.subtitle.video.format, vfmt);
     else if(s->type == BGAV_STREAM_VIDEO)
       gavl_video_format_copy(&s->data.video.format, vfmt);
-    
-    if(!(ci->id & GAVL_COMPRESSION_HAS_P_FRAMES))
-      s->flags |= STREAM_INTRA_ONLY;
-    if(ci->id & GAVL_COMPRESSION_HAS_B_FRAMES)
-      s->flags |= STREAM_B_FRAMES;
+
+    s->gavl_flags = ci->flags;
     s->timescale = vfmt->timescale;
     }
   

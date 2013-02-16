@@ -195,7 +195,10 @@ static void init_vfw(bgav_stream_t * s)
     bgav_stream_set_extradata(s, data, end - data);
   
   if(bgav_video_is_divx4(s->fourcc))
-    s->flags |= (STREAM_B_FRAMES|STREAM_PARSE_FRAME);
+    {
+    s->flags |= STREAM_PARSE_FRAME;
+    s->gavl_flags |= GAVL_COMPRESSION_HAS_B_FRAMES;
+    }
   }
 
 static void init_theora(bgav_stream_t * s)
@@ -207,7 +210,8 @@ static void init_mpeg(bgav_stream_t * s)
   {
   bgav_mkv_track_t * track = s->priv;
 
-  s->flags |= STREAM_NEED_FRAMETYPES|STREAM_B_FRAMES;
+  s->flags |= STREAM_NEED_FRAMETYPES;
+  s->gavl_flags |= GAVL_COMPRESSION_HAS_B_FRAMES;
   if(track->CodecPrivateLen)
     bgav_stream_set_extradata(s,
                               track->CodecPrivate,
@@ -442,7 +446,7 @@ static int init_audio(bgav_demuxer_context_t * ctx,
     if(a->OutputSamplingFrequency > a->SamplingFrequency)
       {
       fmt->samplerate = (int)a->OutputSamplingFrequency;
-      s->flags |= STREAM_SBR;
+      s->gavl_flags |= GAVL_COMPRESSION_SBR;
       }
     }
   if(a->Channels > 0)

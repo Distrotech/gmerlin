@@ -234,7 +234,7 @@ static int parse_track(bgav_input_context_t * input,
     case 5:
       vs = bgav_track_add_video_stream(t, opt);
       vs->fourcc = BGAV_MK_FOURCC('M','J','P','G');
-      vs->flags |= STREAM_INTRA_ONLY;
+      vs->gavl_flags &= ~GAVL_COMPRESSION_HAS_P_FRAMES;
       break;
     case 13:
     case 14:
@@ -245,7 +245,7 @@ static int parse_track(bgav_input_context_t * input,
         vs->fourcc = BGAV_MK_FOURCC('d','v','c',' ');
       else
         vs->fourcc = BGAV_MK_FOURCC('d','v','c','p');
-      vs->flags |= STREAM_INTRA_ONLY;
+      vs->gavl_flags &= ~GAVL_COMPRESSION_HAS_P_FRAMES;
       break;
     case 11:
     case 12:

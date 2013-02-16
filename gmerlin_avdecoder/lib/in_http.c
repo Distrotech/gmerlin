@@ -124,7 +124,7 @@ static int open_http(bgav_input_context_t * ctx, const char * url, char ** r)
   bgav_http_header_destroy(header);
   header = bgav_http_get_header(p->h);
   
-//  bgav_http_header_dump(header);
+  bgav_http_header_dump(header);
   
   var = bgav_http_header_get_var(header, "Content-Length");
   if(var)
@@ -302,6 +302,8 @@ static int read_shoutcast_metadata(bgav_input_context_t* ctx, int block)
     return 0;
     }
   meta_bytes = icy_len * 16;
+
+  //  fprintf(stderr, "Got metadata %d bytes\n", meta_bytes);
   
   if(meta_bytes)
     {
@@ -311,9 +313,12 @@ static int read_shoutcast_metadata(bgav_input_context_t* ctx, int block)
     
     if(read_data(ctx, (uint8_t*)meta_buffer, meta_bytes, 1) < meta_bytes)
       return 0;
+
+    //  bgav_hexdump((uint8_t*)meta_buffer, meta_bytes, 16);
     
-    if(ctx->opt->metadata_change_callback)
+    if(ctx->opt->metadata_change_callback && ctx->tt)
       {
+
       pos = meta_buffer;
       
       while(strncmp(pos, "StreamTitle='", 13))

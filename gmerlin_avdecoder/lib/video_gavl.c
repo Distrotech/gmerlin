@@ -26,7 +26,7 @@
 
 static int init_gavl(bgav_stream_t * s)
   {
-  s->flags |= STREAM_INTRA_ONLY;
+  s->gavl_flags &= ~GAVL_COMPRESSION_HAS_P_FRAMES;
   return 1;
   }
 

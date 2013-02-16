@@ -590,7 +590,7 @@ static int init_yuv4(bgav_stream_t * s)
 
   gavl_metadata_set(&s->m, GAVL_META_FORMAT,
                     "YUV 4:2:0 packed (yuv4)");
-  s->flags |= STREAM_INTRA_ONLY;
+  s->gavl_flags &= ~GAVL_COMPRESSION_HAS_P_FRAMES;
   
   priv = s->decoder_priv;
 

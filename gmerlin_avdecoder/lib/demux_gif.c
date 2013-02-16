@@ -162,7 +162,8 @@ static int open_gif(bgav_demuxer_context_t * ctx)
   ctx->tt = bgav_track_table_create(1);
   s = bgav_track_add_video_stream(ctx->tt->cur, ctx->opt);
   s->fourcc = BGAV_MK_FOURCC('g','i','f',' ');
-  s->flags |= STREAM_INTRA_ONLY;
+
+  s->gavl_flags &= ~GAVL_COMPRESSION_HAS_P_FRAMES;
 
   s->data.video.format.image_width  = sd.width;
   s->data.video.format.image_height = sd.height;

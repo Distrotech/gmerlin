@@ -520,11 +520,11 @@ static void handle_sps(bgav_video_parser_t * parser)
   parser->s->data.video.max_ref_frames = priv->sps.num_ref_frames;
         
   if(!priv->sps.frame_mbs_only_flag)
-    parser->s->flags |= STREAM_FIELD_PICTURES;
+    parser->s->gavl_flags |= GAVL_COMPRESSION_HAS_FIELD_PICTURES;
   
   if(!priv->sps.vui.bitstream_restriction_flag ||
      priv->sps.vui.num_reorder_frames)
-    parser->s->flags |= STREAM_B_FRAMES;
+    parser->s->gavl_flags |= GAVL_COMPRESSION_HAS_B_FRAMES;
   }
 
 static const uint8_t * get_nal_end(bgav_packet_t * p,

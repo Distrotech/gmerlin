@@ -350,39 +350,31 @@ typedef enum
 #define BGAV_ENDIANESS_BIG    1
 #define BGAV_ENDIANESS_LITTLE 2
 
-#define STREAM_INTRA_ONLY         (1<<0)
-#define STREAM_PARSE_FULL         (1<<1) /* Not frame aligned */
-#define STREAM_PARSE_FRAME        (1<<2) /* Frame aligned but no keyframes */
-#define STREAM_B_FRAMES           (1<<3)
-#define STREAM_DTS_ONLY           (1<<4)
-// #define STREAM_STILL_MODE         (1<<6)  /* Still image mode          */
-#define STREAM_STILL_SHOWN        (1<<7)  /* Still image already shown */
-#define STREAM_EOF_D              (1<<8)  /* End of file at demuxer    */
-#define STREAM_EOF_C              (1<<9)  /* End of file at codec      */
-#define STREAM_NEED_FRAMETYPES    (1<<10) /* Need frame types          */
-
-/* Stream can have a nonzero start time */
-// #define STREAM_NEED_START_TIME    (1<<11)
+#define STREAM_PARSE_FULL         (1<<0) /* Not frame aligned */
+#define STREAM_PARSE_FRAME        (1<<1) /* Frame aligned but no keyframes */
+#define STREAM_DTS_ONLY           (1<<2)
+#define STREAM_STILL_SHOWN        (1<<3)  /* Still image already shown */
+#define STREAM_EOF_D              (1<<4)  /* End of file at demuxer    */
+#define STREAM_EOF_C              (1<<5)  /* End of file at codec      */
+#define STREAM_NEED_FRAMETYPES    (1<<6) /* Need frame types          */
 
 /* Picture is available for immediate output */
-#define STREAM_HAVE_FRAME         (1<<12)
+#define STREAM_HAVE_FRAME         (1<<7)
 
 /* Already got the format from the parser */
-#define STREAM_PARSE_HAVE_FORMAT  (1<<13)
+#define STREAM_PARSE_HAVE_FORMAT  (1<<8)
 
-#define STREAM_RAW_PACKETS        (1<<14)
-#define STREAM_FIELD_PICTURES     (1<<15)
-#define STREAM_FILTER_PACKETS     (1<<16)
-#define STREAM_SBR                (1<<17)
-#define STREAM_NO_DURATIONS       (1<<18)
-#define STREAM_HAS_DTS            (1<<19)
-#define STREAM_B_PYRAMID          (1<<20)
+#define STREAM_RAW_PACKETS        (1<<9)
+#define STREAM_FILTER_PACKETS     (1<<10)
+#define STREAM_NO_DURATIONS       (1<<11)
+#define STREAM_HAS_DTS            (1<<12)
+#define STREAM_B_PYRAMID          (1<<13)
 
-#define STREAM_GOT_CI             (1<<21) // Compression info present
-#define STREAM_GOT_NO_CI          (1<<22) // Compression info tested but not present
-#define STREAM_DISCONT            (1<<23) // Stream is discontinuous
-#define STREAM_SUBREADER          (1<<24) // External subtitle file
-#define STREAM_STANDALONE         (1<<25) // Standalone decoder
+#define STREAM_GOT_CI             (1<<14) // Compression info present
+#define STREAM_GOT_NO_CI          (1<<15) // Compression info tested but not present
+#define STREAM_DISCONT            (1<<16) // Stream is discontinuous
+#define STREAM_SUBREADER          (1<<17) // External subtitle file
+#define STREAM_STANDALONE         (1<<18) // Standalone decoder
 
 
 /* Stream could not get exact compression info from the
@@ -398,8 +390,7 @@ typedef enum
 
 #define STREAM_SET_STILL(s) \
   s->data.video.format.framerate_mode = GAVL_FRAMERATE_STILL; \
-  s->flags |= STREAM_INTRA_ONLY;                              \
-  s->flags &= ~STREAM_B_FRAMES;
+  s->gavl_flags &= ~(GAVL_COMPRESSION_HAS_P_FRAMES|GAVL_COMPRESSION_HAS_B_FRAMES);
 
 #define STREAM_IS_STILL(s) \
   (s->data.video.format.framerate_mode == GAVL_FRAMERATE_STILL)
@@ -514,7 +505,9 @@ struct bgav_stream_s
    */
 
   int flags;
-
+  
+  uint32_t gavl_flags; // Flags identical to gavl_compression_info_t flags
+  
   /* Passed to gavl_[audio|video]_source_create() */
   int src_flags;
   

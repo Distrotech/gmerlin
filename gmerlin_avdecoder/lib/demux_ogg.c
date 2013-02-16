@@ -845,9 +845,9 @@ static int setup_track(bgav_demuxer_context_t * ctx, bgav_track_t * track,
 
         if(bgav_video_is_divx4(s->fourcc))
           {
-          s->flags |= (STREAM_B_FRAMES |
-                       STREAM_DTS_ONLY |
+          s->flags |= (STREAM_DTS_ONLY |
                        STREAM_PARSE_FRAME);
+          s->gavl_flags |= GAVL_COMPRESSION_HAS_B_FRAMES;
           }
         ogg_stream->header_packets_needed = 2;
         ogg_stream->header_packets_read = 1;

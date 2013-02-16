@@ -128,7 +128,7 @@ static int extract_header(bgav_video_parser_t * parser, bgav_packet_t * p,
 
   /* Other stuff */
   if(priv->sh.mpeg2 && priv->sh.ext.low_delay)
-    parser->s->flags &= ~STREAM_B_FRAMES;
+    parser->s->gavl_flags &= ~GAVL_COMPRESSION_HAS_B_FRAMES;
   
   parser->s->codec_bitrate = priv->sh.bitrate * 400;
 
@@ -451,13 +451,13 @@ void bgav_video_parser_init_mpeg12(bgav_video_parser_t * parser)
     parser->s->codec_bitrate =
       (((parser->s->fourcc & 0x0000FF00) >> 8) - '0') * 10000000;
     priv->d10 = 1;
-    parser->s->flags |= STREAM_INTRA_ONLY;
+    parser->s->gavl_flags &= ~GAVL_COMPRESSION_HAS_P_FRAMES;
     parser->format->interlace_mode = GAVL_INTERLACE_TOP_FIRST;
     }
 
   /* Set stream flags */
-  if(!(parser->s->flags & STREAM_INTRA_ONLY))
-    parser->s->flags |= STREAM_B_FRAMES;
+  if(parser->s->gavl_flags & GAVL_COMPRESSION_HAS_P_FRAMES)
+    parser->s->gavl_flags |= GAVL_COMPRESSION_HAS_B_FRAMES;
 
   }
 

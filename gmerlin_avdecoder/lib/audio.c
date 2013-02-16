@@ -491,9 +491,7 @@ int bgav_get_audio_compression_info(bgav_t * bgav, int stream,
     return 0;
     }
   s->ci.id = id;
-
-  if(s->flags & STREAM_SBR)
-    s->ci.flags |= GAVL_COMPRESSION_SBR;
+  s->ci.flags = s->gavl_flags;
   
   if(need_header)
     {
