@@ -339,7 +339,8 @@ gavftools_get_stream_actions(int num, gavf_stream_type_t type)
   int num_actions;
   bg_stream_action_t * actions;
   bg_stream_action_t * ret;
-
+  bg_stream_action_t def_action = BG_STREAM_ACTION_OFF;
+  
   if(!num)
     return NULL;
   
@@ -348,10 +349,12 @@ gavftools_get_stream_actions(int num, gavf_stream_type_t type)
     case GAVF_STREAM_AUDIO:
       actions = a_actions;
       num_actions = num_a_actions;
+      def_action = BG_STREAM_ACTION_READRAW;
       break;
     case GAVF_STREAM_VIDEO:
       actions = v_actions;
       num_actions = num_v_actions;
+      def_action = BG_STREAM_ACTION_READRAW;
       break;
     case GAVF_STREAM_TEXT:
       actions = t_actions;
@@ -365,6 +368,14 @@ gavftools_get_stream_actions(int num, gavf_stream_type_t type)
       return NULL;
     }
 
+  if(!num_actions)
+    {
+    ret = calloc(num, sizeof(*ret));
+    for(i = 0; i < num; i++)
+      ret[i] = def_action;
+    return ret;
+    }
+  
   ret = calloc(num, sizeof(*ret));
   
   i = num;
