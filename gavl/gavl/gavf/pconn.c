@@ -36,7 +36,7 @@ read_packet_func_buffer_cont(void * priv, gavl_packet_t ** p)
     /* Read header */
     if(!g->have_pkt_header && !gavf_packet_read_header(g))
       {
-      fprintf(stderr, "Have no header\n");
+      //      fprintf(stderr, "Have no header\n");
       return GAVL_SOURCE_EOF;
       }
     read_stream = gavf_find_stream_by_id(g, g->pkthdr.stream_id);
@@ -50,7 +50,7 @@ read_packet_func_buffer_cont(void * priv, gavl_packet_t ** p)
     gavf_buffer_reset(&g->pkt_buf);
     if(!gavf_read_gavl_packet(s->g->io, read_stream, read_packet))
       {
-      fprintf(stderr, "gavf_read_gavl_packet failed\n");
+      //  fprintf(stderr, "gavf_read_gavl_packet failed\n");
       return GAVL_SOURCE_EOF;
       }
     //    fprintf(stderr, "Got packet id: %d\n", read_stream->h->id);

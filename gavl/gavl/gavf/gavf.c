@@ -687,7 +687,9 @@ const gavf_packet_header_t * gavf_packet_read_header(gavf_t * g)
   
   if(g->eof)
     {
+#ifdef DUMP_EOF
     fprintf(stderr, "EOF 0\n");
+#endif
     return NULL;
     }
   
