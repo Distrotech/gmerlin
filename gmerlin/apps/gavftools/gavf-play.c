@@ -194,9 +194,10 @@ static void open_audio(audio_stream_t * as,
     {
     as->flags |= FLAG_HAS_DELAY;
     as->sink_int = as->plugin->get_sink(as->h->priv);
-    as->sink_ext = gavl_audio_sink_create(get_audio_frame,
-                                          put_audio_frame, as,
-                                          gavl_audio_sink_get_format(as->sink_int));
+    as->sink_ext =
+      gavl_audio_sink_create(get_audio_frame,
+                             put_audio_frame, as,
+                             gavl_audio_sink_get_format(as->sink_int));
     gavl_audio_connector_connect(s->aconn, as->sink_ext);
     }
   else
@@ -622,6 +623,7 @@ static bg_cmdline_arg_t global_options[] =
       .help_string = "Set input file or location",
       .callback =    opt_i,
     },
+    GAVFTOOLS_INPUT_OPTIONS,
     {
       .arg =         "-subrender",
       .help_arg =    "<options>",
@@ -718,6 +720,8 @@ int main(int argc, char ** argv)
   bg_cmdline_arg_set_parameters(global_options, "-vid", player.vs.parameters);
   bg_cmdline_arg_set_parameters(global_options, "-subrender",
                                 bg_text_renderer_get_parameters());
+  bg_cmdline_arg_set_parameters(global_options, "-iopt",
+                                bg_plug_get_input_parameters());
   
   bg_cmdline_init(&app_data);
   bg_cmdline_parse(global_options, &argc, &argv, NULL);
@@ -726,6 +730,10 @@ int main(int argc, char ** argv)
     return -1;
   
   in_plug = bg_plug_create_reader(plugin_reg);
+  bg_cfg_section_apply(gavftools_iopt_section(),
+                       bg_plug_get_input_parameters(),
+                       bg_plug_set_parameter,
+                       in_plug);
 
   /* Open */
 
@@ -850,6 +858,8 @@ int main(int argc, char ** argv)
 
     gavl_time_delay(&delay_time);
     }
+
+  bg_log(BG_LOG_INFO, LOG_DOMAIN, "Cleaning up");
   
   /* Cleanup */
   bg_mediaconnector_threads_stop(&conn);

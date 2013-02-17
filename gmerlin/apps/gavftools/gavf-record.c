@@ -33,7 +33,6 @@
 int got_sigint = 0;
 static void sigint_handler(int sig)
   {
-  fprintf(stderr, "\nCTRL+C caught\n");
   got_sigint = 1;
   }
 
@@ -311,6 +310,7 @@ static bg_cmdline_arg_t global_options[] =
       .help_string = "Set output file or location",
       .callback =    opt_out,
     },
+    GAVFTOOLS_OUTPUT_OPTIONS,
     GAVFTOOLS_VERBOSE_OPTIONS,
     {
       /* End */
@@ -352,9 +352,11 @@ int main(int argc, char ** argv)
   
   /* Initialize streams */
   recorder_init(&rec);
-  
-  global_options[0].parameters = rec.as.parameters;
-  global_options[1].parameters = rec.vs.parameters;
+
+  bg_cmdline_arg_set_parameters(global_options, "-aud", rec.as.parameters);
+  bg_cmdline_arg_set_parameters(global_options, "-vid", rec.vs.parameters);
+  bg_cmdline_arg_set_parameters(global_options, "-oopt",
+                                bg_plug_get_output_parameters());
   
   gavftools_set_compresspor_options(global_options);
     
@@ -363,6 +365,11 @@ int main(int argc, char ** argv)
   bg_cmdline_parse(global_options, &argc, &argv, NULL);
 
   out_plug = bg_plug_create_writer(plugin_reg);
+  bg_cfg_section_apply(gavftools_oopt_section(),
+                       bg_plug_get_output_parameters(),
+                       bg_plug_set_parameter,
+                       out_plug);
+  
   bg_plug_set_compressor_config(out_plug,
                                 gavftools_ac_params(),
                                 gavftools_vc_params(), NULL);
@@ -400,7 +407,14 @@ int main(int argc, char ** argv)
   /* Main loop */
   while(1)
     {
-    if(got_sigint || bg_mediaconnector_done(&conn))
+    if(got_sigint)
+      {
+      bg_log(BG_LOG_INFO, LOG_DOMAIN, "Caught Ctrl-C");
+      break;
+      }
+    
+    if(bg_mediaconnector_done(&conn) ||
+       bg_plug_got_error(out_plug))
       break;
     gavl_time_delay(&delay_time);
     }

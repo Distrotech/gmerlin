@@ -52,6 +52,11 @@ gavftools_vc_section(void);
 bg_cfg_section_t *
 gavftools_oc_section(void);
 
+bg_cfg_section_t *
+gavftools_iopt_section(void);
+
+bg_cfg_section_t *
+gavftools_oopt_section(void);
 
 void
 gavftools_opt_ac(void * data, int * argc, char *** _argv, int arg);
@@ -61,6 +66,12 @@ gavftools_opt_vc(void * data, int * argc, char *** _argv, int arg);
 
 void
 gavftools_opt_oc(void * data, int * argc, char *** _argv, int arg);
+
+void
+gavftools_opt_iopt(void * data, int * argc, char *** _argv, int arg);
+
+void
+gavftools_opt_oopt(void * data, int * argc, char *** _argv, int arg);
 
 void
 gavftools_opt_as(void * data, int * argc, char *** _argv, int arg);
@@ -76,6 +87,7 @@ gavftools_opt_ts(void * data, int * argc, char *** _argv, int arg);
 
 void
 gavftools_opt_v(void * data, int * argc, char *** _argv, int arg);
+
 
 bg_stream_action_t * gavftools_get_stream_actions(int num, gavf_stream_type_t type);
 
@@ -103,6 +115,23 @@ bg_stream_action_t * gavftools_get_stream_actions(int num, gavf_stream_type_t ty
     .help_string = "Set overlay compression options", \
     .callback =    gavftools_opt_oc, \
   }
+
+#define GAVFTOOLS_INPUT_OPTIONS \
+  { \
+    .arg =         "-iopt", \
+    .help_arg =    "<input_options>", \
+    .help_string = "", \
+    .callback =    gavftools_opt_iopt, \
+  }
+
+#define GAVFTOOLS_OUTPUT_OPTIONS                 \
+  { \
+    .arg =         "-oopt", \
+    .help_arg =    "<output_options>", \
+    .help_string = "", \
+    .callback =    gavftools_opt_oopt, \
+  }
+
 
 #define GAVFTOOLS_AUDIO_STREAM_OPTIONS \
   { \

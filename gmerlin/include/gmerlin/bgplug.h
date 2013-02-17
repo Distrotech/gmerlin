@@ -39,10 +39,10 @@ bg_plug_t * bg_plug_create_writer(bg_plugin_registry_t * plugin_reg);
 void bg_plug_destroy(bg_plug_t *);
 
 const bg_parameter_info_t *
-bg_plug_get_input_parameters(bg_plug_t * p);
+bg_plug_get_input_parameters();
 
 const bg_parameter_info_t *
-bg_plug_get_output_parameters(bg_plug_t * p);
+bg_plug_get_output_parameters();
 
 void bg_plug_set_parameter(void * data, const char * name,
                            const bg_parameter_value_t * val);

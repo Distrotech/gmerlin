@@ -296,6 +296,9 @@ gavf_io_t * bg_plug_io_open_location(const char * location,
                                      int wr, int * flags)
   {
   *flags = 0;
+
+  if(!location)
+    location = "-";
   
   if(!strcmp(location, "-"))
     return open_dash(wr, flags);

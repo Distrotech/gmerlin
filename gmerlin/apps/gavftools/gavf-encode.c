@@ -49,6 +49,7 @@ static bg_cmdline_arg_t global_options[] =
       .help_string = "Set input file or location",
       .callback =    opt_in,
     },
+    GAVFTOOLS_INPUT_OPTIONS,
     GAVFTOOLS_VERBOSE_OPTIONS,
     { /* End */ },
   };
@@ -87,6 +88,11 @@ int main(int argc, char ** argv)
 
   in_plug = bg_plug_create_reader(plugin_reg);
 
+  bg_cfg_section_apply(gavftools_iopt_section(),
+                       bg_plug_get_input_parameters(),
+                       bg_plug_set_parameter,
+                       in_plug);
+  
   /* Open */
 
   if(!bg_plug_open_location(in_plug, input_file, NULL, NULL))

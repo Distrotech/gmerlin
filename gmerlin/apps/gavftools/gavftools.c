@@ -51,6 +51,9 @@ static bg_cfg_section_t * ac_section = NULL;
 static bg_cfg_section_t * vc_section = NULL;
 static bg_cfg_section_t * oc_section = NULL;
 
+static bg_cfg_section_t * iopt_section = NULL;
+static bg_cfg_section_t * oopt_section = NULL;
+
 static bg_parameter_info_t * ac_parameters = NULL;
 static bg_parameter_info_t * vc_parameters = NULL;
 static bg_parameter_info_t * oc_parameters = NULL;
@@ -67,7 +70,7 @@ static int num_t_actions = 0;
 static bg_stream_action_t * o_actions = NULL;
 static int num_o_actions = 0;
 
-void gavftools_cleanup()
+void gavftools_cleanup(int save_regs)
   {
   bg_plugin_registry_destroy(plugin_reg);
   bg_cfg_registry_destroy(cfg_reg);
@@ -76,6 +79,14 @@ void gavftools_cleanup()
     bg_cfg_section_destroy(ac_section);
   if(vc_section)
     bg_cfg_section_destroy(vc_section);
+  if(oc_section)
+    bg_cfg_section_destroy(oc_section);
+
+  if(iopt_section)
+    bg_cfg_section_destroy(iopt_section);
+  if(oopt_section)
+    bg_cfg_section_destroy(oopt_section);
+  
   if(ac_parameters)
     bg_parameter_info_destroy_array(ac_parameters);
   if(vc_section)
@@ -156,9 +167,30 @@ bg_cfg_section_t * gavftools_oc_section(void)
       bg_cfg_section_create_from_parameters("oc",
                                             gavftools_oc_params());
     }
-  return vc_section;
+  return oc_section;
   }
 
+bg_cfg_section_t * gavftools_iopt_section(void)
+  {
+  if(!iopt_section)
+    {
+    iopt_section =
+      bg_cfg_section_create_from_parameters("iopt",
+                                            bg_plug_get_input_parameters());
+    }
+  return iopt_section;
+  }
+
+bg_cfg_section_t * gavftools_oopt_section(void)
+  {
+  if(!oopt_section)
+    {
+    oopt_section =
+      bg_cfg_section_create_from_parameters("oopt",
+                                            bg_plug_get_output_parameters());
+    }
+  return oopt_section;
+  }
 
 void
 gavftools_opt_ac(void * data, int * argc, char *** _argv, int arg)
@@ -211,6 +243,41 @@ gavftools_opt_oc(void * data, int * argc, char *** _argv, int arg)
     exit(-1);
   bg_cmdline_remove_arg(argc, _argv, arg);
   }
+
+void
+gavftools_opt_iopt(void * data, int * argc, char *** _argv, int arg)
+  {
+  if(arg >= *argc)
+    {
+    fprintf(stderr, "Option -iopt requires an argument\n");
+    exit(-1);
+    }
+  if(!bg_cmdline_apply_options(gavftools_iopt_section(),
+                               NULL,
+                               NULL,
+                               bg_plug_get_input_parameters(),
+                               (*_argv)[arg]))
+    exit(-1);
+  bg_cmdline_remove_arg(argc, _argv, arg);
+  }
+
+void
+gavftools_opt_oopt(void * data, int * argc, char *** _argv, int arg)
+  {
+  if(arg >= *argc)
+    {
+    fprintf(stderr, "Option -oopt requires an argument\n");
+    exit(-1);
+    }
+  if(!bg_cmdline_apply_options(gavftools_oopt_section(),
+                               NULL,
+                               NULL,
+                               bg_plug_get_output_parameters(),
+                               (*_argv)[arg]))
+    exit(-1);
+  bg_cmdline_remove_arg(argc, _argv, arg);
+  }
+
 
 
 void

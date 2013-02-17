@@ -20,9 +20,28 @@
  * *****************************************************************/
 
 #include <string.h>
+#include <signal.h>
 
 #include "gavftools.h"
 #define LOG_DOMAIN "gavf-decode"
+
+int got_sigint = 0;
+static void sigint_handler(int sig)
+  {
+  got_sigint = 1;
+  }
+
+static void set_sigint_handler()
+  {
+  struct sigaction sa;
+  sa.sa_flags = 0;
+  sigemptyset(&sa.sa_mask);
+  sa.sa_handler = sigint_handler;
+  if (sigaction(SIGINT, &sa, NULL) == -1)
+    {
+    fprintf(stderr, "sigaction failed\n");
+    }
+  }
 
 static const char * input_file   = NULL;
 static const char * input_plugin = NULL;
@@ -30,7 +49,7 @@ static bg_plug_t * out_plug = NULL;
 int use_edl = 0;
 int track;
 
-static char * outfile = "-";
+static char * outfile = NULL;
 
 static void opt_t(void * data, int * argc, char *** _argv, int arg)
   {
@@ -122,6 +141,7 @@ static bg_cmdline_arg_t global_options[] =
       .help_string = "Set output file or location",
       .callback =    opt_out,
     },
+    GAVFTOOLS_OUTPUT_OPTIONS,
     GAVFTOOLS_VERBOSE_OPTIONS,
     {
       /* End */
@@ -173,10 +193,10 @@ int main(int argc, char ** argv)
   cb_data_t cb_data;
   bg_track_info_t * track_info;
 
-  bg_stream_action_t * audio_actions;
-  bg_stream_action_t * video_actions;
-  bg_stream_action_t * text_actions;
-  bg_stream_action_t * overlay_actions;
+  bg_stream_action_t * audio_actions = NULL;
+  bg_stream_action_t * video_actions = NULL;
+  bg_stream_action_t * text_actions = NULL;
+  bg_stream_action_t * overlay_actions = NULL;
 
   gavl_audio_source_t * asrc;
   gavl_video_source_t * vsrc;
@@ -192,6 +212,10 @@ int main(int argc, char ** argv)
   gavftools_init_registries();
 
   gavftools_set_compresspor_options(global_options);
+
+  bg_cmdline_arg_set_parameters(global_options, "-oopt",
+                                bg_plug_get_output_parameters());
+
   
   /* Handle commandline options */
   bg_cmdline_init(&app_data);
@@ -202,7 +226,11 @@ int main(int argc, char ** argv)
   
   /* Create out plug */
   out_plug = bg_plug_create_writer(plugin_reg);
-
+  bg_cfg_section_apply(gavftools_oopt_section(),
+                       bg_plug_get_output_parameters(),
+                       bg_plug_set_parameter,
+                       out_plug);
+  
   cb_data.out_plug = out_plug;
   cb.data = &cb_data;
   cb.metadata_changed = update_metadata;
@@ -435,10 +463,18 @@ int main(int argc, char ** argv)
   
   ret = 1;
 
+  set_sigint_handler();
+  
   bg_mediaconnector_start(&conn);
 
   while(1)
     {
+    if(got_sigint)
+      {
+      bg_log(BG_LOG_INFO, LOG_DOMAIN, "Caught Ctrl-C");
+      break;
+      }
+    
     if(bg_plug_got_error(out_plug) ||
        !bg_mediaconnector_iteration(&conn))
       break;
@@ -446,6 +482,8 @@ int main(int argc, char ** argv)
   ret = 0;
   fail:
 
+  bg_log(BG_LOG_INFO, LOG_DOMAIN, "Cleaning up");
+  
   /* Cleanup */
   if(audio_actions)
     free(audio_actions);

@@ -48,13 +48,13 @@
 #include <gmerlin/translation.h>
 #include <gmerlin/log.h>
 
-
 #define LOG_DOMAIN "plug"
 
 #define META_SHM_SIZE     "bgplug_shm_size"
 #define META_RETURN_QUEUE "bgplug_return_queue"
 
-#define SHM_THRESHOLD 1024 // Minimum max_packet_size to switch to shm
+// #define SHM_THRESHOLD 1024 // Minimum max_packet_size to switch to shm
+
 
 typedef struct
   {
@@ -124,10 +124,8 @@ struct bg_plug_s
 
   int num_overlay_streams;
   stream_t * overlay_streams;
-
-  
   int io_flags;  
-
+  
   bg_plugin_registry_t * plugin_reg;
   gavf_options_t * opt;
 
@@ -138,9 +136,10 @@ struct bg_plug_s
   pthread_mutex_t mutex;
   
   gavl_packet_t skip_packet;
-
+  
   int got_error;
-
+  int shm_threshold;
+  
 #ifdef HAVE_MQ
   mqd_t mq;
   int mq_id;
@@ -308,9 +307,9 @@ static bg_plug_t * create_common()
   ret->mq = -1;
 #endif
   
-  gavf_options_set_flags(ret->opt,
-                         GAVF_OPT_FLAG_DUMP_HEADERS |
-                         GAVF_OPT_FLAG_DUMP_METADATA);
+  //  gavf_options_set_flags(ret->opt,
+  //                         GAVF_OPT_FLAG_DUMP_HEADERS |
+  //                         GAVF_OPT_FLAG_DUMP_METADATA);
   
   pthread_mutex_init(&ret->mutex, NULL);
 
@@ -431,23 +430,85 @@ void bg_plug_destroy(bg_plug_t * p)
   free(p);
   }
 
-const bg_parameter_info_t *
-bg_plug_get_input_parameters(bg_plug_t * p)
+static const bg_parameter_info_t input_parameters[] =
   {
-  return NULL;
+    {
+      .name = "dh",
+      .long_name = TRS("Dump gavf headers"),
+      .type = BG_PARAMETER_CHECKBUTTON,
+      .help_string = TRS("Use this for debugging"),
+    },
+    {
+      .name = "dp",
+      .long_name = TRS("Dump gavf packets"),
+      .type = BG_PARAMETER_CHECKBUTTON,
+      .help_string = TRS("Use this for debugging"),
+    },
+    {
+      .name = "dm",
+      .long_name = TRS("Dump inline metadata"),
+      .type = BG_PARAMETER_CHECKBUTTON,
+      .help_string = TRS("Use this for debugging"),
+    },
+    { /* End */ },
+  };
+
+static const bg_parameter_info_t output_parameters[] =
+  {
+    {
+      .name = "shm",
+      .long_name = TRS("SHM threshold"),
+      .type = BG_PARAMETER_INT,
+      .val_default = { .val_i = 1024 },
+      .help_string = TRS("Select the minimum packet size for using shared memory for a stream. Non-positive values disable shared memory completely"),
+    },
+    { /* End */ }
+  };
+
+const bg_parameter_info_t *
+bg_plug_get_input_parameters()
+  {
+  return input_parameters;
   }
 
 const bg_parameter_info_t *
-bg_plug_get_output_parameters(bg_plug_t * p)
+bg_plug_get_output_parameters()
   {
-  return NULL;
+  return output_parameters;
   }
+
+#define SET_GAVF_FLAG(f) \
+  int flags = gavf_options_get_flags(p->opt); \
+  if(val->val_i) \
+    flags |= f; \
+  else \
+    flags &= ~f; \
+  gavf_options_set_flags(p->opt, flags);
 
 void bg_plug_set_parameter(void * data, const char * name,
                            const bg_parameter_value_t * val)
   {
-
+  bg_plug_t * p = data;
+  
+  if(!name)
+    return;
+  else if(!strcmp(name, "dh"))
+    {
+    SET_GAVF_FLAG(GAVF_OPT_FLAG_DUMP_HEADERS);
+    }
+  else if(!strcmp(name, "dp"))
+    {
+    SET_GAVF_FLAG(GAVF_OPT_FLAG_DUMP_PACKETS);
+    }
+  else if(!strcmp(name, "dm"))
+    {
+    SET_GAVF_FLAG(GAVF_OPT_FLAG_DUMP_METADATA);
+    }
+  else if(!strcmp(name, "shm"))
+    p->shm_threshold = val->val_i;
   }
+
+#undef SET_GAVF_FLAG
 
 /* Read/write */
 
@@ -967,7 +1028,8 @@ static void check_shm_write(bg_plug_t * p, stream_t * s)
   {
 #ifdef HAVE_MQ
   if((p->io_flags & BG_PLUG_IO_IS_LOCAL) &&
-     (s->ci.max_packet_size > SHM_THRESHOLD))
+     (p->shm_threshold > 0) &&
+     (s->ci.max_packet_size > p->shm_threshold))
     {
     s->shm_size = s->ci.max_packet_size + GAVL_PACKET_PADDING;
     s->sp = bg_shm_pool_create(s->shm_size, 1);
