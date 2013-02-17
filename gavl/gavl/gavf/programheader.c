@@ -182,16 +182,78 @@ void gavf_program_header_free(gavf_program_header_t * ph)
 
 void gavf_program_header_dump(gavf_program_header_t * ph)
   {
-  int i;
+  int i, num;
+  const gavf_stream_header_t * h;
   
   fprintf(stderr, "Program header\n");
   fprintf(stderr, "  Metadata\n");
   gavl_metadata_dump(&ph->m, 4);
 
-  for(i = 0; i < ph->num_streams; i++)
+  num = gavf_program_header_get_num_streams(ph, GAVF_STREAM_AUDIO);
+  for(i = 0; i < num; i++)
     {
-    fprintf(stderr, "  Stream %d\n", i+1);
-    gavf_stream_header_dump(&ph->streams[i]);
+    h = gavf_program_header_get_stream(ph, i, GAVF_STREAM_AUDIO);
+    fprintf(stderr, "  Audio stream %d\n", i+1);
+    gavf_stream_header_dump(h);
+    }
+
+  num = gavf_program_header_get_num_streams(ph, GAVF_STREAM_VIDEO);
+  for(i = 0; i < num; i++)
+    {
+    h = gavf_program_header_get_stream(ph, i, GAVF_STREAM_VIDEO);
+    fprintf(stderr, "  Video stream %d\n", i+1);
+    gavf_stream_header_dump(h);
+    }
+
+  num = gavf_program_header_get_num_streams(ph, GAVF_STREAM_TEXT);
+  for(i = 0; i < num; i++)
+    {
+    h = gavf_program_header_get_stream(ph, i, GAVF_STREAM_TEXT);
+    fprintf(stderr, "  Text stream %d\n", i+1);
+    gavf_stream_header_dump(h);
+    }
+
+  num = gavf_program_header_get_num_streams(ph, GAVF_STREAM_OVERLAY);
+  for(i = 0; i < num; i++)
+    {
+    h = gavf_program_header_get_stream(ph, i, GAVF_STREAM_OVERLAY);
+    fprintf(stderr, "  Overlay stream %d\n", i+1);
+    gavf_stream_header_dump(h);
     }
   
   }
+
+int
+gavf_program_header_get_num_streams(const gavf_program_header_t * ph,
+                                    int type)
+  {
+  int i;
+  int ret = 0;
+
+  for(i = 0; i < ph->num_streams; i++)
+    {
+    if(ph->streams[i].type == type)
+      ret++;
+    }
+  return ret;
+  }
+
+const gavf_stream_header_t *
+gavf_program_header_get_stream(const gavf_program_header_t * ph,
+                               int index, int type)
+  {
+  int i;
+  int idx = 0;
+  
+  for(i = 0; i < ph->num_streams; i++)
+    {
+    if(ph->streams[i].type == type)
+      {
+      if(idx == index)
+        return &ph->streams[i];
+      idx++;
+      }
+    }
+  return NULL;
+  }
+

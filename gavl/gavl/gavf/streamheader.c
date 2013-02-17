@@ -115,7 +115,7 @@ static const char * get_type_name(int type)
   }
 #endif
 
-void gavf_stream_header_dump(gavf_stream_header_t * h)
+void gavf_stream_header_dump(const gavf_stream_header_t * h)
   {
   fprintf(stderr, "    Type: %d (%s)\n", h->type,
           gavf_stream_type_name(h->type));

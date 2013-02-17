@@ -102,12 +102,20 @@ typedef struct
   gavf_stream_footer_t foot;
   } gavf_stream_header_t;
 
+GAVL_PUBLIC
+void gavf_stream_header_dump(const gavf_stream_header_t * h);
+
+
 typedef struct
   {
   uint32_t num_streams;
   gavf_stream_header_t * streams;
   gavl_metadata_t m;
   } gavf_program_header_t;
+
+GAVL_PUBLIC
+void gavf_program_header_dump(gavf_program_header_t * ph);
+
 
 typedef struct
   {

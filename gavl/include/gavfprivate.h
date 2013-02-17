@@ -104,7 +104,6 @@ int gavf_stream_header_write(gavf_io_t * io, const gavf_stream_header_t * h);
 void gavf_stream_header_init_audio(gavf_stream_header_t * h);
 void gavf_stream_header_init_video(gavf_stream_header_t * h);
 void gavf_stream_header_init_text(gavf_stream_header_t * h);
-void gavf_stream_header_dump(gavf_stream_header_t * h);
 void gavf_stream_header_apply_footer(gavf_stream_header_t * h);
 
 /* Program header */
@@ -128,7 +127,14 @@ int gavf_program_header_read(gavf_io_t * io, gavf_program_header_t * ph);
 int gavf_program_header_write(gavf_io_t * io,
                               const gavf_program_header_t * ph);
 void gavf_program_header_free(gavf_program_header_t * ph);
-void gavf_program_header_dump(gavf_program_header_t * ph);
+
+int
+gavf_program_header_get_num_streams(const gavf_program_header_t * ph,
+                                    int type);
+
+const gavf_stream_header_t *
+gavf_program_header_get_stream(const gavf_program_header_t * ph,
+                               int index, int type);
 
 
 /* Packetbuffer */

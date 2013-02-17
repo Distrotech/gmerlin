@@ -1302,32 +1302,12 @@ gavf_stream_t * gavf_find_stream_by_id(gavf_t * g, uint32_t id)
 
 int gavf_get_num_streams(gavf_t * g, int type)
   {
-  int i;
-  int ret = 0;
-
-  for(i = 0; i < g->ph.num_streams; i++)
-    {
-    if(g->ph.streams[i].type == type)
-      ret++;
-    }
-  return ret;
+  return gavf_program_header_get_num_streams(&g->ph, type);
   }
 
 const gavf_stream_header_t * gavf_get_stream(gavf_t * g, int index,
                                              int type)
   {
-  int i;
-  int idx = 0;
-  
-  for(i = 0; i < g->ph.num_streams; i++)
-    {
-    if(g->ph.streams[i].type == type)
-      {
-      if(idx == index)
-        return &g->ph.streams[i];
-      idx++;
-      }
-    }
-  return NULL;
+  return gavf_program_header_get_stream(&g->ph, index, type);
   }
 
