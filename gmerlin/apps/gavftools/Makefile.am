@@ -24,6 +24,7 @@ AM_LDFLAGS = @GMERLIN_EXE_LDFLAGS@
 bin_PROGRAMS = \
 gavf-decode \
 gavf-encode \
+gavf-info \
 gavf-record \
 gavf-play
 

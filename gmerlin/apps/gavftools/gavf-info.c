@@ -21,28 +21,22 @@
 
 #include "gavftools.h"
 
-#include <gmerlin/encoder.h>
-
-static bg_plug_t * in_plug = NULL;
-
-#define LOG_DOMAIN "gavf-play"
-
-
 static bg_cmdline_arg_t global_options[] =
   {
     GAVFTOOLS_INPLUG_OPTIONS,
-    GAVFTOOLS_VERBOSE_OPTIONS,
-    { /* End */ },
+    {
+      /* End */
+    }
   };
 
 const bg_cmdline_app_data_t app_data =
   {
     .package =  PACKAGE,
     .version =  VERSION,
-    .name =     "gavf-encode",
-    .long_name = TRS("Encode a gavf stream to another format"),
+    .name =     "gavf-info",
+    .long_name = TRS("Print info about a gavf stream and exit"),
     .synopsis = TRS("[options]\n"),
-    .help_before = TRS("gavf encoder\n"),
+    .help_before = TRS("gavf info\n"),
     .args = (bg_cmdline_arg_array_t[]) { { TRS("Options"), global_options },
                                        {  } },
     .files = (bg_cmdline_ext_doc_t[])
@@ -52,37 +46,39 @@ const bg_cmdline_app_data_t app_data =
         TRS("Default plugin parameters are read from there. Use gmerlin_plugincfg to change them.") },
       { /* End */ }
     },
-
   };
-
 
 int main(int argc, char ** argv)
   {
   int ret = 1;
-  bg_mediaconnector_t conn;
-
-  bg_mediaconnector_init(&conn);
-  gavftools_init();
+  bg_plug_t * in_plug;
+  gavf_t * g;
+  gavf_program_header_t * ph;
   
+  gavftools_init();
+
   bg_cmdline_init(&app_data);
   bg_cmdline_parse(global_options, &argc, &argv, NULL);
 
+  if(!bg_cmdline_check_unsupported(argc, argv))
+    return -1;
+
   in_plug = gavftools_create_in_plug();
-  
-  /* Open */
 
   if(!bg_plug_open_location(in_plug, gavftools_in_file, NULL, NULL))
     return ret;
 
-  /* Check for stream copying */
+  g = bg_plug_get_gavf(in_plug);
 
-  /* Select streams */
-  
-  /* Set up encoder */
+  ph = gavf_get_program_header(g);
 
-  /* Main loop */
+  /* Dump info */
+  gavf_program_header_dump(ph);
 
-  /* Cleanup */
+  bg_plug_destroy(in_plug);
 
-  return 0;
+  gavftools_cleanup();
+
+  ret = 0;
+  return ret;
   }

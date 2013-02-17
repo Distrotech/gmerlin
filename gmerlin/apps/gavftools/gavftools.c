@@ -509,3 +509,25 @@ gavftools_set_compresspor_options(bg_cmdline_arg_t * global_options)
     }
   }
 
+
+bg_plug_t * gavftools_create_in_plug()
+  {
+  bg_plug_t * in_plug;
+  in_plug = bg_plug_create_reader(plugin_reg);
+  bg_cfg_section_apply(gavftools_iopt_section(),
+                       bg_plug_get_input_parameters(),
+                       bg_plug_set_parameter,
+                       in_plug);
+  return in_plug;
+  }
+
+bg_plug_t * gavftools_create_out_plug()
+  {
+  bg_plug_t * out_plug;
+  out_plug = bg_plug_create_writer(plugin_reg);
+  bg_cfg_section_apply(gavftools_oopt_section(),
+                       bg_plug_get_output_parameters(),
+                       bg_plug_set_parameter,
+                       out_plug);
+  return out_plug;
+  }

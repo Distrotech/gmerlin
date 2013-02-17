@@ -93,6 +93,9 @@ gavftools_opt_ts(void * data, int * argc, char *** _argv, int arg);
 void
 gavftools_opt_v(void * data, int * argc, char *** _argv, int arg);
 
+bg_plug_t * gavftools_create_in_plug();
+bg_plug_t * gavftools_create_out_plug();
+
 
 bg_stream_action_t * gavftools_get_stream_actions(int num, gavf_stream_type_t type);
 
@@ -121,7 +124,13 @@ bg_stream_action_t * gavftools_get_stream_actions(int num, gavf_stream_type_t ty
     .callback =    gavftools_opt_oc, \
   }
 
-#define GAVFTOOLS_INPUT_OPTIONS \
+#define GAVFTOOLS_INPLUG_OPTIONS                \
+  {                                             \
+    .arg =         "-i",                        \
+    .help_arg =    "<input_file>",                 \
+    .help_string = TRS("Input file or location"),  \
+    .argv    =    &gavftools_in_file,              \
+  },                                             \
   { \
     .arg =         "-iopt", \
     .help_arg =    "<input_options>", \
@@ -129,29 +138,21 @@ bg_stream_action_t * gavftools_get_stream_actions(int num, gavf_stream_type_t ty
     .callback =    gavftools_opt_iopt, \
   }
 
-#define GAVFTOOLS_OUTPUT_OPTIONS                 \
-  { \
-    .arg =         "-oopt", \
-    .help_arg =    "<output_options>", \
-    .help_string = "", \
-    .callback =    gavftools_opt_oopt, \
-  }
 
-#define GAVFTOOLS_INPUT_FILE \
-  { \
-    .arg =         "-i", \
-    .help_arg =    "<input_file>", \
-    .help_string = TRS("Input file or location"),  \
-    .argv    =    &gavftools_in_file, \
-  }
-
-#define GAVFTOOLS_OUTPUT_FILE                 \
+#define GAVFTOOLS_OUTPLUG_OPTIONS                \
   { \
     .arg =         "-o", \
     .help_arg =    "<output>", \
     .help_string = TRS("Output file or location"), \
     .argv    =    &gavftools_out_file, \
+  }, \
+  {                                       \
+    .arg =         "-oopt",                     \
+    .help_arg =    "<output_options>",          \
+    .help_string = TRS("options"),              \
+    .callback =    gavftools_opt_oopt,          \
   }
+
 
 #define GAVFTOOLS_AUDIO_STREAM_OPTIONS \
   { \

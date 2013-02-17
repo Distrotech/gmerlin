@@ -40,8 +40,6 @@ static bg_plug_t * out_plug = NULL;
 static bg_cfg_section_t * audio_section = NULL;
 static bg_cfg_section_t * video_section = NULL;
 
-static char * outfile = "-";
-
 /* Recorder module */
 
 static const bg_parameter_info_t audio_parameters[] =
@@ -260,17 +258,6 @@ static void opt_vid(void * data, int * argc, char *** _argv, int arg)
   bg_cmdline_remove_arg(argc, _argv, arg);
   }
 
-static void opt_out(void * data, int * argc, char *** _argv, int arg)
-  {
-  if(arg >= *argc)
-    {
-    fprintf(stderr, "Option -o requires an argument\n");
-    exit(-1);
-    }
-  outfile = (*_argv)[arg];
-  bg_cmdline_remove_arg(argc, _argv, arg);
-  }
-
 static bg_cmdline_arg_t global_options[] =
   {
     {
@@ -287,13 +274,7 @@ static bg_cmdline_arg_t global_options[] =
     },
     GAVFTOOLS_AUDIO_COMPRESSOR_OPTIONS,
     GAVFTOOLS_VIDEO_COMPRESSOR_OPTIONS,
-    {
-      .arg =         "-o",
-      .help_arg =    "<location>",
-      .help_string = "Set output file or location",
-      .callback =    opt_out,
-    },
-    GAVFTOOLS_OUTPUT_OPTIONS,
+    GAVFTOOLS_OUTPLUG_OPTIONS,
     GAVFTOOLS_VERBOSE_OPTIONS,
     {
       /* End */
@@ -347,11 +328,7 @@ int main(int argc, char ** argv)
   bg_cmdline_init(&app_data);
   bg_cmdline_parse(global_options, &argc, &argv, NULL);
 
-  out_plug = bg_plug_create_writer(plugin_reg);
-  bg_cfg_section_apply(gavftools_oopt_section(),
-                       bg_plug_get_output_parameters(),
-                       bg_plug_set_parameter,
-                       out_plug);
+  out_plug = gavftools_create_out_plug();
   
   bg_plug_set_compressor_config(out_plug,
                                 gavftools_ac_params(),
@@ -365,7 +342,7 @@ int main(int argc, char ** argv)
     }
 
   /* Open output plug */
-  if(!bg_plug_open_location(out_plug, outfile,
+  if(!bg_plug_open_location(out_plug, gavftools_out_file,
                             (const gavl_metadata_t *)0,
                             (const gavl_chapter_list_t*)0))
     goto the_end;

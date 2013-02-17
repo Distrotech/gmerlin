@@ -45,7 +45,7 @@ static bg_cfg_section_t * subrender_section = NULL;
  *  >= 0: Select by index, complain if stream is missing
  */
 
-static int audio_stream   = -2; // Select 0 ad default
+static int audio_stream   = -2; // Select 0 as default
 static int video_stream   = -2; // Select 0 as default
 static int text_stream    = -1;
 static int overlay_stream = -1;
@@ -592,8 +592,7 @@ static bg_cmdline_arg_t global_options[] =
       .help_string = "Select overlay stream (default: disabled)",
       .callback =    opt_os,
     },
-    GAVFTOOLS_INPUT_FILE,
-    GAVFTOOLS_INPUT_OPTIONS,
+    GAVFTOOLS_INPLUG_OPTIONS,
     {
       .arg =         "-subrender",
       .help_arg =    "<options>",
@@ -698,13 +697,9 @@ int main(int argc, char ** argv)
 
   if(!bg_cmdline_check_unsupported(argc, argv))
     return -1;
-  
-  in_plug = bg_plug_create_reader(plugin_reg);
-  bg_cfg_section_apply(gavftools_iopt_section(),
-                       bg_plug_get_input_parameters(),
-                       bg_plug_set_parameter,
-                       in_plug);
 
+  in_plug = gavftools_create_in_plug();
+  
   /* Open */
 
   if(!bg_plug_open_location(in_plug, gavftools_in_file, NULL, NULL))
