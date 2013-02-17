@@ -30,23 +30,6 @@
 
 #define LOG_DOMAIN "gavf-record"
 
-int got_sigint = 0;
-static void sigint_handler(int sig)
-  {
-  got_sigint = 1;
-  }
-
-static void set_sigint_handler()
-  {
-  struct sigaction sa;
-  sa.sa_flags = 0;
-  sigemptyset(&sa.sa_mask);
-  sa.sa_handler = sigint_handler;
-  if (sigaction(SIGINT, &sa, NULL) == -1)
-    {
-    fprintf(stderr, "sigaction failed\n");
-    }
-  }
 
 
 /* Global stuff */
@@ -346,7 +329,7 @@ int main(int argc, char ** argv)
   gavftools_block_sigpipe();
   bg_mediaconnector_init(&conn);
   
-  gavftools_init_registries();
+  gavftools_init();
   
   /* Create plugin regsitry */
   
@@ -393,10 +376,7 @@ int main(int argc, char ** argv)
     bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Setting up plug writer failed");
     goto the_end;
     }
-
   
-  set_sigint_handler();
-
   /* Initialize threads */
   bg_mediaconnector_start(&conn);
   bg_mediaconnector_create_threads(&conn, 0);
@@ -407,13 +387,8 @@ int main(int argc, char ** argv)
   /* Main loop */
   while(1)
     {
-    if(got_sigint)
-      {
-      bg_log(BG_LOG_INFO, LOG_DOMAIN, "Caught Ctrl-C");
-      break;
-      }
-    
-    if(bg_mediaconnector_done(&conn) ||
+    if(gavftools_stop() ||
+       bg_mediaconnector_done(&conn) ||
        bg_plug_got_error(out_plug))
       break;
     gavl_time_delay(&delay_time);

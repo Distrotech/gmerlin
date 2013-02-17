@@ -417,9 +417,10 @@ static int check_option(const bg_parameter_info_t * info,
 
 
 /* Returns characters read or 0 */
-int bg_cfg_section_set_parameters_from_string(bg_cfg_section_t * sec,
-                                              const bg_parameter_info_t * parameters,
-                                              const char * str_start)
+int
+bg_cfg_section_set_parameters_from_string(bg_cfg_section_t * sec,
+                                          const bg_parameter_info_t * parameters,
+                                          const char * str_start)
   {
   FILE * out = stderr;
   char * end;

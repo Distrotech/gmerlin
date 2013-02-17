@@ -25,25 +25,7 @@
 #include "gavftools.h"
 #define LOG_DOMAIN "gavf-decode"
 
-int got_sigint = 0;
-static void sigint_handler(int sig)
-  {
-  got_sigint = 1;
-  }
-
-static void set_sigint_handler()
-  {
-  struct sigaction sa;
-  sa.sa_flags = 0;
-  sigemptyset(&sa.sa_mask);
-  sa.sa_handler = sigint_handler;
-  if (sigaction(SIGINT, &sa, NULL) == -1)
-    {
-    fprintf(stderr, "sigaction failed\n");
-    }
-  }
-
-static const char * input_file   = NULL;
+static char * input_file   = NULL;
 static const char * input_plugin = NULL;
 static bg_plug_t * out_plug = NULL;
 int use_edl = 0;
@@ -59,18 +41,6 @@ static void opt_t(void * data, int * argc, char *** _argv, int arg)
     exit(-1);
     }
   track = atoi((*_argv)[arg]) - 1;
-  bg_cmdline_remove_arg(argc, _argv, arg);
-  }
-
-
-static void opt_in(void * data, int * argc, char *** _argv, int arg)
-  {
-  if(arg >= *argc)
-    {
-    fprintf(stderr, "Option -i requires an argument\n");
-    exit(-1);
-    }
-  input_file = (*_argv)[arg];
   bg_cmdline_remove_arg(argc, _argv, arg);
   }
 
@@ -108,7 +78,7 @@ static bg_cmdline_arg_t global_options[] =
       .arg =         "-i",
       .help_arg =    "<location>",
       .help_string = "Set input file or location",
-      .callback =    opt_in,
+      .argv     =    &input_file,
     },
     {
       .arg =         "-p",
@@ -209,7 +179,7 @@ int main(int argc, char ** argv)
   
   gavftools_block_sigpipe();
   bg_mediaconnector_init(&conn);
-  gavftools_init_registries();
+  gavftools_init();
 
   gavftools_set_compresspor_options(global_options);
 
@@ -463,19 +433,12 @@ int main(int argc, char ** argv)
   
   ret = 1;
 
-  set_sigint_handler();
-  
   bg_mediaconnector_start(&conn);
 
   while(1)
     {
-    if(got_sigint)
-      {
-      bg_log(BG_LOG_INFO, LOG_DOMAIN, "Caught Ctrl-C");
-      break;
-      }
-    
-    if(bg_plug_got_error(out_plug) ||
+    if(gavftools_stop() ||
+       bg_plug_got_error(out_plug) ||
        !bg_mediaconnector_iteration(&conn))
       break;
     }

@@ -25,11 +25,42 @@
 
 #include "gavftools.h"
 
+#define LOG_DOMAIN "gavftools"
+
 bg_plugin_registry_t * plugin_reg;
 bg_cfg_registry_t * cfg_reg;
 
+char * gavftools_in_file  = NULL;
+char * gavftools_out_file = NULL;
 
-void gavftools_init_registries()
+static int got_sigint = 0;
+struct sigaction old_sigaction;
+
+static void sigint_handler(int sig)
+  {
+  got_sigint = 1;
+  sigaction(SIGINT, &old_sigaction, 0);
+  bg_log(BG_LOG_INFO, LOG_DOMAIN, "Caught Ctrl-C");
+  }
+
+static void set_sigint_handler()
+  {
+  struct sigaction sa;
+  sa.sa_flags = 0;
+  sigemptyset(&sa.sa_mask);
+  sa.sa_handler = sigint_handler;
+  if (sigaction(SIGINT, &sa, &old_sigaction) == -1)
+    {
+    fprintf(stderr, "sigaction failed\n");
+    }
+  }
+
+int gavftools_stop()
+  {
+  return got_sigint;
+  }
+
+void gavftools_init()
   {
   char * tmp_path;
   bg_cfg_section_t * cfg_section;
@@ -45,6 +76,8 @@ void gavftools_init_registries()
 
   if(tmp_path)
     free(tmp_path);
+
+  set_sigint_handler();
   }
 
 static bg_cfg_section_t * ac_section = NULL;

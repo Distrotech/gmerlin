@@ -42,11 +42,16 @@ typedef struct
   char * arg;
   char * help_arg; /* Something like <file> */
   char * help_string;
+  
   /* Callback will be called if present */
   void (*callback)(void * data, int * argc, char *** argv, int arg);
-  /* Parameter interface */
+
+  /* Parameters are used to generate a help string */
   const bg_parameter_info_t * parameters;
-  int param_single;
+
+  /* If non NULL, the argv will be placed here */
+  char ** argv;
+  
   } bg_cmdline_arg_t;
 
 typedef struct
@@ -60,6 +65,9 @@ typedef struct
   char * name;
   char * desc;
   } bg_cmdline_ext_doc_t;
+
+/* Static data for commandline interface. This
+   is important for generating the manual page */
 
 typedef struct
   {

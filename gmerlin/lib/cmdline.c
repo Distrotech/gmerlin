@@ -575,9 +575,7 @@ static void cmdline_parse(const bg_cmdline_arg_t * args,
   i = 1;
 
   if(parse_auto)
-    {
     cmdline_parse(auto_options, argc, _argv, NULL, 0);
-    }
   
   if(!args)
     return;
@@ -597,10 +595,16 @@ static void cmdline_parse(const bg_cmdline_arg_t * args,
         bg_cmdline_remove_arg(argc, _argv, i);
         if(args[j].callback)
           args[j].callback(callback_data, argc, _argv, i);
-        else if(args[j].parameters)
+        if(args[j].argv)
           {
+          if(i >= *argc)
+            {
+            fprintf(stderr, "Option %s requires an argument\n", args[j].arg);
+            exit(-1);
+            }
+          *args[j].argv = argv[i];
+          bg_cmdline_remove_arg(argc, _argv, i);
           }
-          
         found = 1;
         break;
         }
@@ -689,7 +693,20 @@ int bg_cmdline_apply_options(bg_cfg_section_t * section,
   return 1;
   }
 
+void bg_cmdline_set_multi_options(gavl_metadata_t * m,
+                                  const char * option_string)
+  {
+  /* Options can be prepended by <num>: to specify a particular
+     stream or global */
+  
+  }
 
+bg_cfg_section_t *
+bg_cmdline_get_multi_options(gavl_metadata_t * m, const bg_parameter_info_t * parameters,
+                             int num)
+  {
+  
+  }
 
 static void print_help_parameters(int indent,
                                   const bg_parameter_info_t * parameters,

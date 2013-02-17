@@ -32,7 +32,6 @@
 
 static bg_plug_t * in_plug = NULL;
 
-static char * infile = NULL;
 static char * title = "gavf-play";
 
 static bg_cfg_section_t * audio_section = NULL;
@@ -503,18 +502,6 @@ static void opt_subrender(void * data, int * argc, char *** _argv, int arg)
   bg_cmdline_remove_arg(argc, _argv, arg);
   }
 
-
-static void opt_i(void * data, int * argc, char *** _argv, int arg)
-  {
-  if(arg >= *argc)
-    {
-    fprintf(stderr, "Option -i requires an argument\n");
-    exit(-1);
-    }
-  infile = (*_argv)[arg];
-  bg_cmdline_remove_arg(argc, _argv, arg);
-  }
-
 static void opt_as(void * data, int * argc, char *** _argv, int arg)
   {
   if(arg >= *argc)
@@ -567,18 +554,6 @@ static void opt_os(void * data, int * argc, char *** _argv, int arg)
   bg_cmdline_remove_arg(argc, _argv, arg);
   }
 
-
-static void opt_title(void * data, int * argc, char *** _argv, int arg)
-  {
-  if(arg >= *argc)
-    {
-    fprintf(stderr, "Option -title requires an argument\n");
-    exit(-1);
-    }
-  title = (*_argv)[arg];
-  bg_cmdline_remove_arg(argc, _argv, arg);
-  }
-
 static bg_cmdline_arg_t global_options[] =
   {
     {
@@ -617,12 +592,7 @@ static bg_cmdline_arg_t global_options[] =
       .help_string = "Select overlay stream (default: disabled)",
       .callback =    opt_os,
     },
-    {
-      .arg =         "-i",
-      .help_arg =    "<location>",
-      .help_string = "Set input file or location",
-      .callback =    opt_i,
-    },
+    GAVFTOOLS_INPUT_FILE,
     GAVFTOOLS_INPUT_OPTIONS,
     {
       .arg =         "-subrender",
@@ -634,7 +604,7 @@ static bg_cmdline_arg_t global_options[] =
       .arg =         "-title",
       .help_arg =    "<title>",
       .help_string = "Set window title",
-      .callback =    opt_title,
+      .argv =        &title,
     },
     GAVFTOOLS_VERBOSE_OPTIONS,
     {
@@ -712,7 +682,7 @@ int main(int argc, char ** argv)
   bg_mediaconnector_t conn;
   
   bg_mediaconnector_init(&conn);
-  gavftools_init_registries();
+  gavftools_init();
 
   player_init(&player);
 
@@ -737,7 +707,7 @@ int main(int argc, char ** argv)
 
   /* Open */
 
-  if(!bg_plug_open_location(in_plug, infile, NULL, NULL))
+  if(!bg_plug_open_location(in_plug, gavftools_in_file, NULL, NULL))
     return ret;
   
   /* Select streams */
@@ -853,7 +823,8 @@ int main(int argc, char ** argv)
   while(1)
     {
     /* Check for end */
-    if(bg_mediaconnector_done(&conn))
+    if(gavftools_stop() ||
+       bg_mediaconnector_done(&conn))
       break;
 
     gavl_time_delay(&delay_time);

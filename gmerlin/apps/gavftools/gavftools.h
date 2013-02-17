@@ -31,8 +31,13 @@
 extern bg_plugin_registry_t * plugin_reg;
 extern bg_cfg_registry_t * cfg_reg;
 
-void gavftools_init_registries();
+extern char * gavftools_in_file;
+extern char * gavftools_out_file;
+
+void gavftools_init();
 void gavftools_cleanup();
+
+int gavftools_stop();
 
 const bg_parameter_info_t *
 gavftools_ac_params(void);
@@ -132,6 +137,21 @@ bg_stream_action_t * gavftools_get_stream_actions(int num, gavf_stream_type_t ty
     .callback =    gavftools_opt_oopt, \
   }
 
+#define GAVFTOOLS_INPUT_FILE \
+  { \
+    .arg =         "-i", \
+    .help_arg =    "<input_file>", \
+    .help_string = TRS("Input file or location"),  \
+    .argv    =    &gavftools_in_file, \
+  }
+
+#define GAVFTOOLS_OUTPUT_FILE                 \
+  { \
+    .arg =         "-o", \
+    .help_arg =    "<output>", \
+    .help_string = TRS("Output file or location"), \
+    .argv    =    &gavftools_out_file, \
+  }
 
 #define GAVFTOOLS_AUDIO_STREAM_OPTIONS \
   { \

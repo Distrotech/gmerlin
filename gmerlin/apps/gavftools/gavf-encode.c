@@ -27,28 +27,10 @@ static bg_plug_t * in_plug = NULL;
 
 #define LOG_DOMAIN "gavf-play"
 
-static const char * input_file   = NULL;
-
-
-static void opt_in(void * data, int * argc, char *** _argv, int arg)
-  {
-  if(arg >= *argc)
-    {
-    fprintf(stderr, "Option -i requires an argument\n");
-    exit(-1);
-    }
-  input_file = (*_argv)[arg];
-  bg_cmdline_remove_arg(argc, _argv, arg);
-  }
 
 static bg_cmdline_arg_t global_options[] =
   {
-    {
-      .arg =         "-i",
-      .help_arg =    "<location>",
-      .help_string = "Set input file or location",
-      .callback =    opt_in,
-    },
+    GAVFTOOLS_INPUT_FILE,
     GAVFTOOLS_INPUT_OPTIONS,
     GAVFTOOLS_VERBOSE_OPTIONS,
     { /* End */ },
@@ -81,7 +63,7 @@ int main(int argc, char ** argv)
   bg_mediaconnector_t conn;
 
   bg_mediaconnector_init(&conn);
-  gavftools_init_registries();
+  gavftools_init();
   
   bg_cmdline_init(&app_data);
   bg_cmdline_parse(global_options, &argc, &argv, NULL);
@@ -95,7 +77,7 @@ int main(int argc, char ** argv)
   
   /* Open */
 
-  if(!bg_plug_open_location(in_plug, input_file, NULL, NULL))
+  if(!bg_plug_open_location(in_plug, gavftools_in_file, NULL, NULL))
     return ret;
 
   /* Check for stream copying */
