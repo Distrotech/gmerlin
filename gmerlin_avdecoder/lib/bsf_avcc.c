@@ -102,14 +102,17 @@ cleanup_avcc(bgav_bsf_t * bsf)
 static void append_extradata(bgav_bsf_t * bsf, uint8_t * data,
                              int len)
   {
-  bsf->ext_data = realloc(bsf->ext_data, bsf->ext_size + len + 4);
+  bsf->ext_data = realloc(bsf->ext_data, bsf->ext_size + len + 4 +
+                          GAVL_PACKET_PADDING );
+
   memcpy(bsf->ext_data + bsf->ext_size, nal_header, 4);
   bsf->ext_size += 4;
   memcpy(bsf->ext_data + bsf->ext_size, data, len);
   bsf->ext_size += len;
+  memset(bsf->ext_data + bsf->ext_size, 0, GAVL_PACKET_PADDING);
   }
 
-void
+int
 bgav_bsf_init_avcC(bgav_bsf_t * bsf)
   {
   uint8_t * ptr;
@@ -147,5 +150,5 @@ bgav_bsf_init_avcC(bgav_bsf_t * bsf)
     append_extradata(bsf, ptr, len);
     ptr += len;
     }
-  
+  return 1;
   }

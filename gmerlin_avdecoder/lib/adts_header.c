@@ -34,7 +34,6 @@ static const int adts_samplerates[] =
 int bgav_adts_header_read(const uint8_t * data,
                           bgav_adts_header_t * ret)
   {
-  int protection_absent;
 
   if(!IS_ADTS(data))
     return 0;
@@ -44,7 +43,7 @@ int bgav_adts_header_read(const uint8_t * data,
   else
     ret->mpeg_version = 4;
 
-  protection_absent = data[1] & 0x01;
+  ret->protection_absent = data[1] & 0x01;
 
   ret->profile = (data[2] & 0xC0) >> 6;
 
@@ -106,4 +105,5 @@ void bgav_adts_header_dump(const bgav_adts_header_t * adts)
   bgav_dprintf( "  Channel configuration: %d\n", adts->channel_configuration);
   bgav_dprintf( "  Frame bytes:           %d\n", adts->frame_bytes);
   bgav_dprintf( "  Num blocks:            %d\n", adts->num_blocks);
+  bgav_dprintf( "  Protection absent:     %d\n", adts->protection_absent);
   }

@@ -74,6 +74,12 @@ static char const * const comment_vars[] =
     NULL
   };
 
+static char const * const url_vars[] =
+  {
+    "icy-url",
+    NULL
+  };
+
 static void set_metadata_string(bgav_http_header_t * header,
                                 char const * const vars[],
                                 gavl_metadata_t * m, const char * name)
@@ -124,7 +130,7 @@ static int open_http(bgav_input_context_t * ctx, const char * url, char ** r)
   bgav_http_header_destroy(header);
   header = bgav_http_get_header(p->h);
   
-  bgav_http_header_dump(header);
+  //  bgav_http_header_dump(header);
   
   var = bgav_http_header_get_var(header, "Content-Length");
   if(var)
@@ -156,6 +162,8 @@ static int open_http(bgav_input_context_t * ctx, const char * url, char ** r)
                       genre_vars, &ctx->metadata, GAVL_META_GENRE);
   set_metadata_string(header,
                       comment_vars, &ctx->metadata, GAVL_META_COMMENT);
+  set_metadata_string(header,
+                      url_vars, &ctx->metadata, GAVL_META_URL);
 
   /* If we have chunked encoding, skip the chunk size and assume, that
      the whole data is in one chunk */

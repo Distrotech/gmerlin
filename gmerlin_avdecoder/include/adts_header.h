@@ -31,6 +31,8 @@ typedef struct
   int frame_bytes;
   int num_blocks;
 
+  int protection_absent;
+  
   /* Secondary */
   int samplerate;
   } bgav_adts_header_t;

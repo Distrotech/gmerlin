@@ -142,7 +142,7 @@ endif
 if HAVE_LIBAVCODEC
 avcodec_cflags =  @AVCODEC_CFLAGS@
 avcodec_libs =    @AVCODEC_LIBS@ -lavutil
-avcodec_sources = audio_ffmpeg.c video_ffmpeg.c
+avcodec_sources = audio_ffmpeg.c video_ffmpeg.c bsf_adts.c
 else
 avcodec_cflags =
 avcodec_libs =

@@ -25,6 +25,7 @@
 
 #include <avdec_private.h>
 #include <parser.h>
+#include <bsf.h>
 
 #define LOG_DOMAIN "audio"
 
@@ -95,6 +96,18 @@ int bgav_audio_start(bgav_stream_t * s)
     s->index_mode = INDEX_MODE_SIMPLE;
     }
 
+  if((s->action == BGAV_STREAM_READRAW) &&
+     (s->flags & STREAM_FILTER_PACKETS) && !s->bsf)
+    {
+    s->bsf = bgav_bsf_create(s);
+    if(bgav_stream_peek_packet_read(s, NULL, 1) != GAVL_SOURCE_OK)
+      {
+      bgav_log(s->opt, BGAV_LOG_WARNING, LOG_DOMAIN,
+               "EOF while initializing bitstream filter");
+      return 0;
+      }
+    }
+  
   if(s->start_time == GAVL_TIME_UNDEFINED)
     {
     bgav_packet_t * p = NULL;
@@ -402,6 +415,12 @@ static uint32_t speex_fourccs[] =
     0x00
   };
 
+static uint32_t adts_fourccs[] =
+  {
+    BGAV_MK_FOURCC('A','D','T','S'),
+    0x00
+  };
+
 
 int bgav_get_audio_compression_info(bgav_t * bgav, int stream,
                                     gavl_compression_info_t * ret)
@@ -464,6 +483,13 @@ int bgav_get_audio_compression_info(bgav_t * bgav, int stream,
     id = GAVL_CODEC_ID_OPUS;
     need_bitrate = 0;
     need_header = 1;
+    }
+  else if(bgav_check_fourcc(s->fourcc, adts_fourccs) &&
+          (s->flags & STREAM_FILTER_PACKETS))
+    {
+    id = GAVL_CODEC_ID_AAC;
+    need_header = 1;
+    need_bitrate = 0;
     }
   
   if(id == GAVL_CODEC_ID_NONE)

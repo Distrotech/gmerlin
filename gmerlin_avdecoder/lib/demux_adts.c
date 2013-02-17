@@ -72,7 +72,7 @@ static int probe_adts(bgav_input_context_t * input)
 
   if(!bgav_adts_header_read(header, &h1))
     return 0;
-
+  
   buffer = malloc(ADTS_SIZE + h1.frame_bytes);
   
   if(bgav_input_get_data(input, buffer, ADTS_SIZE + h1.frame_bytes) <
@@ -107,7 +107,6 @@ static int check_he_aac(bgav_demuxer_context_t * ctx,
   int result;
   int bytes;
   bgav_aac_frame_t * frame;
-  int64_t old_position = ctx->input->position;
   frame = bgav_aac_frame_create(ctx->opt, NULL, 0);
   priv = ctx->priv;
   while(!done)
@@ -116,8 +115,9 @@ static int check_he_aac(bgav_demuxer_context_t * ctx,
     buffer_alloc += BYTES_TO_SCAN;
     buffer = realloc(buffer, buffer_alloc);
     
-    if(bgav_input_read_data(ctx->input, buffer + buffer_size, 
-                            BYTES_TO_SCAN) < BYTES_TO_SCAN)
+    if(bgav_input_get_data(ctx->input, buffer, 
+                           buffer_size + BYTES_TO_SCAN) <
+       buffer_size + BYTES_TO_SCAN)
       break;
 
     buffer_size += BYTES_TO_SCAN;
@@ -149,12 +149,13 @@ static int check_he_aac(bgav_demuxer_context_t * ctx,
       }
     }
 
+  bgav_aac_frame_get_audio_format(frame, &s->data.audio.format);
+  
   ret = 1;
   fail:
   bgav_aac_frame_destroy(frame);
   if(buffer)
     free(buffer);
-  bgav_input_seek(ctx->input, old_position, SEEK_SET);
   return ret;
   }
 #endif
@@ -252,6 +253,14 @@ static int open_adts(bgav_demuxer_context_t * ctx)
   if(!bgav_adts_header_read(buf, &adts))
     goto fail;
 
+  //  bgav_adts_header_dump(&adts);
+
+  // One block per frame: That means we can convert these
+  if(adts.num_blocks == 1) 
+    {
+    s->flags |= STREAM_FILTER_PACKETS;
+    }
+    
   if(adts.profile == 2) 
     priv->block_samples = 960;
   else
@@ -268,12 +277,9 @@ static int open_adts(bgav_demuxer_context_t * ctx)
   ctx->index_mode = INDEX_MODE_SIMPLE;
 
 #ifdef HAVE_FAAD2
-  if(ctx->input->input->seek_byte)
-    {
-    /* Check for HE-AAC and update sample counts */
-    if(!check_he_aac(ctx, s))
-      goto fail;
-    }
+  /* Check for HE-AAC and update sample counts */
+  if(!check_he_aac(ctx, s))
+    goto fail;
 #endif
   
   //  ctx->stream_description = bgav_sprintf("AAC");

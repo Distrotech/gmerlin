@@ -38,5 +38,10 @@ struct bgav_bsf_s
   bgav_packet_t * out_packet;
   };
 
-void bgav_bsf_init_avcC(bgav_bsf_t*);
+void bgav_bsf_run(bgav_bsf_t * bsf, bgav_packet_t * in, bgav_packet_t * out);
 
+int bgav_bsf_init_avcC(bgav_bsf_t*);
+
+
+int
+bgav_bsf_init_adts(bgav_bsf_t * bsf);

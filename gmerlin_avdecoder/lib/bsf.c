@@ -28,15 +28,20 @@
 #include <bsf_private.h>
 // #include <utils.h>
 
+#define LOG_DOMAIN "bsf"
+
 typedef struct
   {
   uint32_t fourcc;
-  void (*init_func)(bgav_bsf_t*);
+  int (*init_func)(bgav_bsf_t*);
   } filter_t;
 
 static const filter_t filters[] =
   {
     { BGAV_MK_FOURCC('a', 'v', 'c', '1'), bgav_bsf_init_avcC },
+#ifdef HAVE_LIBAVCODEC
+    { BGAV_MK_FOURCC('A', 'D', 'T', 'S'), bgav_bsf_init_adts },
+#endif
   };
 
 void bgav_bsf_run(bgav_bsf_t * bsf, bgav_packet_t * in, bgav_packet_t * out)
@@ -86,7 +91,7 @@ bgav_bsf_peek_packet(void * bsf_p, bgav_packet_t ** ret, int force)
 
   if(bsf->out_packet)
     {
-    if(*ret)
+    if(ret)
       *ret = bsf->out_packet;
     return GAVL_SOURCE_OK;
     }
@@ -126,8 +131,11 @@ bgav_bsf_t * bgav_bsf_create(bgav_stream_t * s)
       }
     }
   if(!f)
+    {
+    bgav_log(s->opt, BGAV_LOG_ERROR, LOG_DOMAIN,
+             "No bitstream filter found");
     return NULL;
-
+    }
   ret = calloc(1, sizeof(*ret));
   ret->s = s;
   bgav_packet_source_copy(&ret->src, &s->src);
@@ -136,8 +144,12 @@ bgav_bsf_t * bgav_bsf_create(bgav_stream_t * s)
   s->src.peek_func = bgav_bsf_peek_packet;
   s->src.data = ret;
   
-  filters[i].init_func(ret);
-
+  if(!filters[i].init_func(ret))
+    {
+    free(ret);
+    return NULL;
+    }
+  
   if(ret->ext_data)
     {
     ret->ext_data_orig = s->ext_data;
@@ -172,8 +184,3 @@ void bgav_bsf_destroy(bgav_bsf_t * bsf)
   free(bsf);
   }
 
-const uint8_t * bgav_bsf_get_header(bgav_bsf_t * bsf, int * size)
-  {
-  *size = bsf->ext_size;
-  return bsf->ext_data;
-  }
