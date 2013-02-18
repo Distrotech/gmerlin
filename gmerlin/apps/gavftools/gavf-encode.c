@@ -31,6 +31,10 @@ static bg_plug_t * in_plug = NULL;
 static bg_cmdline_arg_t global_options[] =
   {
     GAVFTOOLS_INPLUG_OPTIONS,
+    GAVFTOOLS_AUDIO_STREAM_OPTIONS,
+    GAVFTOOLS_VIDEO_STREAM_OPTIONS,
+    GAVFTOOLS_TEXT_STREAM_OPTIONS,
+    GAVFTOOLS_OVERLAY_STREAM_OPTIONS,
     GAVFTOOLS_VERBOSE_OPTIONS,
     { /* End */ },
   };
@@ -55,12 +59,27 @@ const bg_cmdline_app_data_t app_data =
 
   };
 
+static void metadata_callback(void * priv, const gavl_metadata_t * m)
+  {
+  bg_encoder_update_metadata(priv, m);
+  }
 
 int main(int argc, char ** argv)
   {
   int ret = 1;
+  int i, num;
   bg_mediaconnector_t conn;
+  bg_encoder_t * enc;
+  gavf_program_header_t * ph;
+  gavf_t * g;
 
+  const gavf_stream_header_t * sh;
+
+  bg_stream_action_t * audio_actions = NULL;
+  bg_stream_action_t * video_actions = NULL;
+  bg_stream_action_t * text_actions = NULL;
+  bg_stream_action_t * overlay_actions = NULL;
+  
   bg_mediaconnector_init(&conn);
   gavftools_init();
   
@@ -68,14 +87,73 @@ int main(int argc, char ** argv)
   bg_cmdline_parse(global_options, &argc, &argv, NULL);
 
   in_plug = gavftools_create_in_plug();
+    
+#if 0
+  enc = bg_encoder_create(bg_plugin_registry_t * plugin_reg,
+                          bg_cfg_section_t * section,
+                          bg_transcoder_track_t * tt,
+                          int stream_mask, int flag_mask);
+#endif
   
   /* Open */
 
+  g = bg_plug_get_gavf(in_plug);
+  ph = gavf_get_program_header(g);
+
+  gavf_options_set_metadata_callback(gavf_get_options(g), metadata_callback, enc);
+  
   if(!bg_plug_open_location(in_plug, gavftools_in_file, NULL, NULL))
     return ret;
+    
+#if 0
+  
+  if(!bg_encoder_open(enc, const char * filename_base, ph->m, ph->cl))
+    return 0;
+  
+#endif
 
-  /* Check for stream copying */
 
+  
+  
+  /* Set stream actions */
+  
+  num = gavf_get_num_streams(g, GAVF_STREAM_AUDIO);
+  audio_actions = gavftools_get_stream_actions(num, GAVF_STREAM_AUDIO);
+  
+  for(i = 0; i < num; i++)
+    {
+    sh = gavf_get_stream(g, i, GAVF_STREAM_AUDIO);
+    
+    }
+
+  num = gavf_get_num_streams(g, GAVF_STREAM_VIDEO);
+  video_actions = gavftools_get_stream_actions(num, GAVF_STREAM_VIDEO);
+  
+  for(i = 0; i < num; i++)
+    {
+    sh = gavf_get_stream(g, i, GAVF_STREAM_VIDEO);
+    
+    }
+
+  num = gavf_get_num_streams(g, GAVF_STREAM_TEXT);
+  text_actions = gavftools_get_stream_actions(num, GAVF_STREAM_TEXT);
+  
+  for(i = 0; i < num; i++)
+    {
+    sh = gavf_get_stream(g, i, GAVF_STREAM_TEXT);
+    
+    }
+
+  num = gavf_get_num_streams(g, GAVF_STREAM_OVERLAY);
+  overlay_actions = gavftools_get_stream_actions(num, GAVF_STREAM_OVERLAY);
+  
+  for(i = 0; i < num; i++)
+    {
+    sh = gavf_get_stream(g, i, GAVF_STREAM_OVERLAY);
+    
+    }
+
+  
   /* Select streams */
   
   /* Set up encoder */

@@ -338,7 +338,7 @@ int bg_recorder_audio_init(bg_recorder_t * rec)
   if(as->flags & STREAM_ENCODE)
     {
     as->enc_index = bg_encoder_add_audio_stream(rec->enc, &as->m,
-                                                &as->pipe_format, 0);
+                                                &as->pipe_format, 0, NULL);
     }
   
   return 1;

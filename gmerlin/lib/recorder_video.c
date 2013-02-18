@@ -825,7 +825,7 @@ int bg_recorder_video_init(bg_recorder_t * rec)
   if(vs->flags & STREAM_ENCODE)
     {
     vs->enc_index =
-      bg_encoder_add_video_stream(rec->enc, &vs->m, &vs->pipe_format, 0);
+      bg_encoder_add_video_stream(rec->enc, &vs->m, &vs->pipe_format, 0, NULL);
     }
   
   /* Create frames */

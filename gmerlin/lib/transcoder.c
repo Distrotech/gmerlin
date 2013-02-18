@@ -1105,7 +1105,7 @@ static void add_audio_stream(audio_stream_t * ret,
     bg_encoder_add_audio_stream(t->enc,
                                 &ret->com.m,
                                 &ret->out_format,
-                                ret->com.in_index);
+                                ret->com.in_index, NULL);
   }
 
 static void add_audio_stream_compressed(audio_stream_t * ret,
@@ -1211,7 +1211,7 @@ static void add_text_stream(text_stream_t * ret,
                                     &ret->com.com.m,
                                     &ret->com.out_format,
                                     ret->com.com.in_index,
-                                    BG_STREAM_TEXT);
+                                    BG_STREAM_TEXT, NULL);
     }
   }
 
@@ -1231,9 +1231,9 @@ add_overlay_stream(subtitle_stream_t * ret,
   
   ret->com.out_index =
     bg_encoder_add_overlay_stream(t->enc,
-                                           &ret->com.m,
-                                           &ret->out_format, ret->com.in_index,
-                                           BG_STREAM_OVERLAY);
+                                  &ret->com.m,
+                                  &ret->out_format, ret->com.in_index,
+                                  BG_STREAM_OVERLAY, NULL);
   }
 
 static void add_video_stream(video_stream_t * ret,
@@ -1258,7 +1258,7 @@ static void add_video_stream(video_stream_t * ret,
     bg_encoder_add_video_stream(t->enc,
                                 &ret->com.m,
                                 &ret->out_format,
-                                ret->com.in_index);
+                                ret->com.in_index, NULL);
   }
 
 static void add_video_stream_compressed(video_stream_t * ret,

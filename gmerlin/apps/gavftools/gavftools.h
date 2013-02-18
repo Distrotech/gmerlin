@@ -96,7 +96,6 @@ gavftools_opt_v(void * data, int * argc, char *** _argv, int arg);
 bg_plug_t * gavftools_create_in_plug();
 bg_plug_t * gavftools_create_out_plug();
 
-
 bg_stream_action_t * gavftools_get_stream_actions(int num, gavf_stream_type_t type);
 
 
