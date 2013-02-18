@@ -60,12 +60,12 @@ int bg_encoder_writes_compressed_video(bg_encoder_t * enc,
 /* Add streams */
 int bg_encoder_add_audio_stream(bg_encoder_t *, const gavl_metadata_t * m,
                                 const gavl_audio_format_t * format,
-                                int index);
+                                int index, const bg_cfg_section_t * s);
 
 int bg_encoder_add_video_stream(bg_encoder_t *,
                                 const gavl_metadata_t * m,
                                 const gavl_video_format_t * format,
-                                int index);
+                                int index, const bg_cfg_section_t * s);
 
 int bg_encoder_add_audio_stream_compressed(bg_encoder_t *,
                                            const gavl_metadata_t * m,
@@ -89,7 +89,7 @@ int bg_encoder_add_overlay_stream(bg_encoder_t *,
                                            const gavl_metadata_t * m,
                                            const gavl_video_format_t * format,
                                            int index,
-                                           bg_stream_type_t source_format);
+                                           bg_stream_type_t source_format, bg_cfg_section_t * s);
 
 
 /* Get formats */

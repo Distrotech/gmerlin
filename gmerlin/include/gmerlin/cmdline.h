@@ -19,6 +19,8 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  * *****************************************************************/
 
+#include <gavl/metadata.h>
+
 /* Automatic generation of user documentation */
 
 typedef enum
@@ -111,6 +113,12 @@ int bg_cmdline_apply_options(bg_cfg_section_t * section,
                              void * data,
                              const bg_parameter_info_t * parameters,
                              const char * option_string);
+
+int bg_cmdline_set_stream_options(gavl_metadata_t * m,
+                                  const char * option_string);
+
+const char *
+bg_cmdline_get_stream_options(gavl_metadata_t * m, int stream);
 
 void bg_cmdline_print_version(const char * application);
 

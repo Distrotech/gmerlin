@@ -683,29 +683,99 @@ int bg_cmdline_apply_options(bg_cfg_section_t * section,
                              const bg_parameter_info_t * parameters,
                              const char * option_string)
   {
+  bg_cfg_section_t * section_priv = NULL;
+
+  if(!section)
+    {
+    section_priv = 
+      bg_cfg_section_create_from_parameters("sec", parameters);
+    section = section_priv;
+    }
+
   if(!bg_cfg_section_set_parameters_from_string(section,
                                                 parameters,
                                                 option_string))
+    {
+    if(section_priv)
+      bg_cfg_section_destroy(section_priv);
     return 0;
+    }
   /* Now, apply the section */
   if(set_parameter)
     bg_cfg_section_apply(section, parameters, set_parameter, data);
+
+  if(section_priv)
+    bg_cfg_section_destroy(section_priv);
   return 1;
   }
 
-void bg_cmdline_set_multi_options(gavl_metadata_t * m,
-                                  const char * option_string)
+static char * create_stream_key(int stream)
   {
-  /* Options can be prepended by <num>: to specify a particular
-     stream or global */
-  
+  if(stream < 0)
+    return bg_strdup(NULL, "opt");
+  else
+    return bg_sprintf("opt_%d", stream);
   }
 
-bg_cfg_section_t *
-bg_cmdline_get_multi_options(gavl_metadata_t * m, const bg_parameter_info_t * parameters,
-                             int num)
+int bg_cmdline_set_stream_options(gavl_metadata_t * m,
+                                  const char * option_string)
   {
-  
+  int stream;
+  char * key;
+  /* Options can be prepended by <num>: to specify a particular
+     stream or global */
+  if(isdigit(*option_string))
+    {
+    char * rest;
+    stream = strtol(option_string, &rest, 10);
+    if(!rest || (*rest != ':'))
+      {
+      bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Invalid stream options %s", option_string);
+      return 0;
+      }
+    if(stream <= 0)
+      {
+      bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Invalid stream index %d", stream);
+      return 0;
+      }
+
+    stream--; // off by one
+    rest++;   // Skip ':'
+
+    key = create_stream_key(stream);
+    gavl_metadata_set(m, key, rest);
+    free(key);
+    }
+  else
+    {
+    key = create_stream_key(-1);
+    gavl_metadata_set(m, key, option_string);
+    free(key);
+    }
+  return 1;
+  }
+
+const char *
+bg_cmdline_get_stream_options(gavl_metadata_t * m, int stream)
+  {
+  const char * ret;
+  char * key;
+
+  /* Try specific option */
+  key = create_stream_key(stream);
+  ret = gavl_metadata_get(m, key);
+  free(key);
+
+  if(ret)
+    return ret;
+
+  /* Try generic option */
+  key = create_stream_key(-1);
+  ret = gavl_metadata_get(m, key);
+  free(key);
+
+  return ret; // Can be NULL
+
   }
 
 static void print_help_parameters(int indent,
