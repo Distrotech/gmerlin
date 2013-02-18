@@ -18,7 +18,7 @@ int gavf_options_get_flags(gavf_options_t * opt)
   }
 
 
-void gavl_options_set_metadata_callback(gavf_options_t * opt, 
+void gavf_options_set_metadata_callback(gavf_options_t * opt, 
                                         void (*cb)(void*,const gavl_metadata_t*),
                                         void *cb_priv)
   {

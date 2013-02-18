@@ -87,34 +87,6 @@ void gavf_stream_header_free(gavf_stream_header_t * h)
   gavl_metadata_free(&h->m);
   }
 
-#if 0
-static const struct
-  {
-  int type;
-  const char * name;
-  }
-type_names[] =
-  {
-    { GAVF_STREAM_AUDIO,   "Audio"   },
-    { GAVF_STREAM_VIDEO,   "Video"   },
-    { GAVF_STREAM_TEXT,    "Text"    },
-    { GAVF_STREAM_OVERLAY, "Overlay" },
-    { /* End */ },
-  };
-
-static const char * get_type_name(int type)
-  {
-  int i = 0;
-  while(type_names[i].name)
-    {
-    if(type_names[i].type == type)
-      return type_names[i].name;
-    i++;
-    }
-  return NULL;
-  }
-#endif
-
 void gavf_stream_header_dump(const gavf_stream_header_t * h)
   {
   fprintf(stderr, "    Type: %d (%s)\n", h->type,
@@ -154,5 +126,4 @@ void gavf_stream_header_dump(const gavf_stream_header_t * h)
     fprintf(stderr, "      pts_start:    %"PRId64"\n", h->foot.pts_start);
     fprintf(stderr, "      pts_end:      %"PRId64"\n", h->foot.pts_end);
     }
-  
   }
