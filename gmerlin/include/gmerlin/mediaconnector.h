@@ -70,6 +70,8 @@ typedef struct
   
   gavl_video_source_t * discont_vsrc;
   gavl_packet_source_t * discont_psrc;
+
+  int src_index; // index in the primary source
   } bg_mediaconnector_stream_t;
 
 struct bg_mediaconnector_s
@@ -92,28 +94,28 @@ struct bg_mediaconnector_s
 void
 bg_mediaconnector_init(bg_mediaconnector_t * conn);
 
-void
+bg_mediaconnector_stream_t *
 bg_mediaconnector_add_audio_stream(bg_mediaconnector_t * conn,
                                    const gavl_metadata_t * m,
                                    gavl_audio_source_t * asrc,
                                    gavl_packet_source_t * psrc,
                                    bg_cfg_section_t * enc_section);
 
-void
+bg_mediaconnector_stream_t *
 bg_mediaconnector_add_video_stream(bg_mediaconnector_t * conn,
                                    const gavl_metadata_t * m,
                                    gavl_video_source_t * vsrc,
                                    gavl_packet_source_t * psrc,
                                    bg_cfg_section_t * enc_section);
 
-void
+bg_mediaconnector_stream_t *
 bg_mediaconnector_add_overlay_stream(bg_mediaconnector_t * conn,
                                      const gavl_metadata_t * m,
                                      gavl_video_source_t * vsrc,
                                      gavl_packet_source_t * psrc,
                                      bg_cfg_section_t * enc_section);
 
-void
+bg_mediaconnector_stream_t *
 bg_mediaconnector_add_text_stream(bg_mediaconnector_t * conn,
                                   const gavl_metadata_t * m,
                                   gavl_packet_source_t * psrc,

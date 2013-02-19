@@ -179,7 +179,7 @@ static void create_connector(bg_mediaconnector_stream_t * ret)
   }
 
 
-void
+bg_mediaconnector_stream_t *
 bg_mediaconnector_add_audio_stream(bg_mediaconnector_t * conn,
                                    const gavl_metadata_t * m,
                                    gavl_audio_source_t * asrc,
@@ -191,9 +191,10 @@ bg_mediaconnector_add_audio_stream(bg_mediaconnector_t * conn,
   ret->asrc = asrc;
   ret->encode_section = encode_section;
   create_connector(ret);
+  return ret;
   }
 
-void
+bg_mediaconnector_stream_t *
 bg_mediaconnector_add_video_stream(bg_mediaconnector_t * conn,
                                    const gavl_metadata_t * m,
                                    gavl_video_source_t * vsrc,
@@ -213,9 +214,10 @@ bg_mediaconnector_add_video_stream(bg_mediaconnector_t * conn,
     ret->flags |= BG_MEDIACONNECTOR_FLAG_DISCONT;
   create_connector(ret);
   ret->encode_section = encode_section;
+  return ret;
   }
 
-void
+bg_mediaconnector_stream_t *
 bg_mediaconnector_add_overlay_stream(bg_mediaconnector_t * conn,
                                      const gavl_metadata_t * m,
                                      gavl_video_source_t * vsrc,
@@ -228,9 +230,10 @@ bg_mediaconnector_add_overlay_stream(bg_mediaconnector_t * conn,
   ret->flags |= BG_MEDIACONNECTOR_FLAG_DISCONT;
   create_connector(ret);
   ret->encode_section = enc_section;
+  return ret;
   }
 
-void
+bg_mediaconnector_stream_t *
 bg_mediaconnector_add_text_stream(bg_mediaconnector_t * conn,
                                   const gavl_metadata_t * m,
                                   gavl_packet_source_t * psrc,
@@ -241,6 +244,7 @@ bg_mediaconnector_add_text_stream(bg_mediaconnector_t * conn,
   ret->flags |= BG_MEDIACONNECTOR_FLAG_DISCONT;
   ret->timescale = timescale;
   create_connector(ret);
+  return ret;
   }
 
 void

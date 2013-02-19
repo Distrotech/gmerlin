@@ -1161,6 +1161,42 @@ int bg_encoder_writes_compressed_audio(bg_encoder_t * enc,
   return ret;
   }
 
+int bg_encoder_writes_compressed_overlay(bg_encoder_t * enc,
+                                         const gavl_video_format_t * format,
+                                         const gavl_compression_info_t * info)
+  {
+  int ret;
+  bg_encoder_plugin_t * plugin;
+  const bg_plugin_info_t * plugin_info;
+  bg_plugin_handle_t * h;
+  bg_cfg_section_t * plugin_section;
+
+  if(enc->overlay_plugin.info)
+    {
+    plugin_info = enc->audio_plugin.info;
+    plugin_section = enc->audio_plugin.section;
+    }
+  else if(enc->video_plugin.info)
+    {
+    plugin_info = enc->video_plugin.info;
+    plugin_section = enc->video_plugin.section;
+    }
+  else
+    return 0;
+
+  h = open_dummy_encoder(enc, plugin_info, plugin_section);
+  plugin = (bg_encoder_plugin_t *)h->plugin;
+
+  if(plugin->writes_compressed_overlay)
+    ret = plugin->writes_compressed_overlay(h->priv,
+                                           format, info);
+  else
+    ret = 0;
+  bg_plugin_unref(h);
+  return ret;
+  }
+
+
 int bg_encoder_writes_compressed_video(bg_encoder_t * enc,
                                        const gavl_video_format_t * format,
                                        const gavl_compression_info_t * info)

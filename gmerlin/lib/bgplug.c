@@ -1644,7 +1644,7 @@ int bg_plug_setup_reader(bg_plug_t * p, bg_mediaconnector_t * conn)
   {
   int i;
   stream_t * s;
-
+  bg_mediaconnector_stream_t * cs;
   if(!bg_plug_start(p))
     return 0;
   
@@ -1654,11 +1654,12 @@ int bg_plug_setup_reader(bg_plug_t * p, bg_mediaconnector_t * conn)
 
     if(s->asrc || s->src_ext)
       {
-      bg_mediaconnector_add_audio_stream(conn,
-                                         &s->h->m,
-                                         s->asrc,
-                                         s->src_ext,
-                                         NULL);
+      cs = bg_mediaconnector_add_audio_stream(conn,
+                                              &s->h->m,
+                                              s->asrc,
+                                              s->src_ext,
+                                              NULL);
+      cs->src_index = i;
       }
     else
       continue;
@@ -1670,11 +1671,12 @@ int bg_plug_setup_reader(bg_plug_t * p, bg_mediaconnector_t * conn)
 
     if(s->vsrc || s->src_ext)
       {
-      bg_mediaconnector_add_video_stream(conn,
-                                         &s->h->m,
-                                         s->vsrc,
-                                         s->src_ext,
-                                         NULL);
+      cs = bg_mediaconnector_add_video_stream(conn,
+                                              &s->h->m,
+                                              s->vsrc,
+                                              s->src_ext,
+                                              NULL);
+      cs->src_index = i;
       }
     else
       continue;
@@ -1686,10 +1688,11 @@ int bg_plug_setup_reader(bg_plug_t * p, bg_mediaconnector_t * conn)
 
     if(s->src_ext)
       {
-      bg_mediaconnector_add_text_stream(conn,
-                                        &s->h->m,
-                                        s->src_ext,
-                                        s->h->format.text.timescale);
+      cs = bg_mediaconnector_add_text_stream(conn,
+                                             &s->h->m,
+                                             s->src_ext,
+                                             s->h->format.text.timescale);
+      cs->src_index = i;
       }
     else
       continue;
@@ -1701,11 +1704,12 @@ int bg_plug_setup_reader(bg_plug_t * p, bg_mediaconnector_t * conn)
 
     if(s->vsrc || s->src_ext)
       {
-      bg_mediaconnector_add_overlay_stream(conn,
-                                           &s->h->m,
-                                           s->vsrc,
-                                           s->src_ext,
-                                           NULL);
+      cs = bg_mediaconnector_add_overlay_stream(conn,
+                                                &s->h->m,
+                                                s->vsrc,
+                                                s->src_ext,
+                                                NULL);
+      cs->src_index = i;
       }
     else
       continue;

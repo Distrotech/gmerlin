@@ -72,7 +72,6 @@ int main(int argc, char ** argv)
   bg_encoder_t * enc;
   gavf_program_header_t * ph;
   gavf_t * g;
-
   const gavf_stream_header_t * sh;
 
   bg_stream_action_t * audio_actions = NULL;
@@ -123,7 +122,14 @@ int main(int argc, char ** argv)
   for(i = 0; i < num; i++)
     {
     sh = gavf_get_stream(g, i, GAVF_STREAM_AUDIO);
-    
+    /* Check if we can write the stream compressed */
+    if((audio_actions[i] = BG_STREAM_ACTION_READRAW) && 
+        !bg_encoder_writes_compressed_audio(enc, &sh->format.audio, &sh->ci))
+      {
+      bg_log(BG_LOG_WARNING, LOG_DOMAIN, "Audio stream %d cannot be written compressed", i+1);
+      audio_actions[i] = BG_STREAM_ACTION_DECODE;
+      } 
+    bg_plug_set_stream_action(in_plug, sh, audio_actions[i]);
     }
 
   num = gavf_get_num_streams(g, GAVF_STREAM_VIDEO);
@@ -132,16 +138,23 @@ int main(int argc, char ** argv)
   for(i = 0; i < num; i++)
     {
     sh = gavf_get_stream(g, i, GAVF_STREAM_VIDEO);
-    
+    /* Check if we can write the stream compressed */
+    if((video_actions[i] = BG_STREAM_ACTION_READRAW) &&
+        !bg_encoder_writes_compressed_video(enc, &sh->format.video, &sh->ci))
+      {
+      bg_log(BG_LOG_WARNING, LOG_DOMAIN, "Video stream %d cannot be written compressed", i+1);
+      video_actions[i] = BG_STREAM_ACTION_DECODE;
+      }      
+    bg_plug_set_stream_action(in_plug, sh, video_actions[i]);
     }
 
   num = gavf_get_num_streams(g, GAVF_STREAM_TEXT);
   text_actions = gavftools_get_stream_actions(num, GAVF_STREAM_TEXT);
-  
+
   for(i = 0; i < num; i++)
     {
     sh = gavf_get_stream(g, i, GAVF_STREAM_TEXT);
-    
+    bg_plug_set_stream_action(in_plug, sh, text_actions[i]);
     }
 
   num = gavf_get_num_streams(g, GAVF_STREAM_OVERLAY);
@@ -150,14 +163,74 @@ int main(int argc, char ** argv)
   for(i = 0; i < num; i++)
     {
     sh = gavf_get_stream(g, i, GAVF_STREAM_OVERLAY);
-    
+    /* Check if we can write the stream compressed */
+    if((overlay_actions[i] = BG_STREAM_ACTION_READRAW) &&
+        !bg_encoder_writes_compressed_overlay(enc, &sh->format.video, &sh->ci))
+      {
+      bg_log(BG_LOG_WARNING, LOG_DOMAIN, "Overlay stream %d cannot be written compressed", i+1);
+      overlay_actions[i] = BG_STREAM_ACTION_DECODE;
+      }
+    bg_plug_set_stream_action(in_plug, sh, overlay_actions[i]);
     }
-
   
-  /* Select streams */
+  /* Start decoder and initialize media connector */
+
+  if(!bg_plug_setup_reader(in_plug, &conn))
+    return ret;
   
   /* Set up encoder */
 
+  for(i = 0; i < conn.num_streams; i++)
+    {
+    switch(conn.streams[i]->type)
+      {
+      case GAVF_STREAM_AUDIO:
+        switch(audio_actions[i])
+          {
+          case BG_STREAM_ACTION_DECODE:
+            break;
+          case BG_STREAM_ACTION_READRAW:
+            break;
+          case BG_STREAM_ACTION_OFF:
+            break;
+          }
+        break;
+      case GAVF_STREAM_VIDEO:
+        switch(video_actions[i])
+          {
+          case BG_STREAM_ACTION_DECODE:
+            break;
+          case BG_STREAM_ACTION_READRAW:
+            break;
+          case BG_STREAM_ACTION_OFF:
+            break;
+          }
+        break;
+      case GAVF_STREAM_TEXT:
+        switch(text_actions[i])
+          {
+          case BG_STREAM_ACTION_DECODE:
+            break;
+          case BG_STREAM_ACTION_READRAW:
+            break;
+          case BG_STREAM_ACTION_OFF:
+            break;
+          }
+        break;
+      case GAVF_STREAM_OVERLAY:
+        switch(overlay_actions[i])
+          {
+          case BG_STREAM_ACTION_DECODE:
+            break;
+          case BG_STREAM_ACTION_READRAW:
+            break;
+          case BG_STREAM_ACTION_OFF:
+            break;
+          }
+        break;
+      }
+    }
+    
   /* Main loop */
 
   /* Cleanup */

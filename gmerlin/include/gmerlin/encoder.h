@@ -57,6 +57,10 @@ int bg_encoder_writes_compressed_video(bg_encoder_t * enc,
                                        const gavl_video_format_t * format,
                                        const gavl_compression_info_t * info);
 
+int bg_encoder_writes_compressed_overlay(bg_encoder_t * enc,
+                                         const gavl_video_format_t * format,
+                                         const gavl_compression_info_t * info);
+
 /* Add streams */
 int bg_encoder_add_audio_stream(bg_encoder_t *, const gavl_metadata_t * m,
                                 const gavl_audio_format_t * format,
