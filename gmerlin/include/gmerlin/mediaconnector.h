@@ -72,6 +72,8 @@ typedef struct
   gavl_packet_source_t * discont_psrc;
 
   int src_index; // index in the primary source
+  int dst_index; // index in the destination
+  
   } bg_mediaconnector_stream_t;
 
 struct bg_mediaconnector_s

@@ -96,6 +96,11 @@ int bg_encoder_add_overlay_stream(bg_encoder_t *,
                                   bg_stream_type_t source_format,
                                   const bg_cfg_section_t * s);
 
+int bg_encoder_add_overlay_stream_compressed(bg_encoder_t *,
+                                             const gavl_metadata_t * m,
+                                             const gavl_video_format_t * format,
+                                             const gavl_compression_info_t * info,
+                                             int index);
 
 /* Get formats */
 void bg_encoder_get_audio_format(bg_encoder_t *, int stream,

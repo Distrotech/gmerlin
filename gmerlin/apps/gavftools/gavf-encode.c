@@ -73,7 +73,9 @@ int main(int argc, char ** argv)
   gavf_program_header_t * ph;
   gavf_t * g;
   const gavf_stream_header_t * sh;
+  bg_mediaconnector_stream_t * cs;
 
+  
   bg_stream_action_t * audio_actions = NULL;
   bg_stream_action_t * video_actions = NULL;
   bg_stream_action_t * text_actions = NULL;
@@ -182,55 +184,110 @@ int main(int argc, char ** argv)
 
   for(i = 0; i < conn.num_streams; i++)
     {
-    switch(conn.streams[i]->type)
+    cs = conn.streams[i];
+    switch(cs->type)
       {
       case GAVF_STREAM_AUDIO:
-        switch(audio_actions[i])
+        if(cs->asrc)
+          cs->dst_index =
+            bg_encoder_add_audio_stream(enc, &cs->m,
+                                        gavl_audio_source_get_src_format(cs->asrc),
+                                        cs->src_index, NULL);
+        else
+          cs->dst_index =
+            bg_encoder_add_audio_stream_compressed(enc, &cs->m,
+                                                   gavl_packet_source_get_audio_format(cs->psrc),
+                                                   gavl_packet_source_get_ci(cs->psrc),
+                                                   cs->src_index);
+        break;
+      case GAVF_STREAM_VIDEO:
+        if(cs->vsrc)
+          cs->dst_index =
+            bg_encoder_add_video_stream(enc, &cs->m,
+                                        gavl_video_source_get_src_format(cs->vsrc),
+                                        cs->src_index, NULL);
+        else
+          cs->dst_index =
+            bg_encoder_add_video_stream_compressed(enc, &cs->m,
+                                                   gavl_packet_source_get_video_format(cs->psrc),
+                                                   gavl_packet_source_get_ci(cs->psrc),
+                                                   cs->src_index);
+        break;
+      case GAVF_STREAM_TEXT:
+        cs->dst_index = bg_encoder_add_text_stream(enc, &cs->m,
+                                                   cs->timescale, cs->src_index);
+        break;
+      case GAVF_STREAM_OVERLAY:
+        if(cs->vsrc)
+          bg_encoder_add_overlay_stream(enc,
+                                        &cs->m,
+                                        gavl_video_source_get_src_format(cs->vsrc),
+                                        cs->src_index,
+                                        BG_STREAM_OVERLAY,
+                                        NULL);
+        else
+          bg_encoder_add_overlay_stream_compressed(enc,
+                                                   &cs->m,
+                                                   gavl_packet_source_get_video_format(cs->psrc),
+                                                   gavl_packet_source_get_ci(cs->psrc),
+                                                   cs->src_index);
+        break;
+      }
+    }
+
+  /* Start */
+  if(!bg_encoder_start(enc))
+    return ret;
+
+  /* Connect sinks */
+
+  for(i = 0; i < conn.num_streams; i++)
+    {
+    cs = conn.streams[i];
+    
+    switch(cs->type)
+      {
+      case GAVF_STREAM_AUDIO:
+        if(cs->aconn)
           {
-          case BG_STREAM_ACTION_DECODE:
-            break;
-          case BG_STREAM_ACTION_READRAW:
-            break;
-          case BG_STREAM_ACTION_OFF:
-            break;
+          gavl_audio_connector_connect(cs->aconn,
+                                       bg_encoder_get_audio_sink(enc, cs->dst_index));
+          }
+        else
+          {
+          gavl_packet_connector_connect(cs->pconn,
+                                        bg_encoder_get_audio_packet_sink(enc, cs->dst_index));
+          
           }
         break;
       case GAVF_STREAM_VIDEO:
-        switch(video_actions[i])
+        if(cs->vconn)
           {
-          case BG_STREAM_ACTION_DECODE:
-            break;
-          case BG_STREAM_ACTION_READRAW:
-            break;
-          case BG_STREAM_ACTION_OFF:
-            break;
+          gavl_video_connector_connect(cs->vconn,
+                                       bg_encoder_get_video_sink(enc, cs->dst_index));
+          }
+        else
+          {
+          gavl_packet_connector_connect(cs->pconn,
+                                        bg_encoder_get_audio_packet_sink(enc, cs->dst_index));
+          
           }
         break;
       case GAVF_STREAM_TEXT:
-        switch(text_actions[i])
-          {
-          case BG_STREAM_ACTION_DECODE:
-            break;
-          case BG_STREAM_ACTION_READRAW:
-            break;
-          case BG_STREAM_ACTION_OFF:
-            break;
-          }
         break;
       case GAVF_STREAM_OVERLAY:
-        switch(overlay_actions[i])
+        if(cs->vsrc)
           {
-          case BG_STREAM_ACTION_DECODE:
-            break;
-          case BG_STREAM_ACTION_READRAW:
-            break;
-          case BG_STREAM_ACTION_OFF:
-            break;
+
+          }
+        else
+          {
+
           }
         break;
       }
     }
-    
+  
   /* Main loop */
 
   /* Cleanup */

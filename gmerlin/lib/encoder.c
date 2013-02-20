@@ -982,6 +982,28 @@ int bg_encoder_add_video_stream_compressed(bg_encoder_t * enc,
   return ret;
   }
 
+int bg_encoder_add_overlay_stream_compressed(bg_encoder_t * enc,
+                                             const gavl_metadata_t * m,
+                                             const gavl_video_format_t * format,
+                                             const gavl_compression_info_t * info,
+                                             int source_index)
+  {
+  int ret;
+  overlay_stream_t * s;
+
+  REALLOC_STREAM(enc->overlay_streams,
+                 enc->num_overlay_streams);
+
+  gavl_video_format_copy(&s->format, format);
+  s->com.in_index = source_index;
+  
+  s->com.ci = info;
+  s->com.m = m;
+  ret = enc->num_overlay_streams;
+  enc->num_overlay_streams++;
+  return ret;
+  }
+
 
 int bg_encoder_add_text_stream(bg_encoder_t * enc,
                                         const gavl_metadata_t * m,
