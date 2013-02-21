@@ -784,23 +784,49 @@ int bg_encoder_start(bg_encoder_t * enc)
       }
     else
       {
-      vs->com.psink = vs->com.plugin->get_video_packet_sink(vs->com.priv, vs->com.out_index);
-      gavl_packet_sink_set_lock_funcs(vs->com.psink, bg_plugin_lock, bg_plugin_unlock, vs->com.h);
+      vs->com.psink = vs->com.plugin->get_video_packet_sink(vs->com.priv,
+                                                            vs->com.out_index);
+      gavl_packet_sink_set_lock_funcs(vs->com.psink,
+                                      bg_plugin_lock,
+                                      bg_plugin_unlock,
+                                      vs->com.h);
       }
     }
 
   for(i = 0; i < enc->num_text_streams; i++)
     {
     text_stream_t * ts = &enc->text_streams[i];
-    ts->com.psink = ts->com.plugin->get_text_sink(ts->com.priv, ts->com.out_index);
-    gavl_packet_sink_set_lock_funcs(ts->com.psink, bg_plugin_lock, bg_plugin_unlock, ts->com.h);
+    ts->com.psink = ts->com.plugin->get_text_sink(ts->com.priv,
+                                                  ts->com.out_index);
+    gavl_packet_sink_set_lock_funcs(ts->com.psink,
+                                    bg_plugin_lock,
+                                    bg_plugin_unlock,
+                                    ts->com.h);
     }
 
   for(i = 0; i < enc->num_overlay_streams; i++)
     {
     overlay_stream_t * os = &enc->overlay_streams[i];
-    os->sink = os->com.plugin->get_overlay_sink(os->com.priv, os->com.out_index);
-    gavl_video_sink_set_lock_funcs(os->sink, bg_plugin_lock, bg_plugin_unlock, os->com.h);
+
+    if(!os->com.ci)
+      {
+      os->sink = os->com.plugin->get_overlay_sink(os->com.priv,
+                                                  os->com.out_index);
+      gavl_video_sink_set_lock_funcs(os->sink,
+                                     bg_plugin_lock,
+                                     bg_plugin_unlock,
+                                     os->com.h);
+      }
+    else
+      {
+      os->com.psink =
+        os->com.plugin->get_overlay_packet_sink(os->com.priv,
+                                                os->com.out_index);
+      gavl_packet_sink_set_lock_funcs(os->com.psink,
+                                     bg_plugin_lock,
+                                     bg_plugin_unlock,
+                                     os->com.h);
+      }
     }
   
   
@@ -1269,7 +1295,8 @@ bg_encoder_get_audio_packet_sink(bg_encoder_t * enc, int stream)
   return enc->audio_streams[stream].com.psink;
   }
 
-gavl_packet_sink_t * bg_encoder_get_video_packet_sink(bg_encoder_t * enc, int stream)
+gavl_packet_sink_t *
+bg_encoder_get_video_packet_sink(bg_encoder_t * enc, int stream)
   {
   return enc->video_streams[stream].com.psink;
   }
@@ -1282,6 +1309,12 @@ gavl_packet_sink_t * bg_encoder_get_text_sink(bg_encoder_t * enc, int stream)
 gavl_video_sink_t * bg_encoder_get_overlay_sink(bg_encoder_t * enc, int stream)
   {
   return enc->overlay_streams[stream].sink;
+  }
+
+gavl_packet_sink_t *
+bg_encoder_get_overlay_packet_sink(bg_encoder_t * enc, int stream)
+  {
+  return enc->overlay_streams[stream].com.psink;
   }
 
 void bg_encoder_update_metadata(bg_encoder_t * enc,

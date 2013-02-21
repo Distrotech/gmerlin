@@ -27,6 +27,45 @@ static bg_plug_t * in_plug = NULL;
 
 #define LOG_DOMAIN "gavf-play"
 
+static gavl_metadata_t ac_options;
+static gavl_metadata_t vc_options;
+static gavl_metadata_t oc_options;
+
+static void opt_ac(void * data, int * argc, char *** _argv, int arg)
+  {
+  if(arg >= *argc)
+    {
+    fprintf(stderr, "Option -ac requires an argument\n");
+    exit(-1);
+    }
+  if(!bg_cmdline_set_stream_options(&ac_options,(*_argv)[arg]))
+    exit(-1);
+  bg_cmdline_remove_arg(argc, _argv, arg);
+  }
+
+static void opt_vc(void * data, int * argc, char *** _argv, int arg)
+  {
+  if(arg >= *argc)
+    {
+    fprintf(stderr, "Option -vc requires an argument\n");
+    exit(-1);
+    }
+  if(!bg_cmdline_set_stream_options(&vc_options,(*_argv)[arg]))
+    exit(-1);
+  bg_cmdline_remove_arg(argc, _argv, arg);
+  }
+
+static void opt_oc(void * data, int * argc, char *** _argv, int arg)
+  {
+  if(arg >= *argc)
+    {
+    fprintf(stderr, "Option -oc requires an argument\n");
+    exit(-1);
+    }
+  if(!bg_cmdline_set_stream_options(&oc_options,(*_argv)[arg]))
+    exit(-1);
+  bg_cmdline_remove_arg(argc, _argv, arg);
+  }
 
 static bg_cmdline_arg_t global_options[] =
   {
@@ -35,6 +74,24 @@ static bg_cmdline_arg_t global_options[] =
     GAVFTOOLS_VIDEO_STREAM_OPTIONS,
     GAVFTOOLS_TEXT_STREAM_OPTIONS,
     GAVFTOOLS_OVERLAY_STREAM_OPTIONS,
+    {
+      .arg =         "-ac",
+      .help_arg =    "<options>",
+      .help_string = "Audio compression options",
+      .callback =    opt_ac,
+    },
+    {
+      .arg =         "-vc",
+      .help_arg =    "<options>",
+      .help_string = "Video compression options",
+      .callback =    opt_vc,
+    },
+    {
+      .arg =         "-oc",
+      .help_arg =    "<options>",
+      .help_string = "Overlay compression options",
+      .callback =    opt_oc,
+    },
     GAVFTOOLS_VERBOSE_OPTIONS,
     { /* End */ },
   };
@@ -66,6 +123,7 @@ static void metadata_callback(void * priv, const gavl_metadata_t * m)
 
 int main(int argc, char ** argv)
   {
+  int do_delete;
   int ret = 1;
   int i, num;
   bg_mediaconnector_t conn;
@@ -75,11 +133,18 @@ int main(int argc, char ** argv)
   const gavf_stream_header_t * sh;
   bg_mediaconnector_stream_t * cs;
 
+  gavl_audio_sink_t * asink;
+  gavl_video_sink_t * vsink;
+  gavl_packet_sink_t * psink;
   
   bg_stream_action_t * audio_actions = NULL;
   bg_stream_action_t * video_actions = NULL;
   bg_stream_action_t * text_actions = NULL;
   bg_stream_action_t * overlay_actions = NULL;
+
+  gavl_metadata_init(&ac_options);
+  gavl_metadata_init(&vc_options);
+  gavl_metadata_init(&oc_options);
   
   bg_mediaconnector_init(&conn);
   gavftools_init();
@@ -89,11 +154,16 @@ int main(int argc, char ** argv)
 
   in_plug = gavftools_create_in_plug();
     
-#if 0
-  enc = bg_encoder_create(bg_plugin_registry_t * plugin_reg,
-                          bg_cfg_section_t * section,
-                          bg_transcoder_track_t * tt,
-                          int stream_mask, int flag_mask);
+#if 1
+  enc = bg_encoder_create(plugin_reg,
+                          NULL, // bg_cfg_section_t * section,
+                          NULL, // bg_transcoder_track_t * tt,
+                          BG_STREAM_AUDIO |
+                          BG_STREAM_VIDEO |
+                          BG_STREAM_TEXT |
+                          BG_STREAM_OVERLAY /* Stream types */,
+                          BG_PLUGIN_FILE | BG_PLUGIN_BROADCAST  /* Flags */
+                          );
 #endif
   
   /* Open */
@@ -244,53 +314,74 @@ int main(int argc, char ** argv)
   for(i = 0; i < conn.num_streams; i++)
     {
     cs = conn.streams[i];
+
+    asink = NULL;
+    vsink = NULL;
+    psink = NULL;
     
     switch(cs->type)
       {
       case GAVF_STREAM_AUDIO:
         if(cs->aconn)
-          {
-          gavl_audio_connector_connect(cs->aconn,
-                                       bg_encoder_get_audio_sink(enc, cs->dst_index));
-          }
+          asink = bg_encoder_get_audio_sink(enc, cs->dst_index);
         else
-          {
-          gavl_packet_connector_connect(cs->pconn,
-                                        bg_encoder_get_audio_packet_sink(enc, cs->dst_index));
-          
-          }
+          psink = bg_encoder_get_audio_packet_sink(enc, cs->dst_index);
         break;
       case GAVF_STREAM_VIDEO:
         if(cs->vconn)
-          {
-          gavl_video_connector_connect(cs->vconn,
-                                       bg_encoder_get_video_sink(enc, cs->dst_index));
-          }
+          vsink = bg_encoder_get_video_sink(enc, cs->dst_index);
         else
-          {
-          gavl_packet_connector_connect(cs->pconn,
-                                        bg_encoder_get_audio_packet_sink(enc, cs->dst_index));
-          
-          }
+          psink = bg_encoder_get_video_packet_sink(enc, cs->dst_index);
         break;
       case GAVF_STREAM_TEXT:
+        psink = bg_encoder_get_text_sink(enc, cs->dst_index);
         break;
       case GAVF_STREAM_OVERLAY:
-        if(cs->vsrc)
-          {
-
-          }
+        if(cs->vconn)
+          vsink = bg_encoder_get_overlay_sink(enc, cs->dst_index);
         else
-          {
-
-          }
+          psink = bg_encoder_get_overlay_packet_sink(enc, cs->dst_index);
         break;
       }
+
+    if(asink)
+      gavl_audio_connector_connect(cs->aconn, asink);
+    else if(vsink)
+      gavl_video_connector_connect(cs->vconn, vsink);
+    else if(psink)
+      gavl_packet_connector_connect(cs->pconn, psink);
     }
+
+  /* Fire up connector */
+
+  bg_mediaconnector_start(&conn);
   
   /* Main loop */
 
+  do_delete = 0;
+  
+  while(1)
+    {
+    if(bg_plug_got_error(in_plug))
+      {
+      do_delete = 1;
+      break;
+      }
+    if(gavftools_stop() ||
+       !bg_mediaconnector_iteration(&conn))
+      break;
+    }
+  ret = 0;
+  
   /* Cleanup */
 
+  bg_plug_destroy(in_plug);
+  bg_encoder_destroy(enc, do_delete);
+  
+  gavl_metadata_free(&ac_options);
+  gavl_metadata_free(&vc_options);
+  gavl_metadata_free(&oc_options);
+
+  
   return 0;
   }

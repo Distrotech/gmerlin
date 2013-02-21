@@ -134,14 +134,26 @@ int bg_encoder_write_audio_packet(bg_encoder_t *,
 int bg_encoder_write_video_packet(bg_encoder_t *,
                                   gavl_packet_t * p, int stream);
 
-gavl_audio_sink_t * bg_encoder_get_audio_sink(bg_encoder_t *, int stream);
-gavl_video_sink_t * bg_encoder_get_video_sink(bg_encoder_t *, int stream);
+gavl_audio_sink_t *
+bg_encoder_get_audio_sink(bg_encoder_t *, int stream);
 
-gavl_packet_sink_t * bg_encoder_get_audio_packet_sink(bg_encoder_t *, int stream);
-gavl_packet_sink_t * bg_encoder_get_video_packet_sink(bg_encoder_t *, int stream);
+gavl_video_sink_t *
+bg_encoder_get_video_sink(bg_encoder_t *, int stream);
 
-gavl_packet_sink_t * bg_encoder_get_text_sink(bg_encoder_t *, int stream);
-gavl_video_sink_t * bg_encoder_get_overlay_sink(bg_encoder_t *, int stream);
+gavl_packet_sink_t *
+bg_encoder_get_audio_packet_sink(bg_encoder_t *, int stream);
+
+gavl_packet_sink_t *
+bg_encoder_get_video_packet_sink(bg_encoder_t *, int stream);
+
+gavl_packet_sink_t *
+bg_encoder_get_overlay_packet_sink(bg_encoder_t * enc, int stream);
+
+gavl_packet_sink_t *
+bg_encoder_get_text_sink(bg_encoder_t *, int stream);
+
+gavl_video_sink_t *
+bg_encoder_get_overlay_sink(bg_encoder_t *, int stream);
 
 /* Update metadata */
 
