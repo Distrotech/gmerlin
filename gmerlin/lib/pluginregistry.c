@@ -2329,21 +2329,17 @@ void bg_plugin_registry_set_parameter_info(bg_plugin_registry_t * reg,
     while(ret->multi_names_nc[start_entries])
       start_entries++;
     }
-  
-  ret->multi_names_nc =
-    realloc(ret->multi_names_nc, (start_entries + num_plugins + 1)*sizeof(*ret->multi_names_nc));
-  ret->multi_labels_nc =
-    realloc(ret->multi_labels_nc, (start_entries + num_plugins + 1)*sizeof(*ret->multi_labels_nc));
-  ret->multi_parameters_nc =
-    realloc(ret->multi_parameters_nc, (start_entries + num_plugins+1)*sizeof(*ret->multi_parameters_nc));
-  ret->multi_descriptions_nc =
-    realloc(ret->multi_descriptions_nc, (start_entries + num_plugins+1)*sizeof(*ret->multi_descriptions_nc));
 
-  memset(ret->multi_names_nc + start_entries, 0, (num_plugins + 1)*sizeof(*ret->multi_names_nc));
-  memset(ret->multi_labels_nc + start_entries, 0, (num_plugins + 1)*sizeof(*ret->multi_labels_nc));
-  memset(ret->multi_parameters_nc + start_entries, 0, (num_plugins + 1)*sizeof(*ret->multi_parameters_nc));
-  memset(ret->multi_descriptions_nc + start_entries, 0, (num_plugins + 1)*sizeof(*ret->multi_descriptions_nc));
-  
+#define REALLOC(arr) \
+  ret->arr = realloc(ret->arr, (start_entries + num_plugins + 1)*sizeof(*ret->arr)); \
+  memset(ret->arr + start_entries, 0, (num_plugins + 1)*sizeof(*ret->arr));
+
+  REALLOC(multi_names_nc);
+  REALLOC(multi_labels_nc);
+  REALLOC(multi_parameters_nc);
+  REALLOC(multi_descriptions_nc);
+#undef REALLOC
+    
   bg_parameter_info_set_const_ptrs(ret);
   
   for(i = 0; i < num_plugins; i++)
@@ -2362,15 +2358,17 @@ void bg_plugin_registry_set_parameter_info(bg_plugin_registry_t * reg,
     ret->multi_descriptions_nc[start_entries+i] = bg_strdup(NULL, TRD(info->description,
                                                      info->gettext_domain));
     
-    ret->multi_labels_nc[start_entries+i] = bg_strdup(NULL, TRD(info->long_name,
-                                               info->gettext_domain));
+    ret->multi_labels_nc[start_entries+i] =
+      bg_strdup(NULL, TRD(info->long_name,
+                          info->gettext_domain));
     
     if(info->type & (BG_PLUGIN_ENCODER_AUDIO |
                      BG_PLUGIN_ENCODER_VIDEO |
                      BG_PLUGIN_ENCODER_TEXT |
                      BG_PLUGIN_ENCODER_OVERLAY |
                      BG_PLUGIN_ENCODER))
-      ret->multi_parameters_nc[start_entries+i] = create_encoder_parameters(info);
+      ret->multi_parameters_nc[start_entries+i] =
+        create_encoder_parameters(info);
     else if(info->parameters)
       {
       ret->multi_parameters_nc[start_entries+i] =
