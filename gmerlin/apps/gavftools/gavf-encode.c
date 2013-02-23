@@ -250,6 +250,7 @@ int main(int argc, char ** argv)
   gavl_metadata_init(&ac_options);
   gavl_metadata_init(&vc_options);
   gavl_metadata_init(&oc_options);
+  gavl_metadata_init(&tc_options);
   
   bg_mediaconnector_init(&conn);
   gavftools_init();
@@ -319,7 +320,7 @@ int main(int argc, char ** argv)
     {
     sh = gavf_get_stream(g, i, GAVF_STREAM_AUDIO);
     /* Check if we can write the stream compressed */
-    if((audio_actions[i] = BG_STREAM_ACTION_READRAW) && 
+    if((audio_actions[i] == BG_STREAM_ACTION_READRAW) && 
         !bg_encoder_writes_compressed_audio(enc, &sh->format.audio, &sh->ci))
       {
       bg_log(BG_LOG_WARNING, LOG_DOMAIN, "Audio stream %d cannot be written compressed", i+1);
@@ -335,7 +336,7 @@ int main(int argc, char ** argv)
     {
     sh = gavf_get_stream(g, i, GAVF_STREAM_VIDEO);
     /* Check if we can write the stream compressed */
-    if((video_actions[i] = BG_STREAM_ACTION_READRAW) &&
+    if((video_actions[i] == BG_STREAM_ACTION_READRAW) &&
         !bg_encoder_writes_compressed_video(enc, &sh->format.video, &sh->ci))
       {
       bg_log(BG_LOG_WARNING, LOG_DOMAIN, "Video stream %d cannot be written compressed", i+1);
@@ -360,7 +361,7 @@ int main(int argc, char ** argv)
     {
     sh = gavf_get_stream(g, i, GAVF_STREAM_OVERLAY);
     /* Check if we can write the stream compressed */
-    if((overlay_actions[i] = BG_STREAM_ACTION_READRAW) &&
+    if((overlay_actions[i] == BG_STREAM_ACTION_READRAW) &&
         !bg_encoder_writes_compressed_overlay(enc, &sh->format.video, &sh->ci))
       {
       bg_log(BG_LOG_WARNING, LOG_DOMAIN, "Overlay stream %d cannot be written compressed", i+1);
