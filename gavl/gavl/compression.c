@@ -224,6 +224,11 @@ void gavl_compression_info_dumpi(const gavl_compression_info_t * info, int inden
   do_indent(indent+2);
   fprintf(stderr, "Bitrate:      %d bps\n", info->bitrate);
 
+  if(info->id < 0x10000)
+    {
+    do_indent(indent+2);
+    fprintf(stderr, "pre_skip:     %d\n", info->pre_skip);
+    }
   if(info->id >= 0x10000)
     {
     do_indent(indent+2);
