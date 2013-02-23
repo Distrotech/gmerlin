@@ -679,11 +679,11 @@ gavl_audio_sink_t * bg_lame_open(bg_lame_t * lame,
     gavl_metadata_set_nocpy(m, GAVL_META_SOFTWARE,
                             bg_sprintf("lame %s", get_lame_version()));
     }
-
   
   /* Delay taken from ffmpeg */
   lame->delay = lame_get_encoder_delay(lame->lame) + 528 + 1; 
-  
+  if(ci)
+    ci->pre_skip = lame->delay;
   return lame->sink;
   
   
