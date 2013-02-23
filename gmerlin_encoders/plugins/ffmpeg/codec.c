@@ -344,6 +344,17 @@ write_audio_func(void * data, gavl_audio_frame_t * frame)
   return GAVL_SINK_OK;
   }
 
+
+void bg_ffmpeg_set_audio_format(AVCodecContext * avctx,
+                                const gavl_audio_format_t * fmt)
+  {
+  /* Set format for codec */
+  avctx->sample_rate = fmt->samplerate;
+  
+  /* Channel setup */
+  avctx->channels    = fmt->num_channels;
+  }
+
 gavl_audio_sink_t * bg_ffmpeg_codec_open_audio(bg_ffmpeg_codec_context_t * ctx,
                                                gavl_compression_info_t * ci,
                                                gavl_audio_format_t * fmt,
@@ -353,13 +364,13 @@ gavl_audio_sink_t * bg_ffmpeg_codec_open_audio(bg_ffmpeg_codec_context_t * ctx,
   //    return NULL;
   
   /* Set format for codec */
-  ctx->avctx->sample_rate = fmt->samplerate;
-  
-  /* Channel setup */
-  ctx->avctx->channels    = fmt->num_channels;
+
+  bg_ffmpeg_set_audio_format(ctx->avctx, fmt);
+
   ctx->avctx->channel_layout =
     bg_ffmpeg_get_channel_layout(fmt);
 
+  
   /* Sample format */
   ctx->avctx->sample_fmt = ctx->codec->sample_fmts[0];
   fmt->sample_format =
@@ -583,6 +594,17 @@ static gavl_video_frame_t * get_video_func(void * data)
   return ctx->vframe;
   }
 
+void bg_ffmpeg_set_video_dimensions(AVCodecContext * avctx,
+                                    const gavl_video_format_t * fmt)
+  {
+  avctx->width  = fmt->image_width;
+  avctx->height = fmt->image_height;
+  
+  avctx->sample_aspect_ratio.num = fmt->pixel_width;
+  avctx->sample_aspect_ratio.den = fmt->pixel_height;
+  }
+
+
 gavl_video_sink_t * bg_ffmpeg_codec_open_video(bg_ffmpeg_codec_context_t * ctx,
                                                gavl_compression_info_t * ci,
                                                gavl_video_format_t * fmt,
@@ -598,12 +620,10 @@ gavl_video_sink_t * bg_ffmpeg_codec_open_video(bg_ffmpeg_codec_context_t * ctx,
                                   AVMEDIA_TYPE_VIDEO);
   
   /* Set format for codec */
-  ctx->avctx->width  = fmt->image_width;
-  ctx->avctx->height = fmt->image_height;
-  
-  ctx->avctx->sample_aspect_ratio.num = fmt->pixel_width;
-  ctx->avctx->sample_aspect_ratio.den = fmt->pixel_height;
 
+  bg_ffmpeg_set_video_dimensions(ctx->avctx, fmt);
+  
+  
   ctx->avctx->codec_type = AVMEDIA_TYPE_VIDEO;
   ctx->avctx->codec_id = ctx->id;
   

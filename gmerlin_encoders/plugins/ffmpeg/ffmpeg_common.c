@@ -538,8 +538,11 @@ static int open_audio_encoder(ffmpeg_priv_t * priv,
   st->com.psink = gavl_packet_sink_create(NULL, write_audio_packet_func, st);
   
   if(st->com.flags & STREAM_IS_COMPRESSED)
+    {
+    bg_ffmpeg_set_audio_format(st->com.stream->codec,
+                               &st->format);
     return 1;
-  
+    }
   st->sink = bg_ffmpeg_codec_open_audio(st->com.codec, &st->com.ci, &st->format, NULL);
   if(!st->sink)
     return 0;
@@ -571,6 +574,11 @@ static int open_video_encoder(ffmpeg_priv_t * priv,
   if(st->com.flags & STREAM_IS_COMPRESSED)
     {
     set_framerate(st);
+    bg_ffmpeg_set_video_dimensions(st->com.stream->codec, &st->format);
+
+    st->com.stream->sample_aspect_ratio.num = st->com.stream->codec->sample_aspect_ratio.num;
+    st->com.stream->sample_aspect_ratio.den = st->com.stream->codec->sample_aspect_ratio.den;
+    
     return 1;
     }
 

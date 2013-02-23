@@ -107,7 +107,15 @@ bg_ffmpeg_get_codec_info(enum CodecID id, int type);
  *  Type is one of CODEC_TYPE_VIDEO or CODEC_TYPE_AUDIO
  */
 
+
 typedef struct bg_ffmpeg_codec_context_s bg_ffmpeg_codec_context_t;
+
+void bg_ffmpeg_set_video_dimensions(AVCodecContext * avctx,
+                                    const gavl_video_format_t * fmt);
+
+void bg_ffmpeg_set_audio_format(AVCodecContext * avctx,
+                                const gavl_audio_format_t * fmt);
+
 
 bg_ffmpeg_codec_context_t * bg_ffmpeg_codec_create(int type,
                                                    AVCodecContext * avctx,
