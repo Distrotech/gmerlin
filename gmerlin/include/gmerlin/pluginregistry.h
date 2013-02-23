@@ -495,7 +495,8 @@ int bg_plugin_registry_get_parameter_input(void * data, const char * name,
 bg_parameter_info_t *
 bg_plugin_registry_create_encoder_parameters(bg_plugin_registry_t * reg,
                                              uint32_t stream_type_mask,
-                                             uint32_t flag_mask);
+                                             uint32_t flag_mask,
+                                             int stream_params);
 
 /** \ingroup plugin_registry
  *  \brief Create a parameter array for compressors

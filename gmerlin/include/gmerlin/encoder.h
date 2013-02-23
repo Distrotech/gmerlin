@@ -33,6 +33,12 @@ bg_encoder_t * bg_encoder_create(bg_plugin_registry_t * plugin_reg,
                                  bg_transcoder_track_t * tt,
                                  int stream_mask, int flag_mask);
 
+const bg_cfg_section_t * bg_encoder_get_stream_section(bg_encoder_t * enc,
+                                                       bg_stream_type_t type);
+
+const bg_parameter_info_t * bg_encoder_get_stream_parameters(bg_encoder_t * enc,
+                                                             bg_stream_type_t type);
+
 void
 bg_encoder_set_callbacks(bg_encoder_t * e, bg_encoder_callbacks_t * cb);
 
@@ -87,7 +93,7 @@ int bg_encoder_add_video_stream_compressed(bg_encoder_t *,
 int bg_encoder_add_text_stream(bg_encoder_t *,
                                const gavl_metadata_t * m,
                                int timescale,
-                               int index);
+                               int index, const bg_cfg_section_t * s);
 
 int bg_encoder_add_overlay_stream(bg_encoder_t *,
                                   const gavl_metadata_t * m,

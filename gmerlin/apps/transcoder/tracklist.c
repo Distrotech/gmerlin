@@ -437,7 +437,6 @@ static void track_list_update(track_list_t * w)
 
     name = bg_transcoder_track_get_name(track);
     
-    
     /* Set index */
     sprintf(string_buffer, "%d.", i+1);
     
@@ -447,6 +446,7 @@ static void track_list_update(track_list_t * w)
                        string_buffer, -1);
 
     /* Set name */
+    
     gtk_list_store_set(GTK_LIST_STORE(model),
                        &iter,
                        COLUMN_NAME,

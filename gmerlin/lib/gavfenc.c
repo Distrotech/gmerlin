@@ -501,6 +501,19 @@ bg_gavf_add_video_stream_compressed(void * data,
   return f->num_video_streams-1;
   }
 
+static int
+bg_gavf_add_overlay_stream_compressed(void * data,
+                                      const gavl_metadata_t * m,
+                                      const gavl_video_format_t * format,
+                                      const gavl_compression_info_t * info)
+  {
+  overlay_stream_t * s;
+  bg_gavf_t * f = data;
+  s = append_overlay_stream(f, m, format);
+  gavl_compression_info_copy(&s->com.ci, info);
+  return f->num_overlay_streams-1;
+  }
+
 static int bg_gavf_start(void * data)
   {
   bg_gavf_t * priv;
@@ -799,6 +812,13 @@ bg_gavf_get_video_packet_sink(void * data, int stream)
   }
 
 static gavl_packet_sink_t *
+bg_gavf_get_overlay_packet_sink(void * data, int stream)
+  {
+  bg_gavf_t * f = data;
+  return f->overlay_streams[stream].com.psink;
+  }
+
+static gavl_packet_sink_t *
 bg_gavf_get_text_sink(void * data, int stream)
   {
   bg_gavf_t * f = data;
@@ -847,6 +867,7 @@ const bg_encoder_plugin_t the_plugin =
 
     .add_audio_stream_compressed =     bg_gavf_add_audio_stream_compressed,
     .add_video_stream_compressed =     bg_gavf_add_video_stream_compressed,
+    .add_overlay_stream_compressed =   bg_gavf_add_overlay_stream_compressed,
 
     // .set_video_pass =       bg_gavf_set_video_pass,
     .set_audio_parameter =  bg_gavf_set_audio_parameter,
@@ -862,6 +883,7 @@ const bg_encoder_plugin_t the_plugin =
     .get_video_sink =        bg_gavf_get_video_sink,
     .get_audio_packet_sink = bg_gavf_get_audio_packet_sink,
     .get_video_packet_sink = bg_gavf_get_video_packet_sink,
+    .get_overlay_packet_sink = bg_gavf_get_overlay_packet_sink,
     .get_text_sink = bg_gavf_get_text_sink,
     .get_overlay_sink = bg_gavf_get_overlay_sink,
     //    .get_subtitle__sink = bg_gavf_get_text_sink,

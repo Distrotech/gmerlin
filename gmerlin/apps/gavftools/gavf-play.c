@@ -421,9 +421,7 @@ static void player_open(player_t * p, bg_mediaconnector_t * conn)
         break;
       }
     }
-
   
-
   if(!(p->as.flags & FLAG_HAS_DELAY))
     p->timer = gavl_timer_create();
   

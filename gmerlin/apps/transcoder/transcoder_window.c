@@ -919,7 +919,7 @@ transcoder_window_t * transcoder_window_create()
 
   ret->encoder_parameters =
     bg_plugin_registry_create_encoder_parameters(ret->plugin_reg,
-                                                 stream_flags, plugin_flags);
+                                                 stream_flags, plugin_flags, 1);
 
   // bg_parameters_dump(ret->encoder_parameters, "encoder_params.xml");
   

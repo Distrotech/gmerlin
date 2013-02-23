@@ -274,7 +274,7 @@ bg_recorder_get_encoder_parameters(bg_recorder_t * rec)
     rec->encoder_parameters =
       bg_plugin_registry_create_encoder_parameters(rec->plugin_reg,
                                                    bg_recorder_stream_mask,
-                                                   bg_recorder_plugin_mask);
+                                                   bg_recorder_plugin_mask, 1);
   return rec->encoder_parameters;
   }
 

@@ -1656,6 +1656,23 @@ struct bg_encoder_plugin_s
                                   const gavl_metadata_t * m,
                                   uint32_t * timescale);
   
+  /** \brief Add an overlay subtitle stream
+   *  \param priv The handle returned by the create() method
+   *  \param m Metadata
+   *  \param format Format of the source
+   *  \returns Index of this stream (starting with 0)
+   *
+   *  The format might be changed to the nearest format supported by
+   *  the plugin. Use \ref get_subtitle_overlay_format
+   *  to get the actual format
+   *  needed by the plugin, after \ref start was called.
+   */
+  
+  int (*add_overlay_stream_compressed)(void * priv,
+                                       const gavl_metadata_t * m,
+                                       const gavl_video_format_t * format,
+                                       const gavl_compression_info_t * ci);
+  
   /** \brief Add a text subtitle stream
    *  \param priv The handle returned by the create() method
    *  \param language as ISO 639-2 code (3 characters+'\\0') or NULL

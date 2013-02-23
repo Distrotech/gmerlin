@@ -1150,7 +1150,7 @@ static void add_text_stream(text_stream_t * ret,
       bg_encoder_add_text_stream(t->enc,
                                  &ret->com.com.m,
                                  ret->com.out_format.timescale,
-                                 ret->com.com.in_index);
+                                 ret->com.com.in_index, NULL);
     
     }
   else if(ret->com.com.action == STREAM_ACTION_TRANSCODE_OVERLAY)

@@ -685,6 +685,17 @@ static int start_overlay(bg_encoder_t * enc, int stream)
   s->com.h = h;
   
   /* Add stream */
+
+  if(s->com.ci)
+    {
+    s->com.out_index =
+      s->com.plugin->add_overlay_stream_compressed(s->com.priv, s->com.m,
+                                                   &s->format, s->com.ci);
+    if(s->com.out_index < 0)
+      return 0;
+    return 1;
+    }
+  
   s->com.out_index =
     s->com.plugin->add_overlay_stream(s->com.priv,
                                       s->com.m, &s->format);
@@ -891,6 +902,59 @@ int bg_encoder_write_overlay(bg_encoder_t * enc,
   s = &streams[num]; \
   memset(s, 0, sizeof(*s));
 
+/* Obtain sections */
+
+const bg_cfg_section_t * bg_encoder_get_stream_section(bg_encoder_t * enc,
+                                                       bg_stream_type_t type)
+  {
+  switch(type)
+    {
+    case BG_STREAM_AUDIO:
+      return enc->audio_stream.section;
+      break;
+    case BG_STREAM_VIDEO:
+      return enc->video_stream.section;
+      break;
+    case BG_STREAM_TEXT:
+      return enc->text_stream.section;
+      break;
+    case BG_STREAM_OVERLAY:
+      return enc->overlay_stream.section;
+      break;
+    }
+  return NULL;
+  }
+
+const bg_parameter_info_t * bg_encoder_get_stream_parameters(bg_encoder_t * enc,
+                                                             bg_stream_type_t type)
+  {
+  switch(type)
+    {
+    case BG_STREAM_AUDIO:
+      if(enc->audio_plugin.info)
+        return enc->audio_plugin.info->audio_parameters;
+      else if(enc->video_plugin.info)
+        return enc->video_plugin.info->audio_parameters;
+      break;
+    case BG_STREAM_VIDEO:
+      return enc->video_plugin.info->video_parameters;
+      break;
+    case BG_STREAM_TEXT:
+      if(enc->text_plugin.info)
+        return enc->text_plugin.info->text_parameters;
+      else if(enc->video_plugin.info)
+        return enc->video_plugin.info->text_parameters;
+      break;
+    case BG_STREAM_OVERLAY:
+      if(enc->overlay_plugin.info)
+        return enc->overlay_plugin.info->overlay_parameters;
+      else if(enc->video_plugin.info)
+        return enc->video_plugin.info->overlay_parameters;
+      break;
+    }
+  return NULL;
+  }
+  
 
 /* Add streams */
 int bg_encoder_add_audio_stream(bg_encoder_t * enc,
@@ -917,11 +981,8 @@ int bg_encoder_add_audio_stream(bg_encoder_t * enc,
   else
     s->com.section = enc->audio_stream.section;
 
-  if(enc->audio_plugin.info)
-    s->com.parameters = enc->audio_plugin.info->audio_parameters;
-  else if(enc->video_plugin.info)
-    s->com.parameters = enc->video_plugin.info->audio_parameters;
-
+  s->com.parameters = bg_encoder_get_stream_parameters(enc, BG_STREAM_AUDIO);
+  
   s->com.m = m;
   
   ret = enc->num_audio_streams;
@@ -953,8 +1014,7 @@ int bg_encoder_add_video_stream(bg_encoder_t * enc,
   else
     s->com.section = enc->video_stream.section;
 
-  s->com.parameters = enc->video_plugin.info->video_parameters;
-
+  s->com.parameters = bg_encoder_get_stream_parameters(enc, BG_STREAM_VIDEO);
   s->com.m = m;
   
   ret = enc->num_video_streams;
@@ -1032,9 +1092,9 @@ int bg_encoder_add_overlay_stream_compressed(bg_encoder_t * enc,
 
 
 int bg_encoder_add_text_stream(bg_encoder_t * enc,
-                                        const gavl_metadata_t * m,
-                                        int timescale,
-                                        int source_index)
+                               const gavl_metadata_t * m,
+                               int timescale,
+                               int source_index, const bg_cfg_section_t * sec)
   {
   int ret;
   text_stream_t * s;
@@ -1046,16 +1106,19 @@ int bg_encoder_add_text_stream(bg_encoder_t * enc,
   s->com.in_index = source_index;
 
   s->com.m = m;
-  
-  if(enc->tt)
+
+  if(sec)
+    {
+    s->com.section_priv = bg_cfg_section_copy(sec);
+    s->com.section = s->com.section_priv;
+    }
+  else if(enc->tt)
     s->com.section = enc->tt->text_streams[source_index].encoder_section_text;
   else
     s->com.section = enc->text_stream.section;
 
-  if(enc->text_plugin.info)
-    s->com.parameters = enc->text_plugin.info->text_parameters;
-  else if(enc->video_plugin.info)
-    s->com.parameters = enc->video_plugin.info->text_parameters;
+  s->com.parameters = bg_encoder_get_stream_parameters(enc, BG_STREAM_TEXT);
+
   
   ret = enc->num_text_streams;
   enc->num_text_streams++;
@@ -1095,11 +1158,7 @@ int bg_encoder_add_overlay_stream(bg_encoder_t * enc,
   else
     s->com.section = enc->overlay_stream.section;
 
-  if(enc->overlay_plugin.info)
-    s->com.parameters = enc->overlay_plugin.info->overlay_parameters;
-  else if(enc->video_plugin.info)
-    s->com.parameters = enc->video_plugin.info->overlay_parameters;
-
+  s->com.parameters = bg_encoder_get_stream_parameters(enc, BG_STREAM_OVERLAY);
   
   ret = enc->num_overlay_streams;
   enc->num_overlay_streams++;

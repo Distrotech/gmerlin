@@ -2233,7 +2233,7 @@ static const bg_parameter_info_t encoder_section_text[] =
   };
 
 static bg_parameter_info_t *
-create_encoder_parameters(const bg_plugin_info_t * info)
+create_encoder_parameters(const bg_plugin_info_t * info, int stream_params)
   {
   int i = 0;
   bg_parameter_info_t * ret;
@@ -2259,38 +2259,43 @@ create_encoder_parameters(const bg_plugin_info_t * info)
       src[i] = info->parameters;
       i++;
       }
+
+    if(stream_params)
+      {
+      if(info->audio_parameters)
+        {
+        src[i] = encoder_section_audio;
+        i++;
+        src[i] = info->audio_parameters;
+        i++;
+        }
+
+      if(info->text_parameters)
+        {
+        src[i] = encoder_section_text;
+        i++;
+        src[i] = info->text_parameters;
+        i++;
+        }
+
+      if(info->overlay_parameters)
+        {
+        src[i] = encoder_section_overlay;
+        i++;
+        src[i] = info->overlay_parameters;
+        i++;
+        }
+
+      if(info->video_parameters)
+        {
+        src[i] = encoder_section_video;
+        i++;
+        src[i] = info->video_parameters;
+        i++;
+        }
+
+      }
     
-    if(info->audio_parameters)
-      {
-      src[i] = encoder_section_audio;
-      i++;
-      src[i] = info->audio_parameters;
-      i++;
-      }
-
-    if(info->text_parameters)
-      {
-      src[i] = encoder_section_text;
-      i++;
-      src[i] = info->text_parameters;
-      i++;
-      }
-
-    if(info->overlay_parameters)
-      {
-      src[i] = encoder_section_overlay;
-      i++;
-      src[i] = info->overlay_parameters;
-      i++;
-      }
-
-    if(info->video_parameters)
-      {
-      src[i] = encoder_section_video;
-      i++;
-      src[i] = info->video_parameters;
-      i++;
-      }
     
     src[i] = NULL;
     ret = bg_parameter_info_concat_arrays(src);
@@ -2312,10 +2317,10 @@ create_encoder_parameters(const bg_plugin_info_t * info)
   return ret;
   }
 
-void bg_plugin_registry_set_parameter_info(bg_plugin_registry_t * reg,
-                                           uint32_t type_mask,
-                                           uint32_t flag_mask,
-                                           bg_parameter_info_t * ret)
+static void set_parameter_info(bg_plugin_registry_t * reg,
+                              uint32_t type_mask,
+                              uint32_t flag_mask,
+                              bg_parameter_info_t * ret, int stream_params)
   {
   int num_plugins, start_entries, i;
   const bg_plugin_info_t * info;
@@ -2368,13 +2373,21 @@ void bg_plugin_registry_set_parameter_info(bg_plugin_registry_t * reg,
                      BG_PLUGIN_ENCODER_OVERLAY |
                      BG_PLUGIN_ENCODER))
       ret->multi_parameters_nc[start_entries+i] =
-        create_encoder_parameters(info);
+        create_encoder_parameters(info, stream_params);
     else if(info->parameters)
       {
       ret->multi_parameters_nc[start_entries+i] =
         bg_parameter_info_copy_array(info->parameters);
       }
     }
+  }
+  
+void bg_plugin_registry_set_parameter_info(bg_plugin_registry_t * reg,
+                                           uint32_t type_mask,
+                                           uint32_t flag_mask,
+                                           bg_parameter_info_t * ret)
+  {
+  set_parameter_info(reg, type_mask, flag_mask, ret, 1);
   }
 
 static const bg_parameter_info_t registry_settings_parameter =
@@ -2715,7 +2728,7 @@ static const bg_parameter_info_t overlay_encoder_param =
 bg_parameter_info_t *
 bg_plugin_registry_create_encoder_parameters(bg_plugin_registry_t * reg,
                                              uint32_t type_mask,
-                                             uint32_t flag_mask)
+                                             uint32_t flag_mask, int stream_params)
   {
   int do_audio = 0;
   int do_video = 0;
@@ -2760,9 +2773,9 @@ bg_plugin_registry_create_encoder_parameters(bg_plugin_registry_t * reg,
       }
     bg_parameter_info_copy(&ret[i], &audio_encoder_param);
 
-    bg_plugin_registry_set_parameter_info(reg,
-                                          BG_PLUGIN_ENCODER_AUDIO,
-                                          flag_mask, &ret[i]);
+    set_parameter_info(reg,
+                       BG_PLUGIN_ENCODER_AUDIO,
+                       flag_mask, &ret[i], stream_params);
 
     i++;
     }
@@ -2775,10 +2788,10 @@ bg_plugin_registry_create_encoder_parameters(bg_plugin_registry_t * reg,
       }
     bg_parameter_info_copy(&ret[i], &text_encoder_param);
 
-    bg_plugin_registry_set_parameter_info(reg,
-                                          BG_PLUGIN_ENCODER_TEXT,
-                                          flag_mask, &ret[i]);
-
+    set_parameter_info(reg,
+                       BG_PLUGIN_ENCODER_TEXT,
+                       flag_mask, &ret[i], stream_params);
+    
     i++;
     }
   if(do_overlay)
@@ -2789,19 +2802,18 @@ bg_plugin_registry_create_encoder_parameters(bg_plugin_registry_t * reg,
       i++;
       }
     bg_parameter_info_copy(&ret[i], &overlay_encoder_param);
-    bg_plugin_registry_set_parameter_info(reg,
-                                          BG_PLUGIN_ENCODER_OVERLAY,
-                                          flag_mask, &ret[i]);
+    set_parameter_info(reg,
+                       BG_PLUGIN_ENCODER_OVERLAY,
+                       flag_mask, &ret[i], stream_params);
     i++;
     }
   if(do_video)
     {
     bg_parameter_info_copy(&ret[i], &video_encoder_param);
 
-    bg_plugin_registry_set_parameter_info(reg,
-                                          BG_PLUGIN_ENCODER_VIDEO | BG_PLUGIN_ENCODER,
-                                          flag_mask, &ret[i]);
-
+    set_parameter_info(reg,
+                       BG_PLUGIN_ENCODER_VIDEO | BG_PLUGIN_ENCODER,
+                       flag_mask, &ret[i], stream_params);
     i++;
     }
 
@@ -3073,7 +3085,7 @@ bg_encoder_section_get_from_registry(bg_plugin_registry_t * plugin_reg,
   if(!parameters)
     {
     parameters_priv =
-      bg_plugin_registry_create_encoder_parameters(plugin_reg, type_mask, flag_mask);
+      bg_plugin_registry_create_encoder_parameters(plugin_reg, type_mask, flag_mask, 1);
     parameters = parameters_priv;
     }
 
@@ -3206,7 +3218,7 @@ bg_encoder_section_store_in_registry(bg_plugin_registry_t * plugin_reg,
     {
     parameters_priv =
       bg_plugin_registry_create_encoder_parameters(plugin_reg,
-                                                   type_mask, flag_mask);
+                                                   type_mask, flag_mask, 1);
     parameters = parameters_priv;
     }
   

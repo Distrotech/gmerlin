@@ -46,7 +46,7 @@ struct track_dialog_s
   void * update_priv;
   };
 
-static void set_parameter_general(void * priv, const char * name, const bg_parameter_value_t * val)
+static void set_parameter(void * priv, const char * name, const bg_parameter_value_t * val)
   {
   track_dialog_t * d;
   d = (track_dialog_t *)priv;
@@ -86,7 +86,7 @@ track_dialog_t * track_dialog_create(bg_transcoder_track_t * t,
   bg_dialog_add(ret->cfg_dialog,
                 TR("General"),
                 t->general_section,
-                set_parameter_general, NULL, ret,
+                set_parameter, NULL, ret,
                 t->general_parameters);
 
   
@@ -95,9 +95,9 @@ track_dialog_t * track_dialog_create(bg_transcoder_track_t * t,
   bg_dialog_add(ret->cfg_dialog,
                 TR("Metadata"),
                 t->metadata_section,
+                set_parameter,
                 NULL,
-                NULL,
-                NULL,
+                ret,
                 t->metadata_parameters);
 
   /* Audio encoder */
