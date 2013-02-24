@@ -23,13 +23,16 @@
 #include <signal.h>
 
 #include "gavftools.h"
+
+#include <gavl/metatags.h>
+
 #define LOG_DOMAIN "gavf-decode"
 
-static char * input_file   = NULL;
+static char * input_file   = "-";
 static const char * input_plugin = NULL;
 static bg_plug_t * out_plug = NULL;
 int use_edl = 0;
-int track;
+static int track = 0;
 
 static void opt_t(void * data, int * argc, char *** _argv, int arg)
   {
@@ -152,6 +155,8 @@ int main(int argc, char ** argv)
   gavl_video_source_t * vsrc;
   gavl_packet_source_t * psrc;
 
+  gavl_metadata_t m;
+  
   const gavl_metadata_t * stream_metadata;
   
   memset(&cb, 0, sizeof(cb));
@@ -394,11 +399,27 @@ int main(int argc, char ** argv)
                                            gavftools_oc_section());
     }
 
+  gavl_metadata_init(&m);
+  gavl_metadata_copy(&m, &track_info->metadata);
+
+  if(!gavl_metadata_get(&m, GAVL_META_LABEL))
+    {
+    if(strcmp(input_file, "-"))
+      {
+      gavl_metadata_set_nocpy(&m, GAVL_META_LABEL,
+                              bg_get_track_name_default(input_file, track,
+                                                        plugin->get_num_tracks(h->priv)));
+      }
+    
+    }
+  
   /* Open output plug */
   if(!bg_plug_open_location(out_plug, gavftools_out_file,
-                            &track_info->metadata,
+                            &m,
                             track_info->chapter_list))
     goto fail;
+
+  gavl_metadata_free(&m);
   
   /* Initialize output plug */
   if(!bg_plug_setup_writer(out_plug, &conn))
