@@ -111,7 +111,8 @@ void bg_chapter_list_save(gavl_chapter_list_t * list, const char * filename)
   xmlDocSetRootElement(xml_doc, xml_list);
   
   bg_chapter_list_2_xml(list, xml_list);
-  xmlSaveFile(filename, xml_doc);
+
+  bg_xml_save_file(xml_doc, filename, 1);
   xmlFreeDoc(xml_doc);
   }
 
@@ -122,7 +123,7 @@ gavl_chapter_list_t * bg_chapter_list_load(const char * filename)
 
   gavl_chapter_list_t * ret;
 
-  xml_doc = bg_xml_parse_file(filename);
+  xml_doc = bg_xml_parse_file(filename, 1);
 
   if(!xml_doc)
     return NULL;

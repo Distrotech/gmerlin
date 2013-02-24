@@ -667,10 +667,8 @@ bg_plugin_info_t * bg_plugin_registry_load(const char * filename)
   xmlNodePtr node;
   ret = NULL;
   end = NULL;
-
   
-  
-  xml_doc = bg_xml_parse_file(filename);
+  xml_doc = bg_xml_parse_file(filename, 1);
 
   if(!xml_doc)
     return NULL;
@@ -735,7 +733,8 @@ void bg_plugin_registry_save(bg_plugin_info_t * info)
     }
   
   xmlAddChild(xml_registry, BG_XML_NEW_TEXT("\n"));
-  xmlSaveFile(filename, xml_doc);
+
+  bg_xml_save_file(xml_doc, filename, 1);
   xmlFreeDoc(xml_doc);
   free(filename);
   }

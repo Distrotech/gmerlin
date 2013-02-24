@@ -219,7 +219,7 @@ static bg_album_entry_t * load_album_file(bg_album_t * album,
   bg_album_entry_t * ret;
   xmlDocPtr xml_doc;
 
-  xml_doc = bg_xml_parse_file(filename);
+  xml_doc = bg_xml_parse_file(filename, 1);
 
   if(!xml_doc)
     {
@@ -619,7 +619,7 @@ void bg_album_save(bg_album_t * a, const char * filename)
 
   if(filename)
     {
-    xmlSaveFile(filename, xml_doc);
+    bg_xml_save_file(xml_doc, filename, 1);
     set_permissions(filename);
     }
   else
@@ -629,7 +629,8 @@ void bg_album_save(bg_album_t * a, const char * filename)
       bg_album_set_default_location(a);
       }
     tmp_filename = bg_sprintf("%s/%s", a->com->directory, a->xml_file);
-    xmlSaveFile(tmp_filename, xml_doc);
+
+    bg_xml_save_file(xml_doc, tmp_filename, 1);
     set_permissions(tmp_filename);
     free(tmp_filename);
     }

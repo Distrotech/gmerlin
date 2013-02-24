@@ -31,7 +31,7 @@ bg_cfg_section_t * bg_preset_load(bg_preset_t * p)
   xmlDocPtr xml_doc;
   bg_cfg_section_t * ret;
   
-  xml_doc = bg_xml_parse_file(p->file);
+  xml_doc = bg_xml_parse_file(p->file, 1);
 
   if(!xml_doc)
     return NULL;
@@ -59,7 +59,8 @@ void bg_preset_save(bg_preset_t * p, const bg_cfg_section_t * s)
   xmlDocSetRootElement(xml_doc, node);
 
   bg_cfg_section_2_xml(s, node);
-  xmlSaveFile(p->file, xml_doc);
+
+  bg_xml_save_file(xml_doc, p->file, 1);
   xmlFreeDoc(xml_doc);
   
   }

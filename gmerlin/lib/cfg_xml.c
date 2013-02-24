@@ -204,7 +204,7 @@ void bg_cfg_registry_load(bg_cfg_registry_t * r, const char * filename)
   if(!filename)
     return;
     
-  xml_doc = bg_xml_parse_file(filename);
+  xml_doc = bg_xml_parse_file(filename, 1);
 
   if(!xml_doc)
     return;
@@ -360,7 +360,7 @@ void bg_cfg_registry_save(bg_cfg_registry_t * r, const char * filename)
     xmlAddChild(xml_registry, BG_XML_NEW_TEXT("\n"));
     
     }
-  xmlSaveFile(filename, xml_doc);
+  bg_xml_save_file(xml_doc, filename, 1);
   xmlFreeDoc(xml_doc);
   }
 
@@ -373,6 +373,6 @@ void bg_cfg_section_dump(bg_cfg_section_t * section, const char * filename)
   xmlDocSetRootElement(xml_doc, xml_section);
   BG_XML_SET_PROP(xml_section, "name", section->name);
   bg_cfg_section_2_xml(section, xml_section);
-  xmlSaveFile(filename, xml_doc);
+  bg_xml_save_file(xml_doc, filename, 1);
   xmlFreeDoc(xml_doc);
   }

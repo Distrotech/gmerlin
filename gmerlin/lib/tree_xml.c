@@ -170,7 +170,7 @@ void bg_media_tree_load(bg_media_tree_t * tree)
   xmlNodePtr node;
   bg_album_t * new_album;
   
-  xml_doc = bg_xml_parse_file(tree->filename);
+  xml_doc = bg_xml_parse_file(tree->filename, 1);
   
   if(!xml_doc)
     return;
@@ -306,7 +306,8 @@ void bg_media_tree_save(bg_media_tree_t * tree)
     }
 
   filename = bg_sprintf("%s/%s", tree->com.directory, "tree.xml");
-  xmlSaveFile(filename, xml_doc);
+
+  bg_xml_save_file(xml_doc, filename, 1);
   free(filename);
 
   xmlFreeDoc(xml_doc);

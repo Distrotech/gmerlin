@@ -83,6 +83,7 @@ edldec.c \
 edl_xml.c \
 encoder.c \
 fileformat.c \
+fileutils.c \
 formats.c \
 frametimer.c \
 gavfenc.c \

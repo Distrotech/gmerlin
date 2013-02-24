@@ -22,6 +22,8 @@
 #ifndef __BG_UTILS_H_
 #define __BG_UTILS_H_
 
+#include <stdio.h>
+
 #include <gavl/gavl.h>
 #include <gavl/metadata.h>
 
@@ -451,6 +453,27 @@ void * bg_read_file(const char * filename, int * len);
 
 int bg_write_file(const char * filename, void * data, int len);
 
+/** \brief Lock a file for exclusive access
+ *  \param f An open file
+ *  \param wr An open file
+ *  \returns 1 on success, 0 on failure
+ */
+
+int bg_lock_file(FILE * f, int wr);
+
+/** \brief Unlock a file for exclusive access
+ *  \param f An open file
+ *  \returns 1 on success, 0 on failure
+ */
+
+int bg_unlock_file(FILE * f);
+
+/** \brief Get the size of an open file
+ *  \param f A file opened for reading
+ *  \returns File size in bytes
+ */
+
+size_t bg_file_size(FILE * f);
 
 /** \brief Convert a ISO 639-2/B language code to a ISO 639-2/T code
  *  \param code ISO 639-2/B

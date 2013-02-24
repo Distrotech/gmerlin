@@ -46,7 +46,7 @@ typedef struct
   } bg_xml_output_mem_t;
 
 static int mem_write_callback(void * context, const char * buffer,
-                          int len)
+                              int len)
   {
   bg_xml_output_mem_t * o = context;
 
@@ -89,31 +89,89 @@ char * bg_xml_save_to_memory(xmlDocPtr doc)
   return ctx.buffer;
   }
 
-xmlDocPtr bg_xml_parse_file(const char * filename)
+static int FILE_write_callback(void * context, const char * buffer,
+                               int len)
   {
-  struct stat st;
-
-  if(stat(filename, &st))
-    {
-    bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Cannot stat %s: %s",
-           filename, strerror(errno));
-    return NULL;
-    }
-
-  /* Return silently */
-  if(!st.st_size)
-    return NULL;
-  return xmlParseFile(filename);
+  return fwrite(buffer, 1, len, context);
   }
 
-
+static int FILE_read_callback(void * context, char * buffer,
+                               int len)
+  {
+  return fread(buffer, 1, len, context);
+  }
 
 xmlDocPtr bg_xml_load_FILE(FILE * f)
   {
-  
+  return xmlReadIO(FILE_read_callback, NULL, f, NULL, NULL, 0);
   }
 
 void bg_xml_save_FILE(xmlDocPtr doc, FILE * f)
   {
+  xmlOutputBufferPtr b;
+
+  b = xmlOutputBufferCreateIO (FILE_write_callback,
+                               NULL, f, NULL);
+  xmlSaveFileTo(b, doc, NULL);
+  }
+
+xmlDocPtr bg_xml_parse_file(const char * filename, int lock)
+  {
+  xmlDocPtr ret = NULL;
+  FILE * f = fopen(filename, "r");
+  if(!f)
+    {
+    bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Cannot open %s: %s",
+           filename, strerror(errno));
+    return NULL;
+    }
+
+  if(lock)
+    {
+    if(!bg_lock_file(f, 0))
+      bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Cannot lock file %s: %s",
+             filename, strerror(errno));
+    }
+
+  if(bg_file_size(f))
+    ret = bg_xml_load_FILE(f);
   
+  if(lock)
+    {
+    if(!bg_unlock_file(f))
+      bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Cannot unlock file %s: %s",
+             filename, strerror(errno));
+    }
+  
+  fclose(f);
+  return ret;
+  }
+
+void bg_xml_save_file(xmlDocPtr doc, const char * filename, int lock)
+  {
+  FILE * f = fopen(filename, "w");
+  if(!f)
+    {
+    bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Cannot open %s: %s",
+           filename, strerror(errno));
+    return;
+    }
+  
+  if(lock)
+    {
+    if(!bg_lock_file(f, 1))
+      bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Cannot lock file %s: %s",
+             filename, strerror(errno));
+    }
+  
+  bg_xml_save_FILE(doc, f);
+  fflush(f);
+  
+  if(lock)
+    {
+    if(!bg_unlock_file(f))
+      bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Cannot unlock file %s: %s",
+             filename, strerror(errno));
+    }
+  fclose(f);
   }

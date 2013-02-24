@@ -52,5 +52,8 @@ int bg_xml_close_callback(void * context);
 
 char * bg_xml_save_to_memory(xmlDocPtr doc);
 
-xmlDocPtr bg_xml_parse_file(const char * filename);
+xmlDocPtr bg_xml_load_FILE(FILE * f);
+void bg_xml_save_FILE(xmlDocPtr doc, FILE * f);
 
+xmlDocPtr bg_xml_parse_file(const char * filename, int lock);
+void bg_xml_save_file(xmlDocPtr doc, const char * filename, int lock);

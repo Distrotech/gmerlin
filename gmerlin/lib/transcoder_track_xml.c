@@ -362,8 +362,8 @@ void bg_transcoder_tracks_save(bg_transcoder_track_t * t,
   xmlDocPtr xml_doc;
   
   xml_doc = transcoder_tracks_2_xml(t, g, 0);
-  
-  xmlSaveFile(filename, xml_doc);
+
+  bg_xml_save_file(xml_doc, filename, 1);
   xmlFreeDoc(xml_doc);
   }
 
@@ -907,7 +907,7 @@ bg_transcoder_tracks_load(const char * filename,
   if(!filename)
     return NULL;
   
-  xml_doc = bg_xml_parse_file(filename);
+  xml_doc = bg_xml_parse_file(filename, 1);
   
   ret = transcoder_tracks_load(xml_doc,
                                g, plugin_reg);

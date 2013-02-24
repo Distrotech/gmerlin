@@ -840,6 +840,7 @@ bg_parameters_dump(const bg_parameter_info_t * info, const char * filename)
   xml_params = xmlNewDocRawNode(xml_doc, NULL, (xmlChar*)"PARAMETERS", NULL);
   xmlDocSetRootElement(xml_doc, xml_params);
   bg_parameters_2_xml(info, xml_params);
-  xmlSaveFile(filename, xml_doc);
+
+  bg_xml_save_file(xml_doc, filename, 1);
   xmlFreeDoc(xml_doc);
   }

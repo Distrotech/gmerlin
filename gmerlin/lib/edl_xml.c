@@ -222,7 +222,7 @@ bg_edl_t * bg_edl_load(const char * filename)
   xmlNodePtr node;
   xmlNodePtr child_node;
   
-  xml_doc = bg_xml_parse_file(filename);
+  xml_doc = bg_xml_parse_file(filename, 1);
 
   if(!xml_doc)
     return NULL;
@@ -451,6 +451,7 @@ void bg_edl_save(const bg_edl_t * edl, const char * filename)
     }
   
   //  xmlAddChild(xml_edl, BG_XML_NEW_TEXT("\n"));
-  xmlSaveFile(filename, xml_doc);
+
+  bg_xml_save_file(xml_doc, filename, 1);
   xmlFreeDoc(xml_doc);
   }
