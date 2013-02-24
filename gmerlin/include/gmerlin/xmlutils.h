@@ -36,7 +36,7 @@
 /* 
  * memory writer for libxml
  */
-
+#if 0
 typedef struct bg_xml_output_mem_s
   {
   int bytes_written;
@@ -48,6 +48,9 @@ int bg_xml_write_callback(void * context, const char * buffer,
                           int len);
 
 int bg_xml_close_callback(void * context);
+#endif
+
+char * bg_xml_save_to_memory(xmlDocPtr doc);
 
 xmlDocPtr bg_xml_parse_file(const char * filename);
 

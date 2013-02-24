@@ -370,22 +370,13 @@ void bg_transcoder_tracks_save(bg_transcoder_track_t * t,
 char *
 bg_transcoder_tracks_selected_to_xml(bg_transcoder_track_t * t)
   {
-  bg_xml_output_mem_t ctx;
-  xmlOutputBufferPtr b;
-  
+  char * ret;
   xmlDocPtr xml_doc;
   xml_doc = transcoder_tracks_2_xml(t, NULL, 1);
 
-  memset(&ctx, 0, sizeof(ctx));
-
-  b = xmlOutputBufferCreateIO(bg_xml_write_callback,
-                              bg_xml_close_callback,
-                              &ctx, NULL);
-  
-  xmlSaveFileTo(b, xml_doc, NULL);
-  
+  ret = bg_xml_save_to_memory(xml_doc);
   xmlFreeDoc(xml_doc);
-  return ctx.buffer;
+  return ret;
   }
 
 /* Load */

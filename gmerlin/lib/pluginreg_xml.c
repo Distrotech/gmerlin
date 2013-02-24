@@ -81,7 +81,7 @@ flag_names[] =
     { "File",           BG_PLUGIN_FILE            }, /* Plugin reads/writes files      */
     { "URL",            BG_PLUGIN_URL             }, /* Plugin reads URLs or streams   */
     { "Playback",       BG_PLUGIN_PLAYBACK        }, /* Output plugins for playback    */
-    { "Stdin",          BG_PLUGIN_STDIN           }, /* Plugin reads from stdin */
+    { "Pipe",           BG_PLUGIN_PIPE            }, /* Plugin reads from stdin */
     { "Tuner",          BG_PLUGIN_TUNER           }, /* Plugin has tuner */
     { "Filter1",        BG_PLUGIN_FILTER_1        }, /* Filter with one input port */
     { "EmbedWindow",    BG_PLUGIN_EMBED_WINDOW    },

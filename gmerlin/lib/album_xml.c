@@ -573,86 +573,28 @@ static xmlDocPtr entries_2_xml(bg_album_t * a, int preserve_current,
 
 /* Output routines for writing to memory */
 
-#if 0
-typedef struct output_mem_s
-  {
-  int bytes_written;
-  int bytes_allocated;
-  char * buffer;
-  } output_mem_t;
-
-#define BLOCK_SIZE 2048
-
-static int xml_write_callback(void * context, const char * buffer,
-                       int len)
-  {
-  output_mem_t * o = (output_mem_t*)context;
-
-  if(o->bytes_allocated - o->bytes_written < len)
-    {
-    o->bytes_allocated += BLOCK_SIZE;
-    while(o->bytes_allocated < o->bytes_written + len)
-      o->bytes_allocated += BLOCK_SIZE;
-    o->buffer = realloc(o->buffer, o->bytes_allocated);
-    }
-  memcpy(&o->buffer[o->bytes_written], buffer, len);
-  o->bytes_written += len;
-  return len;
-  }
-
-static int xml_close_callback(void * context)
-  {
-  output_mem_t * o = (output_mem_t*)context;
-
-  if(o->bytes_allocated == o->bytes_written)
-    {
-    o->bytes_allocated++;
-    o->buffer = realloc(o->buffer, o->bytes_allocated);
-    }
-  o->buffer[o->bytes_written] = '\0';
-  return 0;
-  }
-#endif
-
 char * bg_album_save_to_memory(bg_album_t * a)
   {
   xmlDocPtr  xml_doc;
-  bg_xml_output_mem_t ctx;
-  xmlOutputBufferPtr b;
-  memset(&ctx, 0, sizeof(ctx));
+  char * ret;
   
   xml_doc = album_2_xml(a);
-  
-  b = xmlOutputBufferCreateIO (bg_xml_write_callback,
-                               bg_xml_close_callback,
-                               &ctx,
-                               NULL);
-  
-  xmlSaveFileTo(b, xml_doc, NULL);
+
+  ret = bg_xml_save_to_memory(xml_doc);
   xmlFreeDoc(xml_doc);
-  return ctx.buffer;
+  return ret;
   }
 
 char * bg_album_save_selected_to_memory(bg_album_t * a, int preserve_current)
   {
   xmlDocPtr  xml_doc;
-  bg_xml_output_mem_t ctx;
-  xmlOutputBufferPtr b;
-  
-  memset(&ctx, 0, sizeof(ctx));
-  
+  char * ret;
   xml_doc = entries_2_xml(a, preserve_current, 1);
+
+  ret = bg_xml_save_to_memory(xml_doc);
   
-  b = xmlOutputBufferCreateIO(bg_xml_write_callback,
-                              bg_xml_close_callback,
-                              &ctx,
-                              NULL);
-  
-  xmlSaveFileTo(b,
-                xml_doc,
-                NULL);
   xmlFreeDoc(xml_doc);
-  return ctx.buffer;
+  return ret;
   }
 
 static void set_permissions(const char * filename)

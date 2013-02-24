@@ -38,10 +38,17 @@
 #include <gmerlin/log.h>
 #define LOG_DOMAIN "xmlutils"
 
-int bg_xml_write_callback(void * context, const char * buffer,
-                       int len)
+typedef struct
   {
-  bg_xml_output_mem_t * o = (bg_xml_output_mem_t*)context;
+  int bytes_written;
+  int bytes_allocated;
+  char * buffer;
+  } bg_xml_output_mem_t;
+
+static int mem_write_callback(void * context, const char * buffer,
+                          int len)
+  {
+  bg_xml_output_mem_t * o = context;
 
   if(o->bytes_allocated - o->bytes_written < len)
     {
@@ -55,9 +62,9 @@ int bg_xml_write_callback(void * context, const char * buffer,
   return len;
   }
 
-int bg_xml_close_callback(void * context)
+static int mem_close_callback(void * context)
   {
-  bg_xml_output_mem_t * o = (bg_xml_output_mem_t*)context;
+  bg_xml_output_mem_t * o = context;
 
   if(o->bytes_allocated == o->bytes_written)
     {
@@ -66,6 +73,20 @@ int bg_xml_close_callback(void * context)
     }
   o->buffer[o->bytes_written] = '\0';
   return 0;
+  }
+
+char * bg_xml_save_to_memory(xmlDocPtr doc)
+  {
+  xmlOutputBufferPtr b;
+  bg_xml_output_mem_t ctx;
+  memset(&ctx, 0, sizeof(ctx));
+  
+  b = xmlOutputBufferCreateIO (mem_write_callback,
+                               mem_close_callback,
+                               &ctx,
+                               NULL);
+  xmlSaveFileTo(b, doc, NULL);
+  return ctx.buffer;
   }
 
 xmlDocPtr bg_xml_parse_file(const char * filename)
@@ -83,4 +104,16 @@ xmlDocPtr bg_xml_parse_file(const char * filename)
   if(!st.st_size)
     return NULL;
   return xmlParseFile(filename);
+  }
+
+
+
+xmlDocPtr bg_xml_load_FILE(FILE * f)
+  {
+  
+  }
+
+void bg_xml_save_FILE(xmlDocPtr doc, FILE * f)
+  {
+  
   }

@@ -26,7 +26,7 @@
 
 static bg_plug_t * in_plug = NULL;
 
-#define LOG_DOMAIN "gavf-play"
+#define LOG_DOMAIN "gavf-encode"
 
 static gavl_metadata_t ac_options;
 static gavl_metadata_t vc_options;

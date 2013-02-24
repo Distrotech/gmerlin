@@ -106,7 +106,7 @@ typedef int (*bg_read_video_func_t)(void * priv, gavl_video_frame_t* frame,
 #define BG_PLUGIN_RECORDER         (1<<2)  //!< Plugin does hardware recording
 #define BG_PLUGIN_URL              (1<<3)  //!< Plugin can load URLs
 #define BG_PLUGIN_PLAYBACK         (1<<4)  //!< Plugin is an audio or video driver for playback
-#define BG_PLUGIN_STDIN            (1<<8)  //!< Plugin can read from stdin ("-")
+#define BG_PLUGIN_PIPE             (1<<8)  //!< Plugin can do I/O from stdin or stdout ("-")
 #define BG_PLUGIN_TUNER            (1<<9)  //!< Plugin has some kind of tuner. Channels will be loaded as tracks.
 #define BG_PLUGIN_FILTER_1        (1<<10)  //!< Plugin acts as a filter with one input
 #define BG_PLUGIN_EMBED_WINDOW    (1<<11)  //!< Plugin can embed it's window into another application
