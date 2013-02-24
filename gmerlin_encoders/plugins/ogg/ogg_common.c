@@ -523,14 +523,14 @@ gavl_packet_sink_t *
 bg_ogg_encoder_get_audio_packet_sink(void * data, int stream)
   {
   bg_ogg_encoder_t * e = data;
-  return e->audio_streams[stream].psink_in;
+  return e->audio_streams[stream].psink_out;
   }
 
 gavl_packet_sink_t *
 bg_ogg_encoder_get_video_packet_sink(void * data, int stream)
   {
   bg_ogg_encoder_t * e = data;
-  return e->video_streams[stream].psink_in;
+  return e->video_streams[stream].psink_out;
   }
 
 int bg_ogg_encoder_close(void * data, int do_delete)
@@ -560,10 +560,10 @@ int bg_ogg_encoder_close(void * data, int do_delete)
       gavl_audio_sink_destroy(s->asink);
       s->asink = NULL;
       }
-    if(s->psink_in)
+    if(s->psink_out)
       {
-      gavl_packet_sink_destroy(s->psink_in);
-      s->psink_in = NULL;
+      gavl_packet_sink_destroy(s->psink_out);
+      s->psink_out = NULL;
       }
     }
   for(i = 0; i < e->num_video_streams; i++)
@@ -582,10 +582,10 @@ int bg_ogg_encoder_close(void * data, int do_delete)
       gavl_video_sink_destroy(s->vsink);
       s->vsink = NULL;
       }
-    if(s->psink_in)
+    if(s->psink_out)
       {
-      gavl_packet_sink_destroy(s->psink_in);
-      s->psink_in = NULL;
+      gavl_packet_sink_destroy(s->psink_out);
+      s->psink_out = NULL;
       }
     }
   
@@ -635,6 +635,7 @@ create_codec_parameters(bg_ogg_codec_t const * const * codecs)
       ret[0].multi_parameters_nc[i] =
         bg_parameter_info_copy_array(codecs[i]->get_parameters());
     }
+  ret[0].val_default.val_str = bg_strdup(ret[0].val_default.val_str, codecs[0]->name);
   bg_parameter_info_set_const_ptrs(&ret[0]);
   return ret;
   }

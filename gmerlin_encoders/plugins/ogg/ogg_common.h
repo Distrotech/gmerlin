@@ -80,7 +80,6 @@ struct bg_ogg_stream_s
   gavl_audio_sink_t * asink;
   gavl_video_sink_t * vsink;
 
-  gavl_packet_sink_t * psink_in;
   gavl_packet_sink_t * psink_out;
   
   ogg_stream_state os;

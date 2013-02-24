@@ -57,7 +57,6 @@ typedef struct
   th_comment     tc;
   th_enc_ctx   * ts;
   
-  gavl_video_format_t * format;
   int cbr;
   int max_keyframe_interval;
   
@@ -84,6 +83,8 @@ typedef struct
 
   gavl_packet_sink_t * psink;
   int64_t pts;
+
+  gavl_video_format_t * format;
   
   } theora_t;
 
@@ -277,6 +278,9 @@ static int init_compressed_theora(bg_ogg_stream_t * s)
   uint32_t len;
   
   theora_t * theora = s->codec_priv;
+
+  theora->format = &s->vfmt;
+
   
   memset(&packet, 0, sizeof(packet));
 
