@@ -340,7 +340,7 @@ int bg_encoder_open(bg_encoder_t * enc, const char * filename_base,
     {
     if(isatty(fileno(stdout)))
       {
-      bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Won't write media file to a TTY\n");
+      bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Won't write media file to a TTY");
       return 0;
       }
     enc->is_stdout = 1;
@@ -360,14 +360,16 @@ static bg_plugin_handle_t * load_encoder(bg_encoder_t * enc,
   
   if(enc->is_stdout)
     {
-    if(!(info->flags & BG_PLUGIN_PIPE))
+    if(enc->num_plugins)
       {
-      bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Plugin %s cannot write to stdout\n", info->name);
+      bg_log(BG_LOG_ERROR, LOG_DOMAIN,
+             "Writing to stdout is only supported for single file output");
       return NULL;
       }
-    else if(enc->num_plugins)
+    else if(!(info->flags & BG_PLUGIN_PIPE))
       {
-      bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Writing to stdout is only supported for single file output\n");
+      bg_log(BG_LOG_ERROR, LOG_DOMAIN,
+             "Plugin %s cannot write to stdout", info->name);
       return NULL;
       }
     }
