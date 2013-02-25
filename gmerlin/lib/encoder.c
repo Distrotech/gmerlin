@@ -21,6 +21,7 @@
 
 #include <config.h>
 #include <string.h>
+#include <unistd.h> // isatty
 
 #include <gmerlin/pluginregistry.h>
 #include <gmerlin/encoder.h>
@@ -123,6 +124,7 @@ struct bg_encoder_s
   bg_plugin_handle_t ** plugins;
 
   int separate;
+  int is_stdout;
   
   bg_plugin_registry_t * plugin_reg;
 
@@ -333,6 +335,16 @@ int bg_encoder_open(bg_encoder_t * enc, const char * filename_base,
                     const gavl_chapter_list_t * chapter_list)
   {
   enc->filename_base = bg_strdup(enc->filename_base, filename_base);
+
+  if(enc->filename_base && !strcmp(enc->filename_base, "-"))
+    {
+    if(isatty(fileno(stdout)))
+      {
+      bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Won't write media file to a TTY\n");
+      return 0;
+      }
+    enc->is_stdout = 1;
+    }
   enc->metadata = metadata;
   enc->chapter_list = chapter_list;
   return 1;
@@ -345,6 +357,20 @@ static bg_plugin_handle_t * load_encoder(bg_encoder_t * enc,
   {
   bg_plugin_handle_t * ret;
   bg_encoder_plugin_t * plugin;
+  
+  if(enc->is_stdout)
+    {
+    if(!(info->flags & BG_PLUGIN_PIPE))
+      {
+      bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Plugin %s cannot write to stdout\n", info->name);
+      return NULL;
+      }
+    else if(enc->num_plugins)
+      {
+      bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Writing to stdout is only supported for single file output\n");
+      return NULL;
+      }
+    }
   
   enc->plugins = realloc(enc->plugins,
                          (enc->num_plugins+1)* sizeof(enc->plugins));
@@ -488,7 +514,11 @@ static bg_plugin_handle_t * get_stream_handle(bg_encoder_t * enc,
 
     if(enc->total_streams > 1)
       {
-      filename_base = bg_sprintf("%s_%s_%02d", enc->filename_base, type_string, in_index+1);
+      if(strcmp(enc->filename_base, "-"))
+        filename_base = bg_sprintf("%s_%s_%02d", enc->filename_base, type_string, in_index+1);
+      else
+        filename_base = bg_strdup(NULL, enc->filename_base);
+
       ret = load_encoder(enc, info, section, filename_base);
       free(filename_base);
       }
@@ -717,7 +747,7 @@ static int start_overlay(bg_encoder_t * enc, int stream)
   
   return 1;
   }
-     
+
 /* Start encoding */
 int bg_encoder_start(bg_encoder_t * enc)
   {
@@ -729,7 +759,7 @@ int bg_encoder_start(bg_encoder_t * enc)
     enc->num_video_streams +
     enc->num_text_streams +
     enc->num_overlay_streams;
-  
+
   /* We make sure, that for the case of combined streams the
      video is always the first one */
 
