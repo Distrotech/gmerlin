@@ -24,6 +24,7 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <fcntl.h>
+#include <unistd.h> // STDOUT_FILENO
 
 #include <config.h>
 
@@ -63,16 +64,22 @@ static int open_y4m(void * data, const char * filename,
   {
   e_y4m_t * e = data;
 
-  /* Copy filename for later reusal */
-  e->filename = bg_filename_ensure_extension(filename, "y4m");
+  if(!strcmp(filename, "-"))
+    {
+    e->com.fd = STDOUT_FILENO;
+    }
+  else
+    {
+    /* Copy filename for later reusal */
+    e->filename = bg_filename_ensure_extension(filename, "y4m");
 
-  if(!bg_encoder_cb_create_output_file(e->cb, e->filename))
-    return 0;
+    if(!bg_encoder_cb_create_output_file(e->cb, e->filename))
+      return 0;
   
-  e->com.fd = open(e->filename, O_WRONLY | O_CREAT, S_IRUSR | S_IWUSR);
-  if(e->com.fd == -1)
-    return 0;
-
+    e->com.fd = open(e->filename, O_WRONLY | O_CREAT, S_IRUSR | S_IWUSR);
+    if(e->com.fd == -1)
+      return 0;
+    }
   
   return 1;
   }
@@ -108,7 +115,9 @@ static int start_y4m(void * data)
 static int close_y4m(void * data, int do_delete)
   {
   e_y4m_t * e = data;
-  close(e->com.fd);
+
+  if(e->com.fd != STDOUT_FILENO)
+    close(e->com.fd);
   if(do_delete)
     remove(e->filename);
   return 1;
@@ -248,7 +257,7 @@ const bg_encoder_plugin_t the_plugin =
       .description =     TRS("Encoder for yuv4mpeg files.\
  Based on mjpegtools (http://mjpeg.sourceforge.net)."),
       .type =           BG_PLUGIN_ENCODER_VIDEO,
-      .flags =          BG_PLUGIN_FILE,
+      .flags =          BG_PLUGIN_FILE | BG_PLUGIN_PIPE,
       .priority =       BG_PLUGIN_PRIORITY_MAX,
       .create =         create_y4m,
       .destroy =        destroy_y4m,

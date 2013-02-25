@@ -627,28 +627,12 @@ static int set_video_pass_theora(void * data, int pass, int total_passes,
     }
   else
     {
-    theora->stats_file = fopen(stats_file, "rb");
-
-    if(!theora->stats_file)
+    if(!(theora->stats_buf = bg_read_file(stats_file, &theora->stats_size)))
       {
-      bg_log(BG_LOG_ERROR, LOG_DOMAIN, "couldn't open stats file %s", stats_file);
+      bg_log(BG_LOG_ERROR, LOG_DOMAIN,
+             "couldn't open stats file %s", stats_file);
       return 0;
       }
-
-    fseek(theora->stats_file, 0, SEEK_END);
-    theora->stats_size = ftell(theora->stats_file);
-    fseek(theora->stats_file, 0, SEEK_SET);
-    
-    theora->stats_buf = malloc(theora->stats_size);
-    if(fread(theora->stats_buf, 1, theora->stats_size, theora->stats_file) <
-       theora->stats_size)
-      {
-      bg_log(BG_LOG_ERROR, LOG_DOMAIN, "couldn't read stats data");
-      return 0;
-      }
-      
-    fclose(theora->stats_file);
-    theora->stats_file = 0;
     theora->stats_ptr = theora->stats_buf;
     }
   return 1;

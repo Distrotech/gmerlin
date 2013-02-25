@@ -105,6 +105,11 @@ static void close_file(void * priv)
   fclose(priv);
   }
 
+static void close_stdout(void * priv)
+  {
+  fflush(priv);
+  }
+
 int
 bg_ogg_encoder_open(void * data, const char * file,
                     const gavl_metadata_t * metadata,
@@ -115,19 +120,29 @@ bg_ogg_encoder_open(void * data, const char * file,
 
   if(file)
     {
-    e->filename = bg_filename_ensure_extension(file, ext);
-    
-    if(!bg_encoder_cb_create_output_file(e->cb, e->filename))
-      return 0;
-    
-    if(!(e->write_callback_data = fopen(e->filename, "w")))
+    if(!strcmp(file, "-"))
       {
-      bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Cannot open file %s: %s",
-             file, strerror(errno));
-      return 0;
+      /* stdout */
+      e->write_callback_data = stdout;
+      e->close_callback = close_stdout;
       }
+    else
+      {
+      e->filename = bg_filename_ensure_extension(file, ext);
+    
+      if(!bg_encoder_cb_create_output_file(e->cb, e->filename))
+        return 0;
+    
+      if(!(e->write_callback_data = fopen(e->filename, "w")))
+        {
+        bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Cannot open file %s: %s",
+               file, strerror(errno));
+        return 0;
+        }
+      e->close_callback = close_file;
+      }
+    
     e->write_callback = write_file;
-    e->close_callback = close_file;
     }
   else if(e->open_callback)
     {
