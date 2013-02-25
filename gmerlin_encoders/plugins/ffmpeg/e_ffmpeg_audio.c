@@ -42,6 +42,7 @@ static const ffmpeg_format_info_t formats[] =
       .max_audio_streams = 1,
       .audio_codecs = (enum CodecID[]){  CODEC_ID_AC3,
                                        CODEC_ID_NONE },
+      .flags = FLAG_PIPE,
     },
     {
       .name =       "AIFF",
@@ -61,6 +62,7 @@ static const ffmpeg_format_info_t formats[] =
       .max_audio_streams = 1,
       .audio_codecs = (enum CodecID[]){  CODEC_ID_MP2,
                                        CODEC_ID_NONE },
+      .flags = FLAG_PIPE,
     },
 #if LIBAVCODEC_BUILD >= ((51<<16)+(32<<8)+0)
     {
@@ -91,7 +93,7 @@ const bg_encoder_plugin_t the_plugin =
       .description =    TRS("Plugin for encoding various audio formats with ffmpeg \
 (http://www.ffmpeg.org)."),
       .type =           BG_PLUGIN_ENCODER_AUDIO,
-      .flags =          BG_PLUGIN_FILE,
+      .flags =          BG_PLUGIN_FILE | BG_PLUGIN_PIPE,
       .priority =       5,
       .create =         create_ffmpeg,
       .destroy =        bg_ffmpeg_destroy,

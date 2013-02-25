@@ -241,20 +241,36 @@ int bg_ffmpeg_open(void * data, const char * filename,
   if(!fmt)
     return 0;
   priv->ctx = avformat_alloc_context();
-  tmp_string =
-    bg_filename_ensure_extension(filename,
-                                 priv->format->extension);
 
-  if(!bg_encoder_cb_create_output_file(priv->cb, tmp_string))
+  if(!strcmp(filename, "-"))
     {
+    if(!(priv->format->flags & FLAG_PIPE))
+      {
+      bg_log(BG_LOG_ERROR, LOG_DOMAIN, "%s cannot be written to a pipe",
+             priv->format->name);
+      return 0;
+      }
+    snprintf(priv->ctx->filename,
+             sizeof(priv->ctx->filename), "pipe:");
+    }
+  else
+    {
+    tmp_string =
+      bg_filename_ensure_extension(filename,
+                                   priv->format->extension);
+
+    if(!bg_encoder_cb_create_output_file(priv->cb, tmp_string))
+      {
+      free(tmp_string);
+      return 0;
+      }
+  
+    snprintf(priv->ctx->filename,
+             sizeof(priv->ctx->filename), "%s", tmp_string);
+  
     free(tmp_string);
-    return 0;
     }
   
-  snprintf(priv->ctx->filename,
-           sizeof(priv->ctx->filename), "%s", tmp_string);
-  
-  free(tmp_string);
   
   priv->ctx->oformat = fmt;
     

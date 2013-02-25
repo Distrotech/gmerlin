@@ -60,7 +60,7 @@ static const ffmpeg_format_info_t formats[] =
 
       .video_codecs = (enum CodecID[]){  CODEC_ID_MPEG1VIDEO,
                                        CODEC_ID_NONE },
-      .flags = FLAG_CONSTANT_FRAMERATE,
+      .flags = FLAG_CONSTANT_FRAMERATE | FLAG_PIPE,
     },
     {
       .name =       "MPEG-2 (generic)",
@@ -75,7 +75,7 @@ static const ffmpeg_format_info_t formats[] =
 
       .video_codecs = (enum CodecID[]){  CODEC_ID_MPEG2VIDEO,
                                          CODEC_ID_NONE },
-      .flags = FLAG_CONSTANT_FRAMERATE,
+      .flags = FLAG_CONSTANT_FRAMERATE | FLAG_PIPE,
     },
     {
       .name =       "MPEG-2 (dvd)",
@@ -89,7 +89,7 @@ static const ffmpeg_format_info_t formats[] =
 
       .video_codecs = (enum CodecID[]){  CODEC_ID_MPEG2VIDEO,
                                          CODEC_ID_NONE },
-      .flags = FLAG_CONSTANT_FRAMERATE,
+      .flags = FLAG_CONSTANT_FRAMERATE | FLAG_PIPE,
     },
     {
       .name =       "Flash Video",
@@ -136,7 +136,7 @@ static const ffmpeg_format_info_t formats[] =
       .video_codecs = (enum CodecID[]){  CODEC_ID_MPEG1VIDEO,
                                        CODEC_ID_MPEG2VIDEO,
                                        CODEC_ID_NONE },
-      .flags = FLAG_CONSTANT_FRAMERATE,
+      .flags = FLAG_CONSTANT_FRAMERATE | FLAG_PIPE,
     },
     {
       .name =       "Matroska",
@@ -191,7 +191,7 @@ const bg_encoder_plugin_t the_plugin =
       .description =    TRS("Plugin for encoding various audio/video formats with ffmpeg \
 (http://www.ffmpeg.org)."),
       .type =           BG_PLUGIN_ENCODER,
-      .flags =          BG_PLUGIN_FILE,
+      .flags =          BG_PLUGIN_FILE | BG_PLUGIN_PIPE,
       .priority =       5,
       .create =         create_ffmpeg,
       .destroy =        bg_ffmpeg_destroy,

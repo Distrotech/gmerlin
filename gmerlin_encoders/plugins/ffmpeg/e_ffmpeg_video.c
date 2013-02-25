@@ -34,7 +34,7 @@ static const ffmpeg_format_info_t formats[] =
       .max_video_streams = 1,
       .video_codecs = (enum CodecID[]){  CODEC_ID_MPEG1VIDEO,
                                        CODEC_ID_NONE },
-      .flags = FLAG_CONSTANT_FRAMERATE,
+      .flags = FLAG_CONSTANT_FRAMERATE | FLAG_PIPE,
     },
     {
       .name =       "MPEG-2 video",
@@ -43,7 +43,7 @@ static const ffmpeg_format_info_t formats[] =
       .max_video_streams = 1,
       .video_codecs = (enum CodecID[]){  CODEC_ID_MPEG2VIDEO,
                                        CODEC_ID_NONE },
-      .flags = FLAG_CONSTANT_FRAMERATE,
+      .flags = FLAG_CONSTANT_FRAMERATE | FLAG_PIPE,
     },
     { /* End of formats */ }
   };
@@ -63,7 +63,7 @@ const bg_encoder_plugin_t the_plugin =
       .description =    TRS("Plugin for encoding various video formats with ffmpeg \
 (http://www.ffmpeg.org)."),
       .type =           BG_PLUGIN_ENCODER_VIDEO,
-      .flags =          BG_PLUGIN_FILE,
+      .flags =          BG_PLUGIN_FILE | BG_PLUGIN_PIPE,
       .priority =       5,
       .create =         create_ffmpeg,
       .destroy =        bg_ffmpeg_destroy,

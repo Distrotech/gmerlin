@@ -36,6 +36,7 @@
 #define FLAG_CONSTANT_FRAMERATE (1<<0)
 #define FLAG_INTRA_ONLY         (1<<1)
 #define FLAG_B_FRAMES           (1<<2)
+#define FLAG_PIPE               (1<<3) // Format can be written savely to pipes
 
 typedef struct
   {
