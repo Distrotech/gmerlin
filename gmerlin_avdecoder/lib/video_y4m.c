@@ -170,8 +170,8 @@ static gavl_source_status_t decode(bgav_stream_t * s, gavl_video_frame_t * f)
   else
     {
     priv->frame->planes[0] = priv->p->data;
-    priv->frame->planes[1] = priv->p->data + priv->plane_sizes[0];
-    priv->frame->planes[2] = priv->p->data + priv->plane_sizes[1];
+    priv->frame->planes[1] = priv->frame->planes[0] + priv->plane_sizes[0];
+    priv->frame->planes[2] = priv->frame->planes[1] + priv->plane_sizes[1];
     bgav_set_video_frame_from_packet(priv->p, priv->frame);
     }
   

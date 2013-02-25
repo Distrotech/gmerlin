@@ -268,6 +268,8 @@ static int next_packet_y4m(bgav_demuxer_context_t * ctx)
 
   if(bgav_input_read_data(ctx->input, p->data, priv->buf_size) < priv->buf_size)
     return 0;
+
+  p->data_size = priv->buf_size;
   
   p->pts = priv->pts;
   
@@ -283,31 +285,31 @@ static int next_packet_y4m(bgav_demuxer_context_t * ctx)
         switch(pos[1])
           {
           case 't':
-            p->video_frame->interlace_mode = GAVL_INTERLACE_TOP_FIRST;
+            p->ilace = GAVL_INTERLACE_TOP_FIRST;
             p->duration = s->data.video.format.frame_duration;
             break;
           case 'T':
-            p->video_frame->interlace_mode = GAVL_INTERLACE_TOP_FIRST;
+            p->ilace = GAVL_INTERLACE_TOP_FIRST;
             p->duration = (s->data.video.format.frame_duration*3)/2;
             break;
           case 'b':
-            p->video_frame->interlace_mode = GAVL_INTERLACE_BOTTOM_FIRST;
+            p->ilace = GAVL_INTERLACE_BOTTOM_FIRST;
             p->duration = s->data.video.format.frame_duration;
             break;
           case 'B':
-            p->video_frame->interlace_mode = GAVL_INTERLACE_BOTTOM_FIRST;
+            p->ilace = GAVL_INTERLACE_BOTTOM_FIRST;
             p->duration = (s->data.video.format.frame_duration*3)/2;
             break;
           case '1':
-            p->video_frame->interlace_mode = GAVL_INTERLACE_NONE;
+            p->ilace = GAVL_INTERLACE_NONE;
             p->duration = s->data.video.format.frame_duration;
             break;
           case '2':
-            p->video_frame->interlace_mode = GAVL_INTERLACE_NONE;
+            p->ilace = GAVL_INTERLACE_NONE;
             p->duration = 2 * s->data.video.format.frame_duration;
             break;
           case '3':
-            p->video_frame->interlace_mode = GAVL_INTERLACE_NONE;
+            p->ilace = GAVL_INTERLACE_NONE;
             p->duration = 3 * s->data.video.format.frame_duration;
             break;
           }
