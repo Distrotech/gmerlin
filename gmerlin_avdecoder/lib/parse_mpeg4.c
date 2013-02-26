@@ -87,7 +87,7 @@ static void set_format(bgav_video_parser_t * parser)
     }
   
   if(!priv->vol.low_delay)
-    parser->s->gavl_flags |= GAVL_COMPRESSION_HAS_B_FRAMES;
+    parser->s->ci.flags |= GAVL_COMPRESSION_HAS_B_FRAMES;
   }
 
 static void reset_mpeg4(bgav_video_parser_t * parser)

@@ -390,7 +390,7 @@ typedef enum
 
 #define STREAM_SET_STILL(s) \
   s->data.video.format.framerate_mode = GAVL_FRAMERATE_STILL; \
-  s->gavl_flags &= ~(GAVL_COMPRESSION_HAS_P_FRAMES|GAVL_COMPRESSION_HAS_B_FRAMES);
+  s->ci.flags &= ~(GAVL_COMPRESSION_HAS_P_FRAMES|GAVL_COMPRESSION_HAS_B_FRAMES);
 
 #define STREAM_IS_STILL(s) \
   (s->data.video.format.framerate_mode == GAVL_FRAMERATE_STILL)
@@ -505,8 +505,6 @@ struct bgav_stream_s
    */
 
   int flags;
-  
-  uint32_t gavl_flags; // Flags identical to gavl_compression_info_t flags
   
   /* Passed to gavl_[audio|video]_source_create() */
   int src_flags;

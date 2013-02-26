@@ -569,15 +569,15 @@ static void init_video_stream(bgav_demuxer_context_t * ctx,
       if(rm_vs->sub_id == 0x30202002
          || rm_vs->sub_id == 0x30203002
          || (rm_vs->sub_id >= 0x20200002 && rm_vs->sub_id < 0x20300000))
-        bg_vs->gavl_flags |= GAVL_COMPRESSION_HAS_B_FRAMES;
+        bg_vs->ci.flags |= GAVL_COMPRESSION_HAS_B_FRAMES;
       break;
     case BGAV_MK_FOURCC('R','V','3','0'):
       rm_vs->parse_frame_info = parse_frame_info_rv30;
-      bg_vs->gavl_flags |= GAVL_COMPRESSION_HAS_B_FRAMES;
+      bg_vs->ci.flags |= GAVL_COMPRESSION_HAS_B_FRAMES;
       break;
     case BGAV_MK_FOURCC('R','V','4','0'):
       rm_vs->parse_frame_info = parse_frame_info_rv40;
-      bg_vs->gavl_flags |= GAVL_COMPRESSION_HAS_B_FRAMES;
+      bg_vs->ci.flags |= GAVL_COMPRESSION_HAS_B_FRAMES;
       break;
     }
   

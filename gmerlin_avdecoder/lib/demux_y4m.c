@@ -190,7 +190,7 @@ static int open_y4m(bgav_demuxer_context_t * ctx)
     s->data.video.format.framerate_mode = GAVL_FRAMERATE_VARIABLE;
     }
   
-  s->gavl_flags &= ~GAVL_COMPRESSION_HAS_B_FRAMES;
+  s->ci.flags &= ~GAVL_COMPRESSION_HAS_B_FRAMES;
   
   if(!format)
     format = "420jpeg";

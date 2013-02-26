@@ -120,6 +120,8 @@ typedef struct
   int palette_size;             //!< Size of the embedded palette for image codecs
   uint32_t pre_skip;            //!< Samples to skip at the start
 
+  uint32_t video_buffer_size;   //!< VBV buffer size for video (in BYTES)
+  
   uint32_t max_packet_size;     //!< Maximum packet size or 0 if unknown
   } gavl_compression_info_t;
 

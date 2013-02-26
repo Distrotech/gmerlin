@@ -285,10 +285,11 @@ int gavf_extension_write(gavf_io_t * io, uint32_t key, uint32_t len,
 
 /* Compresson info */
 
-#define GAVF_EXT_CI_GLOBAL_HEADER    0
-#define GAVF_EXT_CI_BITRATE          1
-#define GAVF_EXT_CI_PRE_SKIP         2
-#define GAVF_EXT_CI_MAX_PACKET_SIZE  3
+#define GAVF_EXT_CI_GLOBAL_HEADER     0
+#define GAVF_EXT_CI_BITRATE           1
+#define GAVF_EXT_CI_PRE_SKIP          2
+#define GAVF_EXT_CI_MAX_PACKET_SIZE   3
+#define GAVF_EXT_CI_VIDEO_BUFFER_SIZE 4
 
 /* Packet */
 

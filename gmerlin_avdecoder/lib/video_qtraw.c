@@ -228,7 +228,7 @@ static int init_qtraw(bgav_stream_t * s)
   int width;
   priv = calloc(1, sizeof(*priv));
   s->decoder_priv = priv;
-  s->gavl_flags &= ~GAVL_COMPRESSION_HAS_P_FRAMES;
+  s->ci.flags &= ~GAVL_COMPRESSION_HAS_P_FRAMES;
   
   width = s->data.video.format.image_width;
   

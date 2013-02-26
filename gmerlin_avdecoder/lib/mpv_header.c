@@ -234,9 +234,10 @@ int bgav_mpv_sequence_header_parse(const bgav_options_t * opt,
    *  4 uimsbf frame_rate_code
    * 18 uimsbf bit_rate_value
    *  1  bslbf marker_bit
+   * 10 uimsbf vbv_buffer_size_value 
    */
   
-  if(len < 7)
+  if(len < 8)
     return 0;
 
   if((buffer[6] & 0x20) != 0x20)
@@ -257,7 +258,10 @@ int bgav_mpv_sequence_header_parse(const bgav_options_t * opt,
   //  ret->frame_duration = framerates[frame_rate_index].frame_duration;
  
   ret->bitrate = (buffer[4]<<10)|(buffer[5]<<2)|(buffer[6]>>6);
-  return 7;
+  
+  ret->vbv_buffer_size_value =
+    (((buffer[6]<<8)|(buffer[7])) >> 3) & 0x000003ff;
+    return 7;
   }
 
 
@@ -275,15 +279,17 @@ int bgav_mpv_sequence_extension_parse(const bgav_options_t * opt,
   
   ret->chroma_format = (buffer[1] & 0x06) >> 1;
   
-  ret->horizontal_size_ext = ((buffer[1] << 13) | (buffer[2] << 5)) & 0x3000;
-  ret->vertical_size_ext   = (buffer[2] << 7) & 0x3000;
+  ret->horizontal_size_ext  = ((buffer[1] << 13) | (buffer[2] << 5)) & 0x3000;
+  ret->vertical_size_ext    = (buffer[2] << 7) & 0x3000;
   
   ret->bitrate_ext          = ((buffer[2] & 0x1F)<<7) | (buffer[3]>>1);
+
+  ret->vbv_buffer_size_ext  = buffer[4];
+  
+  ret->low_delay            = !!(buffer[5] & 0x80);
   ret->timescale_ext        = (buffer[5] >> 5) & 3;
   ret->frame_duration_ext   = (buffer[5] & 0x1f);
-  ret->low_delay            = !!(buffer[5] & 0x80);
 
-  
   
   return 1;
   }

@@ -125,7 +125,7 @@ static gavl_source_status_t decode_tga(bgav_stream_t * s, gavl_video_frame_t * f
   tga_priv_t * priv;
   
   priv = s->decoder_priv;
-  s->gavl_flags &= ~GAVL_COMPRESSION_HAS_P_FRAMES;
+  s->ci.flags &= ~GAVL_COMPRESSION_HAS_P_FRAMES;
   
   if(!(s->flags & STREAM_HAVE_FRAME))
     {

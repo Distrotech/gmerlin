@@ -1358,12 +1358,12 @@ static int init_video_stream(bgav_demuxer_context_t * ctx,
     {
     bg_vs->flags |=
       (STREAM_DTS_ONLY | STREAM_PARSE_FRAME);
-    bg_vs->gavl_flags |= GAVL_COMPRESSION_HAS_B_FRAMES;
+    bg_vs->ci.flags |= GAVL_COMPRESSION_HAS_B_FRAMES;
     }
   else if(check_codec(bg_vs->fourcc, video_codecs_h264))
     {
     bg_vs->flags |= (STREAM_DTS_ONLY);
-    bg_vs->gavl_flags |= GAVL_COMPRESSION_HAS_B_FRAMES;
+    bg_vs->ci.flags |= GAVL_COMPRESSION_HAS_B_FRAMES;
     }
   
   return 1;

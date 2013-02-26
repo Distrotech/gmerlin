@@ -128,12 +128,21 @@ static int extract_header(bgav_video_parser_t * parser, bgav_packet_t * p,
 
   /* Other stuff */
   if(priv->sh.mpeg2 && priv->sh.ext.low_delay)
-    parser->s->gavl_flags &= ~GAVL_COMPRESSION_HAS_B_FRAMES;
-  
-  parser->s->codec_bitrate = priv->sh.bitrate * 400;
+    parser->s->ci.flags &= ~GAVL_COMPRESSION_HAS_B_FRAMES;
 
+  /* Bitrate */
+  parser->s->codec_bitrate = priv->sh.bitrate * 400;
   if(priv->sh.mpeg2)
     parser->s->codec_bitrate += (priv->sh.ext.bitrate_ext << 18) * 400;
+
+  /* VBV buffer size */
+  parser->s->ci.video_buffer_size = priv->sh.vbv_buffer_size_value;
+  if(priv->sh.mpeg2)
+    parser->s->ci.video_buffer_size +=
+      (priv->sh.ext.vbv_buffer_size_ext<<10);
+
+  parser->s->ci.video_buffer_size *= (1024 * 16);
+  parser->s->ci.video_buffer_size /= 8; // bits -> bytes
   
   priv->have_header = 1;
   return 1;
@@ -440,6 +449,8 @@ void bgav_video_parser_init_mpeg12(bgav_video_parser_t * parser)
   parser->cleanup     = cleanup_mpeg12;
   parser->reset       = reset_mpeg12;
   parser->find_frame_boundary = find_frame_boundary_mpeg12;
+
+  parser->s->ci.flags |= GAVL_COMPRESSION_HAS_B_FRAMES;
   
   if((parser->s->fourcc == BGAV_MK_FOURCC('m', 'x', '5', 'p')) ||
      (parser->s->fourcc == BGAV_MK_FOURCC('m', 'x', '4', 'p')) ||
@@ -451,13 +462,10 @@ void bgav_video_parser_init_mpeg12(bgav_video_parser_t * parser)
     parser->s->codec_bitrate =
       (((parser->s->fourcc & 0x0000FF00) >> 8) - '0') * 10000000;
     priv->d10 = 1;
-    parser->s->gavl_flags &= ~GAVL_COMPRESSION_HAS_P_FRAMES;
+    parser->s->ci.flags &= ~(GAVL_COMPRESSION_HAS_P_FRAMES|
+                             GAVL_COMPRESSION_HAS_B_FRAMES);
     parser->format->interlace_mode = GAVL_INTERLACE_TOP_FIRST;
     }
-
-  /* Set stream flags */
-  if(parser->s->gavl_flags & GAVL_COMPRESSION_HAS_P_FRAMES)
-    parser->s->gavl_flags |= GAVL_COMPRESSION_HAS_B_FRAMES;
-
+  
   }
 

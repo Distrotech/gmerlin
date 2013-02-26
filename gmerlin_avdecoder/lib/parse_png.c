@@ -62,7 +62,7 @@ static int parse_frame_png(bgav_video_parser_t * parser, bgav_packet_t * p,
   if(!priv->have_format)
     {
     priv->have_format = 1;
-    parser->s->gavl_flags &= ~GAVL_COMPRESSION_HAS_P_FRAMES;
+    parser->s->ci.flags &= ~GAVL_COMPRESSION_HAS_P_FRAMES;
 
     if(!get_format(parser->s, p, &parser->s->data.video.format))
       return PARSER_ERROR;

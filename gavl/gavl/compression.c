@@ -218,23 +218,28 @@ void gavl_compression_info_dumpi(const gavl_compression_info_t * info, int inden
   do_indent(indent);
   fprintf(stderr, "Compression info\n");
   do_indent(indent+2);
-  fprintf(stderr, "Codec:        %s [%s]\n",
+  fprintf(stderr, "Codec:           %s [%s]\n",
           gavl_compression_get_long_name(info->id),
           gavl_compression_get_short_name(info->id));
   do_indent(indent+2);
-  fprintf(stderr, "Bitrate:      %d bps\n", info->bitrate);
+  fprintf(stderr, "Bitrate:         %d bps\n", info->bitrate);
 
   if(info->id < 0x10000)
     {
     do_indent(indent+2);
-    fprintf(stderr, "pre_skip:     %d\n", info->pre_skip);
+    fprintf(stderr, "pre_skip:        %d\n", info->pre_skip);
     }
   if(info->id >= 0x10000)
     {
     do_indent(indent+2);
-    fprintf(stderr, "Palette size: %d\n", info->palette_size);
+    fprintf(stderr, "Palette size:    %d\n", info->palette_size);
+
     do_indent(indent+2);
-    fprintf(stderr, "Frame types:  I");
+    fprintf(stderr, "VBV size:        %d bytes\n",
+            info->video_buffer_size);
+
+    do_indent(indent+2);
+    fprintf(stderr, "Frame types:     I");
     if(info->flags & GAVL_COMPRESSION_HAS_P_FRAMES)
       fprintf(stderr, ",P");
     if(info->flags & GAVL_COMPRESSION_HAS_B_FRAMES)
@@ -244,9 +249,16 @@ void gavl_compression_info_dumpi(const gavl_compression_info_t * info, int inden
   else
     {
     do_indent(indent+2);
-    fprintf(stderr, "SBR:          %s\n",
+    fprintf(stderr, "SBR:             %s\n",
             (info->flags & GAVL_COMPRESSION_SBR ? "Yes" : "No"));
     }
+
+  do_indent(indent+2);
+  fprintf(stderr, "max_packet_size: %d", info->max_packet_size);
+  if(!info->max_packet_size)
+    fprintf(stderr, " (unknown)");
+  fprintf(stderr, "\n");
+  
   do_indent(indent+2);
   fprintf(stderr, "Global header %d bytes", info->global_header_len);
   if(info->global_header_len)

@@ -1175,9 +1175,9 @@ static void init_video(bgav_demuxer_context_t * ctx,
   if(!trak->mdia.minf.stbl.has_stss ||
      (bgav_qt_stts_num_samples(&trak->mdia.minf.stbl.stts) ==
       trak->mdia.minf.stbl.stss.num_entries))
-    bg_vs->gavl_flags &= ~GAVL_COMPRESSION_HAS_P_FRAMES;
+    bg_vs->ci.flags &= ~GAVL_COMPRESSION_HAS_P_FRAMES;
   else if(trak->mdia.minf.stbl.has_ctts)
-    bg_vs->gavl_flags |= GAVL_COMPRESSION_HAS_B_FRAMES;
+    bg_vs->ci.flags |= GAVL_COMPRESSION_HAS_B_FRAMES;
   
   if(desc->format.video.has_pasp)
     {
@@ -1665,7 +1665,7 @@ static void check_he_aac(bgav_demuxer_context_t * ctx,
         bgav_superindex_set_sbr(ctx->si, s);
         bgav_log(ctx->opt, BGAV_LOG_INFO, LOG_DOMAIN, "Detected HE-AAC");
         s->data.audio.format.samples_per_frame = 2048;
-        s->gavl_flags |= GAVL_COMPRESSION_SBR ;
+        s->ci.flags |= GAVL_COMPRESSION_SBR ;
         }
       else
         {

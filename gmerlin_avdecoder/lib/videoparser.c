@@ -421,7 +421,7 @@ static void process_packet(bgav_video_parser_t * parser, bgav_packet_t * p, int6
   /* Initialize stuff */
   if(!(parser->flags & PARSER_INITIALIZED))
     {
-    if((parser->s->gavl_flags & GAVL_COMPRESSION_HAS_B_FRAMES) && (parser->flags & PARSER_GEN_PTS))
+    if((parser->s->ci.flags & GAVL_COMPRESSION_HAS_B_FRAMES) && (parser->flags & PARSER_GEN_PTS))
       parser->s->flags |= STREAM_DTS_ONLY;
     parser->flags |= PARSER_INITIALIZED;
     }

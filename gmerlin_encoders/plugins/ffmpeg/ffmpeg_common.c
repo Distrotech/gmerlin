@@ -870,6 +870,9 @@ int bg_ffmpeg_add_video_stream_compressed(void * priv,
     st->com.stream->codec->rc_max_rate = st->com.ci.bitrate;
     st->com.stream->codec->bit_rate = st->com.ci.bitrate;
     }
+  if(st->com.ci.video_buffer_size)
+    st->com.stream->codec->rc_buffer_size = st->com.ci.video_buffer_size * 8;
+  
   /* Set extradata */
   if(st->com.ci.global_header_len)
     {

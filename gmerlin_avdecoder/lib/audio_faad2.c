@@ -63,7 +63,7 @@ static gavl_source_status_t get_data(bgav_stream_t * s)
   if(p->duration > 0)
     bgav_bytebuffer_flush(&priv->buf);
 
-  priv->last_duration = p->duration * (1 + !!(s->gavl_flags & GAVL_COMPRESSION_SBR));
+  priv->last_duration = p->duration * (1 + !!(s->ci.flags & GAVL_COMPRESSION_SBR));
   
   bgav_bytebuffer_append(&priv->buf, p, 0);
   bgav_stream_done_packet_read(s, p);
@@ -225,7 +225,7 @@ static int init_faad2(bgav_stream_t * s)
     if(!s->data.audio.format.samples_per_frame)
       s->data.audio.format.samples_per_frame = 2048;
 
-    s->gavl_flags |= GAVL_COMPRESSION_SBR;
+    s->ci.flags |= GAVL_COMPRESSION_SBR;
     
     if(s->duration)
       s->duration *= 2;

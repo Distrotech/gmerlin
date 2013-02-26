@@ -77,7 +77,7 @@ bgav_track_add_video_stream(bgav_track_t * t, const bgav_options_t * opt)
   ret->data.video.format.interlace_mode = GAVL_INTERLACE_UNKNOWN;
   ret->data.video.format.framerate_mode = GAVL_FRAMERATE_UNKNOWN;
   
-  ret->gavl_flags = GAVL_COMPRESSION_HAS_P_FRAMES;
+  ret->ci.flags = GAVL_COMPRESSION_HAS_P_FRAMES;
   return ret;
   }
 

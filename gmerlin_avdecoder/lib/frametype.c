@@ -125,7 +125,7 @@ static int initialize(bgav_frametype_detector_t * fd)
     
     if(PACKET_GET_CODING_TYPE(p) == BGAV_CODING_TYPE_B)
       {
-      fd->s->gavl_flags |= GAVL_COMPRESSION_HAS_B_FRAMES;
+      fd->s->ci.flags |= GAVL_COMPRESSION_HAS_B_FRAMES;
       break;
       }
     }

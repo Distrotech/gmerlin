@@ -389,6 +389,14 @@ int gavf_read_compression_info(gavf_io_t * io,
         if(!gavf_io_read_uint32v(io, &ci->pre_skip))
           return 0;
         break;
+      case GAVF_EXT_CI_MAX_PACKET_SIZE:
+        if(!gavf_io_read_uint32v(io, &ci->max_packet_size))
+          return 0;
+        break;
+      case GAVF_EXT_CI_VIDEO_BUFFER_SIZE:
+        if(!gavf_io_read_uint32v(io, &ci->video_buffer_size))
+          return 0;
+        break;
       }
     }
   
@@ -422,6 +430,9 @@ int gavf_write_compression_info(gavf_io_t * io,
     num_extensions++;
 
   if(ci->max_packet_size && (ci->id != GAVL_CODEC_ID_NONE))
+    num_extensions++;
+
+  if(ci->video_buffer_size)
     num_extensions++;
   
   /* Write extensions */
@@ -464,6 +475,15 @@ int gavf_write_compression_info(gavf_io_t * io,
     buf.len = 0;
     if(!gavf_io_write_uint32v(&bufio, ci->max_packet_size) ||
        !gavf_extension_write(io, GAVF_EXT_CI_MAX_PACKET_SIZE,
+                             buf.len, buf.buf))
+      return 0;
+    }
+
+  if(ci->video_buffer_size)
+    {
+    buf.len = 0;
+    if(!gavf_io_write_uint32v(&bufio, ci->video_buffer_size) ||
+       !gavf_extension_write(io, GAVF_EXT_CI_VIDEO_BUFFER_SIZE,
                              buf.len, buf.buf))
       return 0;
     }

@@ -194,7 +194,7 @@ static int init_openjpeg(bgav_stream_t * s)
   openjpeg_priv_t * priv;
   priv = calloc(1, sizeof(*priv));
   s->decoder_priv = priv;
-  s->gavl_flags &= ~GAVL_COMPRESSION_HAS_P_FRAMES;
+  s->ci.flags &= ~GAVL_COMPRESSION_HAS_P_FRAMES;
   
   priv->event_mgr.error_handler = error_callback;
   priv->event_mgr.warning_handler = warning_callback;

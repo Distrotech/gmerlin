@@ -246,7 +246,7 @@ static int init_tiff(bgav_stream_t * s)
   tiff_t * priv;
   priv = calloc(1, sizeof(*priv));
   s->decoder_priv = priv;
-  s->gavl_flags &= ~GAVL_COMPRESSION_HAS_P_FRAMES;
+  s->ci.flags &= ~GAVL_COMPRESSION_HAS_P_FRAMES;
   
   /* We support RGBA for streams with a depth of 32 */
 

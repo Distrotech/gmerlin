@@ -404,7 +404,7 @@ void bgav_video_resync(bgav_stream_t * s)
   
   /* If the stream has keyframes, skip until the next one */
 
-  if(s->gavl_flags & GAVL_COMPRESSION_HAS_P_FRAMES)
+  if(s->ci.flags & GAVL_COMPRESSION_HAS_P_FRAMES)
     {
     bgav_packet_t * p;
     gavl_source_status_t st;
@@ -477,7 +477,7 @@ int bgav_video_skipto(bgav_stream_t * s, int64_t * time, int scale)
     }
   
   /* Easy case: Intra only streams */
-  else if(!(s->gavl_flags & GAVL_COMPRESSION_HAS_P_FRAMES))
+  else if(!(s->ci.flags & GAVL_COMPRESSION_HAS_P_FRAMES))
     {
     while(1)
       {
@@ -885,8 +885,6 @@ int bgav_get_video_compression_info(bgav_t * bgav, int stream,
     s->flags |= STREAM_GOT_NO_CI;
     return 0;
     }
-
-  s->ci.flags = s->gavl_flags;
   
   s->ci.max_packet_size = s->max_packet_size;
 

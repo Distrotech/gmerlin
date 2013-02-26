@@ -277,7 +277,7 @@ static int init_video_stream(bgav_demuxer_context_t * ctx, bgav_stream_t * s,
       s->fourcc = FOURCC_H264;
       priv->need_video_extradata = 1;
       s->flags |= STREAM_HAS_DTS;
-      s->gavl_flags |= GAVL_COMPRESSION_HAS_B_FRAMES;
+      s->ci.flags |= GAVL_COMPRESSION_HAS_B_FRAMES;
       
       //          s->data.video.wrong_b_timestamps = 1;
       break;

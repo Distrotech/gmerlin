@@ -138,7 +138,7 @@ static int open_mpegvideo(bgav_demuxer_context_t * ctx)
 
   s->fourcc = detect_type(ctx->input);
   s->flags |= (STREAM_PARSE_FULL|STREAM_RAW_PACKETS);
-  s->gavl_flags |= GAVL_COMPRESSION_HAS_B_FRAMES;
+  s->ci.flags |= GAVL_COMPRESSION_HAS_B_FRAMES;
   
   ctx->data_start = ctx->input->position;
   ctx->flags |= BGAV_DEMUXER_HAS_DATA_START;

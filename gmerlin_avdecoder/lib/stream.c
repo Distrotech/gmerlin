@@ -447,7 +447,7 @@ void bgav_stream_set_from_gavl(bgav_stream_t * s,
     else if(s->type == BGAV_STREAM_VIDEO)
       gavl_video_format_copy(&s->data.video.format, vfmt);
 
-    s->gavl_flags = ci->flags;
+    s->ci.flags = ci->flags;
     s->timescale = vfmt->timescale;
     }
   
