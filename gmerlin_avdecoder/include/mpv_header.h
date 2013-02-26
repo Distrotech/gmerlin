@@ -63,8 +63,8 @@ typedef struct
   uint32_t bitrate_ext;
   int timescale_ext;
   int frame_duration_ext;
-  
   int low_delay;
+  int vbv_buffer_size_ext;
   } bgav_mpv_sequence_extension_t;
 
 typedef struct
@@ -92,6 +92,8 @@ typedef struct
   int vertical_size_value;
   int aspect_ratio;
   int frame_rate_index;
+
+  int vbv_buffer_size_value;
   
   bgav_mpv_sequence_extension_t ext;
   bgav_mpv_sequence_display_extension_t dpy_ext;
