@@ -166,17 +166,34 @@ static int open_lame(void * data,
   //  bg_lame_open(&lame->com);
   //  id3tag_init(lame->lame);
 
-  lame->filename = bg_filename_ensure_extension(filename, "mp3");
-
-  if(!bg_encoder_cb_create_output_file(lame->cb, lame->filename))
-    return 0;
-  
-  lame->output = fopen(lame->filename, "wb+");
-  if(!lame->output)
+  if(!strcmp(filename, "-"))
     {
-    bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Cannot open %s: %s",
-           filename, strerror(errno));
-    return 0;
+    lame->output = stdout;
+    if(lame->do_id3v1)
+      {
+      bg_log(BG_LOG_WARNING, LOG_DOMAIN, "Disabling ID3V1 tags for output to stdout");
+      lame->do_id3v1 = 0;
+      }
+    if(lame->do_id3v2)
+      {
+      bg_log(BG_LOG_WARNING, LOG_DOMAIN, "Disabling ID3V2 tags for output to stdout");
+      lame->do_id3v2 = 0;
+      }
+    }
+  else
+    {
+    lame->filename = bg_filename_ensure_extension(filename, "mp3");
+
+    if(!bg_encoder_cb_create_output_file(lame->cb, lame->filename))
+      return 0;
+  
+    lame->output = fopen(lame->filename, "wb+");
+    if(!lame->output)
+      {
+      bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Cannot open %s: %s",
+             filename, strerror(errno));
+      return 0;
+      }
     }
 
   // lame->com.write_callback = write_callback;
@@ -204,10 +221,17 @@ static int
 writes_compressed_audio_lame(void * data, const gavl_audio_format_t * format,
                              const gavl_compression_info_t * ci)
   {
-  if(ci->id == GAVL_CODEC_ID_MP3)
-    return 1;
-  else
+  lame_priv_t * lame = data;
+
+  if(ci->id != GAVL_CODEC_ID_MP3)
     return 0;
+  
+  if((ci->bitrate == GAVL_BITRATE_VBR) && (lame->output == stdout))
+    {
+    bg_log(BG_LOG_WARNING, LOG_DOMAIN, "VBR mp3 cannot be written to stdout");
+    return 0;
+    }
+  return 1;
   }
 
 static gavl_sink_status_t
@@ -289,6 +313,13 @@ static int start_lame(void * data)
                                &lame->ci,
                                &lame->fmt,
                                NULL);
+
+    if((lame->ci.bitrate == GAVL_BITRATE_VBR) && (lame->output == stdout))
+      {
+      bg_log(BG_LOG_WARNING, LOG_DOMAIN, "Won't write VBR mp3 to stdout");
+      return 0;
+      }
+
     bg_lame_set_packet_sink(lame->codec, lame->psink);
     }
   
@@ -314,23 +345,27 @@ static int close_lame(void * data, int do_delete)
   
   /* Write ID3V1 tag */
 
-  if(lame->output)
+  if(lame->output && (lame->output != stdout))
     {
-    if(ret && lame->id3v1)
+    if(lame->output == stdout)
       {
-      fseek(lame->output, 0, SEEK_END);
-      if(!bgen_id3v1_write(lame->output, lame->id3v1))
-        ret = 0;
-      bgen_id3v1_destroy(lame->id3v1);
-      lame->id3v1 = NULL;
+      fflush(lame->output);
       }
-    
+    else
+      {
+      if(ret && lame->id3v1)
+        {
+        fseek(lame->output, 0, SEEK_END);
+        if(!bgen_id3v1_write(lame->output, lame->id3v1))
+          ret = 0;
+        bgen_id3v1_destroy(lame->id3v1);
+        lame->id3v1 = NULL;
+        }
     /* 4. Close output file */
-    
-    fclose(lame->output);
-    lame->output = NULL;
+      fclose(lame->output);
+      lame->output = NULL;
+      }
     }
-  
   /* Clean up */
   //  bg_lame_close(&lame->com);
   
@@ -358,7 +393,7 @@ const bg_encoder_plugin_t the_plugin =
       .long_name =       TRS("Lame mp3 encoder"),
       .description =     TRS("Encoder for mp3 files. Based on lame (http://www.mp3dev.org). Supports CBR, ABR and VBR as well as ID3V1 and ID3V2 tags."),
       .type =            BG_PLUGIN_ENCODER_AUDIO,
-      .flags =           BG_PLUGIN_FILE,
+      .flags =           BG_PLUGIN_FILE | BG_PLUGIN_PIPE,
       .priority =        5,
       .create =            create_lame,
       .destroy =           destroy_lame,
