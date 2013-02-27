@@ -520,6 +520,7 @@ int main(int argc, char ** argv)
   
   /* Cleanup */
 
+  bg_mediaconnector_free(&conn);
   bg_plug_destroy(in_plug);
   bg_encoder_destroy(enc, do_delete);
   
@@ -527,6 +528,25 @@ int main(int argc, char ** argv)
   gavl_metadata_free(&vc_options);
   gavl_metadata_free(&oc_options);
 
+  if(audio_actions)
+    free(audio_actions);
+  if(video_actions)
+    free(video_actions);
+  if(text_actions)
+    free(text_actions);
+  if(overlay_actions)
+    free(overlay_actions);
+  
+  gavftools_cleanup();
+
+  if(enc_params)
+    bg_parameter_info_destroy_array(enc_params);
+  if(enc_params_simple)
+    bg_parameter_info_destroy_array(enc_params_simple);
+
+  if(enc_section)
+    bg_cfg_section_destroy(enc_section);
+  
   
   return 0;
   }

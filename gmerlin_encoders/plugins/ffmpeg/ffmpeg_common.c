@@ -485,7 +485,8 @@ write_video_packet_func(void * priv, gavl_packet_t * packet)
   pkt.size = packet->data_len;
 
   pkt.pts= rescale_video_timestamp(st, packet->pts);
-    
+  pkt.duration = rescale_video_timestamp(st, packet->duration);
+  
   if(st->com.ci.flags & GAVL_COMPRESSION_HAS_B_FRAMES)
     {
     if(st->dts == GAVL_TIME_UNDEFINED)
@@ -533,10 +534,23 @@ write_audio_packet_func(void * data, gavl_packet_t * packet)
                         st->com.stream->codec->time_base,
                         st->com.stream->time_base);
 
-
+  pkt.duration= av_rescale_q(packet->duration,
+                             st->com.stream->codec->time_base,
+                             st->com.stream->time_base);
+  
   pkt.dts = pkt.pts;
+
+  if(st->com.ci.flags & GAVL_COMPRESSION_SBR)
+    {
+    pkt.pts /= 2;
+    pkt.dts /= 2;
+    pkt.duration /= 2;
+    }
+  
   pkt.flags |= AV_PKT_FLAG_KEY;
   pkt.stream_index= st->com.stream->index;
+
+  
   
   /* write the compressed frame in the media file */
   if(av_interleaved_write_frame(f->ctx, &pkt) != 0)
@@ -557,6 +571,10 @@ static int open_audio_encoder(ffmpeg_priv_t * priv,
     {
     bg_ffmpeg_set_audio_format(st->com.stream->codec,
                                &st->format);
+
+    if(st->com.ci.flags & GAVL_COMPRESSION_SBR)
+      st->com.stream->codec->sample_rate /= 2;
+    
     return 1;
     }
   st->sink = bg_ffmpeg_codec_open_audio(st->com.codec, &st->com.ci, &st->format, NULL);
@@ -705,6 +723,7 @@ static void close_common(bg_ffmpeg_stream_common_t * com)
     bg_ffmpeg_codec_destroy(com->codec);
     com->codec = NULL;
     }
+  gavl_compression_info_free(&com->ci);
   }
 
 static int close_audio_encoder(ffmpeg_priv_t * priv,
@@ -820,6 +839,22 @@ int bg_ffmpeg_writes_compressed_video(void * priv,
   return 0;
   }
 
+static void copy_extradata(AVCodecContext * avctx,
+                           const gavl_compression_info_t * ci)
+  {
+  if(ci->global_header_len)
+    {
+    avctx->extradata_size = ci->global_header_len;
+    avctx->extradata =
+      av_malloc(avctx->extradata_size + FF_INPUT_BUFFER_PADDING_SIZE);
+    memcpy(avctx->extradata,
+           ci->global_header,
+           ci->global_header_len);
+    memset(avctx->extradata + avctx->extradata_size, 0, FF_INPUT_BUFFER_PADDING_SIZE);
+    avctx->flags |= CODEC_FLAG_GLOBAL_HEADER;
+    }
+  }
+
 int
 bg_ffmpeg_add_audio_stream_compressed(void * priv,
                                       const gavl_metadata_t * m,
@@ -846,17 +881,7 @@ bg_ffmpeg_add_audio_stream_compressed(void * priv,
     st->com.stream->codec->rc_max_rate = st->com.ci.bitrate;
     }
   /* Set extradata */
-  if(st->com.ci.global_header_len)
-    {
-    st->com.stream->codec->extradata_size = st->com.ci.global_header_len;
-    st->com.stream->codec->extradata =
-      av_malloc(st->com.stream->codec->extradata_size);
-    memcpy(st->com.stream->codec->extradata,
-           st->com.ci.global_header,
-           st->com.ci.global_header_len);
-    st->com.stream->codec->flags |= CODEC_FLAG_GLOBAL_HEADER;
-    }
-  
+  copy_extradata(st->com.stream->codec, &st->com.ci);
   return ret;
   }
 
@@ -886,16 +911,7 @@ int bg_ffmpeg_add_video_stream_compressed(void * priv,
     st->com.stream->codec->rc_buffer_size = st->com.ci.video_buffer_size * 8;
   
   /* Set extradata */
-  if(st->com.ci.global_header_len)
-    {
-    st->com.stream->codec->extradata_size = st->com.ci.global_header_len;
-    st->com.stream->codec->extradata =
-      av_malloc(st->com.stream->codec->extradata_size);
-    memcpy(st->com.stream->codec->extradata,
-           st->com.ci.global_header,
-           st->com.ci.global_header_len);
-    st->com.stream->codec->flags |= CODEC_FLAG_GLOBAL_HEADER;
-    }
+  copy_extradata(st->com.stream->codec, &st->com.ci);
   return ret;
   }
 
