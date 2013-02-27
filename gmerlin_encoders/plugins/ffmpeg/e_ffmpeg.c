@@ -212,8 +212,6 @@ const bg_encoder_plugin_t the_plugin =
 
     .writes_compressed_audio = bg_ffmpeg_writes_compressed_audio,
     .writes_compressed_video = bg_ffmpeg_writes_compressed_video,
-
-    
     
     .add_audio_stream =     bg_ffmpeg_add_audio_stream,
     .add_video_stream =     bg_ffmpeg_add_video_stream,

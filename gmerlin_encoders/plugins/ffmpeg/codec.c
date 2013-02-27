@@ -228,8 +228,6 @@ static int set_compression_info(bg_ffmpeg_codec_context_t * ctx,
       memcpy(ci->global_header, ctx->avctx->extradata, ci->global_header_len);
       }
     }
-
-
   if(m)
     gavl_metadata_set(m, GAVL_META_SOFTWARE, LIBAVCODEC_IDENT);
   return 1;
@@ -376,7 +374,7 @@ gavl_audio_sink_t * bg_ffmpeg_codec_open_audio(bg_ffmpeg_codec_context_t * ctx,
   fmt->sample_format =
     bg_sample_format_ffmpeg_2_gavl(ctx->avctx->sample_fmt, &fmt->interleave_mode);
 
-  /* Set bitrate */
+  /* Set codec specific stuff */
   switch(ctx->avctx->codec_id)
     {
     case CODEC_ID_PCM_S16BE:
@@ -390,6 +388,10 @@ gavl_audio_sink_t * bg_ffmpeg_codec_open_audio(bg_ffmpeg_codec_context_t * ctx,
     case CODEC_ID_PCM_MULAW:
       ctx->avctx->bit_rate =
         ctx->afmt.samplerate * ctx->afmt.num_channels * 8;
+      break;
+    case CODEC_ID_AAC:
+      if(!ctx->avctx->bit_rate)
+        ctx->avctx->flags |= CODEC_FLAG_QSCALE;
       break;
     default:
       break;

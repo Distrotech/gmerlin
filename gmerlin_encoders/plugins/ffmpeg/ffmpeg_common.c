@@ -845,6 +845,18 @@ bg_ffmpeg_add_audio_stream_compressed(void * priv,
     st->com.stream->codec->bit_rate = st->com.ci.bitrate;
     st->com.stream->codec->rc_max_rate = st->com.ci.bitrate;
     }
+  /* Set extradata */
+  if(st->com.ci.global_header_len)
+    {
+    st->com.stream->codec->extradata_size = st->com.ci.global_header_len;
+    st->com.stream->codec->extradata =
+      av_malloc(st->com.stream->codec->extradata_size);
+    memcpy(st->com.stream->codec->extradata,
+           st->com.ci.global_header,
+           st->com.ci.global_header_len);
+    st->com.stream->codec->flags |= CODEC_FLAG_GLOBAL_HEADER;
+    }
+  
   return ret;
   }
 

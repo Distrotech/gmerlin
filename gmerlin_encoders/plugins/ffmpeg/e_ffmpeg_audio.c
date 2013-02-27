@@ -75,8 +75,7 @@ static const ffmpeg_format_info_t formats[] =
                                        CODEC_ID_NONE },
     },
 #endif
-
-#if 0 
+#if 1
     {
       .name =       "ADTS",
       .short_name = "adts",
@@ -120,8 +119,10 @@ const bg_encoder_plugin_t the_plugin =
     .set_callbacks =        bg_ffmpeg_set_callbacks,
     
     .open =                 bg_ffmpeg_open,
+    .writes_compressed_audio = bg_ffmpeg_writes_compressed_audio,
     
     .add_audio_stream =     bg_ffmpeg_add_audio_stream,
+    .add_audio_stream_compressed =     bg_ffmpeg_add_audio_stream_compressed,
     
     .set_audio_parameter =  bg_ffmpeg_set_audio_parameter,
     

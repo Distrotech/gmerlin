@@ -70,7 +70,38 @@
     .val_default = { .val_str = "128" },       \
     .multi_names = (char const *[]){ "24", "48", "64", "96", "128", NULL } \
   },
-    
+
+static const bg_parameter_info_t parameters_libfaac[] =
+  {
+    {
+      .name =      "faac_profile",
+      .long_name = TRS("Profile"),
+      .type =      BG_PARAMETER_STRINGLIST,
+      .val_default = {val_str: "lc"},
+      .multi_names = (char const *[]){"main",
+                                      "lc",
+                                      "ssr",
+                                      "ltp",
+                                      (char *)0},
+      .multi_labels = (char const *[]){TRS("Main"),
+                                       TRS("LC"),
+                                       TRS("SSR"),
+                                       TRS("LTP"),
+                                       (char *)0 },
+    },
+    PARAM_BITRATE_AUDIO,
+    {
+      .name =        "faac_quality",
+      .long_name =   TRS("Quality"),
+      .type =        BG_PARAMETER_SLIDER_INT,
+      .val_min =     { .val_i = 10 },
+      .val_max =     { .val_i = 500 },
+      .val_default = { .val_i = 100 },
+      .help_string = TRS("Quantizer quality"),
+    },
+    { /* */ }
+  };
+
     
 #define ENCODE_PARAM_VIDEO_RATECONTROL \
   {                                           \
@@ -415,6 +446,12 @@ static const ffmpeg_codec_info_t audio_codecs[] =
       .long_name = TRS("MPEG audio layer 3"),
       .id        = CODEC_ID_MP3,
       .parameters = parameters_mp3,
+    },
+    {
+      .name      = "libfaac",
+      .long_name = TRS("AAC"),
+      .id        = CODEC_ID_AAC,
+      .parameters = parameters_libfaac,
     },
     { /* End of array */ }
   };
@@ -779,7 +816,8 @@ bg_ffmpeg_get_codec_info(enum CodecID id, int type)
   }
 
 
-const bg_parameter_info_t * bg_ffmpeg_get_codec_parameters(enum CodecID id, int type)
+const bg_parameter_info_t *
+bg_ffmpeg_get_codec_parameters(enum CodecID id, int type)
   {
   const ffmpeg_codec_info_t * ci = NULL;
   
@@ -876,7 +914,7 @@ typedef struct
 
   
 
-const enum_t me_method[] =
+static const enum_t me_method[] =
   {
     { "Zero",  ME_ZERO },
     { "Phods", ME_PHODS },
@@ -886,14 +924,14 @@ const enum_t me_method[] =
     { "Full",  ME_FULL }
   };
 
-const enum_t prediction_method[] =
+static const enum_t prediction_method[] =
   {
     { "Left",   FF_PRED_LEFT },
     { "Plane",  FF_PRED_PLANE },
     { "Median", FF_PRED_MEDIAN }
   };
 
-const enum_t compare_func[] =
+static const enum_t compare_func[] =
   {
     { "SAD",  FF_CMP_SAD },
     { "SSE",  FF_CMP_SSE },
@@ -908,11 +946,19 @@ const enum_t compare_func[] =
     { "NSSE", FF_CMP_NSSE }
   };
 
-const enum_t mb_decision[] =
+static const enum_t mb_decision[] =
   {
     { "Use compare function", FF_MB_DECISION_SIMPLE },
     { "Fewest bits",          FF_MB_DECISION_BITS },
     { "Rate distoration",     FF_MB_DECISION_RD }
+  };
+
+static const enum_t faac_profile[] =
+  {
+    { "main", FF_PROFILE_AAC_MAIN },
+    { "lc",   FF_PROFILE_AAC_LOW  },
+    { "ssr",  FF_PROFILE_AAC_SSR  },
+    { "ltp",  FF_PROFILE_AAC_LTP  }
   };
 
 #define PARAM_ENUM(n, var, arr) \
@@ -1060,6 +1106,11 @@ bg_ffmpeg_set_codec_parameter(AVCodecContext * ctx,
   PARAM_DICT_FLOAT("libx264_crf", "crf");
   PARAM_DICT_FLOAT("libx264_qp", "qp");
 
+  PARAM_ENUM("faac_profile", profile, faac_profile);
+
+  if(!strcmp(name, "faac_quality"))
+    ctx->global_quality = FF_QP2LAMBDA * val->val_i;
+  
   if(!strcmp(name, "tga_rle"))
     {
     if(val->val_i)
@@ -1263,6 +1314,7 @@ codec_ids[] =
     { GAVL_CODEC_ID_AC3,    CODEC_ID_AC3       }, //!< AC3
     { GAVL_CODEC_ID_AAC,    CODEC_ID_AAC       }, //!< AAC as stored in quicktime/mp4
     { GAVL_CODEC_ID_VORBIS, CODEC_ID_VORBIS    }, //!< Vorbis (segmented extradata and packets)
+    { GAVL_CODEC_ID_AAC,    CODEC_ID_AAC       }, //!< AAC
     
     /* Video */
     { GAVL_CODEC_ID_JPEG,      CODEC_ID_MJPEG      }, //!< JPEG image
