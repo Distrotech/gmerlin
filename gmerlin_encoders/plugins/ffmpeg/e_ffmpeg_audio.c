@@ -75,6 +75,18 @@ static const ffmpeg_format_info_t formats[] =
                                        CODEC_ID_NONE },
     },
 #endif
+
+#if 0 
+    {
+      .name =       "ADTS",
+      .short_name = "adts",
+      .extension =  "aac",
+      .max_audio_streams = 1,
+      .audio_codecs = (enum CodecID[]){  CODEC_ID_AAC,
+                                       CODEC_ID_NONE },
+      .flags = FLAG_PIPE,
+    },
+#endif
     { /* End of formats */ }
   };
 
