@@ -157,21 +157,38 @@ static int open_faac(void * data, const char * filename,
   bgen_id3v2_t * id3v2;
 
   faac = data;
-
-  faac->filename = bg_filename_ensure_extension(filename, "aac");
-
-  if(!bg_encoder_cb_create_output_file(faac->cb, faac->filename))
-    return 0;
-  
-  faac->output = fopen(faac->filename, "wb");
-
-  if(!faac->output)
+  if(!strcmp(filename, "-"))
     {
-    bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Cannot open %s: %s",
-           filename, strerror(errno));
-    return 0;
+    faac->output = stdout;
+    if(faac->do_id3v1)
+      {
+      bg_log(BG_LOG_WARNING, LOG_DOMAIN, "Disabling ID3V1 tags for output to stdout");
+      faac->do_id3v1 = 0;
+      }
+    if(faac->do_id3v2)
+      {
+      bg_log(BG_LOG_WARNING, LOG_DOMAIN, "Disabling ID3V2 tags for output to stdout");
+      faac->do_id3v2 = 0;
+      }
+
     }
+  else
+    {
+    faac->filename = bg_filename_ensure_extension(filename, "aac");
+
+    if(!bg_encoder_cb_create_output_file(faac->cb, faac->filename))
+      return 0;
   
+    faac->output = fopen(faac->filename, "wb");
+    
+    if(!faac->output)
+      {
+      bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Cannot open %s: %s",
+             filename, strerror(errno));
+      return 0;
+      }
+    }
+
   if(faac->do_id3v1 && metadata)
     faac->id3v1 = bgen_id3v1_create(metadata);
   if(faac->do_id3v2 && metadata)
@@ -244,7 +261,8 @@ static int close_faac(void * data, int do_delete)
       bgen_id3v1_destroy(faac->id3v1);
       faac->id3v1 = NULL;    
       }
-    fclose(faac->output);
+    if(faac->output != stdout)
+      fclose(faac->output);
     faac->output = NULL;
     }
 
@@ -272,7 +290,7 @@ const bg_encoder_plugin_t the_plugin =
       .long_name =       TRS("Faac encoder"),
       .description =     TRS("Plugin for encoding AAC streams (with ADTS headers). Based on faac (http://faac.sourceforge.net)."),
       .type =            BG_PLUGIN_ENCODER_AUDIO,
-      .flags =           BG_PLUGIN_FILE,
+      .flags =           BG_PLUGIN_FILE | BG_PLUGIN_PIPE,
       .priority =        5,
       .create =            create_faac,
       .destroy =           destroy_faac,

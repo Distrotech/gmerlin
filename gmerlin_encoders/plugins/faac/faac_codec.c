@@ -283,8 +283,8 @@ static int flush_audio(bg_faac_t * ctx)
     
     ctx->out_pts += ctx->p.duration;
     
-    fprintf(stderr, "Got AAC packet\n");
-    gavl_packet_dump(&ctx->p);
+//    fprintf(stderr, "Got AAC packet\n");
+//    gavl_packet_dump(&ctx->p);
     
     if(gavl_packet_sink_put_packet(ctx->psink, &ctx->p) != GAVL_SINK_OK)
       return -1;

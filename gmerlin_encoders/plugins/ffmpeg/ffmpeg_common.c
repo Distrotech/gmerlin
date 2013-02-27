@@ -270,8 +270,7 @@ int bg_ffmpeg_open(void * data, const char * filename,
   
     free(tmp_string);
     }
-  
-  
+  priv->ctx->max_delay = (int)(0.7 * (float)AV_TIME_BASE);
   priv->ctx->oformat = fmt;
     
   /* Add metadata */
@@ -475,7 +474,7 @@ write_video_packet_func(void * priv, gavl_packet_t * packet)
   bg_ffmpeg_video_stream_t * st = priv;
   ffmpeg_priv_t * f = st->com.ffmpeg;
   
-  //  fprintf(stderr, "Write video packet: ");
+//  fprintf(stderr, "write video packet\n");
   //  gavl_packet_dump(packet);
   
   if(packet->pts == GAVL_TIME_UNDEFINED)
@@ -520,7 +519,8 @@ write_audio_packet_func(void * data, gavl_packet_t * packet)
   ffmpeg_priv_t * f;
   bg_ffmpeg_audio_stream_t * st = data;
   f = st->com.ffmpeg;
-  
+
+//  fprintf(stderr, "write_audio_packet\n"); 
   if(packet->pts == GAVL_TIME_UNDEFINED)
     return 1; // Drop undecodable packet
   
