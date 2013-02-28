@@ -137,6 +137,8 @@ static void cleanup_audio(audio_stream_t * as)
 static void cleanup_video(video_stream_t * vs)
   {
   bg_parameter_info_destroy_array(vs->parameters);
+  if(vs->ov)
+    bg_ov_destroy(vs->ov);
   if(vs->h)
     bg_plugin_unref(vs->h);
   }

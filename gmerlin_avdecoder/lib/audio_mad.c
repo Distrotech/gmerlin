@@ -189,8 +189,10 @@ static gavl_source_status_t decode_frame_mad(bgav_stream_t * s)
                       priv->buf.size + flush * MAD_BUFFER_GUARD);
 
     if(priv->do_init)
+      {
       get_format(s);
-  
+      priv->do_init = 0;
+      }
     if(mad_frame_decode(&priv->frame, &priv->stream) == -1)
       {
       got_frame = 0;

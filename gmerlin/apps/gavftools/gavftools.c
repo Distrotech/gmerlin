@@ -129,6 +129,8 @@ void gavftools_cleanup(int save_regs)
   if(v_actions) free(v_actions);
   if(t_actions) free(t_actions);
   if(o_actions) free(o_actions);
+
+  xmlCleanupParser();
  
   }
 
