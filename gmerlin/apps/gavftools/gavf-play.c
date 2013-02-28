@@ -841,7 +841,8 @@ int main(int argc, char ** argv)
     bg_cfg_section_destroy(audio_section);
   if(video_section)
     bg_cfg_section_destroy(video_section);
-    
+  if(subrender_section)
+    bg_cfg_section_destroy(subrender_section);  
   ret = 0;
   return ret;
   }

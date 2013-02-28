@@ -222,6 +222,11 @@ void bg_x11_window_cleanup_gl(bg_x11_window_t * win)
     glXDestroyContext(win->dpy, win->glxcontext);
     win->glxcontext = NULL;
     }
+  if(win->gl_fbconfigs)
+    {
+    XFree(win->gl_fbconfigs);
+    win->gl_fbconfigs = NULL;
+    }
   }
 
 #else // !HAVE_GLX
