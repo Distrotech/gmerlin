@@ -310,6 +310,29 @@ void bg_encoder_destroy(bg_encoder_t * enc, int do_delete)
     encoder->close(enc->plugins[i]->priv, do_delete);
     bg_plugin_unref(enc->plugins[i]);
     }
+
+  for(i = 0; i < enc->num_audio_streams; i++)
+    {
+    if(enc->audio_streams[i].com.section_priv)
+      bg_cfg_section_destroy(enc->audio_streams[i].com.section_priv);
+    }
+
+  for(i = 0; i < enc->num_video_streams; i++)
+    {
+    if(enc->video_streams[i].com.section_priv)
+      bg_cfg_section_destroy(enc->video_streams[i].com.section_priv);
+    }
+
+  for(i = 0; i < enc->num_text_streams; i++)
+    {
+    if(enc->text_streams[i].com.section_priv)
+      bg_cfg_section_destroy(enc->text_streams[i].com.section_priv);
+    }
+  for(i = 0; i < enc->num_overlay_streams; i++)
+    {
+    if(enc->overlay_streams[i].com.section_priv)
+      bg_cfg_section_destroy(enc->overlay_streams[i].com.section_priv);
+    }
   
   if(enc->plugins)
     free(enc->plugins);

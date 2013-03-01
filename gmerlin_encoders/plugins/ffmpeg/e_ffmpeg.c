@@ -98,9 +98,11 @@ static const ffmpeg_format_info_t formats[] =
       .max_audio_streams = 1,
       .max_video_streams = 1,
       .audio_codecs = (enum CodecID[]){  CODEC_ID_MP3,
+                                         CODEC_ID_AAC,
                                          CODEC_ID_NONE },
       
       .video_codecs = (enum CodecID[]){  CODEC_ID_FLV1,
+                                         CODEC_ID_H264,
                                          CODEC_ID_NONE },
     },
     {

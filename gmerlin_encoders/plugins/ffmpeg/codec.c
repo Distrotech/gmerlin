@@ -193,7 +193,7 @@ void bg_ffmpeg_codec_set_parameter(bg_ffmpeg_codec_context_t * ctx,
     if(ctx->id == CODEC_ID_NONE)
       {
       bg_log(BG_LOG_ERROR, LOG_DOMAIN,
-             "Codec %s not available in your libavcodec installation",
+             "Codec %s is not available in libavcodec or not supported in the container",
              v->val_str);
       return;
       }
@@ -358,13 +358,18 @@ gavl_audio_sink_t * bg_ffmpeg_codec_open_audio(bg_ffmpeg_codec_context_t * ctx,
                                                gavl_audio_format_t * fmt,
                                                gavl_metadata_t * m)
   {
+  AVOutputFormat * ofmt;
   //  if(!find_encoder(ctx))
   //    return NULL;
   
   /* Set format for codec */
 
+  if(!ctx->codec)
+    return NULL;
+
   bg_ffmpeg_set_audio_format(ctx->avctx, fmt);
 
+  
   ctx->avctx->channel_layout =
     bg_ffmpeg_get_channel_layout(fmt);
 
@@ -396,6 +401,12 @@ gavl_audio_sink_t * bg_ffmpeg_codec_open_audio(bg_ffmpeg_codec_context_t * ctx,
     default:
       break;
     }
+
+  /* Decide whether we need a global header */
+  if(!ctx->format ||
+     ((ofmt = guess_format(ctx->format->short_name, NULL, NULL)) &&
+      (ofmt->flags & AVFMT_GLOBALHEADER)))
+    ctx->avctx->flags |= CODEC_FLAG_GLOBAL_HEADER;
   
   /* Open encoder */
   if(avcodec_open2(ctx->avctx, ctx->codec, &ctx->options) < 0)
@@ -615,9 +626,14 @@ gavl_video_sink_t * bg_ffmpeg_codec_open_video(bg_ffmpeg_codec_context_t * ctx,
   int do_convert = 0;
   const ffmpeg_codec_info_t * info;
   gavl_video_sink_get_func get_func = NULL;
+  AVOutputFormat * ofmt;
+
   //  if(!find_encoder(ctx))
   //    return NULL;
 
+  if(!ctx->codec)
+    return NULL;
+  
   info = bg_ffmpeg_get_codec_info(ctx->id,
                                   AVMEDIA_TYPE_VIDEO);
   
@@ -693,16 +709,9 @@ gavl_video_sink_t * bg_ffmpeg_codec_open_video(bg_ffmpeg_codec_context_t * ctx,
 
   
   /* Decide whether we need a global header */
-
-  if(ctx->format)
-    {
-    AVOutputFormat * fmt;
-    fmt = guess_format(ctx->format->short_name, NULL, NULL);
-
-    if(fmt && (fmt->flags & AVFMT_GLOBALHEADER))
-      ctx->avctx->flags |= CODEC_FLAG_GLOBAL_HEADER;
-    }
-  else
+  if(!ctx->format ||
+     ((ofmt = guess_format(ctx->format->short_name, NULL, NULL)) &&
+      (ofmt->flags & AVFMT_GLOBALHEADER)))
     ctx->avctx->flags |= CODEC_FLAG_GLOBAL_HEADER;
   
   if(avcodec_open2(ctx->avctx, ctx->codec, &ctx->options) < 0)

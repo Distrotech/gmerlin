@@ -895,28 +895,7 @@ bg_plugin_info_t * bg_gavfenc_info(bg_plugin_registry_t * reg)
   {
   bg_plugin_info_t * ret;
 
-  const bg_encoder_plugin_t * plugin = &the_plugin;
-  
-  if(!bg_plugin_registry_get_num_plugins(reg, BG_PLUGIN_INPUT, BG_PLUGIN_FILE))
-    return NULL;
-  
-  ret = calloc(1, sizeof(*ret));
-
-  ret->gettext_domain      = bg_strdup(ret->gettext_domain, plugin->common.gettext_domain);
-  
-  ret->gettext_directory   = bg_strdup(ret->gettext_directory,
-                                       plugin->common.gettext_directory);
-  
-  
-  ret->name      = bg_strdup(ret->name, plugin->common.name);
-  ret->long_name = bg_strdup(ret->long_name, plugin->common.long_name);
-  ret->description = bg_strdup(ret->description, plugin->common.description);
-  
-  ret->priority  =  plugin->common.priority;
-  ret->type  =  plugin->common.type;
-  ret->flags =  plugin->common.flags;
-  ret->parameters = bg_parameter_info_copy_array(parameters);
-
+  ret = bg_plugin_info_create(&the_plugin.common);
   /* TODO: Create audio and video codec parameters */
 
   ret->audio_parameters =
@@ -925,11 +904,6 @@ bg_plugin_info_t * bg_gavfenc_info(bg_plugin_registry_t * reg)
     bg_plugin_registry_create_compressor_parameters(reg, BG_PLUGIN_VIDEO_COMPRESSOR);
   ret->overlay_parameters =
     bg_plugin_registry_create_compressor_parameters(reg, BG_PLUGIN_OVERLAY_COMPRESSOR);
-
-  ret->max_audio_streams = -1;
-  ret->max_video_streams = -1;
-  ret->max_text_streams = -1;
-  ret->max_overlay_streams = -1;
   
   return ret;
 
