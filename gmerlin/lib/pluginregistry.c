@@ -2235,20 +2235,19 @@ static const bg_parameter_info_t encoder_section_text[] =
 static bg_parameter_info_t *
 create_encoder_parameters(const bg_plugin_info_t * info, int stream_params)
   {
-  int i = 0;
-  bg_parameter_info_t * ret;
-  char * tmp_string;
+  bg_parameter_info_t * ret = NULL;
   
-  const bg_parameter_info_t * src[11];
-
   //  if(!strcmp(info->name, "e_mpeg"))
   //    fprintf(stderr, "e_mpeg\n");
   
-  if(info->audio_parameters ||
-     info->video_parameters ||
-     info->text_parameters ||
-     info->overlay_parameters)
+  if(stream_params &&
+     (info->audio_parameters ||
+      info->video_parameters ||
+      info->text_parameters ||
+      info->overlay_parameters))
     {
+    int i = 0;
+    const bg_parameter_info_t * src[11];
     if(info->parameters)
       {
       if(info->parameters[0].type != BG_PARAMETER_SECTION)
@@ -2295,16 +2294,15 @@ create_encoder_parameters(const bg_plugin_info_t * info, int stream_params)
         }
 
       }
-    
-    
     src[i] = NULL;
     ret = bg_parameter_info_concat_arrays(src);
     }
-  else
+  else if(info->parameters)
     ret = bg_parameter_info_copy_array(info->parameters);
 
   if(ret)
     {
+    char * tmp_string;
     ret->flags |= BG_PARAMETER_GLOBAL_PRESET;
     tmp_string = bg_sprintf("plugins/%s", info->name);
     ret->preset_path = bg_strdup(ret->preset_path, tmp_string);
