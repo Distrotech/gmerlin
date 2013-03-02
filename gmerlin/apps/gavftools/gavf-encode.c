@@ -375,7 +375,8 @@ int main(int argc, char ** argv)
   
   /* Start decoder and initialize media connector */
 
-  if(!bg_plug_setup_reader(in_plug, &conn))
+  if(!bg_plug_start(in_plug) ||
+     !bg_plug_setup_reader(in_plug, &conn))
     return 0;
   
   /* Set up encoder */

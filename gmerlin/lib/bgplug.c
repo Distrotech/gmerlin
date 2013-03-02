@@ -101,6 +101,12 @@ typedef struct
 
   gavl_metadata_t m;
   uint32_t timescale;
+
+  /* Proxy stuff */
+  gavl_audio_source_t * asrc_proxy;
+  gavl_video_source_t * vsrc_proxy;
+  gavl_packet_source_t * psrc_proxy;
+  const gavl_metadata_t * m_proxy;
   
   bg_plugin_handle_t * codec_handle;
   bg_stream_action_t action;
@@ -1378,12 +1384,12 @@ int bg_plug_get_stream_source(bg_plug_t * p,
   if(!(s = find_stream_by_id_all(p, h->id)))
     return 0;
   
-  if(s->asrc && as)
-    *as = s->asrc;
-  else if(s->vsrc && vs)
-    *vs = s->vsrc;
+  if(as)
+    *as = s->asrc_proxy ? s->asrc_proxy : s->asrc;
+  else if(vs)
+    *vs = s->vsrc_proxy ? s->vsrc_proxy : s->vsrc;
   else if(ps)
-    *ps = s->src_ext;
+    *ps = s->psrc_proxy ? s->psrc_proxy : s->src_ext;
   else
     return 0;
   return 1;
@@ -1645,19 +1651,25 @@ int bg_plug_setup_reader(bg_plug_t * p, bg_mediaconnector_t * conn)
   int i;
   stream_t * s;
   bg_mediaconnector_stream_t * cs;
-  if(!bg_plug_start(p))
-    return 0;
+  gavl_audio_source_t * as;
+  gavl_video_source_t * vs;
+  gavl_packet_source_t * ps;
   
   for(i = 0; i < p->num_audio_streams; i++)
     {
     s = p->audio_streams + i;
 
-    if(s->asrc || s->src_ext)
+    as = NULL;
+    ps = NULL;
+
+    bg_plug_get_stream_source(p, s->h, &as, NULL, &ps);
+    
+    if(as || ps)
       {
       cs = bg_mediaconnector_add_audio_stream(conn,
                                               &s->h->m,
-                                              s->asrc,
-                                              s->src_ext,
+                                              as,
+                                              ps,
                                               NULL);
       cs->src_index = i;
       }
@@ -1669,7 +1681,12 @@ int bg_plug_setup_reader(bg_plug_t * p, bg_mediaconnector_t * conn)
     {
     s = p->video_streams + i;
 
-    if(s->vsrc || s->src_ext)
+    vs = NULL;
+    ps = NULL;
+
+    bg_plug_get_stream_source(p, s->h, NULL, &vs, &ps);
+
+    if(vs || ps)
       {
       cs = bg_mediaconnector_add_video_stream(conn,
                                               &s->h->m,
@@ -1686,12 +1703,15 @@ int bg_plug_setup_reader(bg_plug_t * p, bg_mediaconnector_t * conn)
     {
     s = p->text_streams + i;
 
-    if(s->src_ext)
+    ps = NULL;
+    
+    bg_plug_get_stream_source(p, s->h, NULL, NULL, &ps);
+    
+    if(ps)
       {
       cs = bg_mediaconnector_add_text_stream(conn,
                                              &s->h->m,
-                                             s->src_ext,
-                                             s->h->format.text.timescale);
+                                             ps, s->h->format.text.timescale);
       cs->src_index = i;
       }
     else
@@ -1702,12 +1722,17 @@ int bg_plug_setup_reader(bg_plug_t * p, bg_mediaconnector_t * conn)
     {
     s = p->overlay_streams + i;
 
-    if(s->vsrc || s->src_ext)
+    vs = NULL;
+    ps = NULL;
+
+    bg_plug_get_stream_source(p, s->h, NULL, &vs, &ps);
+    
+    if(vs || ps)
       {
       cs = bg_mediaconnector_add_overlay_stream(conn,
                                                 &s->h->m,
-                                                s->vsrc,
-                                                s->src_ext,
+                                                vs,
+                                                ps,
                                                 NULL);
       cs->src_index = i;
       }
@@ -1736,4 +1761,37 @@ int bg_plug_got_error(bg_plug_t * p)
   ret = p->got_error || gavf_io_got_error(p->io);
   pthread_mutex_unlock(&p->mutex);
   return ret;
+  }
+
+/* Proxy stuff */
+
+void bg_plug_set_audio_proxy(bg_plug_t * p, int stream,
+                             gavl_audio_source_t * asrc,
+                             gavl_packet_source_t * psrc)
+  {
+  p->audio_streams[stream].asrc_proxy = asrc;
+  p->audio_streams[stream].psrc_proxy = psrc;
+  }
+
+void bg_plug_set_video_proxy(bg_plug_t * p, int stream,
+                             gavl_video_source_t * vsrc,
+                             gavl_packet_source_t * psrc)
+  {
+  p->video_streams[stream].vsrc_proxy = vsrc;
+  p->video_streams[stream].psrc_proxy = psrc;
+  }
+
+void bg_plug_set_overlay_proxy(bg_plug_t * p, int stream,
+                               gavl_video_source_t * vsrc,
+                               gavl_packet_source_t * psrc)
+  {
+  p->overlay_streams[stream].vsrc_proxy = vsrc;
+  p->overlay_streams[stream].psrc_proxy = psrc;
+  }
+
+void bg_plug_set_text_proxy(bg_plug_t * p, int stream,
+                            gavl_video_source_t * vsrc,
+                            gavl_packet_source_t * psrc)
+  {
+  p->text_streams[stream].psrc_proxy = psrc;
   }

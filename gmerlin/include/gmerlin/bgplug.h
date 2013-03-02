@@ -93,6 +93,25 @@ int bg_plug_add_overlay_stream(bg_plug_t * p,
                                const gavl_metadata_t * m,
                                bg_cfg_section_t * encode_section);
 
+/* Proxy stuff */
+
+void bg_plug_set_audio_proxy(bg_plug_t * p, int stream,
+                             gavl_audio_source_t * asrc,
+                             gavl_packet_source_t * psrc);
+
+void bg_plug_set_video_proxy(bg_plug_t * p, int stream,
+                             gavl_video_source_t * vsrc,
+                             gavl_packet_source_t * psrc);
+
+void bg_plug_set_overlay_proxy(bg_plug_t * p, int stream,
+                               gavl_video_source_t * vsrc,
+                               gavl_packet_source_t * psrc);
+
+void bg_plug_set_text_proxy(bg_plug_t * p, int stream,
+                            gavl_video_source_t * vsrc,
+                            gavl_packet_source_t * psrc);
+                
+
 int bg_plug_add_text_stream(bg_plug_t * p,
                             uint32_t timescale,
                             const gavl_metadata_t * m);

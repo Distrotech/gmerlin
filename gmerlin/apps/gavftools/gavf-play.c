@@ -796,7 +796,8 @@ int main(int argc, char ** argv)
   
   /* Start plug and set up media connector */
   
-  if(!bg_plug_setup_reader(in_plug, &conn))
+  if(!bg_plug_start(in_plug) ||
+     !bg_plug_setup_reader(in_plug, &conn))
     return ret;
 
   bg_mediaconnector_create_threads(&conn, 0);
