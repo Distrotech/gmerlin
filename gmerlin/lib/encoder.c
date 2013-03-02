@@ -428,7 +428,7 @@ static bg_plugin_handle_t * load_encoder(bg_encoder_t * enc,
   if(plugin->set_callbacks)
     plugin->set_callbacks(ret->priv, &enc->cb_int);
 
-  if(plugin->common.set_parameter)
+  if(plugin->common.set_parameter && section)
     bg_cfg_section_apply(section,
                          info->parameters,
                          plugin->common.set_parameter,

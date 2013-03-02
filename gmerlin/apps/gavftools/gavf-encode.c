@@ -232,7 +232,7 @@ int main(int argc, char ** argv)
   int ret = 1;
   int i, num;
   bg_mediaconnector_t conn;
-  bg_encoder_t * enc;
+  bg_encoder_t * enc = NULL;
   gavf_program_header_t * ph;
   gavf_t * g;
   const gavf_stream_header_t * sh;
@@ -298,18 +298,18 @@ int main(int argc, char ** argv)
                                      metadata_callback, enc);
   
   if(!bg_plug_open_location(in_plug, gavftools_in_file, NULL, NULL))
-    return ret;
+    goto fail;
     
   if(!out_file)
     out_file = gavl_metadata_get(&ph->m, GAVL_META_LABEL);
   if(!out_file)
     {
     bg_log(BG_LOG_ERROR, LOG_DOMAIN, "No output file given");
-    return 0;
+    goto fail;
     }
   
   if(!bg_encoder_open(enc, out_file, &ph->m, gavf_get_chapter_list(g)))
-    return 0;
+    goto fail;
   
   /* Set stream actions */
   
@@ -376,7 +376,7 @@ int main(int argc, char ** argv)
   /* Start decoder and initialize media connector */
 
   if(!bg_plug_setup_reader(in_plug, &conn))
-    return ret;
+    return 0;
   
   /* Set up encoder */
 
@@ -455,7 +455,7 @@ int main(int argc, char ** argv)
 
   /* Start */
   if(!bg_encoder_start(enc))
-    return ret;
+    goto fail;
 
   /* Connect sinks */
 
@@ -519,13 +519,20 @@ int main(int argc, char ** argv)
        !bg_mediaconnector_iteration(&conn))
       break;
     }
+  
   ret = 0;
   
   /* Cleanup */
 
+  fail:
+  
+  bg_log(BG_LOG_INFO, LOG_DOMAIN, "Cleaning up");
+  
   bg_mediaconnector_free(&conn);
   bg_plug_destroy(in_plug);
-  bg_encoder_destroy(enc, do_delete);
+
+  if(enc)
+    bg_encoder_destroy(enc, do_delete);
   
   gavl_metadata_free(&ac_options);
   gavl_metadata_free(&vc_options);
@@ -550,6 +557,5 @@ int main(int argc, char ** argv)
   if(enc_section)
     bg_cfg_section_destroy(enc_section);
   
-  
-  return 0;
+  return ret;
   }
