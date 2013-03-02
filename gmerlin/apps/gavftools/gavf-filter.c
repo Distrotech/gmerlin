@@ -103,7 +103,12 @@ int main(int argc, char ** argv)
   {
   int ret = 1;
   bg_mediaconnector_t conn;
-
+  bg_stream_action_t * audio_actions = NULL;
+  bg_stream_action_t * video_actions = NULL;
+  bg_stream_action_t * text_actions = NULL;
+  bg_stream_action_t * overlay_actions = NULL;
+  
+  
   gavftools_block_sigpipe();
   bg_mediaconnector_init(&conn);
   
@@ -120,5 +125,15 @@ int main(int argc, char ** argv)
 
   in_plug = gavftools_create_in_plug();
   
+  /* Get stream actions */
+
+  /* Set up filters */
+
+
+  /* Set up out plug */
+
+  /* Run */
+
+  /* Cleanup */
   
   }
