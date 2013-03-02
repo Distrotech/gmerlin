@@ -107,7 +107,6 @@ const bg_cmdline_app_data_t app_data =
 int main(int argc, char ** argv)
   {
   char ** files = NULL;
-  
   char * in_file = NULL;
   char * out_file = NULL;
   
@@ -121,6 +120,7 @@ int main(int argc, char ** argv)
   bg_plugin_registry_t * plugin_reg;
   bg_track_info_t * info;
   char * tmp_string;
+  gavl_time_t duration;
 
   const bg_plugin_info_t * plugin_info;
   
@@ -224,6 +224,8 @@ int main(int argc, char ** argv)
   if(input_plugin->start)
     input_plugin->start(input_handle->priv);
 
+  duration = bg_track_info_get_duration(info);
+  
   /* Get video format */
   memcpy(&input_format, &info->video_streams[0].format,
          sizeof(input_format));
@@ -291,14 +293,14 @@ int main(int argc, char ** argv)
 
   if(seek_time == GAVL_TIME_UNDEFINED)
     {
-    if(info->duration == GAVL_TIME_UNDEFINED)
+    if(duration == GAVL_TIME_UNDEFINED)
       {
       seek_time = 10 * GAVL_TIME_SCALE;
       }
     else
       {
       seek_time =
-        (gavl_time_t)((seek_percentage / 100.0) * (double)(info->duration)+0.5);
+        (gavl_time_t)((seek_percentage / 100.0) * (double)(duration)+0.5);
       }
     }
 
@@ -361,9 +363,9 @@ int main(int argc, char ** argv)
   gavl_metadata_set(&metadata, "Thumb::Size", tmp_string);
   free(tmp_string);
 
-  if(info->duration != GAVL_TIME_UNDEFINED)
+  if(duration != GAVL_TIME_UNDEFINED)
     {
-    tmp_string = bg_sprintf("%d", (int)(gavl_time_to_seconds(info->duration)));
+    tmp_string = bg_sprintf("%d", (int)(gavl_time_to_seconds(duration)));
     gavl_metadata_set(&metadata, "Thumb::Movie::Length", tmp_string);
     free(tmp_string);
     }

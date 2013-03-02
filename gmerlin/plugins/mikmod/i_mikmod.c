@@ -136,7 +136,6 @@ static int open_mikmod(void * data, const char * arg)
     }
 
   /* Create track infos */
-  mik->track_info.duration = GAVL_TIME_UNDEFINED;
   mik->track_info.num_audio_streams = 1;
   mik->track_info.audio_streams = calloc(1, sizeof(*(mik->track_info.audio_streams)));
 

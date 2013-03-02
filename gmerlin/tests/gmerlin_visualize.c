@@ -104,7 +104,7 @@ static int load_input_file(bg_plugin_registry_t * plugin_reg,
     return 0;
     }
   
-  track_duration = ti->duration;
+  track_duration = bg_track_info_get_duration(ti);
   
   /* Select first stream */
   (*input_plugin)->set_audio_stream((*input_handle)->priv, 0,

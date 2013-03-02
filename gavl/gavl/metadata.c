@@ -149,6 +149,17 @@ gavl_metadata_set_int(gavl_metadata_t * m,
   gavl_metadata_set(m, key, str);
   }
 
+void
+gavl_metadata_set_long(gavl_metadata_t * m,
+                       const char * key,
+                       int64_t val)
+  {
+  char str[STR_SIZE];
+  snprintf(str, STR_SIZE, "%"PRId64, val);
+  gavl_metadata_set(m, key, str);
+  }
+
+
 #undef STR_SIZE
 
 const char * gavl_metadata_get(const gavl_metadata_t * m,
@@ -169,6 +180,19 @@ int gavl_metadata_get_int(const gavl_metadata_t * m,
   if(!val_str)
     return 0;
   *ret = strtol(val_str, &rest, 10);
+  if(*rest != '\0')
+    return 0;
+  return 1;
+  }
+
+int gavl_metadata_get_long(const gavl_metadata_t * m,
+                           const char * key, int64_t * ret)
+  {
+  char * rest;
+  const char * val_str = gavl_metadata_get(m, key);
+  if(!val_str)
+    return 0;
+  *ret = strtoll(val_str, &rest, 10);
   if(*rest != '\0')
     return 0;
   return 1;

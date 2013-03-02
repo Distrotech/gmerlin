@@ -225,7 +225,6 @@ static int open_lqt(void * data, const char * arg)
   num_video_streams = quicktime_video_tracks(e->file);
   num_text_streams  = lqt_text_tracks(e->file);
 
-  e->track_info.duration = 0;
   e->track_info.flags = BG_TRACK_SEEKABLE | BG_TRACK_PAUSABLE;
   if(num_audio_streams)
     {
@@ -325,8 +324,9 @@ static int open_lqt(void * data, const char * arg)
     
     }
 
-  e->track_info.duration = lqt_gavl_duration(e->file);
-
+  gavl_metadata_set_long(&e->track_info.metadata, GAVL_META_APPROX_DURATION,
+                         lqt_gavl_duration(e->file));
+  
   if(lqt_is_avi(e->file))
     gavl_metadata_set(&e->track_info.metadata, GAVL_META_FORMAT, "AVI (lqt)");
   else

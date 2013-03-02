@@ -255,7 +255,6 @@ gavl_chapter_list_t * bg_chapter_list_load(const char * filename);
 typedef struct
   {
   int flags;             //!< BG_TRACK_ flags defined above
-  int64_t duration;      //!< Duration must be > 0 if BG_TRACK_SEEKABLE is set.
   
   int num_audio_streams;   //!< Number of audio streams
   int num_video_streams;   //!< Number of video streams
@@ -310,6 +309,13 @@ void bg_set_track_name_default(bg_track_info_t * info,
  */
 
 char * bg_get_track_name_default(const char * location, int track, int num_tracks);
+
+/** \brief Get the duration of a track
+ *  \param info A track info
+ *  \returns The approximate duration or GAVL_TIME_UNDEFINED
+ */
+
+gavl_time_t bg_track_info_get_duration(const bg_track_info_t * info);
 
 /**
  *  @}

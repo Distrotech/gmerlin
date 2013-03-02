@@ -3113,11 +3113,11 @@ int bg_transcoder_init(bg_transcoder_t * ret,
   if(ret->set_start_time && ret->set_end_time)
     ret->duration = ret->end_time - ret->start_time;
   else if(ret->set_start_time)
-    ret->duration = ret->track_info->duration - ret->start_time;
+    ret->duration = bg_track_info_get_duration(ret->track_info) - ret->start_time;
   else if(ret->set_end_time)
     ret->duration = ret->end_time;
   else
-    ret->duration = ret->track_info->duration;
+    ret->duration = bg_track_info_get_duration(ret->track_info);
   
   /* Start timer */
 

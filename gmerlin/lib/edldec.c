@@ -22,7 +22,10 @@
 #include <string.h>
 
 #include <config.h>
+#include <gavl/metatags.h>
+
 #include <gmerlin/translation.h>
+
 
 #include <gmerlin/pluginregistry.h>
 #include <gmerlin/converters.h>
@@ -1456,7 +1459,7 @@ int bg_input_plugin_load_edl(bg_plugin_registry_t * reg,
   track_t * t;
   edl_dec_t * priv;
   bg_plugin_handle_t * ret;
-  gavl_time_t test_duration;
+  gavl_time_t test_duration, duration = 0;
   if(*ret1)
     bg_plugin_unref(*ret1);
   
@@ -1515,8 +1518,8 @@ int bg_input_plugin_load_edl(bg_plugin_registry_t * reg,
         add_audio_segment(priv, i, j, &stream->segments[k]);
         }
       test_duration = gavl_time_unscale(stream->timescale, ti->audio_streams[j].duration);
-      if(ti->duration < test_duration)
-        ti->duration = test_duration;
+      if(duration < test_duration)
+        duration = test_duration;
       }
     
     /* Video streams */
@@ -1543,8 +1546,8 @@ int bg_input_plugin_load_edl(bg_plugin_registry_t * reg,
         }
       test_duration =
         gavl_time_unscale(stream->timescale, ti->video_streams[j].duration);
-      if(ti->duration < test_duration)
-        ti->duration = test_duration;
+      if(duration < test_duration)
+        duration = test_duration;
 
       }
     /* Subtitle text streams */
@@ -1574,8 +1577,8 @@ int bg_input_plugin_load_edl(bg_plugin_registry_t * reg,
       test_duration =
         gavl_time_unscale(stream->timescale,
                           ti->text_streams[j].duration);
-      if(ti->duration < test_duration)
-        ti->duration = test_duration;
+      if(duration < test_duration)
+        duration = test_duration;
       }
     /* Subtitle overlay streams */
     for(j = 0; j < track->num_subtitle_overlay_streams; j++)
@@ -1596,9 +1599,10 @@ int bg_input_plugin_load_edl(bg_plugin_registry_t * reg,
       test_duration =
         gavl_time_unscale(stream->timescale,
                           ti->overlay_streams[j].duration);
-      if(ti->duration < test_duration)
-        ti->duration = test_duration;
+      if(duration < test_duration)
+        duration = test_duration;
       }
+    gavl_metadata_set_long(&ti->metadata, GAVL_META_APPROX_DURATION, duration);
     }
   return 1;
   }

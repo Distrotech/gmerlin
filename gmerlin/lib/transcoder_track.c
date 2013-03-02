@@ -565,8 +565,11 @@ static void set_track(bg_transcoder_track_t * track,
                       bg_plugin_registry_t * plugin_reg)
   {
   int i;
+  gavl_time_t duration;
   const bg_input_plugin_t * input;
   input = (bg_input_plugin_t *)input_plugin->plugin;
+
+  duration = bg_track_info_get_duration(track_info);
   
   /* General parameters */
   
@@ -577,7 +580,7 @@ static void set_track(bg_transcoder_track_t * track,
   while(track->general_parameters[i].name)
     {
     if(!strcmp(track->general_parameters[i].name, "duration"))
-      track->general_parameters[i].val_default.val_time = track_info->duration;
+      track->general_parameters[i].val_default.val_time = duration;
     else if(!strcmp(track->general_parameters[i].name, "subdir"))
       {
       if(input->get_disc_name)
@@ -614,15 +617,15 @@ static void set_track(bg_transcoder_track_t * track,
       if(track_info->flags & BG_TRACK_SEEKABLE)
         {
         track->general_parameters[i].flags &= ~BG_PARAMETER_HIDE_DIALOG;
-        track->general_parameters[i].val_max.val_time = track_info->duration;
+        track->general_parameters[i].val_max.val_time = duration;
         }
       }
     else if(!strcmp(track->general_parameters[i].name, "end_time"))
       {
-      if(track_info->duration != GAVL_TIME_UNDEFINED)
+      if(duration != GAVL_TIME_UNDEFINED)
         {
-        track->general_parameters[i].val_max.val_time = track_info->duration;
-        track->general_parameters[i].val_default.val_time = track_info->duration;
+        track->general_parameters[i].val_max.val_time = duration;
+        track->general_parameters[i].val_default.val_time = duration;
         }
       track->general_parameters[i].flags &= ~BG_PARAMETER_HIDE_DIALOG;
       }

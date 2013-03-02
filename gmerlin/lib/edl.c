@@ -311,7 +311,12 @@ void bg_edl_append_track_info(bg_edl_t * e, const bg_track_info_t * info,
     if(info->audio_streams[i].duration)
       seg->dst_duration = info->audio_streams[i].duration;
     else
-      seg->dst_duration = gavl_time_rescale(GAVL_TIME_SCALE, s->timescale, info->duration);
+      {
+      gavl_time_t duration;
+
+      if(gavl_metadata_get_long(&info->metadata, GAVL_META_APPROX_DURATION, &duration))
+        seg->dst_duration = gavl_time_rescale(GAVL_TIME_SCALE, s->timescale, duration);
+      }
     seg->speed_num = 1;
     seg->speed_den = 1;
     seg->url = bg_strdup(NULL, url);
@@ -328,7 +333,12 @@ void bg_edl_append_track_info(bg_edl_t * e, const bg_track_info_t * info,
     if(info->video_streams[i].duration)
       seg->dst_duration = info->video_streams[i].duration;
     else
-      seg->dst_duration = gavl_time_rescale(GAVL_TIME_SCALE, s->timescale, info->duration);
+      {
+      gavl_time_t duration;
+
+      if(gavl_metadata_get_long(&info->metadata, GAVL_META_APPROX_DURATION, &duration))
+        seg->dst_duration = gavl_time_rescale(GAVL_TIME_SCALE, s->timescale, duration);
+      }
     seg->speed_num = 1;
     seg->speed_den = 1;
     seg->url = bg_strdup(NULL, url);
@@ -346,9 +356,13 @@ void bg_edl_append_track_info(bg_edl_t * e, const bg_track_info_t * info,
     if(info->text_streams[i].duration)
       seg->dst_duration = info->text_streams[i].duration;
     else
-      seg->dst_duration = gavl_time_rescale(GAVL_TIME_SCALE,
-                                            s->timescale,
-                                            info->duration);
+      {
+      gavl_time_t duration;
+      if(gavl_metadata_get_long(&info->metadata, GAVL_META_APPROX_DURATION, &duration))
+        seg->dst_duration = gavl_time_rescale(GAVL_TIME_SCALE,
+                                              s->timescale,
+                                              duration);
+      }
     seg->speed_num = 1;
     seg->speed_den = 1;
     seg->url = bg_strdup(NULL, url);
@@ -366,9 +380,13 @@ void bg_edl_append_track_info(bg_edl_t * e, const bg_track_info_t * info,
     if(info->overlay_streams[i].duration)
       seg->dst_duration = info->overlay_streams[i].duration;
     else
-      seg->dst_duration = gavl_time_rescale(GAVL_TIME_SCALE,
-                                            s->timescale,
-                                            info->duration);
+      {
+      gavl_time_t duration;
+      if(gavl_metadata_get_long(&info->metadata, GAVL_META_APPROX_DURATION, &duration))
+        seg->dst_duration = gavl_time_rescale(GAVL_TIME_SCALE,
+                                              s->timescale,
+                                              duration);
+      }
     seg->speed_num = 1;
     seg->speed_den = 1;
     seg->url = bg_strdup(NULL, url);

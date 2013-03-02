@@ -235,7 +235,7 @@ int bg_nmj_song_get_info(sqlite3 * db,
   
   song->path = bg_strdup(song->path, file->path);
   song->scan_dirs_id = dir->id;
-  song->runtime = bg_sprintf("%d", (int)(ti->duration / GAVL_TIME_SCALE));
+  song->runtime = bg_sprintf("%d", (int)(bg_track_info_get_duration(ti) / GAVL_TIME_SCALE));
 
   song->format  = bg_strdup(song->format,
                             gavl_metadata_get(&ti->metadata, GAVL_META_FORMAT));

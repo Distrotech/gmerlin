@@ -174,7 +174,10 @@ static void entry_from_track_info(bg_album_common_t * com,
         }
       }
     }
-  entry->duration = track_info->duration;
+
+  if(!gavl_metadata_get_long(&track_info->metadata,
+                             GAVL_META_APPROX_DURATION, &entry->duration))
+    entry->duration = GAVL_TIME_UNDEFINED;
   entry->flags &= ~BG_ALBUM_ENTRY_ERROR;
   
   if(track_info->url)
@@ -649,7 +652,11 @@ static int open_device(bg_album_t * a)
       }
     new_entry->num_subtitle_streams = track_info->num_text_streams +
       track_info->num_overlay_streams;
-    new_entry->duration = track_info->duration;
+
+
+    if(!gavl_metadata_get_long(&track_info->metadata,
+                               GAVL_META_APPROX_DURATION, &new_entry->duration))
+      new_entry->duration = GAVL_TIME_UNDEFINED;
 
     bg_album_insert_entries_before(a, new_entry, NULL);
     }

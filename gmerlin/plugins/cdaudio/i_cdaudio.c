@@ -213,11 +213,12 @@ static int open_cdaudio(void * data, const char * arg)
                         "CD Audio");
       
       gavl_set_channel_setup(&cd->track_info[j].audio_streams[0].format);
-      
-      cd->track_info[j].duration =
-        ((int64_t)(cd->index->tracks[i].last_sector -
-                   cd->index->tracks[i].first_sector + 1) *
-         GAVL_TIME_SCALE) / 75;
+
+      gavl_metadata_set_long(&cd->track_info[j].metadata,
+                             GAVL_META_APPROX_DURATION,
+                             ((int64_t)(cd->index->tracks[i].last_sector -
+                                        cd->index->tracks[i].first_sector + 1) *
+                              GAVL_TIME_SCALE) / 75);
 
       gavl_metadata_set(&cd->track_info[j].metadata, GAVL_META_FORMAT,
                         "CD Audio");

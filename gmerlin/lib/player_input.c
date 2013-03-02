@@ -296,10 +296,12 @@ int bg_player_input_init(bg_player_t * p,
   p->track_info = p->input_plugin->get_track_info(p->input_priv,
                                                   track_index);
   
+
+  p->duration = bg_track_info_get_duration(p->track_info);
   
   if(p->input_plugin->seek &&
      (p->track_info->flags & BG_TRACK_SEEKABLE) &&
-     (p->track_info->duration > 0))
+     (p->duration != GAVL_TIME_UNDEFINED))
     p->can_seek = 1;
   else
     p->can_seek = 0;
@@ -383,9 +385,9 @@ read_video_still(void * priv, gavl_video_frame_t ** frame)
     return st;
   
   if(!DO_AUDIO(p->flags) &&
-     (p->track_info->duration != GAVL_TIME_UNDEFINED) &&
+     (p->duration != GAVL_TIME_UNDEFINED) &&
      gavl_time_unscale(format->timescale,
-                       (*frame)->timestamp) > p->track_info->duration)
+                       (*frame)->timestamp) > p->duration)
     
     return GAVL_SOURCE_EOF;
   

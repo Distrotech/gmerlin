@@ -298,6 +298,8 @@ struct bg_player_s
   
   bg_track_info_t * track_info;
 
+  gavl_time_t duration;
+  
   /*
    *  Visualizer: Initialized and cleaned up by the player
    *  core, run by the audio thread

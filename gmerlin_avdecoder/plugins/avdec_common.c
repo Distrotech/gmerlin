@@ -28,6 +28,7 @@
 #include <gmerlin/log.h>
 #include <avdec.h>
 #include "avdec_common.h"
+#include <gavl/metatags.h>
 
 static void log_callback(void*data, bgav_log_level_t level,
                          const char * log_domain,
@@ -403,8 +404,10 @@ int bg_avdec_init(avdec_priv * avdec)
         calloc(avdec->track_info[i].num_overlay_streams,
                sizeof(*avdec->track_info[i].overlay_streams));
       }
-    avdec->track_info[i].duration = bgav_get_duration(avdec->dec, i);
-    
+
+    gavl_metadata_set_long(&avdec->track_info[i].metadata,
+                           GAVL_META_APPROX_DURATION, bgav_get_duration(avdec->dec, i));
+        
     /* Get metadata */
     
     m = bgav_get_metadata(avdec->dec, i);

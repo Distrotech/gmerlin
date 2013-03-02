@@ -442,7 +442,7 @@ static void init_playback(bg_player_t * p, gavl_time_t time,
   /* Send input messages */
   bg_player_input_send_messages(p);
   
-  bg_player_set_duration(p, p->track_info->duration, p->can_seek);
+  bg_player_set_duration(p, p->duration, p->can_seek);
   
   bg_msg_queue_list_send(p->message_queues,
                          msg_num_streams,
@@ -1072,7 +1072,7 @@ static int process_commands(bg_player_t * player)
         
         if(time < 0)
           time = 0;
-        else if(time > player->track_info->duration)
+        else if(time > player->duration)
           {
           /* Seeked beyond end -> finish track */
           stop_cmd(player, BG_PLAYER_STATE_CHANGING, 1);

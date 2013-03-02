@@ -175,6 +175,10 @@
 
 #define GAVL_META_STATION     "Station"
 
+/** \brief Approximate duration
+ */
+
+#define GAVL_META_APPROX_DURATION  "ApproxDuration"
 
 /**
  * @}

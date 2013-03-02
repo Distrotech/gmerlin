@@ -253,12 +253,13 @@ static int open_input(void * priv, const char * filename)
   inp->track_info.num_video_streams = 1;
   inp->track_info.video_streams =
     calloc(1, sizeof(*inp->track_info.video_streams));
-  
-  inp->track_info.duration = gavl_frames_to_time(inp->timescale,
-                                                 inp->frame_duration,
-                                                 inp->frame_end -
-                                                 inp->frame_start);
-  
+
+  gavl_metadata_set_long(&inp->track_info.metadata, GAVL_META_APPROX_DURATION,
+                    gavl_frames_to_time(inp->timescale,
+                                        inp->frame_duration,
+                                        inp->frame_end -
+                                        inp->frame_start));
+    
   /* Get track name */
 
   bg_set_track_name_default(&inp->track_info, filename);
@@ -341,7 +342,7 @@ static int open_stills_input(void * priv, const char * filename)
   inp->track_info.video_streams[0].format.framerate_mode =
     GAVL_FRAMERATE_STILL;
   
-  inp->track_info.duration = inp->display_time;
+  gavl_metadata_set_long(&inp->track_info.metadata, GAVL_META_APPROX_DURATION, inp->display_time);
   
   /* Get track name */
 

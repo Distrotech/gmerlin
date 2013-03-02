@@ -155,3 +155,11 @@ char * bg_get_track_name_default(const char * location, int track, int num_track
     }
   }
 
+gavl_time_t bg_track_info_get_duration(const bg_track_info_t * info)
+  {
+  gavl_time_t ret;
+  if(gavl_metadata_get_long(&info->metadata, GAVL_META_APPROX_DURATION, &ret))
+    return ret;
+  else
+    return GAVL_TIME_UNDEFINED;
+  }
