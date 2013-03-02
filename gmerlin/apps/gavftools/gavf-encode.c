@@ -136,16 +136,16 @@ static bg_cmdline_arg_t global_options[] =
       .callback =    opt_vc,
     },
     {
-      .arg =         "-oc",
+      .arg =         "-tc",
       .help_arg =    "<options>",
-      .help_string = "Overlay compression options",
-      .callback =    opt_oc,
+      .help_string = "Text  compression options",
+      .callback =    opt_tc,
     },
     {
       .arg =         "-oc",
       .help_arg =    "<options>",
       .help_string = "Overlay compression options",
-      .callback =    opt_tc,
+      .callback =    opt_oc,
     },
     {
       .arg =         "-o",
