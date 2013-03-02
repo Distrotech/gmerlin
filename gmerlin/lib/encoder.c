@@ -396,6 +396,25 @@ static bg_plugin_handle_t * load_encoder(bg_encoder_t * enc,
       return NULL;
       }
     }
+
+  /* For file output we need to be careful about the filename */
+  
+  if(info->flags & BG_PLUGIN_FILE)
+    {
+    if(!filename_base)
+      {
+      bg_log(BG_LOG_ERROR, LOG_DOMAIN,
+             "No filename base specified");
+      return NULL;
+      }
+    else if(bg_string_is_url(filename_base))
+      {
+      bg_log(BG_LOG_ERROR, LOG_DOMAIN,
+             "Invalid filename base: %s", filename_base);
+      return NULL;
+      }
+    }
+
   
   enc->plugins = realloc(enc->plugins,
                          (enc->num_plugins+1)* sizeof(enc->plugins));

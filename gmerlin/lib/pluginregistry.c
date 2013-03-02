@@ -2677,6 +2677,7 @@ int bg_plugin_registry_get_parameter_input(void * data, const char * name,
 static const bg_parameter_info_t audio_to_video_param =
   {
     .name      = "encode_audio_to_video",
+    .opt       = "a2v",
     .long_name = TRS("Write audio stream to video file if possible"),
     .type      = BG_PARAMETER_CHECKBUTTON,
   };
@@ -2684,6 +2685,7 @@ static const bg_parameter_info_t audio_to_video_param =
 static const bg_parameter_info_t text_to_video_param =
   {
     .name      = "encode_text_to_video",
+    .opt       = "t2v",
     .long_name = TRS("Write text subtitles to video file if possible"),
     .type      = BG_PARAMETER_CHECKBUTTON,
   };
@@ -2691,6 +2693,7 @@ static const bg_parameter_info_t text_to_video_param =
 static const bg_parameter_info_t overlay_to_video_param =
   {
     .name      = "encode_overlay_to_video",
+    .opt       = "o2v",
     .long_name = TRS("Write overlay subtitles to video file if possible"),
     .type      = BG_PARAMETER_CHECKBUTTON,
   };
@@ -2698,6 +2701,7 @@ static const bg_parameter_info_t overlay_to_video_param =
 static const bg_parameter_info_t audio_encoder_param =
   {
     .name      = "audio_encoder",
+    .opt       = "ae",
     .long_name = TRS("Audio"),
     .type      = BG_PARAMETER_MULTI_MENU,
   };
@@ -2705,6 +2709,7 @@ static const bg_parameter_info_t audio_encoder_param =
 static const bg_parameter_info_t video_encoder_param =
   {
     .name      = "video_encoder",
+    .opt       = "ve",
     .long_name = TRS("Video"),
     .type      = BG_PARAMETER_MULTI_MENU,
   };
@@ -2712,6 +2717,7 @@ static const bg_parameter_info_t video_encoder_param =
 static const bg_parameter_info_t text_encoder_param =
   {
     .name      = "text_encoder",
+    .opt       = "te",
     .long_name = TRS("Text subtitles"),
     .type      = BG_PARAMETER_MULTI_MENU,
   };
@@ -2719,6 +2725,7 @@ static const bg_parameter_info_t text_encoder_param =
 static const bg_parameter_info_t overlay_encoder_param =
   {
     .name      = "overlay_encoder",
+    .opt       = "oe",
     .long_name = TRS("Overlay subtitles"),
     .type      = BG_PARAMETER_MULTI_MENU,
   };
