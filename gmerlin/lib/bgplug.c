@@ -266,7 +266,7 @@ static int io_cb_read(void * priv, int type, const void * data)
 
 static int io_cb_write(void * priv, int type, const void * data)
   {
-  int type_ret;
+  int type_ret = -1;
   ssize_t size_ret;
   bg_plug_t * p = priv;
   unsigned msg_prio;

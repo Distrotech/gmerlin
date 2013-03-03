@@ -432,7 +432,6 @@ bg_cfg_section_set_parameters_from_string(bg_cfg_section_t * sec,
   
   bg_cfg_section_t * real_section;
   bg_cfg_section_t * subsection;
-  char * tmp_string;
   
   const char * str = str_start;
   
@@ -537,11 +536,15 @@ bg_cfg_section_set_parameters_from_string(bg_cfg_section_t * sec,
         index = 0;
         while(1)
           {
+          char * tmp_string;
+          
           /* Loop over options */
           tmp_string = parse_string(str, &len);
           if(!check_option(info, tmp_string))
+            {
+            free(tmp_string);
             goto fail;
-
+            }
           str += len;
           if(item->value.val_str)
             item->value.val_str = bg_strcat(item->value.val_str, ",");
@@ -572,7 +575,10 @@ bg_cfg_section_set_parameters_from_string(bg_cfg_section_t * sec,
                                                              info->multi_parameters[i],
                                                              str);
             if(*str != '}')
+              {
+              free(tmp_string);
               goto fail;
+              }
             str++;
             }
           if(*str == '}')
@@ -581,7 +587,10 @@ bg_cfg_section_set_parameters_from_string(bg_cfg_section_t * sec,
             break;
             }
           else if(*str != ':')
+            {
+            free(tmp_string);
             goto fail;
+            }
           str++;
           free(tmp_string);
           index++;

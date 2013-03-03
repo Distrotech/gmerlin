@@ -357,12 +357,38 @@ int main(int argc, char ** argv)
     
   /* Cleanup */
 
+  for(i = 0; i < num_audio_streams; i++)
+    {
+    if(audio_filters[i])
+      bg_audio_filter_chain_destroy(audio_filters[i]);
+    }
+  if(audio_filters)
+    free(audio_filters);
+
+  for(i = 0; i < num_video_streams; i++)
+    {
+    if(video_filters[i])
+      bg_video_filter_chain_destroy(video_filters[i]);
+    }
+  if(video_filters)
+    free(video_filters);
+
+  
   bg_mediaconnector_free(&conn);
   bg_plug_destroy(in_plug);
   bg_plug_destroy(out_plug);
   
   gavftools_cleanup();
-  
+
+  if(audio_actions)
+    free(audio_actions);
+  if(video_actions)
+    free(video_actions);
+  if(text_actions)
+    free(text_actions);
+  if(overlay_actions)
+    free(overlay_actions);
+
   
   ret = 0;
   fail:
