@@ -359,6 +359,7 @@ int bg_avdec_init(avdec_priv * avdec)
   const bgav_metadata_t * m;
   const bgav_edl_t * edl;
   const gavl_chapter_list_t * cl;
+  gavl_time_t duration;
   
   edl = bgav_get_edl(avdec->dec);
   if(edl)
@@ -405,8 +406,11 @@ int bg_avdec_init(avdec_priv * avdec)
                sizeof(*avdec->track_info[i].overlay_streams));
       }
 
-    gavl_metadata_set_long(&avdec->track_info[i].metadata,
-                           GAVL_META_APPROX_DURATION, bgav_get_duration(avdec->dec, i));
+    duration = bgav_get_duration(avdec->dec, i);
+
+    if(duration != GAVL_TIME_UNDEFINED)
+      gavl_metadata_set_long(&avdec->track_info[i].metadata,
+                             GAVL_META_APPROX_DURATION, duration);
         
     /* Get metadata */
     

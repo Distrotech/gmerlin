@@ -231,3 +231,5 @@ void gavftools_block_sigpipe(void);
 
 void gavftools_set_cmdline_parameters(bg_cmdline_arg_t * args);
 
+int gavftools_open_out_plug_from_in_plug(bg_plug_t * out_plug,
+                                         bg_plug_t * in_plug);

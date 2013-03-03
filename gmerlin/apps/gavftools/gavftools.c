@@ -638,3 +638,22 @@ void gavftools_set_cmdline_parameters(bg_cmdline_arg_t * args)
   bg_cmdline_arg_set_parameters(args, "-aq", aq_params);
   bg_cmdline_arg_set_parameters(args, "-vq", aq_params);
   }
+
+static void update_metadata(void * priv, const gavl_metadata_t * m)
+  {
+  gavf_update_metadata(priv, m);
+  }
+
+int gavftools_open_out_plug_from_in_plug(bg_plug_t * out_plug,
+                                         bg_plug_t * in_plug)
+  {
+  if(!bg_plug_open_location(out_plug, gavftools_out_file,
+                            bg_plug_get_metadata(in_plug),
+                            bg_plug_get_chapter_list(in_plug)))
+    return 0;
+  
+  gavf_options_set_metadata_callback(gavf_get_options(bg_plug_get_gavf(in_plug)),
+                                     update_metadata, bg_plug_get_gavf(out_plug));
+
+  return 1;
+  }

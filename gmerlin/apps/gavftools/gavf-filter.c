@@ -328,9 +328,8 @@ int main(int argc, char ** argv)
   g = bg_plug_get_gavf(in_plug);
 
   /* Open output plug */
-  if(!bg_plug_open_location(out_plug, gavftools_out_file,
-                            bg_plug_get_metadata(in_plug),
-                            bg_plug_get_chapter_list(in_plug)))
+
+  if(!gavftools_open_out_plug_from_in_plug(out_plug, in_plug))
     goto fail;
   
   
