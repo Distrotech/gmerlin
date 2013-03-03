@@ -27,6 +27,7 @@
 #include <gmerlin/translation.h>
 #include <gmerlin/bgplug.h>
 #include <gmerlin/mediaconnector.h>
+#include <gmerlin/bggavl.h>
 
 extern bg_plugin_registry_t * plugin_reg;
 extern bg_cfg_registry_t * cfg_reg;
@@ -73,6 +74,13 @@ void
 gavftools_opt_oc(void * data, int * argc, char *** _argv, int arg);
 
 void
+gavftools_opt_aq(void * data, int * argc, char *** _argv, int arg);
+
+void
+gavftools_opt_vq(void * data, int * argc, char *** _argv, int arg);
+
+
+void
 gavftools_opt_iopt(void * data, int * argc, char *** _argv, int arg);
 
 void
@@ -92,6 +100,9 @@ gavftools_opt_ts(void * data, int * argc, char *** _argv, int arg);
 
 void
 gavftools_opt_v(void * data, int * argc, char *** _argv, int arg);
+
+extern bg_gavl_audio_options_t gavltools_aopt;
+extern bg_gavl_video_options_t gavltools_vopt;
 
 bg_plug_t * gavftools_create_in_plug();
 bg_plug_t * gavftools_create_out_plug();
@@ -193,6 +204,23 @@ bg_stream_action_t * gavftools_get_stream_actions(int num, gavf_stream_type_t ty
     .callback =    gavftools_opt_v,                               \
   }
 
+#define GAVFTOOLS_AQ_OPTIONS           \
+  {                                         \
+  .arg =         "-aq",                                  \
+    .help_arg =    "options",                             \
+    .help_string = "Audio conversion options",        \
+    .callback =    gavftools_opt_aq,                               \
+  }
+
+#define GAVFTOOLS_VQ_OPTIONS                \
+  {                                         \
+  .arg =         "-vq",                                  \
+    .help_arg =    "options",                             \
+    .help_string = "Video conversion options",        \
+    .callback =    gavftools_opt_vq,                               \
+  }
+
+
 
 bg_stream_action_t * gavftools_get_stream_action(gavf_stream_type_t type,
                                                  int num);
@@ -200,3 +228,6 @@ bg_stream_action_t * gavftools_get_stream_action(gavf_stream_type_t type,
 void gavftools_set_compresspor_options(bg_cmdline_arg_t * global_options);
 
 void gavftools_block_sigpipe(void);
+
+void gavftools_set_cmdline_parameters(bg_cmdline_arg_t * args);
+

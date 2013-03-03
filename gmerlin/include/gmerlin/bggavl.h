@@ -126,7 +126,7 @@ void bg_gavl_video_options_set_interlace(const bg_gavl_video_options_t * opt,
   {                                      \
   .name =        "conversion_quality",     \
   .long_name =   TRS("Conversion Quality"),          \
-    .opt =         "q", \
+  .opt =         "q", \
   .type =        BG_PARAMETER_SLIDER_INT,               \
   .flags =       BG_PARAMETER_SYNC,                     \
   .val_min =     { .val_i = GAVL_QUALITY_FASTEST },       \
@@ -649,6 +649,7 @@ BG_GAVL_PARAM_CHANNEL_SETUP_NOSOURCE
 #define BG_GAVL_PARAM_AUDIO_DITHER_MODE \
     { \
       .name =      "dither_mode", \
+      .opt = "dm", \
       .long_name = TRS("Dither mode"), \
       .type =      BG_PARAMETER_STRINGLIST,\
       .flags =       BG_PARAMETER_SYNC,                     \
@@ -662,6 +663,7 @@ BG_GAVL_PARAM_CHANNEL_SETUP_NOSOURCE
 #define BG_GAVL_PARAM_RESAMPLE_MODE \
     { \
       .name =      "resample_mode", \
+      .opt = "sm",                   \
       .long_name = TRS("Resample mode"), \
       .type =      BG_PARAMETER_STRINGLIST,\
       .flags =       BG_PARAMETER_SYNC,                     \

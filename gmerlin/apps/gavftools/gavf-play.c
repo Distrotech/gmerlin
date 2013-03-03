@@ -689,8 +689,8 @@ int main(int argc, char ** argv)
   bg_cmdline_arg_set_parameters(global_options, "-vid", player.vs.parameters);
   bg_cmdline_arg_set_parameters(global_options, "-subrender",
                                 bg_text_renderer_get_parameters());
-  bg_cmdline_arg_set_parameters(global_options, "-iopt",
-                                bg_plug_get_input_parameters());
+
+  gavftools_set_cmdline_parameters(global_options);
   
   bg_cmdline_init(&app_data);
   bg_cmdline_parse(global_options, &argc, &argv, NULL);

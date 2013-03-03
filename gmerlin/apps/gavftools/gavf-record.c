@@ -319,8 +319,8 @@ int main(int argc, char ** argv)
 
   bg_cmdline_arg_set_parameters(global_options, "-aud", rec.as.parameters);
   bg_cmdline_arg_set_parameters(global_options, "-vid", rec.vs.parameters);
-  bg_cmdline_arg_set_parameters(global_options, "-oopt",
-                                bg_plug_get_output_parameters());
+
+  gavftools_set_cmdline_parameters(global_options);
   
   gavftools_set_compresspor_options(global_options);
     

@@ -154,6 +154,16 @@ struct bg_plug_s
 #endif
   };
 
+const gavl_metadata_t * bg_plug_get_metadata(bg_plug_t * p)
+  {
+  return &p->ph->m;
+  }
+
+const gavl_chapter_list_t * bg_plug_get_chapter_list(bg_plug_t * p)
+  {
+  return gavf_get_chapter_list(p->g);;
+  }
+
 /* Message queue stuff */
 
 #ifdef HAVE_MQ

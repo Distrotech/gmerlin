@@ -273,10 +273,10 @@ int main(int argc, char ** argv)
   // bg_parameters_dump(enc_params, "enc_params.xml");
   // bg_parameters_dump(enc_params_simple, "enc_params_simple.xml");
 
-  bg_cmdline_arg_set_parameters(global_options, "-iopt",
-                                bg_plug_get_input_parameters());
   bg_cmdline_arg_set_parameters(global_options, "-enc",
                                 enc_params_simple);
+
+  gavftools_set_cmdline_parameters(global_options);
   
   bg_cmdline_init(&app_data);
   bg_cmdline_parse(global_options, &argc, &argv, NULL);
@@ -326,7 +326,7 @@ int main(int argc, char ** argv)
       {
       bg_log(BG_LOG_WARNING, LOG_DOMAIN, "Audio stream %d cannot be written compressed", i+1);
       audio_actions[i] = BG_STREAM_ACTION_DECODE;
-      } 
+      }
     bg_plug_set_stream_action(in_plug, sh, audio_actions[i]);
     }
 

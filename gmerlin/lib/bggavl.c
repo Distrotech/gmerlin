@@ -193,6 +193,7 @@ int bg_gavl_audio_set_parameter(void * data, const char * name, const bg_paramet
 
 void bg_gavl_audio_options_init(bg_gavl_audio_options_t *opt)
   {
+  memset(opt, 0, sizeof(*opt));
   opt->opt = gavl_audio_options_create();
   }
 
@@ -641,6 +642,7 @@ int bg_gavl_video_set_parameter(void * data, const char * name,
 
 void bg_gavl_video_options_init(bg_gavl_video_options_t * opt)
   {
+  memset(opt, 0, sizeof(*opt));
   opt->opt = gavl_video_options_create();
   }
 

@@ -36,6 +36,35 @@ char * gavftools_out_file = NULL;
 static int got_sigint = 0;
 struct sigaction old_sigaction;
 
+/* Quality parameters */
+
+bg_cfg_section_t * aq_section;
+bg_cfg_section_t * vq_section;
+
+static const bg_parameter_info_t aq_params[] =
+  {
+    BG_GAVL_PARAM_CONVERSION_QUALITY,
+    BG_GAVL_PARAM_RESAMPLE_MODE,
+    BG_GAVL_PARAM_AUDIO_DITHER_MODE,
+    { /* End */ },
+  };
+
+static const bg_parameter_info_t vq_params[] =
+  {
+    BG_GAVL_PARAM_CONVERSION_QUALITY,
+    BG_GAVL_PARAM_DEINTERLACE,
+    BG_GAVL_PARAM_SCALE_MODE,
+    BG_GAVL_PARAM_RESAMPLE_CHROMA,
+    BG_GAVL_PARAM_ALPHA,
+    BG_GAVL_PARAM_BACKGROUND,
+    { /* End */ },
+  };
+
+/* Conversion options */
+
+bg_gavl_audio_options_t gavltools_aopt;
+bg_gavl_video_options_t gavltools_vopt;
+
 static void sigint_handler(int sig)
   {
   got_sigint = 1;
@@ -78,6 +107,15 @@ void gavftools_init()
     free(tmp_path);
 
   set_sigint_handler();
+
+  /* Quality options */
+  
+  bg_gavl_audio_options_init(&gavltools_aopt);
+  bg_gavl_video_options_init(&gavltools_vopt);
+
+  aq_section = bg_cfg_section_create_from_parameters("aq", aq_params);
+  vq_section = bg_cfg_section_create_from_parameters("vq", vq_params);
+  
   }
 
 static bg_cfg_section_t * ac_section = NULL;
@@ -130,6 +168,15 @@ void gavftools_cleanup(int save_regs)
   if(t_actions) free(t_actions);
   if(o_actions) free(o_actions);
 
+  bg_gavl_audio_options_free(&gavltools_aopt);
+  bg_gavl_video_options_free(&gavltools_vopt);
+
+  if(aq_section)
+    bg_cfg_section_destroy(aq_section);
+  if(vq_section)
+    bg_cfg_section_destroy(vq_section);
+  
+  
   xmlCleanupParser();
  
   }
@@ -278,6 +325,54 @@ gavftools_opt_oc(void * data, int * argc, char *** _argv, int arg)
     exit(-1);
   bg_cmdline_remove_arg(argc, _argv, arg);
   }
+
+static void set_aq_parameter(void * data, const char * name,
+                             const bg_parameter_value_t * val)
+  {
+  bg_gavl_audio_set_parameter(&gavltools_aopt, name, val);
+  }
+
+static void set_vq_parameter(void * data, const char * name,
+                             const bg_parameter_value_t * val)
+  {
+  bg_gavl_video_set_parameter(&gavltools_vopt, name, val);
+  }
+
+
+void
+gavftools_opt_aq(void * data, int * argc, char *** _argv, int arg)
+  {
+  if(arg >= *argc)
+    {
+    fprintf(stderr, "Option -aq requires an argument\n");
+    exit(-1);
+    }
+  if(!bg_cmdline_apply_options(aq_section,
+                               set_aq_parameter,
+                               NULL,
+                               aq_params,
+                               (*_argv)[arg]))
+    exit(-1);
+  bg_cmdline_remove_arg(argc, _argv, arg);
+  }
+
+void
+gavftools_opt_vq(void * data, int * argc, char *** _argv, int arg)
+  {
+  if(arg >= *argc)
+    {
+    fprintf(stderr, "Option -vq requires an argument\n");
+    exit(-1);
+    }
+  if(!bg_cmdline_apply_options(vq_section,
+                               set_vq_parameter,
+                               NULL,
+                               vq_params,
+                               (*_argv)[arg]))
+    exit(-1);
+  bg_cmdline_remove_arg(argc, _argv, arg);
+  }
+
 
 void
 gavftools_opt_iopt(void * data, int * argc, char *** _argv, int arg)
@@ -532,4 +627,14 @@ bg_plug_t * gavftools_create_out_plug()
                        bg_plug_set_parameter,
                        out_plug);
   return out_plug;
+  }
+
+void gavftools_set_cmdline_parameters(bg_cmdline_arg_t * args)
+  {
+  bg_cmdline_arg_set_parameters(args, "-iopt",
+                                bg_plug_get_input_parameters());
+  bg_cmdline_arg_set_parameters(args, "-oopt",
+                                bg_plug_get_output_parameters());
+  bg_cmdline_arg_set_parameters(args, "-aq", aq_params);
+  bg_cmdline_arg_set_parameters(args, "-vq", aq_params);
   }

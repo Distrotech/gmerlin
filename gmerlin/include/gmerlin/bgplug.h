@@ -58,6 +58,9 @@ int bg_plug_open_location(bg_plug_t * p, const char * location,
 
 gavf_t * bg_plug_get_gavf(bg_plug_t*);
 
+const gavl_metadata_t * bg_plug_get_metadata(bg_plug_t*);
+const gavl_chapter_list_t * bg_plug_get_chapter_list(bg_plug_t*);
+
 /* Initialization function for readers and writers */
 
 /* Set up a writer from a media connector */
