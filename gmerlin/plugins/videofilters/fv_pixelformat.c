@@ -68,6 +68,7 @@ static const bg_parameter_info_t parameters[] =
       .gettext_domain = PACKAGE,
       .gettext_directory = LOCALE_DIR,
       .name = "pixelformat",
+      .opt = "fmt",
       .long_name = TRS("Pixelformat"),
       .type = BG_PARAMETER_STRINGLIST,
       .flags = BG_PARAMETER_SYNC,
@@ -95,10 +96,11 @@ static bg_parameter_info_t * create_parameters()
     f = gavl_get_pixelformat(i);
     if(f != GAVL_PIXELFORMAT_NONE)
       {
-      ret->multi_names_nc[index] = bg_strdup(NULL,
-                                          gavl_pixelformat_to_string(f));
+      ret->multi_names_nc[index] =
+        bg_strdup(NULL,
+                  gavl_pixelformat_to_short_string(f));
       ret->multi_labels_nc[index] = bg_strdup(NULL,
-                                           gavl_pixelformat_to_string(f));
+                                              gavl_pixelformat_to_string(f));
       index++;
       }
     }
@@ -128,7 +130,7 @@ set_parameter_pixelformat(void * priv, const char * name,
   
   if(!strcmp(name, "pixelformat"))
     {
-    f = gavl_string_to_pixelformat(val->val_str);
+    f = gavl_short_string_to_pixelformat(val->val_str);
     if(vp->pixelformat != f)
       {
       vp->need_restart = 1;
