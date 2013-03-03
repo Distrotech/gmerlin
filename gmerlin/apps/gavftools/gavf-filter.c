@@ -176,6 +176,9 @@ int main(int argc, char ** argv)
 
   in_plug = gavftools_create_in_plug();
   out_plug = gavftools_create_out_plug();
+
+  if(!bg_plug_open_location(in_plug, gavftools_in_file, NULL, NULL))
+    goto fail;
   
   g = bg_plug_get_gavf(in_plug);
   

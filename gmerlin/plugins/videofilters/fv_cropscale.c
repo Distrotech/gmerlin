@@ -1264,9 +1264,9 @@ connect_cropscale(void * priv, gavl_video_source_t * src,
   vp->need_restart = 0;
 
   vp->out_src =
-    gavl_video_source_create_source(read_func,
-                                    vp, 0,
-                                    vp->in_src);
+    gavl_video_source_create(read_func,
+                             vp, 0,
+                             &vp->out_format);
   return vp->out_src;
   }
   

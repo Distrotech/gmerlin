@@ -172,16 +172,24 @@ bg_audio_filter_chain_create(const bg_gavl_audio_options_t * opt,
   return ret;
   }
 
+static const bg_parameter_info_t params[] =
+  {
+    {
+      .name      = "audio_filters",
+      .opt       = "f",
+      .long_name = TRS("Audio Filters"),
+      .preset_path = "audiofilters",
+      .gettext_domain = PACKAGE,
+      .gettext_directory = LOCALE_DIR,
+      .type = BG_PARAMETER_MULTI_CHAIN,
+      .flags = BG_PARAMETER_SYNC,
+    },
+    { /* End */ }
+  };
+
 static void create_audio_parameters(bg_audio_filter_chain_t * ch)
   {
-  ch->parameters = calloc(2, sizeof(*ch->parameters));
-  ch->parameters->name      = bg_strdup(NULL, "audio_filters");
-  ch->parameters->long_name = bg_strdup(NULL, TRS("Audio Filters"));
-  ch->parameters->preset_path = bg_strdup(NULL, "audiofilters");
-  ch->parameters->gettext_domain = bg_strdup(NULL, PACKAGE);
-  ch->parameters->gettext_directory = bg_strdup(NULL, LOCALE_DIR);
-  ch->parameters->type = BG_PARAMETER_MULTI_CHAIN;
-  ch->parameters->flags |= BG_PARAMETER_SYNC;
+  ch->parameters = bg_parameter_info_copy_array(params);
   bg_plugin_registry_set_parameter_info(ch->plugin_reg,
                                         BG_PLUGIN_FILTER_AUDIO,
                                         BG_PLUGIN_FILTER_1,

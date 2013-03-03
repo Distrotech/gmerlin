@@ -152,22 +152,29 @@ bg_video_filter_chain_create(const bg_gavl_video_options_t * opt,
   return ret;
   }
 
+static const bg_parameter_info_t params[] =
+  {
+    {
+      .name      = "video_filters",
+      .opt       = "f",
+      .long_name = TRS("Video Filters"),
+      .preset_path = "videofilters",
+      .gettext_domain = PACKAGE,
+      .gettext_directory = LOCALE_DIR,
+      .type = BG_PARAMETER_MULTI_CHAIN,
+      .flags = BG_PARAMETER_SYNC,
+    },
+    { /* End */ }
+  };
+
 static void create_video_parameters(bg_video_filter_chain_t * ch)
   {
-  ch->parameters = calloc(2, sizeof(*ch->parameters));
-  ch->parameters->name      = bg_strdup(NULL, "video_filters");
-  ch->parameters->long_name = bg_strdup(NULL, TRS("Video Filters"));
-  ch->parameters->preset_path = bg_strdup(NULL, "videofilters");
-  ch->parameters->gettext_domain = bg_strdup(NULL, PACKAGE);
-  ch->parameters->gettext_directory = bg_strdup(NULL, LOCALE_DIR);
-  ch->parameters->type = BG_PARAMETER_MULTI_CHAIN;
-  ch->parameters->flags |= BG_PARAMETER_SYNC;
+  ch->parameters = bg_parameter_info_copy_array(params);
   bg_plugin_registry_set_parameter_info(ch->plugin_reg,
                                         BG_PLUGIN_FILTER_VIDEO,
                                         BG_PLUGIN_FILTER_1,
                                         ch->parameters);
   }
-
 
 const bg_parameter_info_t *
 bg_video_filter_chain_get_parameters(bg_video_filter_chain_t * ch)

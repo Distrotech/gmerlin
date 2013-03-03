@@ -1395,13 +1395,20 @@ int bg_plug_get_stream_source(bg_plug_t * p,
     return 0;
   
   if(as)
+    {
     *as = s->asrc_proxy ? s->asrc_proxy : s->asrc;
+    if(*as)
+      return 1;
+    }
   else if(vs)
+    {
     *vs = s->vsrc_proxy ? s->vsrc_proxy : s->vsrc;
-  else if(ps)
+    if(*vs)
+      return 1;
+    }
+  if(ps)
     *ps = s->psrc_proxy ? s->psrc_proxy : s->src_ext;
-  else
-    return 0;
+  
   return 1;
   }
 
@@ -1700,8 +1707,8 @@ int bg_plug_setup_reader(bg_plug_t * p, bg_mediaconnector_t * conn)
       {
       cs = bg_mediaconnector_add_video_stream(conn,
                                               &s->h->m,
-                                              s->vsrc,
-                                              s->src_ext,
+                                              vs,
+                                              ps,
                                               NULL);
       cs->src_index = i;
       }
