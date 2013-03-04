@@ -569,8 +569,11 @@ bg_cfg_section_set_parameters_from_string(bg_cfg_section_t * sec,
                 break;
               i++;
               }
-            if(!info->multi_names[i]) return 0; // Already checked by check_option above
-            
+            if(!info->multi_names[i])
+              {
+              free(tmp_string);
+              return 0; // Already checked by check_option above
+              }
             str += bg_cfg_section_set_parameters_from_string(subsection,
                                                              info->multi_parameters[i],
                                                              str);
