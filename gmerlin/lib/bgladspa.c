@@ -485,6 +485,7 @@ read_func(void * priv,
     if((st = gavl_audio_source_read_frame(lp->in_src, frame)) !=
        GAVL_SOURCE_OK)
       return st;
+    connect_input(lp, *frame);
     num_samples = (*frame)->valid_samples;
     }
   

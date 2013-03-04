@@ -169,10 +169,6 @@ int main(int argc, char ** argv)
   gavftools_set_compresspor_options(global_options);
   gavftools_set_cmdline_parameters(global_options);
   
-  bg_cmdline_arg_set_parameters(global_options, "-oopt",
-                                bg_plug_get_output_parameters());
-
-  
   /* Handle commandline options */
   bg_cmdline_init(&app_data);
   bg_cmdline_parse(global_options, &argc, &argv, NULL);
