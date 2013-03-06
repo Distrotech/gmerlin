@@ -396,6 +396,8 @@ int main(int argc, char ** argv)
                                            gavftools_oc_section());
     }
 
+  bg_mediaconnector_create_conn(&conn);
+  
   gavl_metadata_init(&m);
   gavl_metadata_copy(&m, &track_info->metadata);
 

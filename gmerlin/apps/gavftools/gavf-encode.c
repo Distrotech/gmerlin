@@ -378,6 +378,8 @@ int main(int argc, char ** argv)
   if(!bg_plug_start(in_plug) ||
      !bg_plug_setup_reader(in_plug, &conn))
     return 0;
+
+  bg_mediaconnector_create_conn(&conn);
   
   /* Set up encoder */
 

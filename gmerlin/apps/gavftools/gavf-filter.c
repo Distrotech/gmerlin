@@ -322,6 +322,8 @@ int main(int argc, char ** argv)
 
   if(!bg_plug_setup_reader(in_plug, &conn))
     goto fail;
+
+  bg_mediaconnector_create_conn(&conn);
     
   /* Set up out plug */
 

@@ -219,6 +219,8 @@ static int recorder_open(recorder_t * rec, bg_mediaconnector_t * conn)
   do_audio = recorder_stream_open(&rec->as, GAVF_STREAM_AUDIO, conn);
   do_video = recorder_stream_open(&rec->vs, GAVF_STREAM_VIDEO, conn);
   
+  bg_mediaconnector_create_conn(conn);
+  
   if(!do_audio && !do_video)
     return 0;
   return 1;

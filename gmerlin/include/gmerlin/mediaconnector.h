@@ -36,7 +36,7 @@
 
 typedef struct bg_mediaconnector_s bg_mediaconnector_t;
 
-typedef struct
+typedef struct bg_mediaconnector_stream_s
   {
   gavl_audio_source_t    * asrc;
   gavl_audio_connector_t * aconn;
@@ -73,6 +73,9 @@ typedef struct
 
   int src_index; // index in the primary source
   int dst_index; // index in the destination
+
+  void * priv;
+  void (*free_priv)(struct bg_mediaconnector_stream_s *);
   
   } bg_mediaconnector_stream_t;
 
@@ -122,6 +125,10 @@ bg_mediaconnector_add_text_stream(bg_mediaconnector_t * conn,
                                   const gavl_metadata_t * m,
                                   gavl_packet_source_t * psrc,
                                   int timescale);
+
+void
+bg_mediaconnector_create_conn(bg_mediaconnector_t * conn);
+
 
 void
 bg_mediaconnector_update_time(bg_mediaconnector_t * conn,

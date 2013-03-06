@@ -800,6 +800,8 @@ int main(int argc, char ** argv)
      !bg_plug_setup_reader(in_plug, &conn))
     return ret;
 
+  bg_mediaconnector_create_conn(&conn);
+  
   bg_mediaconnector_create_threads(&conn, 0);
   bg_mediaconnector_threads_init_separate(&conn);
   
