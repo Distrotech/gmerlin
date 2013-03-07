@@ -141,7 +141,8 @@ static void update_metadata(void * priv, const gavl_metadata_t * m)
 static int load_input_file(const char * file, const char * plugin_name,
                            int track, bg_mediaconnector_t * conn,
                            bg_input_callbacks_t * cb,
-                           bg_plugin_handle_t ** hp)
+                           bg_plugin_handle_t ** hp, 
+                           gavl_metadata_t * m, gavl_chapter_list_t ** cl)
   {
   gavl_audio_source_t * asrc;
   gavl_video_source_t * vsrc;
@@ -167,11 +168,11 @@ static int load_input_file(const char * file, const char * plugin_name,
     plugin_info = NULL;
 
   if(!bg_input_plugin_load(plugin_reg,
-                           input_file,
+                           file,
                            plugin_info,
                            hp, cb, use_edl))
     {
-    bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Couldn't load %s", input_file);
+    bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Couldn't load %s", file);
     goto fail;
     }
   
@@ -190,6 +191,23 @@ static int load_input_file(const char * file, const char * plugin_name,
     plugin->set_track(priv, track);
   
   track_info = plugin->get_track_info(priv, track);
+
+  /* Extract metadata */
+  gavl_metadata_free(m);
+  gavl_metadata_init(m);
+  gavl_metadata_copy(m, &track_info->metadata);
+
+  if(!gavl_metadata_get(m, GAVL_META_LABEL))
+    {
+    if(strcmp(file, "-"))
+      {
+      gavl_metadata_set_nocpy(m, GAVL_META_LABEL,
+                              bg_get_track_name_default(file,
+                                                        track,
+                                                        plugin->get_num_tracks(priv)));
+      }
+    }
+  *cl = track_info->chapter_list;
 
   /* Select A/V streams */
   
@@ -367,15 +385,11 @@ int main(int argc, char ** argv)
   bg_mediaconnector_t conn;
 
   bg_plugin_handle_t * h = NULL;
-  bg_input_plugin_t * plugin;
   bg_input_callbacks_t cb;
   cb_data_t cb_data;
-  bg_track_info_t * track_info;
-
-
-  
+  gavl_chapter_list_t * cl = NULL; 
   gavl_metadata_t m;
-  
+  gavl_metadata_init(&m); 
   
   memset(&cb, 0, sizeof(cb));
   memset(&cb_data, 0, sizeof(cb_data));
@@ -417,30 +431,14 @@ int main(int argc, char ** argv)
 
   if(!load_input_file(input_file, input_plugin,
                       selected_track, &conn,
-                      &cb, &h))
+                      &cb, &h, &m, &cl))
     return ret;
   
   bg_mediaconnector_create_conn(&conn);
   
-  gavl_metadata_init(&m);
-  gavl_metadata_copy(&m, &track_info->metadata);
-
-  if(!gavl_metadata_get(&m, GAVL_META_LABEL))
-    {
-    if(strcmp(input_file, "-"))
-      {
-      gavl_metadata_set_nocpy(&m, GAVL_META_LABEL,
-                              bg_get_track_name_default(input_file,
-                                                        selected_track,
-                                                        plugin->get_num_tracks(h->priv)));
-      }
-    
-    }
-  
   /* Open output plug */
   if(!bg_plug_open_location(out_plug, gavftools_out_file,
-                            &m,
-                            track_info->chapter_list))
+                            &m, cl))
     goto fail;
 
   gavl_metadata_free(&m);
