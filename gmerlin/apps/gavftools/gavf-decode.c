@@ -22,17 +22,32 @@
 #include <string.h>
 #include <signal.h>
 
+/* Stat */
+
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <unistd.h>
+
+
 #include "gavftools.h"
 
 #include <gavl/metatags.h>
 
+#include <gmerlin/tree.h>
+
 #define LOG_DOMAIN "gavf-decode"
 
 static char * input_file   = "-";
-static const char * input_plugin = NULL;
+
+static char * album_file   = NULL;
+
+static char * input_plugin = NULL;
 static bg_plug_t * out_plug = NULL;
-int use_edl = 0;
+static int use_edl = 0;
 static int selected_track = 0;
+
+static int shuffle = 0;
+static int loop    = 0;
 
 static bg_stream_action_t * audio_actions = NULL;
 static bg_stream_action_t * video_actions = NULL;
@@ -50,15 +65,14 @@ static void opt_t(void * data, int * argc, char *** _argv, int arg)
   bg_cmdline_remove_arg(argc, _argv, arg);
   }
 
-static void opt_plugin(void * data, int * argc, char *** _argv, int arg)
+static void opt_shuffle(void * data, int * argc, char *** _argv, int arg)
   {
-  if(arg >= *argc)
-    {
-    fprintf(stderr, "Option -p requires an argument\n");
-    exit(-1);
-    }
-  input_plugin = (*_argv)[arg];
-  bg_cmdline_remove_arg(argc, _argv, arg);
+  shuffle = 1;
+  }
+
+static void opt_loop(void * data, int * argc, char *** _argv, int arg)
+  {
+  shuffle = 1;
   }
 
 static void opt_edl(void * data, int * argc, char *** _argv, int arg)
@@ -71,25 +85,41 @@ static bg_cmdline_arg_t global_options[] =
     {
       .arg =         "-i",
       .help_arg =    "<location>",
-      .help_string = "Set input file or location",
+      .help_string = TRS("Set input file or location"),
       .argv     =    &input_file,
+    },
+    {
+      .arg =         "-a",
+      .help_arg =    "<album>",
+      .help_string = TRS("Album file"),
+      .argv     =    &album_file,
+    },
+    {
+      .arg =         "-loop",
+      .help_string = TRS("Loop album"),
+      .callback =    opt_loop,
+    },
+    {
+      .arg =         "-shuffle",
+      .help_string = TRS("Shuffle"),
+      .callback =    opt_shuffle,
     },
     {
       .arg =         "-p",
       .help_arg =    "<plugin>",
-      .help_string = "Set input file plugin to use",
-      .callback =    opt_plugin,
+      .help_string = TRS("Set input file plugin to use"),
+      .argv   =       &input_plugin,
       
     },
     {
       .arg =         "-t",
       .help_arg =    "<track>",
-      .help_string = "Track (starting with 1)",
+      .help_string = TRS("Track (starting with 1)"),
       .callback =    opt_t,
     },
     {
       .arg =         "-edl",
-      .help_string = "Use EDL",
+      .help_string = TRS("Use EDL"),
       .callback =    opt_edl,
     },
     GAVFTOOLS_AUDIO_STREAM_OPTIONS,
@@ -142,7 +172,8 @@ static int load_input_file(const char * file, const char * plugin_name,
                            int track, bg_mediaconnector_t * conn,
                            bg_input_callbacks_t * cb,
                            bg_plugin_handle_t ** hp, 
-                           gavl_metadata_t * m, gavl_chapter_list_t ** cl)
+                           gavl_metadata_t * m, gavl_chapter_list_t ** cl,
+                           int edl)
   {
   gavl_audio_source_t * asrc;
   gavl_video_source_t * vsrc;
@@ -170,7 +201,7 @@ static int load_input_file(const char * file, const char * plugin_name,
   if(!bg_input_plugin_load(plugin_reg,
                            file,
                            plugin_info,
-                           hp, cb, use_edl))
+                           hp, cb, edl))
     {
     bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Couldn't load %s", file);
     goto fail;
@@ -379,6 +410,156 @@ static int load_input_file(const char * file, const char * plugin_name,
   return 0;
   }
 
+/* Stuff for loading albums */
+
+static int load_album_entry(bg_album_entry_t * entry,
+                            const char * file, const char * plugin_name,
+                            int track, bg_mediaconnector_t * conn,
+                            bg_input_callbacks_t * cb,
+                            bg_plugin_handle_t ** hp, 
+                            gavl_metadata_t * m, gavl_chapter_list_t ** cl,
+                            int edl)
+  {
+  int ret = load_input_file(entry->location, entry->plugin,
+                            entry->index, conn,
+                            cb, hp, m, cl,
+                            !!(entry->flags & BG_ALBUM_ENTRY_EDL));
+  if(!ret)
+    return ret;
+  
+  gavl_metadata_set_nocpy(m, GAVL_META_LABEL, entry->name);
+  return ret;
+  }
+
+typedef struct
+  {
+  int num_entries;
+  int current_entry;
+  bg_album_entry_t ** entries;
+  bg_album_entry_t * first;
+
+  time_t mtime;
+  } album_t;
+
+static void album_init(album_t * a)
+  {
+  memset(a, 0, sizeof(*a));
+  }
+
+static void album_free(album_t * a)
+  {
+  if(a->entries)
+    free(a->entries);
+  if(a->first)
+    bg_album_entries_destroy(a->first);
+  }
+
+static int get_mtime(const char * file, time_t * ret)
+  {
+  struct stat st;
+  if(stat(file, &st))
+    return 0;
+  *ret = st.st_mtime;
+  return 1;
+  }
+
+static int album_load(album_t * a)
+  {
+  int i;
+  char * album_xml;
+  bg_album_entry_t * e;
+  
+  if(!get_mtime(album_file, &a->mtime))
+    return 0;
+  
+  album_xml = bg_read_file(album_file, NULL);
+
+  if(!album_xml)
+    {
+    bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Album file %s could not be opened",
+           album_file);
+    return 0;
+    }
+
+  a->first = bg_album_entries_new_from_xml(album_xml);
+  free(album_xml);
+  
+  if(!a->first)
+    {
+    bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Album file %s contains no entries",
+           album_file);
+    return 0;
+    }
+
+  /* Count entries */
+  e = a->first;
+  while(e)
+    {
+    a->num_entries++;
+    e = e->next;
+    }
+
+  /* Set up array */
+  a->entries = calloc(a->num_entries, sizeof(a->entries));
+  e = a->first;
+
+  for(i = 0; i < a->num_entries; i++)
+    {
+    a->entries[i] = e;
+    e = e->next;
+    }
+
+  /* Shuffle */
+  if(shuffle)
+    {
+    int idx;
+    for(i = 0; i < a->num_entries; i++)
+      {
+      idx = rand() % a->num_entries;
+      e = a->entries[i];
+      a->entries[i] = a->entries[idx];
+      a->entries[idx] = e;
+      }
+    }
+  return 1;
+  }
+
+static bg_album_entry_t * album_next(album_t * a)
+  {
+  time_t mtime;
+  bg_album_entry_t * ret;
+
+  if(!get_mtime(album_file, &mtime))
+    return NULL;
+
+  if(mtime != a->mtime)
+    {
+    bg_log(BG_LOG_ERROR, LOG_DOMAIN,
+           "Album file %s changed on disk, reloading",
+           album_file);
+    album_free(a);
+    album_init(a);
+
+    if(!album_load(a))
+      return NULL;
+    }
+  
+  if(a->current_entry == a->num_entries)
+    {
+    if(!loop)
+      return NULL;
+    else a->current_entry = 0;
+    }
+  
+  ret = a->entries[a->current_entry];
+  
+  a->current_entry++;
+  return ret;
+  }
+
+
+/* Main */
+
 int main(int argc, char ** argv)
   {
   int ret = 1;
@@ -431,7 +612,7 @@ int main(int argc, char ** argv)
 
   if(!load_input_file(input_file, input_plugin,
                       selected_track, &conn,
-                      &cb, &h, &m, &cl))
+                      &cb, &h, &m, &cl, use_edl))
     return ret;
   
   bg_mediaconnector_create_conn(&conn);
