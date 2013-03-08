@@ -173,7 +173,7 @@ static int load_input_file(const char * file, const char * plugin_name,
                            bg_input_callbacks_t * cb,
                            bg_plugin_handle_t ** hp, 
                            gavl_metadata_t * m, gavl_chapter_list_t ** cl,
-                           int edl)
+                           int edl, int force_decompress)
   {
   gavl_audio_source_t * asrc;
   gavl_video_source_t * vsrc;
@@ -238,25 +238,29 @@ static int load_input_file(const char * file, const char * plugin_name,
                                                         plugin->get_num_tracks(priv)));
       }
     }
-  *cl = track_info->chapter_list;
+  if(cl)
+    *cl = track_info->chapter_list;
 
   /* Select A/V streams */
-  
-  audio_actions = gavftools_get_stream_actions(track_info->num_audio_streams,
-                                               GAVF_STREAM_AUDIO);
-  video_actions = gavftools_get_stream_actions(track_info->num_video_streams,
-                                               GAVF_STREAM_VIDEO);
-  text_actions = gavftools_get_stream_actions(track_info->num_text_streams,
-                                              GAVF_STREAM_TEXT);
-  overlay_actions = gavftools_get_stream_actions(track_info->num_overlay_streams,
-                                                 GAVF_STREAM_OVERLAY);
+  if(!audio_actions)  
+    audio_actions = gavftools_get_stream_actions(track_info->num_audio_streams,
+                                                 GAVF_STREAM_AUDIO);
+  if(!video_actions)
+    video_actions = gavftools_get_stream_actions(track_info->num_video_streams,
+                                                 GAVF_STREAM_VIDEO);
+  if(!text_actions)
+    text_actions = gavftools_get_stream_actions(track_info->num_text_streams,
+                                                GAVF_STREAM_TEXT);
+  if(!overlay_actions)
+    overlay_actions = gavftools_get_stream_actions(track_info->num_overlay_streams,
+                                                   GAVF_STREAM_OVERLAY);
 
   /* Check for compressed reading */
 
   for(i = 0; i < track_info->num_audio_streams; i++)
     {
     if((audio_actions[i] == BG_STREAM_ACTION_READRAW) &&
-       (!plugin->get_audio_compression_info ||
+       (force_decompress || !plugin->get_audio_compression_info ||
         !plugin->get_audio_compression_info(priv, i, NULL)))
       {
       audio_actions[i] = BG_STREAM_ACTION_DECODE;
@@ -268,7 +272,7 @@ static int load_input_file(const char * file, const char * plugin_name,
   for(i = 0; i < track_info->num_video_streams; i++)
     {
     if((video_actions[i] == BG_STREAM_ACTION_READRAW) &&
-       (!plugin->get_video_compression_info ||
+       (force_decompress || !plugin->get_video_compression_info ||
         !plugin->get_video_compression_info(priv, i, NULL)))
       {
       video_actions[i] = BG_STREAM_ACTION_DECODE;
@@ -280,7 +284,8 @@ static int load_input_file(const char * file, const char * plugin_name,
   for(i = 0; i < track_info->num_overlay_streams; i++)
     {
     if((overlay_actions[i] == BG_STREAM_ACTION_READRAW) &&
-       (!plugin->get_overlay_compression_info(priv, i, NULL)))
+       (force_decompress || !plugin->get_overlay_compression_info ||
+        !plugin->get_overlay_compression_info(priv, i, NULL)))
       {
       overlay_actions[i] = BG_STREAM_ACTION_DECODE;
       bg_log(BG_LOG_WARNING, LOG_DOMAIN, "Overlay stream %d cannot be read compressed",
@@ -413,17 +418,14 @@ static int load_input_file(const char * file, const char * plugin_name,
 /* Stuff for loading albums */
 
 static int load_album_entry(bg_album_entry_t * entry,
-                            const char * file, const char * plugin_name,
-                            int track, bg_mediaconnector_t * conn,
-                            bg_input_callbacks_t * cb,
+                            bg_mediaconnector_t * conn,
                             bg_plugin_handle_t ** hp, 
-                            gavl_metadata_t * m, gavl_chapter_list_t ** cl,
-                            int edl)
+                            gavl_metadata_t * m)
   {
   int ret = load_input_file(entry->location, entry->plugin,
                             entry->index, conn,
-                            cb, hp, m, cl,
-                            !!(entry->flags & BG_ALBUM_ENTRY_EDL));
+                            NULL, hp, m, NULL,
+                            !!(entry->flags & BG_ALBUM_ENTRY_EDL), 1);
   if(!ret)
     return ret;
   
@@ -439,7 +441,174 @@ typedef struct
   bg_album_entry_t * first;
 
   time_t mtime;
+ 
+  bg_plugin_handle_t * h;
+  gavl_metadata_t m;
+
+  bg_mediaconnector_t out_conn;
+
+  int num_streams;
+  int active_streams;
+
+  int eof; // Album is done
   } album_t;
+
+typedef struct
+  {
+  bg_mediaconnector_stream_t * in_stream;
+
+  gavl_audio_source_t * asrc;
+  gavl_video_source_t * vsrc;
+  gavl_packet_source_t * psrc;
+
+  gavl_audio_frame_t * mute_aframe;
+  gavl_video_frame_t * mute_vframe;
+
+  gavl_audio_frame_t * next_aframe;
+  gavl_video_frame_t * next_vframe;
+
+  gavl_audio_format_t afmt;
+  gavl_video_format_t vfmt;
+
+  int64_t pts_offset;
+  int64_t pts;
+
+  /* Time to mute the output (Audio or video) so we can keep A/V sync across multiple files */
+  int64_t mute_time;
+
+  int timescale;
+
+  album_t * a;
+  } stream_t;
+
+static gavl_source_status_t read_audio(void * priv, gavl_audio_frame_t ** ret)
+  {
+  stream_t * s = priv;
+
+  if(s->mute_time)
+    {
+    const gavl_audio_format_t * fmt = gavl_audio_source_get_src_format(s->asrc);
+    if(!s->mute_aframe)
+      s->mute_aframe = gavl_audio_frame_create(fmt);
+    gavl_audio_frame_mute(s->mute_aframe, fmt);
+    s->mute_aframe->valid_samples = s->mute_time;
+    if(s->mute_aframe->valid_samples > fmt->samples_per_frame)
+      s->mute_aframe->valid_samples = fmt->samples_per_frame;
+    *ret = s->mute_aframe;
+    s->mute_time -= s->mute_aframe->valid_samples;
+    return GAVL_SOURCE_OK;
+    }
+  else if(s->next_aframe)
+    {
+    *ret = s->next_aframe;
+    s->next_aframe = NULL;
+    return GAVL_SOURCE_OK;
+    }
+  return GAVL_SOURCE_EOF;
+  }
+
+static gavl_source_status_t read_video(void * priv, gavl_video_frame_t ** ret)
+  {
+  stream_t * s = priv;
+  return GAVL_SOURCE_EOF;
+  }
+
+static gavl_source_status_t read_overlay(void * priv, gavl_video_frame_t ** ret)
+  {
+  stream_t * s = priv;
+  return GAVL_SOURCE_EOF;
+  }
+
+static gavl_source_status_t read_text(void * priv, gavl_packet_t ** ret)
+  {
+  stream_t * s = priv;
+  return GAVL_SOURCE_EOF;
+  }
+
+static void stream_destroy(bg_mediaconnector_stream_t * ms)
+  {
+  stream_t * s = ms->priv;
+  if(s->asrc)
+    gavl_audio_source_destroy(s->asrc);
+  if(s->vsrc)
+    gavl_video_source_destroy(s->vsrc);
+  if(s->psrc)
+    gavl_packet_source_destroy(s->psrc);
+  if(s->mute_aframe)
+    gavl_audio_frame_destroy(s->mute_aframe);
+  if(s->mute_vframe)
+    gavl_video_frame_destroy(s->mute_vframe);
+  free(s);
+  }
+
+static stream_t * stream_create(bg_mediaconnector_stream_t * in_stream,
+                                album_t * a)
+  {
+  bg_mediaconnector_stream_t * out_stream = NULL;
+  stream_t * ret = calloc(1, sizeof(*ret));
+  ret->in_stream = in_stream;
+  ret->a = a;
+
+  switch(ret->in_stream->type)
+    {
+    case GAVF_STREAM_AUDIO:
+      gavl_audio_format_copy(&ret->afmt, gavl_audio_source_get_src_format(ret->in_stream->asrc));
+      ret->timescale = ret->afmt.samplerate;
+      ret->asrc = 
+        gavl_audio_source_create(read_audio, ret, 
+                                 GAVL_SOURCE_SRC_ALLOC | GAVL_SOURCE_SRC_FRAMESIZE_MAX,
+                                 &ret->afmt);
+      out_stream = bg_mediaconnector_add_audio_stream(&a->out_conn,
+                                                      NULL, ret->asrc, NULL, NULL);
+
+      break;
+    case GAVF_STREAM_VIDEO:
+      gavl_video_format_copy(&ret->vfmt, gavl_video_source_get_src_format(ret->in_stream->vsrc));
+      ret->vsrc =
+        gavl_video_source_create(read_video, ret, GAVL_SOURCE_SRC_ALLOC, &ret->vfmt);
+      out_stream = bg_mediaconnector_add_video_stream(&a->out_conn,
+                                                      NULL, ret->vsrc, NULL, NULL);
+      break;
+    case GAVF_STREAM_TEXT:
+      ret->psrc =
+        gavl_packet_source_create_text(read_text, ret, GAVL_SOURCE_SRC_ALLOC, ret->in_stream->timescale);
+      out_stream = bg_mediaconnector_add_text_stream(&a->out_conn,
+                                                     NULL, ret->psrc, ret->in_stream->timescale);
+      break;
+    case GAVF_STREAM_OVERLAY:
+      ret->vsrc =
+        gavl_video_source_create(read_overlay, ret, GAVL_SOURCE_SRC_ALLOC,
+                                 gavl_video_source_get_src_format(ret->in_stream->vsrc));
+      out_stream = bg_mediaconnector_add_overlay_stream(&a->out_conn,
+                                                         NULL, ret->vsrc, NULL, NULL);
+      break;
+    }
+
+  if(out_stream)
+    {
+    out_stream->priv = ret;
+    out_stream->free_priv = stream_destroy;
+    }
+  return ret;
+  }
+
+void stream_replug(stream_t * s, bg_mediaconnector_stream_t * in_stream)
+  {
+  s->in_stream = in_stream;
+ 
+  switch(s->in_stream->type)
+    {
+    case GAVF_STREAM_AUDIO:
+      break;
+    case GAVF_STREAM_VIDEO:
+      break;
+    case GAVF_STREAM_TEXT:
+      break;
+    case GAVF_STREAM_OVERLAY:
+      break;
+    }
+
+  }
 
 static void album_init(album_t * a)
   {
@@ -557,6 +726,25 @@ static bg_album_entry_t * album_next(album_t * a)
   return ret;
   }
 
+int init_decode_album(album_t * a, bg_mediaconnector_t * conn,
+                      bg_mediaconnector_t * conn2)
+  {
+  int ret = 0;
+  bg_album_entry_t * e;
+
+  if(!album_load(a))
+    return ret;
+  
+  e = album_next(a);
+
+  if(!load_album_entry(e, conn, &a->h, &a->m))
+    return ret;
+
+  /* Set up the conn2 from conn1 */
+  
+  
+  }
+
 
 /* Main */
 
@@ -564,19 +752,25 @@ int main(int argc, char ** argv)
   {
   int ret = 1;
   bg_mediaconnector_t conn;
+  bg_mediaconnector_t conn2;
 
   bg_plugin_handle_t * h = NULL;
   bg_input_callbacks_t cb;
   cb_data_t cb_data;
   gavl_chapter_list_t * cl = NULL; 
   gavl_metadata_t m;
+  album_t album;
+
   gavl_metadata_init(&m); 
-  
+  album_init(&album);  
+
   memset(&cb, 0, sizeof(cb));
   memset(&cb_data, 0, sizeof(cb_data));
   
   gavftools_block_sigpipe();
-  bg_mediaconnector_init(&conn);
+  bg_mediaconnector_init(&conn);  
+  bg_mediaconnector_init(&conn2);
+
   gavftools_init();
 
   gavftools_set_compresspor_options(global_options);
@@ -603,34 +797,57 @@ int main(int argc, char ** argv)
                                 gavftools_oc_params());
   
   /* Open location */
-  
-  if(!input_file)
+  if(album_file)
     {
-    bg_log(BG_LOG_ERROR, LOG_DOMAIN, "No input file or source given");
-    return ret;
+    if(input_file)
+      {
+      bg_log(BG_LOG_ERROR, LOG_DOMAIN, "-i <location> and -a <album> cannot be used together");
+      return ret;
+      }
+    /* Initialize from album */
+    if(!init_decode_album(&album, &conn, &conn2))
+      return ret;
     }
+  else
+    {  
+    if(!input_file)
+      {
+      bg_log(BG_LOG_ERROR, LOG_DOMAIN, "No input file or source given");
+      return ret;
+      }
+    if(shuffle)
+      {
+      bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Shuffle only works with -a <album>");
+      return ret;
+      }
+    if(loop)
+      {
+      bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Looping only works with -a <album>");
+      return ret;
+      }
 
-  if(!load_input_file(input_file, input_plugin,
-                      selected_track, &conn,
-                      &cb, &h, &m, &cl, use_edl))
-    return ret;
-  
-  bg_mediaconnector_create_conn(&conn);
-  
-  /* Open output plug */
-  if(!bg_plug_open_location(out_plug, gavftools_out_file,
-                            &m, cl))
-    goto fail;
 
-  gavl_metadata_free(&m);
+    if(!load_input_file(input_file, input_plugin,
+                        selected_track, &conn,
+                        &cb, &h, &m, &cl, use_edl, 0))
+      return ret;
   
-  /* Initialize output plug */
-  if(!bg_plug_setup_writer(out_plug, &conn))
-    {
-    bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Setting up plug writer failed");
-    goto fail;
+    bg_mediaconnector_create_conn(&conn);
+  
+    /* Open output plug */
+    if(!bg_plug_open_location(out_plug, gavftools_out_file,
+                              &m, cl))
+      goto fail;
+
+    gavl_metadata_free(&m);
+  
+    /* Initialize output plug */
+    if(!bg_plug_setup_writer(out_plug, &conn))
+      {
+      bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Setting up plug writer failed");
+      goto fail;
+      }
     }
-
   
   ret = 1;
 

@@ -126,6 +126,14 @@ bg_mediaconnector_add_text_stream(bg_mediaconnector_t * conn,
                                   gavl_packet_source_t * psrc,
                                   int timescale);
 
+int bg_mediaconnector_get_num_streams(bg_mediaconnector_t * conn,
+                                      gavf_stream_type_t type);
+
+bg_mediaconnector_stream_t *
+bg_mediaconnector_get_stream(bg_mediaconnector_t * conn,
+                             gavf_stream_type_t type, int idx);
+
+
 void
 bg_mediaconnector_create_conn(bg_mediaconnector_t * conn);
 

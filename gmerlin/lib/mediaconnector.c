@@ -562,4 +562,35 @@ int bg_mediaconnector_done(bg_mediaconnector_t * conn)
   pthread_mutex_unlock(&conn->running_threads_mutex);
   return ret;
   }
+
+int bg_mediaconnector_get_num_streams(bg_mediaconnector_t * conn,
+                                      gavf_stream_type_t type)
+  {
+  int ret = 0;
+  int i;
+  for(i = 0; i < conn->num_streams; i++)
+    {
+    if(conn->streams[i]->type == type)
+      ret++;
+    }
+  return ret;
+  }
+
+bg_mediaconnector_stream_t *
+bg_mediaconnector_get_stream(bg_mediaconnector_t * conn,
+                             gavf_stream_type_t type, int idx)
+  {
+  int i;
+  int count = 0;
+  for(i = 0; i < conn->num_streams; i++)
+    {
+    if(conn->streams[i]->type == type)
+      {
+      if(count == idx)
+        return conn->streams[i];
+      count++;
+      }
+    }
+  return NULL;
+  }
   
