@@ -146,10 +146,18 @@ static bg_album_entry_t * album_next(album_t * a)
   return ret;
   }
 
+static void create_streams(album_t * a, gavf_stream_type_t type)
+  {
+  int i, num;
+  num = bg_mediaconnector_get_num_streams(&a->in_conn, type);
+  for(i = 0; i < num; i++)
+    stream_create(bg_mediaconnector_get_stream(&a->in_conn,
+                                                type, i), a);
+  }
+
 int init_decode_album(album_t * a)
   {
   int ret = 0;
-  int i, num;
   bg_album_entry_t * e;
 
   if(!album_load(a))
@@ -163,22 +171,14 @@ int init_decode_album(album_t * a)
   /* Set up the conn2 from conn1 */
   a->num_streams = a->in_conn.num_streams;
 
-  num = bg_mediaconnector_get_num_streams(&a->in_conn, GAVF_STREAM_AUDIO);
-  for(i = 0; i < num; i++)
-    stream_create(bg_mediaconnector_get_stream(&a->in_conn, GAVF_STREAM_AUDIO, i), a);
+  create_streams(a, GAVF_STREAM_AUDIO);
+  create_streams(a, GAVF_STREAM_VIDEO);
+  create_streams(a, GAVF_STREAM_TEXT);
+  create_streams(a, GAVF_STREAM_OVERLAY);
 
-  num = bg_mediaconnector_get_num_streams(&a->in_conn, GAVF_STREAM_VIDEO);
-  for(i = 0; i < num; i++)
-    stream_create(bg_mediaconnector_get_stream(&a->in_conn, GAVF_STREAM_VIDEO, i), a);
-
-  num = bg_mediaconnector_get_num_streams(&a->in_conn, GAVF_STREAM_TEXT);
-  for(i = 0; i < num; i++)
-    stream_create(bg_mediaconnector_get_stream(&a->in_conn, GAVF_STREAM_TEXT, i), a);
-
-  num = bg_mediaconnector_get_num_streams(&a->in_conn, GAVF_STREAM_OVERLAY);
-  for(i = 0; i < num; i++)
-    stream_create(bg_mediaconnector_get_stream(&a->in_conn, GAVF_STREAM_OVERLAY, i), a);
-
+  a->active_streams = a->num_streams;
+  bg_log(BG_LOG_INFO, LOG_DOMAIN, "Loaded %s", (char*)e->location);
+  
   ret = 1;
   return ret;
   }
@@ -197,18 +197,56 @@ static int match_streams(album_t * a, const char *location,
   return 1;
   }
 
-int album_set_eof(album_t * a, stream_t * s)
+static int replug_streams(album_t * a, gavf_stream_type_t type)
   {
+  int i, num;
+  bg_mediaconnector_stream_t * is, * os;
+  
+  num = bg_mediaconnector_get_num_streams(&a->in_conn, type);
+  for(i = 0; i < num; i++)
+    {
+    is = bg_mediaconnector_get_stream(&a->in_conn, type, i);
+    os = bg_mediaconnector_get_stream(&a->out_conn, type, i);
+    if(!stream_replug(os->priv, is))
+      return 0;
+    }
+  return 1;
+  }
+
+
+int album_set_eof(album_t * a)
+  {
+  int i;
   bg_album_entry_t * e;
+  gavl_time_t test_time;
+  stream_t * s;
+  gavf_t * g;
   
   a->active_streams--;
 
-  if(a->active_streams)
+  if(a->active_streams > 0)
     return 0;
 
+  /* Get end time */
+
+  for(i = 0; i < a->num_streams; i++)
+    {
+    if((a->out_conn.streams[i]->type == GAVF_STREAM_AUDIO) ||
+       (a->out_conn.streams[i]->type == GAVF_STREAM_VIDEO))
+      {
+      s = a->out_conn.streams[i]->priv;
+
+      test_time = gavl_time_unscale(s->out_scale, s->pts);
+      if(a->end_time < test_time)
+        a->end_time = test_time;
+      }       
+    }
   
   while(1)
     {
+    gavl_metadata_free(&a->m);
+    gavl_metadata_init(&a->m);
+    
     bg_mediaconnector_free(&a->in_conn);
     bg_mediaconnector_init(&a->in_conn);
     if(a->h)
@@ -238,8 +276,23 @@ int album_set_eof(album_t * a, stream_t * s)
        !match_streams(a, e->location, GAVF_STREAM_TEXT) ||
        !match_streams(a, e->location, GAVF_STREAM_OVERLAY))
       continue;
+
+    /* replug streams */
+    if(!replug_streams(a, GAVF_STREAM_AUDIO) ||
+       !replug_streams(a, GAVF_STREAM_VIDEO) ||
+       !replug_streams(a, GAVF_STREAM_TEXT) ||
+       !replug_streams(a, GAVF_STREAM_OVERLAY))
+      continue;
     
+    break;
     }
+
+  g = bg_plug_get_gavf(a->out_plug);
+  gavf_update_metadata(g, &a->m);
+
+  a->active_streams = a->num_streams;
+
+  bg_log(BG_LOG_INFO, LOG_DOMAIN, "Loaded %s", (char*)e->location);
   
-  
+  return 1;
   }

@@ -302,12 +302,13 @@ int main(int argc, char ** argv)
     
   if(!out_file)
     out_file = gavl_metadata_get(&ph->m, GAVL_META_LABEL);
+#if 0
   if(!out_file)
     {
     bg_log(BG_LOG_ERROR, LOG_DOMAIN, "No output file given");
     goto fail;
     }
-  
+#endif
   if(!bg_encoder_open(enc, out_file, &ph->m, gavf_get_chapter_list(g)))
     goto fail;
   

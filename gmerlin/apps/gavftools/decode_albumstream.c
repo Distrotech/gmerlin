@@ -21,6 +21,8 @@
 
 #include "gavf-decode.h"
 
+#define LOG_DOMAIN "gavf-decode.albumstream"
+
 
 int stream_replug(stream_t * s, bg_mediaconnector_stream_t * in_stream)
   {
@@ -33,8 +35,10 @@ int stream_replug(stream_t * s, bg_mediaconnector_stream_t * in_stream)
 
       if(gavl_audio_source_read_frame(s->in_stream->asrc,
                                       &s->next_aframe) != GAVL_SOURCE_OK)
+        {
+        bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Couldn't get first audio frame");
         return 0;
-
+        }
       //      s->skip_time = 
       
       break;
@@ -43,8 +47,10 @@ int stream_replug(stream_t * s, bg_mediaconnector_stream_t * in_stream)
 
       if(gavl_video_source_read_frame(s->in_stream->vsrc,
                                       &s->next_vframe) != GAVL_SOURCE_OK)
+        {
+        bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Couldn't get first video frame");
         return 0;
-
+        }
       //      s->skip_time = 
       
       break;
@@ -80,8 +86,8 @@ static gavl_source_status_t read_audio(void * priv, gavl_audio_frame_t ** ret)
     }
   else if(s->next_aframe)
     {
-    s->mute_aframe->timestamp = s->pts;
-    s->pts += s->mute_aframe->valid_samples;
+    s->next_aframe->timestamp = s->pts;
+    s->pts += s->next_aframe->valid_samples;
     
     *ret = s->next_aframe;
     
@@ -110,7 +116,7 @@ static gavl_source_status_t read_audio(void * priv, gavl_audio_frame_t ** ret)
           return s->st;
           break;
         case GAVL_SOURCE_EOF:
-          if(!album_set_eof(s->a, s))
+          if(!album_set_eof(s->a))
             return GAVL_SOURCE_AGAIN;
           
           break;
@@ -166,7 +172,7 @@ static gavl_source_status_t read_video(void * priv, gavl_video_frame_t ** ret)
           break;
         case GAVL_SOURCE_EOF:
         
-          if(!album_set_eof(s->a, s))
+          if(!album_set_eof(s->a))
             return GAVL_SOURCE_AGAIN;
           
           break;
@@ -234,8 +240,13 @@ int stream_create(bg_mediaconnector_stream_t * in_stream,
       out_stream = bg_mediaconnector_add_audio_stream(&a->out_conn,
                                                       NULL, ret->asrc, NULL, NULL);
 
-      
-      
+      if(gavl_audio_source_read_frame(ret->in_stream->asrc,
+                                      &ret->next_aframe) != GAVL_SOURCE_OK)
+        {
+        bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Couldn't get first audio frame");
+        return 0;
+        }
+      ret->mute_time = ret->next_aframe->timestamp;
       break;
     case GAVF_STREAM_VIDEO:
       gavl_video_format_copy(&ret->vfmt, gavl_video_source_get_src_format(ret->in_stream->vsrc));
@@ -252,6 +263,16 @@ int stream_create(bg_mediaconnector_stream_t * in_stream,
         gavl_video_source_create(read_video, ret, GAVL_SOURCE_SRC_ALLOC, &ret->vfmt);
       out_stream = bg_mediaconnector_add_video_stream(&a->out_conn,
                                                       NULL, ret->vsrc, NULL, NULL);
+
+
+      if(gavl_video_source_read_frame(ret->in_stream->vsrc,
+                                      &ret->next_vframe) != GAVL_SOURCE_OK)
+        {
+        bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Couldn't get first video frame");
+        return 0;
+        }
+      ret->mute_time = ret->next_vframe->timestamp;
+      
       break;
     case GAVF_STREAM_TEXT:
       ret->psrc =
@@ -271,6 +292,9 @@ int stream_create(bg_mediaconnector_stream_t * in_stream,
       break;
     }
 
+  if(ret)
+    ret->out_scale = ret->in_scale;
+  
   if(out_stream)
     {
     out_stream->priv = ret;

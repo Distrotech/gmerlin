@@ -158,23 +158,24 @@ static void update_metadata(void * priv, const gavl_metadata_t * m)
   gavf_update_metadata(g, m);
   }
 
-
-
-
 /* Main */
 
 int main(int argc, char ** argv)
   {
   int ret = 1;
-  bg_mediaconnector_t conn;
+  bg_mediaconnector_t * conn;
 
+  bg_mediaconnector_t file_conn;
+
+  
   bg_plugin_handle_t * h = NULL;
   bg_input_callbacks_t cb;
   cb_data_t cb_data;
   gavl_chapter_list_t * cl = NULL; 
   gavl_metadata_t m;
   album_t album;
-
+  int is_album = 0;
+  
   gavl_metadata_init(&m); 
   album_init(&album);  
 
@@ -182,7 +183,7 @@ int main(int argc, char ** argv)
   memset(&cb_data, 0, sizeof(cb_data));
   
   gavftools_block_sigpipe();
-  bg_mediaconnector_init(&conn);  
+  bg_mediaconnector_init(&file_conn);  
 
   gavftools_init();
 
@@ -212,7 +213,7 @@ int main(int argc, char ** argv)
   /* Open location */
   if(album_file)
     {
-    if(input_file)
+    if(input_file && strcmp(input_file, "-"))
       {
       bg_log(BG_LOG_ERROR, LOG_DOMAIN, "-i <location> and -a <album> cannot be used together");
       return ret;
@@ -220,6 +221,11 @@ int main(int argc, char ** argv)
     /* Initialize from album */
     if(!init_decode_album(&album))
       return ret;
+    
+    conn = &album.out_conn;
+
+    is_album = 1;
+    album.out_plug = out_plug;
     }
   else
     {  
@@ -241,36 +247,45 @@ int main(int argc, char ** argv)
 
 
     if(!load_input_file(input_file, input_plugin,
-                        selected_track, &conn,
+                        selected_track, &file_conn,
                         &cb, &h, &m, &cl, use_edl, 0))
       return ret;
-  
-    bg_mediaconnector_create_conn(&conn);
-  
-    /* Open output plug */
-    if(!bg_plug_open_location(out_plug, gavftools_out_file,
-                              &m, cl))
-      goto fail;
 
-    gavl_metadata_free(&m);
-  
-    /* Initialize output plug */
-    if(!bg_plug_setup_writer(out_plug, &conn))
-      {
-      bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Setting up plug writer failed");
-      goto fail;
-      }
+    conn = &file_conn;
     }
+
+  bg_mediaconnector_create_conn(conn);
+  
+  /* Open output plug */
+  if(!bg_plug_open_location(out_plug, gavftools_out_file,
+                            &m, cl))
+    goto fail;
+
+  gavl_metadata_free(&m);
+  
+  /* Initialize output plug */
+  if(!bg_plug_setup_writer(out_plug, conn))
+    {
+    bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Setting up plug writer failed");
+    goto fail;
+    }
+
   
   ret = 1;
 
-  bg_mediaconnector_start(&conn);
+  bg_mediaconnector_start(conn);
 
+  if(is_album)
+    {
+    gavf_t * g = bg_plug_get_gavf(out_plug);
+    gavf_update_metadata(g, &album.m);
+    }
+  
   while(1)
     {
     if(gavftools_stop() ||
        bg_plug_got_error(out_plug) ||
-       !bg_mediaconnector_iteration(&conn))
+       !bg_mediaconnector_iteration(conn))
       break;
     }
   ret = 0;
@@ -288,10 +303,11 @@ int main(int argc, char ** argv)
   if(overlay_actions)
     free(overlay_actions);
   
-  bg_mediaconnector_free(&conn);
+  bg_mediaconnector_free(&file_conn);
   bg_plug_destroy(out_plug);
 
-  bg_plugin_unref(h);
+  if(h)
+    bg_plugin_unref(h);
   
   gavftools_cleanup();
   

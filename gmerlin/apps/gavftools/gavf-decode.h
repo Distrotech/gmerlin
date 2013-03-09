@@ -66,6 +66,10 @@ typedef struct
   int active_streams;
 
   int eof; // Album is done
+
+  gavl_time_t end_time;
+
+  bg_plug_t * out_plug;
   } album_t;
 
 typedef struct
@@ -105,7 +109,7 @@ void album_init(album_t * a);
 void album_free(album_t * a);
 int init_decode_album(album_t * a);
 
-int album_set_eof(album_t * a, stream_t * s);
+int album_set_eof(album_t * a);
 
 /* decode_albumstream.c */
 
