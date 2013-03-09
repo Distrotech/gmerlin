@@ -202,6 +202,8 @@ static void flush_metadata(bg_shout_t * s)
 
 int bg_shout_write(bg_shout_t * s, const uint8_t * data, int len)
   {
+  shout_sync(s->s);
+  
   if(shout_send(s->s, data, len) != SHOUTERR_SUCCESS)
     {
     bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Sending data failed: %s",
