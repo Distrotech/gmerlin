@@ -41,6 +41,12 @@ void album_free(album_t * a)
     free(a->entries);
   if(a->first)
     bg_album_entries_destroy(a->first);
+
+  bg_mediaconnector_free(&a->in_conn);
+  bg_mediaconnector_free(&a->out_conn);
+  if(a->h)
+    bg_plugin_unref(a->h);
+  gavl_metadata_free(&a->m);
   }
 
 static int get_mtime(const char * file, time_t * ret)
