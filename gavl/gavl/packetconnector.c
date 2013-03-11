@@ -94,7 +94,6 @@ gavl_packet_connector_set_process_func(gavl_packet_connector_t * c,
 int
 gavl_packet_connector_process(gavl_packet_connector_t * c)
   {
-  gavl_source_status_t src_st;
   gavl_sink_status_t sink_st;
   int i;
   sink_t * s;
@@ -115,9 +114,9 @@ gavl_packet_connector_process(gavl_packet_connector_t * c)
     }
   
   /* Get input frame */
-  src_st = gavl_packet_source_read_packet(c->src, &c->in_packet);
+  c->src_st = gavl_packet_source_read_packet(c->src, &c->in_packet);
 
-  switch(src_st)
+  switch(c->src_st)
     {
     case GAVL_SOURCE_OK:
       break;
@@ -149,3 +148,10 @@ gavl_packet_connector_process(gavl_packet_connector_t * c)
   c->have_in_packet = 0;
   return 1;
   }
+
+gavl_source_status_t gavl_packet_connector_get_source_status(gavl_packet_connector_t * c)
+  {
+  return c->src_st;
+  }
+
+

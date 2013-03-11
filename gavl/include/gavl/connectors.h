@@ -1028,6 +1028,14 @@ gavl_audio_connector_process(gavl_audio_connector_t * c);
 GAVL_PUBLIC
 void gavl_audio_connector_reset(gavl_audio_connector_t * c);
 
+/*! \brief Get the status of the last read call
+ *  \param c An audio connector
+ *  \returns The last status of the source
+ */
+
+GAVL_PUBLIC gavl_source_status_t
+gavl_audio_connector_get_source_status(gavl_audio_connector_t * c);
+
   
 /* */
 
@@ -1115,6 +1123,14 @@ gavl_video_connector_process(gavl_video_connector_t * c);
 GAVL_PUBLIC
 void gavl_video_connector_reset(gavl_video_connector_t * c);
 
+/*! \brief Get the status of the last read call
+ *  \param c A video connector
+ *  \returns The last status of the source
+ */
+
+GAVL_PUBLIC gavl_source_status_t 
+gavl_video_connector_get_source_status(gavl_video_connector_t * c);
+
 /* */
 
 /*! \brief Create a packet connector
@@ -1161,6 +1177,16 @@ gavl_packet_connector_set_process_func(gavl_packet_connector_t * c,
   
 GAVL_PUBLIC int
 gavl_packet_connector_process(gavl_packet_connector_t * c);
+
+/*! \brief Get the status of the last read call
+ *  \param c A packet connector
+ *  \returns The last status of the source
+ */
+
+GAVL_PUBLIC gavl_source_status_t 
+gavl_packet_connector_get_source_status(gavl_packet_connector_t * c);
+
+
   
 /**
  * @}

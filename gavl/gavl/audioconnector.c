@@ -173,7 +173,7 @@ void gavl_audio_connector_reset(gavl_audio_connector_t * c)
   int i;
   c->in_frame = NULL;
   c->have_in_frame = 0;
-  
+  c->src_st = GAVL_SOURCE_OK; 
   for(i = 0; i < c->num_sinks; i++)
     {
     if(c->sinks[i].src)
@@ -274,6 +274,11 @@ int gavl_audio_connector_process(gavl_audio_connector_t * c)
   
   c->have_in_frame = 0;
   return 1;
+  }
+
+gavl_source_status_t gavl_audio_connector_get_source_status(gavl_audio_connector_t * c)
+  {
+  return c->src_st;
   }
 
 #if 0
