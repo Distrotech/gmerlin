@@ -39,7 +39,15 @@ int stream_replug(stream_t * s, bg_mediaconnector_stream_t * in_stream)
         bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Couldn't get first audio frame");
         return 0;
         }
-      //      s->skip_time = 
+      s->mute_time = gavl_time_scale(s->in_scale, s->a->end_time) - s->pts;
+
+      if(s->mute_time < 0)
+        s->mute_time = 0;
+      
+      s->mute_time += s->next_aframe->timestamp;
+
+      fprintf(stderr, "Mute time: %ld (%ld)\n",
+              s->mute_time, gavl_time_unscale(s->in_scale, s->mute_time));
       
       break;
     case GAVF_STREAM_VIDEO:
@@ -51,7 +59,8 @@ int stream_replug(stream_t * s, bg_mediaconnector_stream_t * in_stream)
         bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Couldn't get first video frame");
         return 0;
         }
-      //      s->skip_time = 
+      s->mute_time = gavl_time_scale(s->in_scale, s->a->end_time) - s->pts;
+      s->mute_time += s->next_vframe->timestamp;
       
       break;
     case GAVF_STREAM_TEXT:
@@ -117,8 +126,9 @@ static gavl_source_status_t read_audio(void * priv, gavl_audio_frame_t ** ret)
           break;
         case GAVL_SOURCE_EOF:
           if(!album_set_eof(s->a))
-            return GAVL_SOURCE_AGAIN;
-          
+            {
+            return s->a->eof ? GAVL_SOURCE_EOF : GAVL_SOURCE_AGAIN;
+            }
           break;
         case GAVL_SOURCE_AGAIN:
           break;
@@ -173,8 +183,9 @@ static gavl_source_status_t read_video(void * priv, gavl_video_frame_t ** ret)
         case GAVL_SOURCE_EOF:
         
           if(!album_set_eof(s->a))
-            return GAVL_SOURCE_AGAIN;
-          
+            {
+            return s->a->eof ? GAVL_SOURCE_EOF : GAVL_SOURCE_AGAIN;
+            }
           break;
         case GAVL_SOURCE_AGAIN:
           /* Not handled */

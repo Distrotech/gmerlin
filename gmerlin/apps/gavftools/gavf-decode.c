@@ -62,7 +62,7 @@ static void opt_shuffle(void * data, int * argc, char *** _argv, int arg)
 
 static void opt_loop(void * data, int * argc, char *** _argv, int arg)
   {
-  shuffle = 1;
+  loop = 1;
   }
 
 static void opt_edl(void * data, int * argc, char *** _argv, int arg)
@@ -305,7 +305,8 @@ int main(int argc, char ** argv)
   
   bg_mediaconnector_free(&file_conn);
   bg_plug_destroy(out_plug);
-
+  album_free(&album);
+  
   if(h)
     bg_plugin_unref(h);
   

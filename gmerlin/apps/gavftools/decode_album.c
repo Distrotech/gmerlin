@@ -265,7 +265,7 @@ int album_set_eof(album_t * a)
     if(!e)
       {
       a->eof = 1;
-      return 1;
+      return 0;
       }
     
     /* Load next track */

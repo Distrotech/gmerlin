@@ -168,6 +168,8 @@ static gavl_sink_status_t put_audio_frame(void * priv,
   gavl_sink_status_t ret;
   audio_stream_t * as = priv;
 
+  //  fprintf(stderr, "Put audio %d\n", f->valid_samples);
+  
   bg_plugin_lock(as->h);
   if((ret = gavl_audio_sink_put_frame(as->sink_int, f)) != GAVL_SINK_OK)
     {

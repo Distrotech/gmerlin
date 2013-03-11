@@ -298,8 +298,6 @@ read_frame_internal(void * sp, gavl_audio_frame_t ** frame, int num_samples)
   
   s->incomplete_samples = 0;
   
-  if(!(s->flags & FLAG_DST_SET))
-    gavl_audio_source_set_dst(s, 0, NULL);
   
   while(samples_read < num_samples)
     {
@@ -443,6 +441,8 @@ gavl_source_status_t
 gavl_audio_source_read_frame(void * sp, gavl_audio_frame_t ** frame)
   {
   gavl_audio_source_t * s = sp;
+  if(!(s->flags & FLAG_DST_SET))
+    gavl_audio_source_set_dst(s, 0, NULL);
   return read_frame_internal(s, frame, s->dst_format.samples_per_frame);
   }
 
@@ -454,6 +454,9 @@ int gavl_audio_source_read_samples(void * sp, gavl_audio_frame_t * frame,
                                    int num_samples)
   {
   gavl_audio_source_t * s = sp;
+  if(!(s->flags & FLAG_DST_SET))
+    gavl_audio_source_set_dst(s, 0, NULL);
+  
   s->flags &= ~FLAG_PASSTHROUGH;
   if(read_frame_internal(s, &frame, num_samples) != GAVL_SOURCE_OK)
     return 0;

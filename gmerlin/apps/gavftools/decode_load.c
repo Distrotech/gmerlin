@@ -285,6 +285,6 @@ int load_album_entry(bg_album_entry_t * entry,
   if(!ret)
     return ret;
   
-  gavl_metadata_set_nocpy(m, GAVL_META_LABEL, entry->name);
+  gavl_metadata_set(m, GAVL_META_LABEL, entry->name);
   return ret;
   }
