@@ -491,6 +491,42 @@ static void handle_message(player_window_t * win,
         case ACCEL_SEEK_START:
           bg_player_seek(win->gmerlin->player,0, GAVL_TIME_SCALE );
           break;
+        case ACCEL_SEEK_10:
+          if(win->duration != GAVL_TIME_UNDEFINED)
+            bg_player_seek(win->gmerlin->player, win->duration / 10, GAVL_TIME_SCALE );
+          break;
+        case ACCEL_SEEK_20:
+          if(win->duration != GAVL_TIME_UNDEFINED)
+            bg_player_seek(win->gmerlin->player, (2 * win->duration) / 10, GAVL_TIME_SCALE );
+          break;
+        case ACCEL_SEEK_30:
+          if(win->duration != GAVL_TIME_UNDEFINED)
+            bg_player_seek(win->gmerlin->player, (3 * win->duration) / 10, GAVL_TIME_SCALE );
+          break;
+        case ACCEL_SEEK_40:
+          if(win->duration != GAVL_TIME_UNDEFINED)
+            bg_player_seek(win->gmerlin->player, (4 * win->duration) / 10, GAVL_TIME_SCALE );
+          break;
+        case ACCEL_SEEK_50:
+          if(win->duration != GAVL_TIME_UNDEFINED)
+            bg_player_seek(win->gmerlin->player, (5 * win->duration) / 10, GAVL_TIME_SCALE );
+          break;
+        case ACCEL_SEEK_60:
+          if(win->duration != GAVL_TIME_UNDEFINED)
+            bg_player_seek(win->gmerlin->player, (6 * win->duration) / 10, GAVL_TIME_SCALE );
+          break;
+        case ACCEL_SEEK_70:
+          if(win->duration != GAVL_TIME_UNDEFINED)
+            bg_player_seek(win->gmerlin->player, (7 * win->duration) / 10, GAVL_TIME_SCALE );
+          break;
+        case ACCEL_SEEK_80:
+          if(win->duration != GAVL_TIME_UNDEFINED)
+            bg_player_seek(win->gmerlin->player, (8 * win->duration) / 10, GAVL_TIME_SCALE );
+          break;
+        case ACCEL_SEEK_90:
+          if(win->duration != GAVL_TIME_UNDEFINED)
+            bg_player_seek(win->gmerlin->player, (9 * win->duration) / 10, GAVL_TIME_SCALE );
+          break;
         case ACCEL_PAUSE:
           bg_player_pause(win->gmerlin->player);
           break;

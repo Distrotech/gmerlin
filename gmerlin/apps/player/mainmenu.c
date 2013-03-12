@@ -118,6 +118,21 @@ struct options_menu_s
   GtkWidget * menu;
   };
 
+struct seek_menu_s
+  {
+  GtkWidget * seek_00;
+  GtkWidget * seek_10;
+  GtkWidget * seek_20;
+  GtkWidget * seek_30;
+  GtkWidget * seek_40;
+  GtkWidget * seek_50;
+  GtkWidget * seek_60;
+  GtkWidget * seek_70;
+  GtkWidget * seek_80;
+  GtkWidget * seek_90;
+  GtkWidget * menu;
+  };
+
 struct command_menu_s
   {
   GtkWidget * inc_volume;
@@ -134,12 +149,13 @@ struct command_menu_s
   GtkWidget * previous_chapter;
   GtkWidget * current_to_favourites;
   GtkWidget * goto_current;
-
   
-  GtkWidget * seek_start;
+  GtkWidget * seek_item;
   GtkWidget * pause;
   
   GtkWidget * quit;
+
+  struct seek_menu_s       seek_menu;
   
   GtkWidget * menu;
   };
@@ -488,8 +504,6 @@ static void menu_callback(GtkWidget * w, gpointer data)
     player_window_push_accel(g->player_window, ACCEL_SEEK_BACKWARD);
   else if(w == the_menu->command_menu.seek_forward)
     player_window_push_accel(g->player_window, ACCEL_SEEK_FORWARD);
-  else if(w == the_menu->command_menu.seek_start)
-    player_window_push_accel(g->player_window, ACCEL_SEEK_START);
   else if(w == the_menu->command_menu.pause)
     player_window_push_accel(g->player_window, ACCEL_PAUSE);
   else if(w == the_menu->command_menu.mute)
@@ -506,7 +520,27 @@ static void menu_callback(GtkWidget * w, gpointer data)
     player_window_push_accel(g->player_window, ACCEL_CURRENT_TO_FAVOURITES);
   else if(w == the_menu->command_menu.quit)
     player_window_push_accel(g->player_window, ACCEL_QUIT);
-  
+
+  else if(w == the_menu->command_menu.seek_menu.seek_00)
+    player_window_push_accel(g->player_window, ACCEL_SEEK_START);
+  else if(w == the_menu->command_menu.seek_menu.seek_10)
+    player_window_push_accel(g->player_window, ACCEL_SEEK_10);
+  else if(w == the_menu->command_menu.seek_menu.seek_20)
+    player_window_push_accel(g->player_window, ACCEL_SEEK_20);
+  else if(w == the_menu->command_menu.seek_menu.seek_30)
+    player_window_push_accel(g->player_window, ACCEL_SEEK_30);
+  else if(w == the_menu->command_menu.seek_menu.seek_40)
+    player_window_push_accel(g->player_window, ACCEL_SEEK_40);
+  else if(w == the_menu->command_menu.seek_menu.seek_50)
+    player_window_push_accel(g->player_window, ACCEL_SEEK_50);
+  else if(w == the_menu->command_menu.seek_menu.seek_60)
+    player_window_push_accel(g->player_window, ACCEL_SEEK_60);
+  else if(w == the_menu->command_menu.seek_menu.seek_70)
+    player_window_push_accel(g->player_window, ACCEL_SEEK_70);
+  else if(w == the_menu->command_menu.seek_menu.seek_80)
+    player_window_push_accel(g->player_window, ACCEL_SEEK_80);
+  else if(w == the_menu->command_menu.seek_menu.seek_90)
+    player_window_push_accel(g->player_window, ACCEL_SEEK_90);
   
   /* Stream selection */
   else if(stream_menu_has_widget(&the_menu->audio_stream_menu, w, &i))
@@ -1124,14 +1158,7 @@ main_menu_t * main_menu_create(gmerlin_t * gmerlin)
   gtk_widget_add_accelerator(ret->command_menu.current_to_favourites,
                              "activate", ret->g->accel_group,
                              GDK_F9, 0, GTK_ACCEL_VISIBLE);
-
-
   
-  ret->command_menu.seek_start =
-    create_item(TR("Seek to start"), gmerlin, ret->command_menu.menu);
-  gtk_widget_add_accelerator(ret->command_menu.seek_start, "activate", ret->g->player_window->accel_group,
-                             GDK_0, 0, GTK_ACCEL_VISIBLE);
-
   ret->command_menu.pause =
     create_item(TR("Pause"), gmerlin, ret->command_menu.menu);
   gtk_widget_add_accelerator(ret->command_menu.pause, "activate", ret->g->player_window->accel_group,
@@ -1142,6 +1169,70 @@ main_menu_t * main_menu_create(gmerlin_t * gmerlin)
   gtk_widget_add_accelerator(ret->command_menu.quit, "activate",
                              ret->g->accel_group,
                              GDK_q, GDK_CONTROL_MASK, GTK_ACCEL_VISIBLE);
+
+  /* Command -> Seek */
+
+  ret->command_menu.seek_menu.menu = create_menu();
+
+  
+  
+  ret->command_menu.seek_menu.seek_00 =
+    create_item(TR("Seek to start"), gmerlin, ret->command_menu.seek_menu.menu);
+  gtk_widget_add_accelerator(ret->command_menu.seek_menu.seek_00,
+                             "activate", ret->g->player_window->accel_group,
+                             GDK_0, 0, GTK_ACCEL_VISIBLE);
+
+  ret->command_menu.seek_menu.seek_10 =
+    create_item(TR("Seek to 10%"), gmerlin, ret->command_menu.seek_menu.menu);
+  gtk_widget_add_accelerator(ret->command_menu.seek_menu.seek_10,
+                             "activate", ret->g->player_window->accel_group,
+                             GDK_1, 0, GTK_ACCEL_VISIBLE);
+  ret->command_menu.seek_menu.seek_20 =
+    create_item(TR("Seek to 20%"), gmerlin, ret->command_menu.seek_menu.menu);
+  gtk_widget_add_accelerator(ret->command_menu.seek_menu.seek_20,
+                             "activate", ret->g->player_window->accel_group,
+                             GDK_2, 0, GTK_ACCEL_VISIBLE);
+  ret->command_menu.seek_menu.seek_30 =
+    create_item(TR("Seek to 30%"), gmerlin, ret->command_menu.seek_menu.menu);
+  gtk_widget_add_accelerator(ret->command_menu.seek_menu.seek_30,
+                             "activate", ret->g->player_window->accel_group,
+                             GDK_3, 0, GTK_ACCEL_VISIBLE);
+  ret->command_menu.seek_menu.seek_40 =
+    create_item(TR("Seek to 40%"), gmerlin, ret->command_menu.seek_menu.menu);
+  gtk_widget_add_accelerator(ret->command_menu.seek_menu.seek_40,
+                             "activate", ret->g->player_window->accel_group,
+                             GDK_4, 0, GTK_ACCEL_VISIBLE);
+  ret->command_menu.seek_menu.seek_50 =
+    create_item(TR("Seek to 50%"), gmerlin, ret->command_menu.seek_menu.menu);
+  gtk_widget_add_accelerator(ret->command_menu.seek_menu.seek_50,
+                             "activate", ret->g->player_window->accel_group,
+                             GDK_5, 0, GTK_ACCEL_VISIBLE);
+  ret->command_menu.seek_menu.seek_60 =
+    create_item(TR("Seek to 60%"), gmerlin, ret->command_menu.seek_menu.menu);
+  gtk_widget_add_accelerator(ret->command_menu.seek_menu.seek_60,
+                             "activate", ret->g->player_window->accel_group,
+                             GDK_6, 0, GTK_ACCEL_VISIBLE);
+  ret->command_menu.seek_menu.seek_70 =
+    create_item(TR("Seek to 70%"), gmerlin, ret->command_menu.seek_menu.menu);
+  gtk_widget_add_accelerator(ret->command_menu.seek_menu.seek_70,
+                             "activate", ret->g->player_window->accel_group,
+                             GDK_7, 0, GTK_ACCEL_VISIBLE);
+  ret->command_menu.seek_menu.seek_80 =
+    create_item(TR("Seek to 80%"), gmerlin, ret->command_menu.seek_menu.menu);
+  gtk_widget_add_accelerator(ret->command_menu.seek_menu.seek_80,
+                             "activate", ret->g->player_window->accel_group,
+                             GDK_8, 0, GTK_ACCEL_VISIBLE);
+  ret->command_menu.seek_menu.seek_90 =
+    create_item(TR("Seek to 90%"), gmerlin, ret->command_menu.seek_menu.menu);
+  gtk_widget_add_accelerator(ret->command_menu.seek_menu.seek_90,
+                             "activate", ret->g->player_window->accel_group,
+                             GDK_9, 0, GTK_ACCEL_VISIBLE);
+
+  ret->command_menu.seek_item =
+    create_submenu_item(TR("Seek..."),
+                        ret->command_menu.seek_menu.menu,
+                        ret->command_menu.menu);
+
   
   /* Accessories */
 

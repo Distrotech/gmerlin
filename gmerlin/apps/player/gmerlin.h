@@ -74,6 +74,16 @@ typedef enum
 #define ACCEL_GOTO_CURRENT           15
 #define ACCEL_CURRENT_TO_FAVOURITES  16
 
+#define ACCEL_SEEK_10                21
+#define ACCEL_SEEK_20                22
+#define ACCEL_SEEK_30                23
+#define ACCEL_SEEK_40                24
+#define ACCEL_SEEK_50                25
+#define ACCEL_SEEK_60                26
+#define ACCEL_SEEK_70                27
+#define ACCEL_SEEK_80                28
+#define ACCEL_SEEK_90                29
+
 typedef struct
   {
   char * directory;

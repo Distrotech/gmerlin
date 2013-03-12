@@ -45,9 +45,9 @@ int stream_replug(stream_t * s, bg_mediaconnector_stream_t * in_stream)
         s->mute_time = 0;
       
       s->mute_time += s->next_aframe->timestamp;
-
-      //      fprintf(stderr, "Mute time: %ld (%ld)\n",
-      //         s->mute_time, gavl_time_unscale(s->in_scale, s->mute_time));
+      
+      fprintf(stderr, "Audio mute time: %ld (%ld)\n",
+              s->mute_time, gavl_time_unscale(s->in_scale, s->mute_time));
       
       break;
     case GAVF_STREAM_VIDEO:
@@ -65,6 +65,9 @@ int stream_replug(stream_t * s, bg_mediaconnector_stream_t * in_stream)
         s->mute_time = 0;
       
       s->mute_time += s->next_vframe->timestamp;
+
+      fprintf(stderr, "Video mute time: %ld (%ld)\n",
+              s->mute_time, gavl_time_unscale(s->in_scale, s->mute_time));
       
       break;
     case GAVF_STREAM_TEXT:
@@ -268,6 +271,7 @@ int stream_create(bg_mediaconnector_stream_t * in_stream,
 
       /* Adjust format: We set the timescale to 1000 and the framerate to variable */
       ret->vfmt.timescale = 1000;
+      ret->vfmt.frame_duration = 0;
       ret->vfmt.framerate_mode = GAVL_FRAMERATE_VARIABLE;
 
       ret->in_scale = ret->vfmt.timescale;
