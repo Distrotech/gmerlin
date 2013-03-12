@@ -1704,10 +1704,16 @@ static codec_info_t codec_infos[] =
     { "FFmpeg VP8 decoder", "VP8", CODEC_ID_VP8,
       (uint32_t[]){ BGAV_MK_FOURCC('V', 'P', '8', '0'),
                     0x00 } },
-
-    { "Ffmpeg MPEG-1/2 decoder", "MPEG-1/2", CODEC_ID_MPEG2VIDEO,
+    
+    { "Ffmpeg MPEG-1 decoder", "MPEG-1", CODEC_ID_MPEG1VIDEO,
+      (uint32_t[])
+      { /* Set by MPEG demuxers */
+        BGAV_MK_FOURCC('m','p','v','1'), // MPEG-1
+        0x00,
+      }
+    },
+    { "Ffmpeg MPEG-2 decoder", "MPEG-2", CODEC_ID_MPEG2VIDEO,
       (uint32_t[]){ /* Set by MPEG demuxers */
-      BGAV_MK_FOURCC('m','p','v','1'), // MPEG-1
       BGAV_MK_FOURCC('m','p','v','2'), // MPEG-2
       BGAV_MK_FOURCC('m','p','g','v'), // MPEG-1/2
       /* Quicktime fourccs */

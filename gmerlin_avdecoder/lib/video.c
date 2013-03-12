@@ -255,6 +255,11 @@ int bgav_video_start(bgav_stream_t * s)
     result = dec->init(s);
     if(!result)
       return 0;
+
+    if(s->data.video.format.interlace_mode == GAVL_INTERLACE_UNKNOWN)
+      s->data.video.format.interlace_mode = GAVL_INTERLACE_NONE;
+    if(s->data.video.format.framerate_mode == GAVL_FRAMERATE_UNKNOWN)
+      s->data.video.format.framerate_mode = GAVL_FRAMERATE_CONSTANT;
     
     if(s->vframe)
       {
@@ -275,6 +280,11 @@ int bgav_video_start(bgav_stream_t * s)
     }
   else if(s->action == BGAV_STREAM_READRAW)
     {
+    if(s->data.video.format.interlace_mode == GAVL_INTERLACE_UNKNOWN)
+      s->data.video.format.interlace_mode = GAVL_INTERLACE_NONE;
+    if(s->data.video.format.framerate_mode == GAVL_FRAMERATE_UNKNOWN)
+      s->data.video.format.framerate_mode = GAVL_FRAMERATE_CONSTANT;
+    
     s->psrc =
       gavl_packet_source_create_video(bgav_stream_read_packet_func, // get_packet,
                                       s, GAVL_SOURCE_SRC_ALLOC, &s->ci, &s->data.video.format);
@@ -287,11 +297,6 @@ int bgav_video_start(bgav_stream_t * s)
     gavl_metadata_set_int(&s->m, GAVL_META_BITRATE,
                           s->container_bitrate);
   
-  if(s->data.video.format.interlace_mode == GAVL_INTERLACE_UNKNOWN)
-    s->data.video.format.interlace_mode = GAVL_INTERLACE_NONE;
-  if(s->data.video.format.framerate_mode == GAVL_FRAMERATE_UNKNOWN)
-    s->data.video.format.framerate_mode = GAVL_FRAMERATE_CONSTANT;
-
   if(s->data.video.format.framerate_mode == GAVL_FRAMERATE_STILL)
     s->flags = STREAM_DISCONT;
 
