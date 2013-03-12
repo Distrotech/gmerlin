@@ -46,8 +46,8 @@ int stream_replug(stream_t * s, bg_mediaconnector_stream_t * in_stream)
       
       s->mute_time += s->next_aframe->timestamp;
 
-      fprintf(stderr, "Mute time: %ld (%ld)\n",
-              s->mute_time, gavl_time_unscale(s->in_scale, s->mute_time));
+      //      fprintf(stderr, "Mute time: %ld (%ld)\n",
+      //         s->mute_time, gavl_time_unscale(s->in_scale, s->mute_time));
       
       break;
     case GAVF_STREAM_VIDEO:
@@ -60,6 +60,10 @@ int stream_replug(stream_t * s, bg_mediaconnector_stream_t * in_stream)
         return 0;
         }
       s->mute_time = gavl_time_scale(s->in_scale, s->a->end_time) - s->pts;
+
+      if(s->mute_time < 0)
+        s->mute_time = 0;
+      
       s->mute_time += s->next_vframe->timestamp;
       
       break;
