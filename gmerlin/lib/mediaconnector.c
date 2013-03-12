@@ -47,7 +47,7 @@ append_stream(bg_mediaconnector_t * conn,
     gavl_metadata_copy(&ret->m, m);
   ret->psrc = psrc;
   ret->conn = conn;
-  
+  ret->last_status = GAVL_SOURCE_OK; 
   return ret;
   }
 
@@ -363,11 +363,20 @@ static int process_stream(bg_mediaconnector_stream_t * s)
   {
   int ret;
   if(s->aconn)
+    {
     ret = gavl_audio_connector_process(s->aconn);
+    s->last_status = gavl_audio_connector_get_source_status(s->aconn);
+    }
   else if(s->vconn)
+    {
     ret = gavl_video_connector_process(s->vconn);
+    s->last_status = gavl_video_connector_get_source_status(s->vconn);
+    }
   else if(s->pconn)
+    {
     ret = gavl_packet_connector_process(s->pconn);
+    s->last_status = gavl_packet_connector_get_source_status(s->pconn);
+    }
   if(!ret)
     s->flags |= BG_MEDIACONNECTOR_FLAG_EOF;
   else
@@ -406,6 +415,11 @@ int bg_mediaconnector_iteration(bg_mediaconnector_t * conn)
                    BG_MEDIACONNECTOR_FLAG_DISCONT))
       continue;
 
+    /* If we didn't get any data the last time, avoid an infinite
+       loop and take another stream */
+    if(s->last_status == GAVL_SOURCE_AGAIN)
+      continue;
+
     ret++;
     
     if(s->time == GAVL_TIME_UNDEFINED)
@@ -437,6 +451,22 @@ int bg_mediaconnector_iteration(bg_mediaconnector_t * conn)
       return 0;
       }
     }
+  
+  for(i = 0; i < conn->num_streams; i++)
+    {
+    s = conn->streams[i];
+    if(i == min_index)
+      continue;
+
+    if(s->flags & (BG_MEDIACONNECTOR_FLAG_EOF |
+                   BG_MEDIACONNECTOR_FLAG_DISCONT))
+      continue;
+
+    /* If we didn't get any data from this stream yet, it's worth to
+       tra again */
+    s->last_status = GAVL_SOURCE_OK;
+    }
+
   ret++;
   return ret;
   }

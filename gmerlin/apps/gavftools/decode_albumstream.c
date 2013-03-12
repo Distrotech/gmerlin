@@ -176,7 +176,7 @@ static gavl_source_status_t read_video(void * priv, gavl_video_frame_t ** ret)
 
     while(1)
       {
-      s->st = gavl_video_source_read_frame(s->in_stream->asrc, &f);
+      s->st = gavl_video_source_read_frame(s->in_stream->vsrc, &f);
 
       switch(s->st)
         {

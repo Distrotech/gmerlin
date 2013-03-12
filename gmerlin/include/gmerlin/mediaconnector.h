@@ -76,6 +76,8 @@ typedef struct bg_mediaconnector_stream_s
 
   void * priv;
   void (*free_priv)(struct bg_mediaconnector_stream_s *);
+
+  gavl_source_status_t last_status;
   
   } bg_mediaconnector_stream_t;
 
