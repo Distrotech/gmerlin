@@ -492,10 +492,10 @@ void gavl_video_source_set_dst(gavl_video_source_t * s, int dst_flags,
       convert_still = 1;
       }
     }
-
+  
   if(!convert_fps && !convert_still)
     {
-    if(s->src_format.timescale != s->src_format.timescale)
+    if(s->src_format.timescale != s->dst_format.timescale)
       s->flags |= FLAG_SCALE_TIMESTAMPS;
     }
   
