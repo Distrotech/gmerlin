@@ -478,6 +478,12 @@ static const bg_parameter_info_t output_parameters[] =
       .val_default = { .val_i = 1024 },
       .help_string = TRS("Select the minimum packet size for using shared memory for a stream. Non-positive values disable shared memory completely"),
     },
+    {
+      .name = "dp",
+      .long_name = TRS("Dump gavf packets"),
+      .type = BG_PARAMETER_CHECKBUTTON,
+      .help_string = TRS("Use this for debugging"),
+    },
     { /* End */ }
   };
 

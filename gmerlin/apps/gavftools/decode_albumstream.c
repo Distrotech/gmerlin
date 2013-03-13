@@ -170,6 +170,8 @@ static gavl_source_status_t read_video(void * priv, gavl_video_frame_t ** ret)
   else if(s->next_vframe)
     {
     *ret = s->next_vframe;
+    (*ret)->timestamp = s->pts;
+    s->pts += (*ret)->duration;
     s->next_vframe = NULL;
     return GAVL_SOURCE_OK;
     }
@@ -185,10 +187,11 @@ static gavl_source_status_t read_video(void * priv, gavl_video_frame_t ** ret)
         {
         case GAVL_SOURCE_OK:
           *ret = f;
+          (*ret)->timestamp = s->pts;
+          s->pts += (*ret)->duration;
           return s->st;
           break;
         case GAVL_SOURCE_EOF:
-        
           if(!album_set_eof(s->a))
             {
             return s->a->eof ? GAVL_SOURCE_EOF : GAVL_SOURCE_AGAIN;
