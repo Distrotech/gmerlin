@@ -46,7 +46,7 @@ int stream_replug(stream_t * s, bg_mediaconnector_stream_t * in_stream)
       
       s->mute_time += s->next_aframe->timestamp;
       
-      fprintf(stderr, "Audio mute time: %ld (%ld)\n",
+      bg_log(BG_LOG_DEBUG, LOG_DOMAIN, "Audio mute time: %"PRId64" (%"PRId64")",
               s->mute_time, gavl_time_unscale(s->in_scale, s->mute_time));
       
       break;
@@ -66,9 +66,9 @@ int stream_replug(stream_t * s, bg_mediaconnector_stream_t * in_stream)
       
       s->mute_time += s->next_vframe->timestamp;
 
-      fprintf(stderr, "Video mute time: %ld (%ld)\n",
-              s->mute_time, gavl_time_unscale(s->in_scale, s->mute_time));
-      
+      bg_log(BG_LOG_DEBUG, LOG_DOMAIN, "Video mute time: %"PRId64" (%"PRId64")",
+             s->mute_time, gavl_time_unscale(s->in_scale, s->mute_time));
+ 
       break;
     case GAVF_STREAM_TEXT:
       break;
