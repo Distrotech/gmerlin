@@ -51,6 +51,33 @@ int stream_replug(stream_t * s, bg_mediaconnector_stream_t * in_stream)
       
       break;
     case GAVF_STREAM_VIDEO:
+      {
+      gavl_rectangle_f_t in_rect;
+      gavl_rectangle_i_t out_rect;
+      
+      gavl_video_format_t src_format;
+      
+      gavl_video_format_copy(&src_format,
+                             gavl_video_source_get_src_format(in_stream->vsrc));
+
+      gavl_rectangle_f_set_all(&in_rect, &src_format);
+      
+      gavl_rectangle_fit_aspect(&out_rect,   // gavl_rectangle_t * r,
+                                &src_format,  // gavl_video_format_t * src_format,
+                                &in_rect,    // gavl_rectangle_t * src_rect,
+                                &s->vfmt, // gavl_video_format_t * dst_format,
+                                1.0,        // float zoom,
+                                0.0          // float squeeze
+                                );
+      
+      gavl_rectangle_crop_to_format_scale(&in_rect,
+                                          &out_rect,
+                                          &src_format,
+                                          &s->vfmt);
+      gavl_video_options_set_rectangles(gavl_video_source_get_options(in_stream->vsrc),
+                                        &in_rect, &out_rect);
+      
+
       gavl_video_source_set_dst(in_stream->vsrc, 0, &s->vfmt);
 
       if(gavl_video_source_read_frame(s->in_stream->vsrc,
@@ -68,7 +95,7 @@ int stream_replug(stream_t * s, bg_mediaconnector_stream_t * in_stream)
 
       bg_log(BG_LOG_DEBUG, LOG_DOMAIN, "Video mute time: %"PRId64" (%"PRId64")",
              s->mute_time, gavl_time_unscale(s->in_scale, s->mute_time));
- 
+      }
       break;
     case GAVF_STREAM_TEXT:
       break;
