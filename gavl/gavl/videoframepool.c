@@ -61,8 +61,10 @@ gavl_video_frame_t * gavl_video_frame_pool_get(gavl_video_frame_pool_t *p)
   if(p->create_frame)
     p->frames[p->num_frames] = p->create_frame(p->priv);
   else
+    {
     p->frames[p->num_frames] = gavl_video_frame_create(p->priv);
-  
+    gavl_video_frame_clear(p->frames[p->num_frames], p->priv);
+    }
   p->num_frames++;
   return p->frames[p->num_frames-1];
   }
