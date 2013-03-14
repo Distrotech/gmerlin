@@ -438,8 +438,11 @@ int bg_mediaconnector_iteration(bg_mediaconnector_t * conn)
   
   /* Process this stream */
   if(min_index < 0)
+    {
+    if(!ret)
+      bg_log(BG_LOG_DEBUG, LOG_DOMAIN, "EOF (No stream left to process)");
     return ret;
-
+    }
   s = conn->streams[min_index];
 
   if(!process_stream(s))

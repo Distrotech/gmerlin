@@ -112,8 +112,10 @@ static gavl_source_status_t read_audio(void * priv, gavl_audio_frame_t ** ret)
   stream_t * s = priv;
 
   if(s->a->eof)
+    {
+    //    fprintf(stderr, "Audio EOF 1\n");
     return GAVL_SOURCE_EOF;
-    
+    }
   if(s->mute_time)
     {
     if(!s->mute_aframe)
@@ -161,15 +163,22 @@ static gavl_source_status_t read_audio(void * priv, gavl_audio_frame_t ** ret)
         case GAVL_SOURCE_EOF:
           if(!album_set_eof(s->a))
             {
+            //            if(s->a->eof)
+            //              fprintf(stderr, "Audio EOF 2\n");
+            
             return s->a->eof ? GAVL_SOURCE_EOF : GAVL_SOURCE_AGAIN;
             }
           break;
         case GAVL_SOURCE_AGAIN:
+          bg_log(BG_LOG_ERROR, LOG_DOMAIN,
+                 "Unexpected return code from audio source");
+          
           break;
         }
       }
     }
-  
+ 
+  //  fprintf(stderr, "Audio EOF 3\n");
   return GAVL_SOURCE_EOF;
   }
 
@@ -178,8 +187,10 @@ static gavl_source_status_t read_video(void * priv, gavl_video_frame_t ** ret)
   stream_t * s = priv;
 
   if(s->a->eof)
+    {
+    //    fprintf(stderr, "Video EOF 1\n");
     return GAVL_SOURCE_EOF;
-
+    }
   if(s->mute_time)
     {
     if(!s->mute_vframe)
@@ -204,10 +215,11 @@ static gavl_source_status_t read_video(void * priv, gavl_video_frame_t ** ret)
     }
   else
     {
-    gavl_video_frame_t * f = NULL;
+    gavl_video_frame_t * f;
 
     while(1)
       {
+      f = NULL;
       s->st = gavl_video_source_read_frame(s->in_stream->vsrc, &f);
 
       switch(s->st)
@@ -221,18 +233,24 @@ static gavl_source_status_t read_video(void * priv, gavl_video_frame_t ** ret)
         case GAVL_SOURCE_EOF:
           if(!album_set_eof(s->a))
             {
+            //            if(s->a->eof)
+            //              fprintf(stderr, "Video EOF 2\n");
+            
             return s->a->eof ? GAVL_SOURCE_EOF : GAVL_SOURCE_AGAIN;
             }
           break;
         case GAVL_SOURCE_AGAIN:
           /* Not handled */
+          bg_log(BG_LOG_ERROR, LOG_DOMAIN,
+                 "Unexpected return code from video source");
           break;
         }
 
       }
     
     }
-  
+
+  //  fprintf(stderr, "Video EOF 3\n");
   return GAVL_SOURCE_EOF;
   }
 

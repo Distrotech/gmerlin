@@ -297,7 +297,7 @@ int album_set_eof(album_t * a)
   gavf_update_metadata(g, &a->m);
 
   a->active_streams = a->num_streams;
-
+    
   bg_log(BG_LOG_INFO, LOG_DOMAIN, "Loaded %s", (char*)e->location);
   
   return 1;
