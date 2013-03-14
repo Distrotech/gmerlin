@@ -81,6 +81,7 @@ gavl_video_source_create(gavl_video_source_func_t func,
   ret->src_flags = src_flags;
   gavl_video_format_copy(&ret->src_format, src_format);
   ret->cnv = gavl_video_converter_create();
+  
   return ret;
   }
 
