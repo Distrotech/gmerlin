@@ -166,7 +166,6 @@ typedef struct
 
   /* TODO: These can probably be kicked out as well */  
   gavl_audio_format_t in_format;
-  gavl_audio_format_t pipe_format;
   gavl_audio_format_t out_format;
   
   /* Set by set_parameter */
@@ -1015,11 +1014,23 @@ static void set_input_formats(bg_transcoder_t * ret)
     if(!s->com.do_decode && !s->com.do_copy)
       continue;
     
-    gavl_audio_format_copy(&s->in_format,
-                           &ret->track_info->audio_streams[s->com.in_index].format);
     if(s->com.do_copy)
-      s->com.psrc = s->com.in_plugin->get_audio_packet_source(s->com.in_handle->priv,
-                                                              s->com.in_index);
+      {
+      s->com.psrc =
+        s->com.in_plugin->get_audio_packet_source(s->com.in_handle->priv,
+                                                  s->com.in_index);
+      gavl_audio_format_copy(&s->in_format,
+                             gavl_packet_source_get_audio_format(s->com.psrc));
+                             
+      }
+    else
+      {
+      gavl_audio_source_t * src =
+        s->com.in_plugin->get_audio_source(s->com.in_handle->priv,
+                                           s->com.in_index);
+      gavl_audio_format_copy(&s->in_format,
+                             gavl_audio_source_get_src_format(src));
+      }
     }
   for(i = 0; i < ret->num_video_streams; i++)
     {
@@ -1068,19 +1079,18 @@ static void set_input_formats(bg_transcoder_t * ret)
 static void add_audio_stream(audio_stream_t * ret,
                              bg_transcoder_t * t)
   {
+  
   ret->asrc = 
     bg_audio_filter_chain_connect(ret->fc, 
                                   ret->com.in_plugin->get_audio_source(ret->com.in_handle->priv,
                                                                        ret->com.in_index));
-  gavl_audio_format_copy(&ret->pipe_format, gavl_audio_source_get_src_format(ret->asrc));
+  gavl_audio_format_copy(&ret->out_format,
+                         gavl_audio_source_get_src_format(ret->asrc));
 
   /* We set the frame size so we have roughly half second long audio chunks */
-  ret->pipe_format.samples_per_frame =
-    gavl_time_to_samples(ret->pipe_format.samplerate,
+  ret->out_format.samples_per_frame =
+    gavl_time_to_samples(ret->out_format.samplerate,
                          GAVL_TIME_SCALE/2);
-  
-  gavl_audio_format_copy(&ret->out_format,
-                         &ret->pipe_format);
   
   /* Decide language */
   get_language(ret->in_language,
@@ -1111,7 +1121,7 @@ static void add_audio_stream_compressed(audio_stream_t * ret,
   ret->com.out_index =
     bg_encoder_add_audio_stream_compressed(t->enc,
                                            &ret->com.m,
-                                           &ret->in_format,
+                                           gavl_packet_source_get_audio_format(ret->com.psrc),
                                            &ret->com.ci,
                                            ret->com.in_index);
   
@@ -1603,8 +1613,8 @@ static int video_iteration(video_stream_t * s, bg_transcoder_t * t)
 
     if(t->start_time != GAVL_TIME_UNDEFINED)
       {
-      s->com.pts_offset = gavl_time_scale(s->out_format.timescale,
-                                          t->start_time);
+      s->com.pts_offset = -gavl_time_scale(s->out_format.timescale,
+                                           t->start_time);
       }
     s->initialized = 1;
     }
