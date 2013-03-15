@@ -509,12 +509,6 @@ const bg_fv_plugin_t the_plugin =
       .set_parameter =    set_parameter_decimate,
       .priority =         1,
     },
-#if 0
-    .connect_input_port = connect_input_port_decimate,
-    .set_input_format = set_input_format_decimate,
-    .get_output_format = get_output_format_decimate,
-    .read_video = read_video_decimate,
-#endif
     .connect = connect_decimate,
     .reset = reset_decimate,
     

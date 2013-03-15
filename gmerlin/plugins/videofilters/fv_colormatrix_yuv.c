@@ -450,14 +450,6 @@ const const bg_fv_plugin_t the_plugin =
       .set_parameter =    set_parameter_colormatrix,
       .priority =         1,
     },
-#if 0
-    .connect_input_port = connect_input_port_colormatrix,
-    
-    .set_input_format = set_input_format_colormatrix,
-    .get_output_format = get_output_format_colormatrix,
-    .get_options = get_options_colormatrix,
-    .read_video = read_video_colormatrix,
-#endif
     .connect = connect_colormatrix,
     .need_restart = need_restart_colormatrix,
     

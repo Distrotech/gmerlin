@@ -129,6 +129,12 @@ typedef struct
   gavl_packet_t packet;
   gavl_metadata_t m;
   gavl_packet_source_t * psrc;  
+  gavl_packet_sink_t * psink;
+
+  bg_transcoder_t * t;
+
+  int64_t pts_offset;
+  int64_t pts_end;    // When we don't decode to the very end
   } stream_t;
 
 static int set_stream_parameters_general(stream_t * s,
@@ -156,23 +162,12 @@ typedef struct
   {
   stream_t com;
 
-  // int do_convert_in;
-  int do_convert_out;
-  
-  gavl_audio_converter_t * cnv_out;
-
   bg_audio_filter_chain_t * fc;
-  
-  gavl_audio_frame_t * out_frame;
-  gavl_audio_frame_t * pipe_frame;
-  
+
+  /* TODO: These can probably be kicked out as well */  
   gavl_audio_format_t in_format;
   gavl_audio_format_t pipe_format;
   gavl_audio_format_t out_format;
-  
-  bg_read_audio_func_t in_func;
-  void * in_data;
-  int in_stream;
   
   /* Set by set_parameter */
   bg_gavl_audio_options_t options;
@@ -180,7 +175,6 @@ typedef struct
   /* Do normalization */
   int normalize;
   
-  int64_t samples_to_read; /* Samples to read     (in OUTPUT samplerate) */
   int64_t samples_read;    /* Samples read so far (in OUTPUT samplerate) */
   
   int initialized;
@@ -191,7 +185,8 @@ typedef struct
   char in_language[4];
   char out_language[4];
   int force_language;
-  gavl_audio_source_t * asrc_in;
+  gavl_audio_source_t * asrc;        // Output of the filter chain
+  gavl_audio_sink_t * asink;
   } audio_stream_t;
 
 static void set_audio_parameter_general(void * data, const char * name,
@@ -249,14 +244,14 @@ typedef struct
   bg_gavl_video_options_t options;
   
   /* Data source */
-  bg_read_video_func_t in_func;
-  void * in_data;
-  int in_stream;
+//  bg_read_video_func_t in_func;
+//  void * in_data;
+//  int in_stream;
   
   /* Other stuff */
 
   int initialized;
-  int64_t start_time_scaled;
+//  int64_t start_time_scaled;
 
   /* Whether 2-pass transcoding is requested */
   int twopass;
@@ -269,8 +264,8 @@ typedef struct
   int b_frames_seen;
   int flush_b_frames;
 
-  gavl_video_source_t * vsrc_in;
-  
+  gavl_video_source_t * vsrc;
+  gavl_video_sink_t   * vsink;
   } video_stream_t;
 
 static void set_video_parameter_general(void * data,
@@ -772,6 +767,7 @@ void bg_transcoder_send_msg_metadata(bg_msg_queue_list_t * l, gavl_metadata_t * 
 
 /* */
 
+#if 0
 static int decode_video_frame(void * priv, gavl_video_frame_t * f, int stream)
   {
   video_stream_t * s;
@@ -808,6 +804,7 @@ static int decode_video_frame(void * priv, gavl_video_frame_t * f, int stream)
     }
   return 1;
   }
+#endif
 
 static void init_audio_stream(audio_stream_t * ret,
                               bg_transcoder_track_audio_t * s,
@@ -823,7 +820,6 @@ static void init_audio_stream(audio_stream_t * ret,
   /* Create converter */
   
   bg_gavl_audio_options_init(&ret->options);
-  ret->cnv_out = gavl_audio_converter_create();
   ret->fc = bg_audio_filter_chain_create(&ret->options, plugin_reg);
   
   /* Apply parameters */
@@ -1021,7 +1017,9 @@ static void set_input_formats(bg_transcoder_t * ret)
     
     gavl_audio_format_copy(&s->in_format,
                            &ret->track_info->audio_streams[s->com.in_index].format);
-    
+    if(s->com.do_copy)
+      s->com.psrc = s->com.in_plugin->get_audio_packet_source(s->com.in_handle->priv,
+                                                              s->com.in_index);
     }
   for(i = 0; i < ret->num_video_streams; i++)
     {
@@ -1032,6 +1030,11 @@ static void set_input_formats(bg_transcoder_t * ret)
     
     gavl_video_format_copy(&s->in_format,
                            &ret->track_info->video_streams[s->com.in_index].format);
+
+    if(s->com.do_copy)
+      s->com.psrc = s->com.in_plugin->get_video_packet_source(s->com.in_handle->priv,
+                                                              s->com.in_index);
+
     }
   for(i = 0; i < ret->num_overlay_streams; i++)
     {
@@ -1065,30 +1068,16 @@ static void set_input_formats(bg_transcoder_t * ret)
 static void add_audio_stream(audio_stream_t * ret,
                              bg_transcoder_t * t)
   {
-  
-  ret->in_func = ret->com.in_plugin->read_audio;
-  ret->in_data = ret->com.in_handle->priv;
-  ret->in_stream = ret->com.in_index;
-  
-  /* We set the frame size so we have roughly half second long audio chunks */
-  ret->in_format.samples_per_frame =
-    gavl_time_to_samples(ret->in_format.samplerate,
-                         GAVL_TIME_SCALE/2);
-  
-  bg_audio_filter_chain_connect_input(ret->fc,
-                                      ret->in_func,
-                                      ret->in_data,
-                                      ret->in_stream);
-  
-  bg_audio_filter_chain_init(ret->fc, &ret->in_format, &ret->pipe_format);
+  ret->asrc = 
+    bg_audio_filter_chain_connect(ret->fc, 
+                                  ret->com.in_plugin->get_audio_source(ret->com.in_handle->priv,
+                                                                       ret->com.in_index));
+  gavl_audio_format_copy(&ret->pipe_format, gavl_audio_source_get_src_format(ret->asrc));
 
+  /* We set the frame size so we have roughly half second long audio chunks */
   ret->pipe_format.samples_per_frame =
     gavl_time_to_samples(ret->pipe_format.samplerate,
                          GAVL_TIME_SCALE/2);
-  
-  ret->in_func = bg_audio_filter_chain_read;
-  ret->in_data = ret->fc;
-  ret->in_stream = 0;
   
   gavl_audio_format_copy(&ret->out_format,
                          &ret->pipe_format);
@@ -1239,19 +1228,13 @@ add_overlay_stream(subtitle_stream_t * ret,
 static void add_video_stream(video_stream_t * ret,
                              bg_transcoder_t * t)
   {
-  ret->in_func = decode_video_frame;
-  ret->in_data = t;
-  ret->in_stream = ret->com.in_index;
+  ret->vsrc = 
+    bg_video_filter_chain_connect(ret->fc,
+                                  ret->com.in_plugin->get_video_source(ret->com.in_handle->priv,
+                                                                       ret->com.in_index));
 
-  bg_video_filter_chain_connect_input(ret->fc,
-                                      ret->in_func, ret->in_data, ret->in_stream);
-  
-  bg_video_filter_chain_init(ret->fc, &ret->in_format,
-                             &ret->out_format);
-  ret->in_func   = bg_video_filter_chain_read;
-  ret->in_data   = ret->fc;
-  ret->in_stream = 0;
-  
+  gavl_video_format_copy(&ret->out_format, gavl_video_source_get_src_format(ret->vsrc));
+
   /* Add the video stream */
 
   ret->com.out_index =
@@ -1297,9 +1280,6 @@ static int set_video_pass(bg_transcoder_t * t, int i)
 static int audio_iteration(audio_stream_t*s, bg_transcoder_t * t)
   {
   int ret = 1;
-  int num_samples;
-  int samples_decoded;
-  gavl_audio_frame_t * frame;
   
   /* Get one frame worth of input data */
 
@@ -1309,18 +1289,20 @@ static int audio_iteration(audio_stream_t*s, bg_transcoder_t * t)
        (t->end_time != GAVL_TIME_UNDEFINED) &&
        (t->end_time > t->start_time))
       {
-      s->samples_to_read = gavl_time_to_samples(s->out_format.samplerate,
-                                                t->end_time - t->start_time);
-      
+      s->com.pts_end = gavl_time_to_samples(s->out_format.samplerate,
+                                            t->end_time - t->start_time);
       }
     else if(t->end_time != GAVL_TIME_UNDEFINED)
       {
-      s->samples_to_read = gavl_time_to_samples(s->out_format.samplerate,
-                                                t->end_time);
+      s->com.pts_end = gavl_time_to_samples(s->out_format.samplerate,
+                                            t->end_time);
       }
     else
-      s->samples_to_read = 0; /* Zero == Infinite */
+      s->com.pts_end = 0; /* Zero == Infinite */
 
+    if(t->start_time != GAVL_TIME_UNDEFINED)
+      s->com.pts_offset = -gavl_time_to_samples(s->out_format.samplerate,
+                                                t->start_time);
     s->initialized = 1;
     }
 
@@ -1337,7 +1319,7 @@ static int audio_iteration(audio_stream_t*s, bg_transcoder_t * t)
     ret = bg_encoder_write_audio_packet(t->enc, &s->com.packet,
                                         s->com.out_index); 
     s->samples_read += s->com.packet.duration;
-    if(s->samples_to_read && (s->samples_to_read <= s->samples_read))
+    if(s->com.pts_end && (s->com.pts_end <= s->samples_read))
       s->com.status = STREAM_STATE_FINISHED;
 
     s->com.time = gavl_samples_to_time(s->in_format.samplerate,
@@ -1345,59 +1327,46 @@ static int audio_iteration(audio_stream_t*s, bg_transcoder_t * t)
     }
   else
     {
-    if(s->samples_to_read &&
-       (s->samples_read + s->out_format.samples_per_frame > s->samples_to_read))
-      num_samples = s->samples_to_read - s->samples_read;
-    else
-      num_samples = s->out_format.samples_per_frame;
+    gavl_source_status_t st;
+    gavl_audio_frame_t * frame = NULL;
 
-    if(s->do_convert_out)
-      frame = s->pipe_frame;
-    else
-      frame = s->out_frame;
-  
-    samples_decoded = s->in_func(s->in_data, frame, s->in_stream,
-                                 num_samples);
-    /* Nothing more to transcode */
-  
-    if(!samples_decoded)
+    if((st = gavl_audio_source_read_frame(s->asrc, &frame)) != GAVL_SOURCE_OK)
       {
       s->com.status = STREAM_STATE_FINISHED;
       return ret;
       }
-    
+    frame->timestamp += s->com.pts_offset;
+
+    if(s->com.pts_end && 
+       (s->samples_read + frame->valid_samples > s->com.pts_end))
+      {
+      frame->valid_samples = s->com.pts_end - s->samples_read;
+      if(frame->valid_samples < 0)
+        {
+        s->com.status = STREAM_STATE_FINISHED;
+        return ret;
+        }
+      }
+   
+    /* Update sample counter before the frame is set to NULL
+       after peak-detection */
+
+    s->samples_read += frame->valid_samples;
+ 
     /* Volume normalization */
     if(s->normalize)
       {
       if(t->pass == t->total_passes)
-        {
         gavl_volume_control_apply(s->volume_control, frame);
-        }
       else if((t->pass > 1) && (t->pass < t->total_passes))
         frame = NULL;
-      }
-  
-    /* Output conversion */
-    if(s->do_convert_out)
-      {
-      gavl_audio_convert(s->cnv_out, s->pipe_frame, s->out_frame);
-      frame = s->out_frame;
-      }
-
-    /* Update sample counter before the frame is set to NULL
-       after peak-detection */
-    
-    s->samples_read += frame->valid_samples;
-        
-    /* Peak detection is done for the final frame */
-    if(s->normalize)
-      {
-      if(t->pass == 1)
+      else if(t->pass == 1)
         {
         gavl_peak_detector_update(s->peak_detector, frame);
         frame = NULL;
         }
       }
+        
     if(frame)
       {
 #ifdef DUMP_AUDIO_TIMESTAMPS
@@ -1411,12 +1380,11 @@ static int audio_iteration(audio_stream_t*s, bg_transcoder_t * t)
 
     s->com.time = gavl_samples_to_time(s->out_format.samplerate,
                                        s->samples_read);
-
     }
   
   /* Last samples */
   
-  if(s->samples_to_read && (s->samples_to_read <= s->samples_read))
+  if(s->com.pts_end && (s->com.pts_end <= s->samples_read))
     s->com.status = STREAM_STATE_FINISHED;
   
   if(!ret)
@@ -1615,15 +1583,28 @@ static int video_iteration(video_stream_t * s, bg_transcoder_t * t)
   {
   int ret = 1;
   int i;
-  int result;
   
   if(!s->initialized)
     {
+    if((t->start_time != GAVL_TIME_UNDEFINED) &&
+       (t->end_time != GAVL_TIME_UNDEFINED) &&
+       (t->end_time > t->start_time))
+      {
+      s->com.pts_end = gavl_time_scale(s->out_format.timescale,
+                                       t->end_time - t->start_time);
+      }
+    else if(t->end_time != GAVL_TIME_UNDEFINED)
+      {
+      s->com.pts_end = gavl_time_scale(s->out_format.timescale,
+                                       t->end_time);
+      }
+    else
+      s->com.pts_end = 0; /* Zero == Infinite */
+
     if(t->start_time != GAVL_TIME_UNDEFINED)
       {
-      s->start_time_scaled = gavl_time_scale(s->in_format.timescale,
-                                             t->start_time);
-      //      bg_video_converter_reset(s->cnv, s->start_time_scaled);
+      s->com.pts_offset = gavl_time_scale(s->out_format.timescale,
+                                          t->start_time);
       }
     s->initialized = 1;
     }
@@ -1671,26 +1652,28 @@ static int video_iteration(video_stream_t * s, bg_transcoder_t * t)
     }
   else
     {
-    result = s->in_func(s->in_data, s->frame, s->in_stream);
-    if(!result)
+    gavl_source_status_t st;
+    gavl_video_frame_t * frame = NULL;
+
+    if((st = gavl_video_source_read_frame(s->vsrc, &frame)) != GAVL_SOURCE_OK)
       {
       s->com.status = STREAM_STATE_FINISHED;
-
       /* Set this also for all attached subtitle streams */
       for(i = 0; i < s->num_subtitle_streams; i++)
         s->subtitle_streams[i]->com.status = STREAM_STATE_FINISHED;
       return ret;
       }
+    frame->timestamp += s->com.pts_offset;
 
     s->com.time = gavl_time_unscale(s->out_format.timescale,
-                                    s->frame->timestamp + s->frame->duration);
+                                    frame->timestamp + frame->duration);
 
     if((t->end_time != GAVL_TIME_UNDEFINED) &&
        (s->com.time >= t->end_time))
       s->com.status = STREAM_STATE_FINISHED;
     
     //  if(check_video_blend(s, t, s->com.time))
-    if(check_video_blend(s, t, s->frame->timestamp))
+    if(check_video_blend(s, t, frame->timestamp))
       {
       for(i = 0; i < s->num_subtitle_streams; i++)
         {
@@ -1703,11 +1686,11 @@ static int video_iteration(video_stream_t * s, bg_transcoder_t * t)
       }
 
 #ifdef DUMP_VIDEO_TIMESTAMPS
-    bg_debug("Output timestamp (video): %"PRId64"\n", s->frame->timestamp);
+    bg_debug("Output timestamp (video): %"PRId64"\n", frame->timestamp);
 #endif
   
     ret = bg_encoder_write_video_frame(t->enc,
-                                       s->frame,
+                                       frame,
                                        s->com.out_index);
     }
   
@@ -2339,7 +2322,7 @@ static void create_streams(bg_transcoder_t * ret,
     
   for(i = 0; i < ret->num_audio_streams; i++)
     {
-
+    ret->audio_streams[i].com.t = ret;
     init_audio_stream(&ret->audio_streams[i],
                       &track->audio_streams[i],
                       i, ret->plugin_reg);
@@ -2350,6 +2333,7 @@ static void create_streams(bg_transcoder_t * ret,
   
   for(i = 0; i < ret->num_video_streams; i++)
     {
+    ret->video_streams[i].com.t = ret;
     init_video_stream(&ret->video_streams[i],
                       &track->video_streams[i],
                       i, ret->plugin_reg);
@@ -2360,6 +2344,7 @@ static void create_streams(bg_transcoder_t * ret,
   
   for(i = 0; i < ret->num_text_streams; i++)
     {
+    ret->text_streams[i].com.com.t = ret;
     init_text_stream(&ret->text_streams[i],
                      &track->text_streams[i]);
 
@@ -2371,6 +2356,7 @@ static void create_streams(bg_transcoder_t * ret,
   
   for(i = 0; i < ret->num_overlay_streams; i++)
     {
+    ret->overlay_streams[i].com.t = ret;
     init_overlay_stream(&ret->overlay_streams[i],
                                  &track->overlay_streams[i]);
     if(ret->overlay_streams[i].com.action == STREAM_ACTION_TRANSCODE)
@@ -2764,34 +2750,12 @@ static int init_encoder(bg_transcoder_t * ret)
 
 static int init_audio_converter(audio_stream_t * ret, bg_transcoder_t * t)
   {
-  gavl_audio_options_t * opt;
   bg_encoder_get_audio_format(t->enc,
                               ret->com.out_index,
                               &ret->out_format);
 
-  gavl_audio_format_copy(&ret->pipe_format, &ret->out_format);
+  gavl_audio_source_set_dst(ret->asrc, 0, &ret->out_format);
 
-  if(ret->options.force_format != GAVL_SAMPLE_NONE)
-    ret->pipe_format.sample_format = ret->options.force_format;
-
-  bg_audio_filter_chain_set_out_format(ret->fc, &ret->pipe_format);
-  
-  /* Initialize output converter */
-  
-  opt = gavl_audio_converter_get_options(ret->cnv_out);
-  gavl_audio_options_copy(opt, ret->options.opt);
-  
-  ret->do_convert_out = gavl_audio_converter_init(ret->cnv_out,
-                                                  &ret->pipe_format,
-                                                  &ret->out_format);
-  
-  /* Create frames (could be left from the previous pass) */
-  
-  if(ret->do_convert_out && !ret->pipe_frame)
-    ret->pipe_frame = gavl_audio_frame_create(&ret->pipe_format);
-  
-  if(!ret->out_frame)
-    ret->out_frame = gavl_audio_frame_create(&ret->out_format);
   return 1;
   }
 
@@ -3008,7 +2972,7 @@ static void init_normalize(bg_transcoder_t * ret)
     else if(ret->pass == ret->total_passes)
       {
       gavl_volume_control_set_format(ret->audio_streams[i].volume_control,
-                                     &ret->audio_streams[i].pipe_format);
+                                     &ret->audio_streams[i].out_format);
       /* Set the volume */
       gavl_peak_detector_get_peak(ret->audio_streams[i].peak_detector,
                                   NULL, NULL, &absolute);
@@ -3149,12 +3113,6 @@ static void cleanup_audio_stream(audio_stream_t * s)
   
   /* Free all resources */
 
-  if(s->out_frame)
-    gavl_audio_frame_destroy(s->out_frame);
-  if(s->pipe_frame)
-    gavl_audio_frame_destroy(s->pipe_frame);
-  if(s->cnv_out)
-    gavl_audio_converter_destroy(s->cnv_out);
   if(s->fc)
     bg_audio_filter_chain_destroy(s->fc);
   if(s->volume_control)

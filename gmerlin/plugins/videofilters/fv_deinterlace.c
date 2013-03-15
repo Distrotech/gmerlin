@@ -481,16 +481,6 @@ const const bg_fv_plugin_t the_plugin =
       .set_parameter =    set_parameter_deinterlace,
       .priority =         1,
     },
-#if 0
-    .get_options = get_options_deinterlace,
-    
-    .connect_input_port = connect_input_port_deinterlace,
-    
-    .set_input_format = set_input_format_deinterlace,
-    .get_output_format = get_output_format_deinterlace,
-    
-    .read_video = read_video_deinterlace,
-#endif
     .connect = connect_deinterlace,
     .need_restart = need_restart_deinterlace,
     .reset = reset_deinterlace,

@@ -163,12 +163,6 @@ const bg_fv_plugin_t the_plugin =
       .priority =         1,
     },
 
-#if 0    
-    .connect_input_port = connect_input_port_framerate,
-    .set_input_format = set_input_format_framerate,
-    .get_output_format = get_output_format_framerate,
-    .read_video = read_video_framerate,
-#endif
     .connect = connect_framerate,
     .need_restart = need_restart_framerate,
     

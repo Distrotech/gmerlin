@@ -1294,16 +1294,6 @@ const bg_fv_plugin_t the_plugin =
       .set_parameter =    set_parameter_cropscale,
       .priority =         1,
     },
-#if 0 
-    .get_options = get_options_cropscale,
-    
-    .connect_input_port = connect_input_port_cropscale,
-    
-    .set_input_format = set_input_format_cropscale,
-    .get_output_format = get_output_format_cropscale,
-
-    .read_video = read_video_cropscale,
-#endif
     .connect = connect_cropscale,
     
     .need_restart = need_restart_cropscale,
