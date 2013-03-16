@@ -698,7 +698,7 @@ struct bg_input_plugin_s
    *  buffering mechanism.
    */
 
-  bg_read_audio_func_t read_audio;
+  //  bg_read_audio_func_t read_audio;
 
   /** \brief Get the audio source for a stream
    *  \param priv The handle returned by the create() method
@@ -719,7 +719,7 @@ struct bg_input_plugin_s
    *  1, but the subsequent call to read_video returns 0
    */
 
-  int (*has_still)(void * priv, int stream);
+  //  int (*has_still)(void * priv, int stream);
   
   /** \brief Read a video frame
    *  \param priv The handle returned by the create() method
@@ -728,7 +728,7 @@ struct bg_input_plugin_s
    *  \returns 1 if a frame was decoded, 0 means EOF.
    */
   
-  bg_read_video_func_t read_video;
+  //  bg_read_video_func_t read_video;
   
   /** \brief Get the video source for a stream
    *  \param priv The handle returned by the create() method

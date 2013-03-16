@@ -38,7 +38,6 @@
 #include <config.h>
 #include <gmerlin/utils.h>
 #include <gmerlin/singlepic.h>
-#include <gmerlin/mediafiledevice.h>
 
 #include <gavfenc.h>
 
@@ -84,12 +83,6 @@ meta_plugins[] =
       bg_singlepic_encoder_info,
       bg_singlepic_encoder_get,
       bg_singlepic_encoder_create,
-    },
-    {
-      bg_audiofiledevice_name,
-      bg_audiofiledevice_info,
-      bg_audiofiledevice_get,
-      bg_audiofiledevice_create,
     },
     {
       bg_ovl2text_name,

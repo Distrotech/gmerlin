@@ -454,13 +454,6 @@ static void stop_cdaudio(void * priv)
   cd->cdio = NULL;
   }
 
-static int read_audio_cdaudio(void * priv,
-                              gavl_audio_frame_t * frame, int stream,
-                              int num_samples)
-  {
-  cdaudio_t * cd = priv;
-  return gavl_audio_source_read_samples(cd->src, frame, num_samples);
-  }
 
 static void seek_cdaudio(void * priv, int64_t * time, int scale)
   {
@@ -804,9 +797,7 @@ const bg_input_plugin_t the_plugin =
      *  in the stream infos to check out, which streams are to be decoded
      */
     .start =                 start_cdaudio,
-    /* Read one audio frame (returns FALSE on EOF) */
-    .read_audio =    read_audio_cdaudio,
-
+    
     .get_audio_source = get_audio_source_cdaudio,
     
     /*

@@ -26,8 +26,8 @@
 static int load_file(bg_plugin_registry_t * plugin_reg,
                      bg_plugin_handle_t ** input_handle,
                      bg_input_plugin_t ** input_plugin,
-                     const char * file,
-                     gavl_video_format_t * format)
+                     gavl_video_source_t ** src,
+                     const char * file)
   {
   bg_track_info_t * ti;
   *input_handle = NULL;
@@ -60,10 +60,8 @@ static int load_file(bg_plugin_registry_t * plugin_reg,
   if((*input_plugin)->start)
     (*input_plugin)->start((*input_handle)->priv);
   
-  /* Get video format */
-
-  gavl_video_format_copy(format,
-                         &ti->video_streams[0].format);
+  /* Get video source */
+  *src =   (*input_plugin)->get_video_source((*input_handle)->priv, 0);
   
   return 1;
   }
@@ -91,6 +89,9 @@ int main(int argc, char ** argv)
   bg_input_plugin_t * input_plugin_2;
 
   int frame = 0;
+
+  gavl_video_source_t * src_1;
+  gavl_video_source_t * src_2;
   
   memset(&format_1, 0, sizeof(format_1));
   memset(&format_2, 0, sizeof(format_2));
@@ -114,11 +115,12 @@ int main(int argc, char ** argv)
 
   /* Load inputs */
 
+
   if(!load_file(plugin_reg,
                 &input_handle_1,
                 &input_plugin_1,
-                argv[1],
-                &format_1))
+                &src_1,
+                argv[1]))
     {
     fprintf(stderr, "Cannot open %s\n", argv[1]);
     return -1;
@@ -127,12 +129,15 @@ int main(int argc, char ** argv)
   if(!load_file(plugin_reg,
                 &input_handle_2,
                 &input_plugin_2,
-                argv[2],
-                &format_2))
+                &src_2,
+                argv[2]))
     {
     fprintf(stderr, "Cannot open %s\n", argv[2]);
     return -1;
     }
+
+  gavl_video_format_copy(&format_1, gavl_video_source_get_src_format(src_1));
+  gavl_video_format_copy(&format_2, gavl_video_source_get_src_format(src_2));
 
   if((format_1.image_width != format_2.image_width) ||
      (format_1.image_height != format_2.image_height) ||
@@ -142,17 +147,17 @@ int main(int argc, char ** argv)
     return -1;
     }
   
-  frame_1 = gavl_video_frame_create(&format_1);
-  frame_2 = gavl_video_frame_create(&format_2);
-
   while(1)
     {
-    if(!input_plugin_1->read_video(input_handle_1->priv,
-                                  frame_1, 0))
+    frame_1 = NULL;
+    frame_2 = NULL;
+
+    if(gavl_video_source_read_frame(src_1, &frame_1) != GAVL_SOURCE_OK)
       break;
-    if(!input_plugin_2->read_video(input_handle_2->priv,
-                                   frame_2, 0))
+
+    if(gavl_video_source_read_frame(src_2, &frame_2) != GAVL_SOURCE_OK)
       break;
+
     gavl_video_frame_psnr(psnr, frame_1, frame_2, &format_1);
 
     printf("%d ", frame++);

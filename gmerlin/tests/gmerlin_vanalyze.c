@@ -30,8 +30,8 @@
 static int load_file(bg_plugin_registry_t * plugin_reg,
                      bg_plugin_handle_t ** input_handle,
                      bg_input_plugin_t ** input_plugin,
-                     const char * file,
-                     gavl_video_format_t * format)
+                     gavl_video_source_t ** src,
+                     const char * file)
   {
   bg_track_info_t * ti;
   *input_handle = NULL;
@@ -66,8 +66,7 @@ static int load_file(bg_plugin_registry_t * plugin_reg,
   
   /* Get video format */
 
-  gavl_video_format_copy(format,
-                         &ti->video_streams[0].format);
+  *src = (*input_plugin)->get_video_source((*input_handle)->priv, 0);
   
   return 1;
   }
@@ -140,14 +139,7 @@ int main(int argc, char ** argv)
 
   gavl_video_frame_t * frame_o;
   gavl_video_frame_t * frame_c;
-  gavl_video_frame_t * frame_ssim_o = NULL;
-  gavl_video_frame_t * frame_ssim_c = NULL;
   gavl_video_frame_t * frame_ssim_res;
-  
-  gavl_video_frame_t * frame_1;
-  gavl_video_frame_t * frame_2;
-  
-  gavl_video_converter_t * cnv;
   
   bg_cfg_registry_t * cfg_reg;
   bg_cfg_section_t * cfg_section;
@@ -167,7 +159,6 @@ int main(int argc, char ** argv)
   gavl_packet_t packet;
   gavl_compression_info_t ci;
   int frame = 0;
-  int do_convert;
   float * ssim_ptr;
 
   int64_t duration = 0;
@@ -188,8 +179,10 @@ int main(int argc, char ** argv)
   int64_t frame_bytes_sum = 0;
   double psnr_sum = 0.0;
   double ssim_sum = 0.0;
-
   int found_packet = 0;
+  
+  gavl_video_source_t * src_c;
+  gavl_video_source_t * src_o;
   
   memset(&format_o, 0, sizeof(format_o));
   memset(&format_c, 0, sizeof(format_c));
@@ -218,8 +211,8 @@ int main(int argc, char ** argv)
   if(!load_file(plugin_reg,
                 &input_handle_o,
                 &input_plugin_o,
-                argv[1],
-                &format_o))
+                &src_o,
+                argv[1]))
     {
     fprintf(stderr, "Cannot open %s\n", argv[1]);
     return -1;
@@ -228,13 +221,16 @@ int main(int argc, char ** argv)
   if(!load_file(plugin_reg,
                 &input_handle_c,
                 &input_plugin_c,
-                argv[2],
-                &format_c))
+                &src_c,
+                argv[2]))
     {
     fprintf(stderr, "Cannot open %s\n", argv[2]);
     return -1;
     }
 
+  gavl_video_format_copy(&format_o, gavl_video_source_get_src_format(src_o));
+  gavl_video_format_copy(&format_c, gavl_video_source_get_src_format(src_c));
+  
   if(!load_file_compressed(plugin_reg,
                            &input_handle_cmp,
                            &input_plugin_cmp,
@@ -255,52 +251,32 @@ int main(int argc, char ** argv)
 
   gavl_video_format_copy(&format_ssim, &format_o);
   format_ssim.pixelformat = GAVL_GRAY_FLOAT;
-  
-  cnv = gavl_video_converter_create();
-  do_convert =
-    gavl_video_converter_init(cnv, &format_o, &format_ssim);
-  
-  frame_o = gavl_video_frame_create(&format_o);
-  frame_c = gavl_video_frame_create(&format_c);
 
-  if(do_convert)
-    {
-    frame_ssim_o = gavl_video_frame_create(&format_ssim);
-    frame_ssim_c = gavl_video_frame_create(&format_ssim);
-    }
+  gavl_video_source_set_dst(src_o, 0, &format_ssim);
+  gavl_video_source_set_dst(src_c, 0, &format_ssim);
+  
 
   frame_ssim_res = gavl_video_frame_create(&format_ssim);
   
   while(1)
     {
-    if(!input_plugin_o->read_video(input_handle_o->priv,
-                                  frame_o, 0))
-      break;
-    if(!input_plugin_c->read_video(input_handle_c->priv,
-                                   frame_c, 0))
+    frame_o = NULL;
+    frame_c = NULL;
+
+    if(gavl_video_source_read_frame(src_o, &frame_o) != GAVL_SOURCE_OK)
       break;
 
+    if(gavl_video_source_read_frame(src_c, &frame_c) != GAVL_SOURCE_OK)
+      break;
+    
     duration += frame_c->duration;
     
-    if(do_convert)
-      {
-      gavl_video_convert(cnv, frame_o, frame_ssim_o);
-      gavl_video_convert(cnv, frame_c, frame_ssim_c);
-      frame_1 = frame_ssim_o;
-      frame_2 = frame_ssim_c;
-      }
-    else
-      {
-      frame_1 = frame_o;
-      frame_2 = frame_c;
-      }
-
     /* Get PSNR */
-    gavl_video_frame_psnr(psnr, frame_1, frame_2, &format_ssim);
+    gavl_video_frame_psnr(psnr, frame_c, frame_o, &format_ssim);
 
     /* Get SSIM */
 #if 1
-    gavl_video_frame_ssim(frame_1, frame_2, frame_ssim_res, &format_ssim);
+    gavl_video_frame_ssim(frame_c, frame_o, frame_ssim_res, &format_ssim);
     ssim = 0.0;
     for(i = 0; i < format_ssim.image_height; i++)
       {

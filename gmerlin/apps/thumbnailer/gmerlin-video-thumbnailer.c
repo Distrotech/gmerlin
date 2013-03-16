@@ -145,6 +145,8 @@ int main(int argc, char ** argv)
   int do_convert, have_frame;
   struct stat st;
   bg_parameter_value_t val;
+
+  gavl_video_source_t * src;
   
   memset(&metadata, 0, sizeof(metadata));
   
@@ -224,6 +226,8 @@ int main(int argc, char ** argv)
   if(input_plugin->start)
     input_plugin->start(input_handle->priv);
 
+  src = input_plugin->get_video_source(input_handle->priv, 0);
+  
   duration = bg_track_info_get_duration(info);
   
   /* Get video format */
@@ -285,9 +289,6 @@ int main(int argc, char ** argv)
   val.val_i = 1;
   output_plugin->common.set_parameter(output_handle->priv, "dont_force_extension", &val);
   
-  /* Create input frame */
-
-  input_frame = gavl_video_frame_create(&input_format);
   
   /* Seek to the time */
 
@@ -309,7 +310,12 @@ int main(int argc, char ** argv)
   if(info->flags & BG_TRACK_SEEKABLE)
     {
     input_plugin->seek(input_handle->priv, &seek_time, GAVL_TIME_SCALE);
-    have_frame = input_plugin->read_video(input_handle->priv, input_frame, 0);
+
+    input_frame = NULL;
+    if(gavl_video_source_read_frame(src, &input_frame) == GAVL_SOURCE_OK)
+      have_frame = 1;
+    else
+      have_frame = 0;
 
     if(!have_frame) // Seeking failed, reset the stream and try without seeking
       {
@@ -328,14 +334,23 @@ int main(int argc, char ** argv)
       /* Start playback */
       if(input_plugin->start)
         input_plugin->start(input_handle->priv);
+      src = input_plugin->get_video_source(input_handle->priv, 0);
       }
     }
 
   if(!have_frame)
     {
-    while(input_plugin->read_video(input_handle->priv, input_frame, 0))
+    while(1)
       {
-      have_frame = 1;
+      input_frame = NULL;
+      if(gavl_video_source_read_frame(src, &input_frame) == GAVL_SOURCE_OK)
+        have_frame = 1;
+      else
+        have_frame = 0;
+
+      if(!have_frame)
+        break;
+      
       if(gavl_time_unscale(input_format.timescale,
                            input_frame->timestamp) >= seek_time)
         break;

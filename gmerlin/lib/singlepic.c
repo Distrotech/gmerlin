@@ -486,6 +486,7 @@ static gavl_video_source_t * get_video_source_input(void * priv, int stream)
   return inp->src;
   }
 
+#if 0
 static int has_frame_input(void * priv, int stream)
   {
   return 1;
@@ -497,6 +498,7 @@ static int read_video_frame_input(void * priv, gavl_video_frame_t* f,
   input_t * inp = priv;
   return gavl_video_source_read_frame(inp->src, &f) == GAVL_SOURCE_OK;
   }
+#endif
 
 static int read_video_packet_input(void * priv, int stream, gavl_packet_t* p)
   {
@@ -645,7 +647,6 @@ static const bg_input_plugin_t input_plugin =
 
     .get_video_source = get_video_source_input,
     /* Read one video frame (returns FALSE on EOF) */
-    .read_video =      read_video_frame_input,
     .read_video_packet = read_video_packet_input,
     /*
      *  Do percentage seeking (can be NULL)
@@ -692,10 +693,9 @@ static const bg_input_plugin_t input_plugin_stills =
      */
     .start =                 start_input,
 
-    .has_still =             has_frame_input,
+    .get_video_source = get_video_source_input,
     
     /* Read one video frame (returns FALSE on EOF) */
-    .read_video =      read_video_frame_input,
     /*
      *  Do percentage seeking (can be NULL)
      *  Media streams are supposed to be seekable, if this

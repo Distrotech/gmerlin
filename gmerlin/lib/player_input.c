@@ -572,7 +572,7 @@ void bg_player_input_seek(bg_player_t * p,
   if(vs->in_src)
     gavl_video_source_reset(vs->in_src);
   if(as->in_src)
-    gavl_video_source_reset(as->in_src);
+    gavl_audio_source_reset(as->in_src);
   
   // Clear EOF states
   do_audio = DO_AUDIO(p->flags);

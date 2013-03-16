@@ -366,16 +366,6 @@ gavl_source_status_t read_audio_func(void * data, gavl_audio_frame_t ** fp)
   return f->valid_samples ? GAVL_SOURCE_OK : GAVL_SOURCE_EOF;
   }
 
-static  
-int read_audio_samples_lqt(void * data, gavl_audio_frame_t * f, int stream,
-                          int num_samples)
-  {
-  i_lqt_t * e = data;
-  audio_stream_t * as = &e->audio_streams[stream];
-  return gavl_audio_source_read_samples(as->src,
-                                        f,
-                                        num_samples);
-  }
 
 /* Read one video frame (returns FALSE on EOF) */
 
@@ -391,14 +381,6 @@ read_video_func(void * data, gavl_video_frame_t ** fp)
   return GAVL_SOURCE_OK;
   }
 
-static
-int read_video_frame_lqt(void * data, gavl_video_frame_t * f, int stream)
-  {
-  i_lqt_t * e = data;
-  video_stream_t * vs = &e->video_streams[stream];
-
-  return (gavl_video_source_read_frame(vs->src, &f) == GAVL_SOURCE_OK);
-  }
 
 static void close_lqt(void * data)
   {
@@ -716,10 +698,7 @@ const bg_input_plugin_t the_plugin =
     .get_video_compression_info = get_video_compression_info_lqt,
 
     .start =             start_lqt,
-
-    .read_audio = read_audio_samples_lqt,
-    .read_video =   read_video_frame_lqt,
-
+    
     //    .has_subtitle =       has_subtitle_lqt,
     //    .read_subtitle_text = read_subtitle_text_lqt,
 

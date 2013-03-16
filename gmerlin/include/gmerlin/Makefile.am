@@ -19,7 +19,6 @@ frametimer.h \
 keycodes.h \
 lcdproc.h \
 log.h \
-mediafiledevice.h \
 msgqueue.h \
 ocr.h \
 osd.h \

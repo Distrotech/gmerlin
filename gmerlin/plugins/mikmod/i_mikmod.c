@@ -239,12 +239,6 @@ static bg_track_info_t * get_track_info_mikmod(void * data, int track)
   return &e->track_info;
   }
 
-static int read_samples_mikmod(void * p, gavl_audio_frame_t * f, int stream,
-                               int num_samples)
-  {
-  i_mikmod_t * priv = p;
-  return gavl_audio_source_read_samples(priv->src, f, num_samples);
-  }
 
 static gavl_audio_source_t *
 get_audio_source_mikmod(void * p, int stream)
@@ -398,7 +392,6 @@ const bg_input_plugin_t the_plugin =
 
     .get_audio_source =  get_audio_source_mikmod,
     
-    .read_audio          = read_samples_mikmod,
     .close =              close_mikmod
     
   };

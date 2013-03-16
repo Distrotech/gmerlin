@@ -68,6 +68,8 @@ gavl_video_frame_t * vframe_e = NULL;
 gavl_audio_format_t afmt_i, afmt_e, afmt_v;
 gavl_video_format_t vfmt_v, vfmt_e;
 
+gavl_audio_source_t * src_i;
+
 gavl_time_t track_duration;
 gavl_time_t start_duration = 0;
 gavl_time_t end_duration = 0;
@@ -78,8 +80,8 @@ gavl_video_sink_t * vsink = NULL;
 static int load_input_file(bg_plugin_registry_t * plugin_reg,
                            bg_plugin_handle_t ** input_handle,
                            bg_input_plugin_t ** input_plugin,
-                           const char * file,
-                           gavl_audio_format_t * format)
+                           gavl_audio_source_t ** src,
+                           const char * file)
   {
   bg_track_info_t * ti;
   *input_handle = NULL;
@@ -116,8 +118,7 @@ static int load_input_file(bg_plugin_registry_t * plugin_reg,
   
   /* Get video format */
 
-  gavl_audio_format_copy(format,
-                         &ti->audio_streams[0].format);
+  *src = (*input_plugin)->get_audio_source((*input_handle)->priv, 0);
   
   return 1;
   }
@@ -474,12 +475,16 @@ int main(int argc, char ** argv)
   if(!load_input_file(plugin_reg,
                       &input_handle,
                       &input_plugin,
-                      files[0],
-                      &afmt_i))
+                      &src_i,
+                      files[0]))
     {
     bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Cannot open %s", files[0]);
     return -1;
     }
+
+  gavl_audio_format_copy(&afmt_i, gavl_audio_source_get_src_format(src_i));
+
+
   bg_log(BG_LOG_INFO, LOG_DOMAIN, "Opened %s", files[0]);
   // gavl_audio_format_dump(&afmt_i);
 
@@ -543,7 +548,6 @@ int main(int argc, char ** argv)
   afmt_e.samples_per_frame = afmt_v.samples_per_frame;
   afmt_i.samples_per_frame = afmt_v.samples_per_frame;
 
-  aframe_i = gavl_audio_frame_create(&afmt_i);
   
   if(convert_audio_v)
     aframe_v = gavl_audio_frame_create(&afmt_v);
@@ -557,8 +561,8 @@ int main(int argc, char ** argv)
   
   while(1)
     {
-    if(!input_plugin->read_audio(input_handle->priv,
-                                 aframe_i, 0, afmt_i.samples_per_frame))
+    aframe_i = NULL;
+    if(gavl_audio_source_read_frame(src_i, &aframe_i) != GAVL_SOURCE_OK)
       break;
     
     iteration(aframe_i);

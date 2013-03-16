@@ -209,10 +209,9 @@ int main(int argc, char ** argv)
   /* Create registries */
   
   char ** gmls = NULL;
+  
+  gavl_video_source_t * src;
 
-  bg_read_video_func_t read_func;
-  void * read_priv;
-  int read_stream;
   gavl_timer_t * timer = gavl_timer_create();
   
   cfg_reg = bg_cfg_registry_create();
@@ -293,32 +292,18 @@ int main(int argc, char ** argv)
   
   /* Initialize filter chain */
 
-  read_func = input_plugin->read_video;
-  read_priv = input_handle->priv;
-  read_stream = 0;
+  src = input_plugin->get_video_source(input_handle->priv, 0);
+
+  src = bg_video_filter_chain_connect(fc, src);
   
-  bg_video_filter_chain_connect_input(fc,
-                                      input_plugin->read_video,
-                                      input_handle->priv,
-                                      0);
-
-  if(bg_video_filter_chain_init(fc, &in_format, &out_format))
-    {
-    read_func = bg_video_filter_chain_read;
-    read_priv = fc;
-    read_stream = 0;
-    }
-  else
-    gavl_video_format_copy(&out_format, &in_format);
-
-  frame = gavl_video_frame_create(&out_format);
   
   if(frameno >= 0)
     {
+    frame = NULL;
     gavl_timer_start(timer);
     for(i = 0; i < frameno+1; i++)
       {
-      if(!read_func(read_priv, frame, read_stream))
+      if(gavl_video_source_read_frame(src, &frame) != GAVL_SOURCE_OK)
         {
         fprintf(stderr, "Unexpected EOF\n");
         return -1;
@@ -328,10 +313,11 @@ int main(int argc, char ** argv)
     }
   else
     {
+    frame = NULL;
     gavl_timer_start(timer);
     while(1)
       {
-      if(!read_func(read_priv, frame, read_stream))
+      if(gavl_video_source_read_frame(src, &frame) != GAVL_SOURCE_OK)
         {
         break;
         }
@@ -349,7 +335,6 @@ int main(int argc, char ** argv)
   bg_gavl_video_options_free(&opt);
   bg_plugin_registry_destroy(plugin_reg);
   bg_cfg_registry_destroy(cfg_reg);
-  gavl_video_frame_destroy(frame);
   gavl_timer_destroy(timer);
   return 0;
   }
