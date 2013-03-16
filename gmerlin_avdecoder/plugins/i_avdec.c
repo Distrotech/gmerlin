@@ -421,13 +421,7 @@ const bg_input_plugin_t the_plugin =
     .start =                 bg_avdec_start,
 
     .get_frame_table =       bg_avdec_get_frame_table,
-
-    /* Read one audio frame (returns FALSE on EOF) */
-    .read_audio =    bg_avdec_read_audio,
-    /* Read one video frame (returns FALSE on EOF) */
-
-    .has_still  =      bg_avdec_has_still,
-    .read_video =      bg_avdec_read_video,
+    
     .skip_video =      bg_avdec_skip_video,
 
     .get_video_source = bg_avdec_get_video_source,
