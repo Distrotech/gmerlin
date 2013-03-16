@@ -361,10 +361,44 @@ void bg_player_input_cleanup(bg_player_t * p)
 #endif
   }
 
+static gavl_source_status_t
+read_audio(void * priv, gavl_audio_frame_t ** frame)
+  {
+  gavl_source_status_t st;
+  bg_player_t * p = priv;
+  gavl_audio_frame_t * f = NULL;
+  bg_player_audio_stream_t * as = &p->audio_stream;
+
+  if((st = gavl_audio_source_read_frame(p->audio_stream.in_src_int, &f)) != GAVL_SOURCE_OK)
+    return st;
+  
+  if(!as->has_first_timestamp_i)
+    {
+    as->samples_read = f->timestamp;
+    as->has_first_timestamp_i = 1;
+    }
+  as->samples_read += f->valid_samples;
+  *frame = f;
+  return GAVL_SOURCE_OK;
+  }
+
+
 int bg_player_input_get_audio_format(bg_player_t * p)
   {
+  p->audio_stream.in_src_int =
+    p->input_plugin->get_audio_source(p->input_priv, p->current_audio_stream);
+  
   gavl_audio_format_copy(&p->audio_stream.input_format,
                          &p->track_info->audio_streams[p->current_audio_stream].format);
+
+  gavl_audio_source_set_dst(p->audio_stream.in_src_int, 0, &p->audio_stream.input_format);
+  p->audio_stream.in_src = gavl_audio_source_create(read_audio, p, GAVL_SOURCE_SRC_ALLOC,
+                                                    &p->audio_stream.input_format);
+
+  gavl_audio_source_set_lock_funcs(p->audio_stream.in_src, bg_plugin_lock, bg_plugin_unlock,
+                                   p->input_handle);
+
+  
   return 1;
   }
 
@@ -496,25 +530,6 @@ int bg_player_input_get_video_format(bg_player_t * p)
   }
 
 
-int
-bg_player_input_read_audio(void * priv, gavl_audio_frame_t * frame, int stream, int samples)
-  {
-  int result;
-  bg_player_t * p = priv;
-  bg_player_audio_stream_t * as = &p->audio_stream;
-  
-  bg_plugin_lock(p->input_handle);
-  result = p->input_plugin->read_audio(p->input_priv, frame, stream, samples);
-  bg_plugin_unlock(p->input_handle);
-  
-  if(!as->has_first_timestamp_i)
-    {
-    as->samples_read = frame->timestamp;
-    as->has_first_timestamp_i = 1;
-    }
-  as->samples_read += frame->valid_samples;
-  return result;
-  }
 
 void bg_player_input_seek(bg_player_t * p,
                           gavl_time_t * time, int scale)
@@ -556,6 +571,8 @@ void bg_player_input_seek(bg_player_t * p,
 
   if(vs->in_src)
     gavl_video_source_reset(vs->in_src);
+  if(as->in_src)
+    gavl_video_source_reset(as->in_src);
   
   // Clear EOF states
   do_audio = DO_AUDIO(p->flags);

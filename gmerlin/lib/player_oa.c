@@ -143,7 +143,7 @@ static void process_frame(bg_player_t * p, gavl_audio_frame_t * frame)
     if(do_mute)
       {
       gavl_audio_frame_mute(frame,
-                            &s->fifo_format);
+                            &s->output_format);
       }
     else
       {
@@ -163,6 +163,8 @@ void * bg_player_oa_thread(void * data)
   gavl_time_t wait_time;
 
   bg_player_t * p = data;
+
+  gavl_audio_frame_t * f;
   
   s = &p->audio_stream;
   
@@ -175,13 +177,21 @@ void * bg_player_oa_thread(void * data)
     if(!bg_thread_check(s->th))
       break;
 
+    f = gavl_audio_sink_get_frame(s->sink);
+        
     if(s->send_silence)
       {
-      gavl_audio_frame_mute(s->fifo_frame, &s->fifo_format);
+      if(!f)
+        {
+        if(!s->mute_frame)
+          s->mute_frame = gavl_audio_frame_create(&s->output_format);
+        f = s->mute_frame;
+        }
+      gavl_audio_frame_mute(f, &s->output_format);
       }
     else
       {
-      if(!bg_player_read_audio(p, s->fifo_frame))
+      if(gavl_audio_source_read_frame(s->src, &f) != GAVL_SOURCE_OK)
         {
         if(bg_player_audio_set_eof(p))
           {
@@ -192,36 +202,21 @@ void * bg_player_oa_thread(void * data)
         }
       }
     
-    process_frame(p, s->fifo_frame);
+    process_frame(p, f);
     
-    if(s->fifo_frame->valid_samples)
+    if(f->valid_samples)
       {
-      if(s->do_convert_out)
-        {
-        gavl_audio_convert(s->cnv_out, s->fifo_frame,
-                           s->output_frame);
-
-        bg_plugin_lock(s->plugin_handle);
-        s->plugin->write_audio(s->priv,
-                                 s->output_frame);
-        bg_plugin_unlock(s->plugin_handle);
-        }
-      else
-        {
-        bg_plugin_lock(s->plugin_handle);
-        s->plugin->write_audio(s->priv, s->fifo_frame);
-        bg_plugin_unlock(s->plugin_handle);
-        }
+      gavl_audio_sink_put_frame(s->sink, f);
       
       pthread_mutex_lock(&s->time_mutex);
-      s->samples_written += s->fifo_frame->valid_samples;
+      s->samples_written += f->valid_samples;
       pthread_mutex_unlock(&s->time_mutex);
       
       /* Now, wait a while to give other threads a chance to access the
          player time */
       wait_time =
         gavl_samples_to_time(s->output_format.samplerate,
-                             s->fifo_frame->valid_samples)/2;
+                             f->valid_samples)/2;
       }
     
     if(wait_time != GAVL_TIME_UNDEFINED)
@@ -243,8 +238,13 @@ int bg_player_oa_init(bg_player_audio_stream_t * ctx)
   
   ctx->has_first_timestamp_o = 0;
 
-  bg_plugin_unlock(ctx->plugin_handle);
+  ctx->sink = ctx->plugin->get_sink(ctx->priv);
 
+  gavl_audio_sink_set_lock_funcs(ctx->sink,
+                                 bg_plugin_lock, bg_plugin_unlock,
+                                 ctx->plugin_handle);
+  
+  bg_plugin_unlock(ctx->plugin_handle);
   
   ctx->samples_written = 0;
   return result;

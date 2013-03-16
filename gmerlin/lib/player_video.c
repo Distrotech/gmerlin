@@ -109,7 +109,14 @@ int bg_player_video_init(bg_player_t * player, int video_stream)
 
 void bg_player_video_cleanup(bg_player_t * player)
   {
+  bg_player_video_stream_t * s;
+  s = &player->video_stream;
   
+  if(s->in_src)
+    {
+    gavl_video_source_destroy(s->in_src);
+    s->in_src = NULL;
+    }
   }
 
 /* Configuration stuff */

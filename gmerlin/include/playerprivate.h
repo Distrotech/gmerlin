@@ -64,26 +64,22 @@ typedef enum
 
 typedef struct
   {
+  gavl_audio_source_t * in_src_int;
+  gavl_audio_source_t * in_src;
+
+  gavl_audio_source_t * src;
+  
   /* Pipeline */
   
   bg_audio_filter_chain_t * fc;
-  gavl_audio_converter_t * cnv_out;
   
-  bg_read_audio_func_t in_func;
-  void * in_data;
-  int    in_stream;
-  
-  int do_convert_out;
-  
-  gavl_audio_frame_t * fifo_frame;
-  gavl_audio_frame_t * output_frame;
+  gavl_audio_frame_t * mute_frame;
   
   pthread_mutex_t config_mutex;
   bg_gavl_audio_options_t options;
   
   gavl_audio_format_t input_format;
   gavl_audio_format_t output_format;
-  gavl_audio_format_t fifo_format;
 
   /* Volume control */
   gavl_volume_control_t * volume;
@@ -128,8 +124,7 @@ typedef struct
 
   bg_thread_t * th;
 
-  gavl_audio_sink_t * sink_out;
-  gavl_audio_sink_t * sink_intern;
+  gavl_audio_sink_t * sink;
   
   } bg_player_audio_stream_t;
 
@@ -512,7 +507,7 @@ void bg_player_audio_cleanup(bg_player_t * p);
 void bg_player_audio_create(bg_player_t * p, bg_plugin_registry_t * plugin_reg);
 void bg_player_audio_destroy(bg_player_t * p);
 
-int bg_player_read_audio(bg_player_t * p, gavl_audio_frame_t * frame);
+// int bg_player_read_audio(bg_player_t * p, gavl_audio_frame_t * frame);
 
 /* Returns 1 if the thread should be finished, 0 if silence should be sent */
 int bg_player_audio_set_eof(bg_player_t * p);

@@ -429,13 +429,13 @@ static void init_playback(bg_player_t * p, gavl_time_t time,
       if(DO_VISUALIZE(p->old_flags))
         bg_visualizer_close(p->visualizer);
       /* Initialize visualizer */
-      bg_visualizer_open_plugin(p->visualizer, &p->audio_stream.fifo_format,
+      bg_visualizer_open_plugin(p->visualizer, &p->audio_stream.output_format,
                                 bg_ov_get_plugin(p->video_stream.ov));
       }
     else
       {
       /* Update audio format */
-      bg_visualizer_set_audio_format(p->visualizer, &p->audio_stream.fifo_format);
+      bg_visualizer_set_audio_format(p->visualizer, &p->audio_stream.output_format);
       }
     }
   
@@ -558,6 +558,7 @@ static void init_playback(bg_player_t * p, gavl_time_t time,
     {
     if(DO_AUDIO(p->flags))
       bg_audio_filter_chain_reset(p->audio_stream.fc);
+    
     if(DO_VIDEO(p->flags))
       bg_video_filter_chain_reset(p->video_stream.fc);
     }
