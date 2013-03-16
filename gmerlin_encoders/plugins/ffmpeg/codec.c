@@ -114,7 +114,8 @@ static int find_encoder(bg_ffmpeg_codec_context_t * ctx)
   if(!(ctx->codec = avcodec_find_encoder(ctx->id)))
     {
     bg_log(BG_LOG_ERROR, LOG_DOMAIN,
-           "Codec not available in your libavcodec installation");
+           "Codec %s not available in your libavcodec installation",
+           bg_ffmpeg_get_codec_name(ctx->id));
     return 0;
     }
   

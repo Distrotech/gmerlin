@@ -831,6 +831,15 @@ bg_ffmpeg_get_codec_parameters(enum CodecID id, int type)
   return ci->parameters;
   }
 
+const char *
+bg_ffmpeg_get_codec_name(enum CodecID id)
+  {
+  const ffmpeg_codec_info_t * info;
+  if(!(info = get_codec_info(audio_codecs, id)) &&
+     !(info = get_codec_info(video_codecs, id)))
+    return NULL;
+  return info->name;
+  }
 
 typedef struct
   {

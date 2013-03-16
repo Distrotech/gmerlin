@@ -90,7 +90,11 @@ enum CodecID
 bg_ffmpeg_find_video_encoder(const ffmpeg_format_info_t * format,
                              const char * name);
 
-const bg_parameter_info_t * bg_ffmpeg_get_codec_parameters(enum CodecID id, int type);
+const char *
+bg_ffmpeg_get_codec_name(enum CodecID id);
+
+const bg_parameter_info_t *
+bg_ffmpeg_get_codec_parameters(enum CodecID id, int type);
 
 const ffmpeg_codec_info_t *
 bg_ffmpeg_get_codec_info(enum CodecID id, int type);
