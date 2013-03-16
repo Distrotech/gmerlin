@@ -366,11 +366,6 @@ bg_audio_filter_chain_connect(bg_audio_filter_chain_t * ch,
   
   for(i = 0; i < ch->num_filters; i++)
     {
-    if(ch->filters[i].out_src)
-      {
-      gavl_audio_source_destroy(ch->filters[i].out_src);
-      ch->filters[i].out_src = NULL;
-      }
     gavl_audio_options_copy(gavl_audio_source_get_options(src),
                             ch->opt->opt);
     

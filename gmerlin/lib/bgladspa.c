@@ -583,8 +583,10 @@ connect_ladspa(void * priv, gavl_audio_source_t * src,
   lp->in_src = src;
 
   if(lp->out_src)
+    {
     gavl_audio_source_destroy(lp->out_src);
-  
+    lp->out_src = NULL;
+    }
   gavl_audio_format_copy(&lp->format,
                          gavl_audio_source_get_src_format(lp->in_src));
   lp->format.interleave_mode = GAVL_INTERLEAVE_NONE;
