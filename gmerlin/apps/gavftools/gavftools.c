@@ -34,7 +34,8 @@ char * gavftools_in_file  = NULL;
 char * gavftools_out_file = NULL;
 
 static int got_sigint = 0;
-struct sigaction old_sigaction;
+struct sigaction old_int_sigaction;
+struct sigaction old_term_sigaction;
 
 /* Quality parameters */
 
@@ -70,8 +71,9 @@ bg_gavl_video_options_t gavltools_vopt;
 static void sigint_handler(int sig)
   {
   got_sigint = 1;
-  sigaction(SIGINT, &old_sigaction, 0);
-  bg_log(BG_LOG_INFO, LOG_DOMAIN, "Caught Ctrl-C");
+  sigaction(SIGINT, &old_int_sigaction, 0);
+  sigaction(SIGTERM, &old_term_sigaction, 0);
+  bg_log(BG_LOG_INFO, LOG_DOMAIN, "Terminating due to signal");
   }
 
 static void set_sigint_handler()
@@ -80,10 +82,10 @@ static void set_sigint_handler()
   sa.sa_flags = 0;
   sigemptyset(&sa.sa_mask);
   sa.sa_handler = sigint_handler;
-  if (sigaction(SIGINT, &sa, &old_sigaction) == -1)
-    {
+  if (sigaction(SIGINT, &sa, &old_int_sigaction) == -1)
     fprintf(stderr, "sigaction failed\n");
-    }
+  if (sigaction(SIGTERM, &sa, &old_term_sigaction) == -1)
+    fprintf(stderr, "sigaction failed\n");
   }
 
 int gavftools_stop()
