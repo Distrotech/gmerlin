@@ -154,7 +154,7 @@ static bg_cmdline_arg_t global_options[] =
       .argv    =    (char**)&out_file,
     },
 
-    GAVFTOOLS_VERBOSE_OPTIONS,
+    GAVFTOOLS_LOG_OPTIONS,
     { /* End */ },
   };
 

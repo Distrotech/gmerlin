@@ -41,6 +41,8 @@ struct sigaction old_sigaction;
 bg_cfg_section_t * aq_section;
 bg_cfg_section_t * vq_section;
 
+int do_syslog;
+
 static const bg_parameter_info_t aq_params[] =
   {
     BG_GAVL_PARAM_CONVERSION_QUALITY,
@@ -86,6 +88,9 @@ static void set_sigint_handler()
 
 int gavftools_stop()
   {
+  if(do_syslog)
+    bg_log_syslog_flush();
+  
   return got_sigint;
   }
 
@@ -143,6 +148,9 @@ static int num_o_actions = 0;
 
 void gavftools_cleanup(int save_regs)
   {
+  if(do_syslog)
+    bg_log_syslog_flush();
+
   bg_plugin_registry_destroy(plugin_reg);
   bg_cfg_registry_destroy(cfg_reg);
 
@@ -175,8 +183,10 @@ void gavftools_cleanup(int save_regs)
     bg_cfg_section_destroy(aq_section);
   if(vq_section)
     bg_cfg_section_destroy(vq_section);
-  
-  
+
+  if(do_syslog)
+    bg_log_syslog_flush();
+    
   xmlCleanupParser();
  
   }
@@ -527,6 +537,19 @@ void gavftools_opt_v(void * data, int * argc, char *** _argv, int arg)
   bg_log_set_verbose(verbose);
   bg_cmdline_remove_arg(argc, _argv, arg);
   }
+
+void gavftools_opt_syslog(void * data, int * argc, char *** _argv, int arg)
+  {
+  if(arg >= *argc)
+    {
+    fprintf(stderr, "Option -syslog requires an argument\n");
+    exit(-1);
+    }
+  bg_log_syslog_init((*_argv)[arg]);
+  do_syslog = 1;
+  bg_cmdline_remove_arg(argc, _argv, arg);
+  }
+
 
 
 bg_stream_action_t *

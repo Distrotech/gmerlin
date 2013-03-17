@@ -101,6 +101,9 @@ gavftools_opt_ts(void * data, int * argc, char *** _argv, int arg);
 void
 gavftools_opt_v(void * data, int * argc, char *** _argv, int arg);
 
+void
+gavftools_opt_syslog(void * data, int * argc, char *** _argv, int arg);
+
 extern bg_gavl_audio_options_t gavltools_aopt;
 extern bg_gavl_video_options_t gavltools_vopt;
 
@@ -196,14 +199,19 @@ bg_stream_action_t * gavftools_get_stream_actions(int num, gavf_stream_type_t ty
     .callback =    gavftools_opt_os, \
   }
 
-#define GAVFTOOLS_VERBOSE_OPTIONS           \
+#define GAVFTOOLS_LOG_OPTIONS           \
   {                                         \
   .arg =         "-v",                                  \
-    .help_arg =    "level",                             \
-    .help_string = "Set verbosity level (0..4)",        \
-    .callback =    gavftools_opt_v,                               \
+  .help_arg =    "level",                             \
+  .help_string = "Set verbosity level (0..4)",                  \
+  .callback =    gavftools_opt_v,                               \
+  }, \
+  {                                         \
+  .arg =         "-syslog",                                  \
+  .help_arg =    "name",                             \
+  .help_string = "Send log messages to syslog",     \
+  .callback =    gavftools_opt_syslog,              \
   }
-
 #define GAVFTOOLS_AQ_OPTIONS           \
   {                                         \
   .arg =         "-aq",                                  \

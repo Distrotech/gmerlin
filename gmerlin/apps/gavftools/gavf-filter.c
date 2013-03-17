@@ -82,7 +82,7 @@ static bg_cmdline_arg_t global_options[] =
       .callback =    opt_vf,
     },
     GAVFTOOLS_OUTPLUG_OPTIONS,
-    GAVFTOOLS_VERBOSE_OPTIONS,
+    GAVFTOOLS_LOG_OPTIONS,
     { /* End */ },
   };
 
