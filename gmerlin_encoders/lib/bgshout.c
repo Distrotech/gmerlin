@@ -108,6 +108,11 @@ static const bg_parameter_info_t parameters[] =
       .type        = BG_PARAMETER_STRING,
       .val_default = { .val_str = "Brought to you by gmerlin" },
     },
+    {
+      .name        = "genre",
+      .long_name   = TRS("Genre"),
+      .type        = BG_PARAMETER_STRING,
+    },
     { /* */ },
   };
 
@@ -155,7 +160,11 @@ void bg_shout_set_parameter(void * data, const char * name,
     if(val->val_str)
       shout_set_description(s->s, val->val_str);
     }
-  
+  else if(!strcmp(name, "genre"))
+    {
+    if(val->val_str)
+      shout_set_genre(s->s, val->val_str);
+    }
   }
 
 int bg_shout_open(bg_shout_t * s)
