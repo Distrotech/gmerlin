@@ -73,7 +73,16 @@ static void sigint_handler(int sig)
   got_sigint = 1;
   sigaction(SIGINT, &old_int_sigaction, 0);
   sigaction(SIGTERM, &old_term_sigaction, 0);
-  bg_log(BG_LOG_INFO, LOG_DOMAIN, "Terminating due to signal");
+  
+  switch(sig)
+    {
+    case SIGINT:
+      bg_log(BG_LOG_INFO, LOG_DOMAIN, "Caught SIGINT, terminating");
+      break;
+    case SIGTERM:
+      bg_log(BG_LOG_INFO, LOG_DOMAIN, "Caught SIGTERM, terminating");
+      break;
+    }
   }
 
 static void set_sigint_handler()
