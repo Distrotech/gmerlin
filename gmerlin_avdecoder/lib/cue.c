@@ -287,18 +287,18 @@ bgav_cue_read(bgav_input_context_t * audio_file)
   
   }
 
-bgav_edl_t * bgav_cue_get_edl(bgav_cue_t * cue,
+gavl_edl_t * bgav_cue_get_edl(bgav_cue_t * cue,
                               int64_t total_samples)
   {
   int i, j;
-  bgav_edl_stream_t * stream;
-  bgav_edl_track_t * track;
-  bgav_edl_segment_t * seg;
-  bgav_edl_segment_t * last_seg;
+  gavl_edl_stream_t * stream;
+  gavl_edl_track_t * track;
+  gavl_edl_segment_t * seg;
+  gavl_edl_segment_t * last_seg;
   const char * pos;
   gavl_metadata_t m;
   
-  bgav_edl_t * ret = bgav_edl_create();
+  gavl_edl_t * ret = gavl_edl_create();
 
   /* Create common metadata entries */
   memset(&m , 0, sizeof(m));
@@ -338,25 +338,24 @@ bgav_edl_t * bgav_cue_get_edl(bgav_cue_t * cue,
     {
     if(!strcmp(cue->tracks[i].mode, "AUDIO"))
       {
-      track = bgav_edl_add_track(ret);
-      track->metadata = calloc(1, sizeof(*track->metadata));
+      track = gavl_edl_add_track(ret);
             
-      gavl_metadata_copy(track->metadata, &m);
+      gavl_metadata_copy(&track->metadata, &m);
       
       if(cue->tracks[i].performer)
-        gavl_metadata_set(track->metadata, GAVL_META_ARTIST,
+        gavl_metadata_set(&track->metadata, GAVL_META_ARTIST,
                           cue->tracks[i].performer);
       if(cue->tracks[i].title)
-        gavl_metadata_set(track->metadata, GAVL_META_TITLE,
+        gavl_metadata_set(&track->metadata, GAVL_META_TITLE,
                           cue->tracks[i].title);
 
-      gavl_metadata_set_int(track->metadata, GAVL_META_TRACKNUMBER,
+      gavl_metadata_set_int(&track->metadata, GAVL_META_TRACKNUMBER,
                             cue->tracks[i].number);
 
-      stream = bgav_edl_add_audio_stream(track);
+      stream = gavl_edl_add_audio_stream(track);
       stream->timescale = 44100;
      
-      seg = bgav_edl_add_segment(stream);
+      seg = gavl_edl_add_segment(stream);
       seg->timescale = 44100;
       seg->speed_num = 1;
       seg->speed_den = 1;

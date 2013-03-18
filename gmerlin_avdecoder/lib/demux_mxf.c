@@ -871,15 +871,15 @@ static int get_source_stream(bgav_track_table_t * tt,
   }
 
 static void handle_material_track(bgav_demuxer_context_t * ctx, mxf_package_t * p,
-                                  mxf_track_t * mt, bgav_edl_track_t * et)
+                                  mxf_track_t * mt, gavl_edl_track_t * et)
   {
   int i;
   mxf_sequence_t * ss;
   mxf_source_clip_t * sc;
   mxf_t * priv;
-  bgav_edl_stream_t * es = NULL;
+  gavl_edl_stream_t * es = NULL;
   int track_index, stream_index = 0;
-  bgav_edl_segment_t * seg;
+  gavl_edl_segment_t * seg;
   int64_t duration = 0;
   priv = ctx->priv;
 
@@ -911,10 +911,10 @@ static void handle_material_track(bgav_demuxer_context_t * ctx, mxf_package_t * 
     switch(ss->stream_type)
       {
       case BGAV_STREAM_AUDIO:
-        es = bgav_edl_add_audio_stream(et);
+        es = gavl_edl_add_audio_stream(et);
         break;
       case BGAV_STREAM_VIDEO:
-        es = bgav_edl_add_video_stream(et);
+        es = gavl_edl_add_video_stream(et);
         break;
       case BGAV_STREAM_SUBTITLE_TEXT:
       case BGAV_STREAM_SUBTITLE_OVERLAY:
@@ -939,7 +939,7 @@ static void handle_material_track(bgav_demuxer_context_t * ctx, mxf_package_t * 
                             (mxf_package_t*)sc->source_package,
                             sc->source_track_id))
         {
-        seg = bgav_edl_add_segment(es);
+        seg = gavl_edl_add_segment(es);
         seg->track        = track_index;
         seg->stream       = stream_index;
         seg->timescale    = mt->edit_rate_num;
@@ -960,13 +960,13 @@ static void build_edl_mxf(bgav_demuxer_context_t * ctx)
   mxf_t * priv;
   int i, j;
   mxf_package_t * sp = NULL;
-  bgav_edl_track_t * t;
+  gavl_edl_track_t * t;
   priv = ctx->priv;
 
   if(!ctx->input->filename)
     return;
     
-  ctx->edl = bgav_edl_create();
+  ctx->edl = gavl_edl_create();
   ctx->edl->url = bgav_strdup(ctx->input->filename);
   
   
@@ -976,7 +976,7 @@ static void build_edl_mxf(bgav_demuxer_context_t * ctx)
     {
     if(priv->mxf.header.metadata[i]->type == MXF_TYPE_MATERIAL_PACKAGE)
       {
-      t = bgav_edl_add_track(ctx->edl);
+      t = gavl_edl_add_track(ctx->edl);
       sp = (mxf_package_t*)(priv->mxf.header.metadata[i]);
       
       /* Loop over tracks */

@@ -173,8 +173,6 @@ void bg_avdec_destroy(void * priv)
     {
     bgav_options_destroy(avdec->opt);
     }
-  if(avdec->edl)
-    bg_edl_destroy(avdec->edl);
   free(avdec);
   }
 
@@ -186,10 +184,10 @@ bg_track_info_t * bg_avdec_get_track_info(void * priv, int track)
   return &(avdec->track_info[track]);
   }
 
-const bg_edl_t * bg_avdec_get_edl(void * priv)
+const gavl_edl_t * bg_avdec_get_edl(void * priv)
   {
   avdec_priv * avdec = priv;
-  return avdec->edl;
+  return bgav_get_edl(avdec->dec);
   }
 
 int bg_avdec_read_video(void * priv,
@@ -357,14 +355,9 @@ int bg_avdec_init(avdec_priv * avdec)
   {
   int i;
   const bgav_metadata_t * m;
-  const bgav_edl_t * edl;
   const gavl_chapter_list_t * cl;
   gavl_time_t duration;
   
-  edl = bgav_get_edl(avdec->dec);
-  if(edl)
-    avdec->edl = bg_avdec_convert_edl(edl);
-    
   avdec->num_tracks = bgav_num_tracks(avdec->dec);
   avdec->track_info = calloc(avdec->num_tracks, sizeof(*(avdec->track_info)));
   
@@ -557,87 +550,5 @@ const char * bg_avdec_get_disc_name(void * priv)
   if(avdec->dec)
     return bgav_get_disc_name(avdec->dec);
   return NULL;
-  }
-
-static bg_edl_segment_t * copy_segments(const bgav_edl_segment_t * src, int len)
-  {
-  int i;
-  bg_edl_segment_t * ret;
-  ret = calloc(len, sizeof(*ret));
-  
-  for(i = 0; i < len; i++)
-    {
-    /* Copy pointers */
-    ret[i].url = bg_strdup(ret[i].url, src[i].url);
-    ret[i].track = src[i].track;
-    ret[i].stream = src[i].stream;
-    ret[i].timescale = src[i].timescale;
-    ret[i].src_time = src[i].src_time;
-    ret[i].dst_time = src[i].dst_time;
-    ret[i].dst_duration = src[i].dst_duration;
-    ret[i].speed_num = src[i].speed_num;
-    ret[i].speed_den = src[i].speed_den;
-    }
-  return ret;
-  }
-
-
-static bg_edl_stream_t * copy_streams(const bgav_edl_stream_t * src, int len)
-  {
-  int i;
-  bg_edl_stream_t * ret;
-  ret = calloc(len, sizeof(*ret));
-  
-  for(i = 0; i < len; i++)
-    {
-    ret[i].num_segments = src[i].num_segments;
-    ret[i].timescale = src[i].timescale;
-    /* Copy pointers */
-    ret[i].segments = copy_segments(src[i].segments, src[i].num_segments);
-    }
-  return ret;
-  }
-
-static bg_edl_track_t * copy_tracks(const bgav_edl_track_t * src, int len)
-  {
-  int i;
-  bg_edl_track_t * ret;
-  ret = calloc(len, sizeof(*ret));
-  
-  for(i = 0; i < len; i++)
-    {
-    /* Metadata */
-    if(src[i].metadata)
-      gavl_metadata_copy(&ret[i].metadata, src[i].metadata);
-    
-    /* Copy pointers */
-    ret[i].audio_streams = copy_streams(src[i].audio_streams,
-                                        src[i].num_audio_streams);
-    ret[i].video_streams = copy_streams(src[i].video_streams,
-                                        src[i].num_video_streams);
-    ret[i].subtitle_text_streams = copy_streams(src[i].subtitle_text_streams,
-                                                src[i].num_subtitle_text_streams);
-    ret[i].subtitle_overlay_streams = copy_streams(src[i].subtitle_overlay_streams,
-                                                   src[i].num_subtitle_overlay_streams);
-    ret[i].num_audio_streams = src[i].num_audio_streams;
-    ret[i].num_video_streams = src[i].num_video_streams;
-    ret[i].num_subtitle_text_streams = src[i].num_subtitle_text_streams;
-    ret[i].num_subtitle_overlay_streams = src[i].num_subtitle_overlay_streams;
-    
-    }
-  return ret;
-  }
-
-bg_edl_t * bg_avdec_convert_edl(const bgav_edl_t * e)
-  {
-  bg_edl_t * ret;
-  ret = calloc(1, sizeof(*ret));
-
-  ret->num_tracks = e->num_tracks;
-  
-  /* Copy pointers */
-  ret->tracks = copy_tracks(e->tracks, e->num_tracks);
-  ret->url = bg_strdup(ret->url, e->url);
-  return ret;
   }
 

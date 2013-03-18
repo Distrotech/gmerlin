@@ -453,7 +453,6 @@ demux_y4m.c \
 device.c \
 dirac_header.c \
 dvframe.c \
-edl.c \
 fileindex.c \
 flac_header.c \
 formattracker.c \

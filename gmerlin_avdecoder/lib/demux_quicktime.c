@@ -1529,13 +1529,13 @@ static int handle_rmra(bgav_demuxer_context_t * ctx)
   }
 
 static void set_stream_edl(qt_priv_t * priv, bgav_stream_t * s,
-                      bgav_edl_stream_t * es)
+                      gavl_edl_stream_t * es)
   {
   int i;
   qt_elst_t * elst;
   stream_priv_t * sp;
   int64_t duration = 0;
-  bgav_edl_segment_t * seg;
+  gavl_edl_segment_t * seg;
 
   int mdhd_ts, mvhd_ts;
   
@@ -1551,7 +1551,7 @@ static void set_stream_edl(qt_priv_t * priv, bgav_stream_t * s,
     {
     if((int32_t)elst->table[i].media_time > -1)
       {
-      seg = bgav_edl_add_segment(es);
+      seg = gavl_edl_add_segment(es);
       seg->timescale    = mdhd_ts;
       seg->src_time     = elst->table[i].media_time;
       seg->dst_time     = duration;
@@ -1572,8 +1572,8 @@ static void set_stream_edl(qt_priv_t * priv, bgav_stream_t * s,
 
 static void build_edl(bgav_demuxer_context_t * ctx)
   {
-  bgav_edl_stream_t * es;
-  bgav_edl_track_t * t;
+  gavl_edl_stream_t * es;
+  gavl_edl_track_t * t;
   
   qt_priv_t * priv = ctx->priv;
  
@@ -1582,30 +1582,30 @@ static void build_edl(bgav_demuxer_context_t * ctx)
   if(!ctx->input->filename)
     return;
   
-  ctx->edl = bgav_edl_create();
+  ctx->edl = gavl_edl_create();
 
   ctx->edl->url = bgav_strdup(ctx->input->filename);
 
-  t = bgav_edl_add_track(ctx->edl);
+  t = gavl_edl_add_track(ctx->edl);
   
   for(i = 0; i < ctx->tt->cur->num_audio_streams; i++)
     {
-    es = bgav_edl_add_audio_stream(t);
+    es = gavl_edl_add_audio_stream(t);
     set_stream_edl(priv, &ctx->tt->cur->audio_streams[i], es);
     }
   for(i = 0; i < ctx->tt->cur->num_video_streams; i++)
     {
-    es = bgav_edl_add_video_stream(t);
+    es = gavl_edl_add_video_stream(t);
     set_stream_edl(priv, &ctx->tt->cur->video_streams[i], es);
     }
   for(i = 0; i < ctx->tt->cur->num_text_streams; i++)
     {
-    es = bgav_edl_add_subtitle_text_stream(t);
+    es = gavl_edl_add_text_stream(t);
     set_stream_edl(priv, &ctx->tt->cur->text_streams[i], es);
     }
   for(i = 0; i < ctx->tt->cur->num_overlay_streams; i++)
     {
-    es = bgav_edl_add_subtitle_overlay_stream(t);
+    es = gavl_edl_add_overlay_stream(t);
     set_stream_edl(priv, &ctx->tt->cur->overlay_streams[i], es);
     }
   

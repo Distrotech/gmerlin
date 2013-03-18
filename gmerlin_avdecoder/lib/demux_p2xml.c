@@ -94,12 +94,12 @@ static int probe_p2xml(bgav_yml_node_t * node)
   }
 
 static void init_stream(bgav_yml_node_t * node,
-                        bgav_edl_stream_t * s, char * filename,
+                        gavl_edl_stream_t * s, char * filename,
                         int duration, int edit_unit_num,
                         int edit_unit_den)
   {
-  bgav_edl_segment_t * seg;
-  seg = bgav_edl_add_segment(s);
+  gavl_edl_segment_t * seg;
+  seg = gavl_edl_add_segment(s);
   seg->url = filename;
   seg->speed_num = 1;
   seg->speed_den = 1;
@@ -119,8 +119,8 @@ static int open_p2xml(bgav_demuxer_context_t * ctx, bgav_yml_node_t * yml)
   char * directory_parent = NULL;
   char * ptr;
   bgav_yml_node_t * node;
-  bgav_edl_track_t * t = NULL;
-  bgav_edl_stream_t * s;
+  gavl_edl_track_t * t = NULL;
+  gavl_edl_stream_t * s;
   const char * root_name = NULL;
   char * filename;
   char * tmp_string;
@@ -157,8 +157,8 @@ static int open_p2xml(bgav_demuxer_context_t * ctx, bgav_yml_node_t * yml)
     goto fail;
   
 
-  ctx->edl = bgav_edl_create();
-  t = bgav_edl_add_track(ctx->edl);
+  ctx->edl = gavl_edl_create();
+  t = gavl_edl_add_track(ctx->edl);
   
   node = yml->children;
 
@@ -203,7 +203,7 @@ static int open_p2xml(bgav_demuxer_context_t * ctx, bgav_yml_node_t * yml)
         filename = find_audio_file(audio_directory, root_name, t->num_audio_streams);
         if(filename)
           {
-          s = bgav_edl_add_audio_stream(t);
+          s = gavl_edl_add_audio_stream(t);
           init_stream(node, s, filename,
                       duration, edit_unit_num, edit_unit_den);
           }
@@ -221,7 +221,7 @@ static int open_p2xml(bgav_demuxer_context_t * ctx, bgav_yml_node_t * yml)
         filename = find_file_nocase(video_directory, tmp_string);
         if(filename)
           {
-          s = bgav_edl_add_video_stream(t);
+          s = gavl_edl_add_video_stream(t);
           init_stream(node, s, filename,
                       duration, edit_unit_num, edit_unit_den);
           }

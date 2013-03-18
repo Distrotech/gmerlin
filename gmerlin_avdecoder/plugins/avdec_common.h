@@ -30,13 +30,9 @@ typedef struct
   bgav_options_t * opt;
   
   bg_input_callbacks_t * bg_callbacks;
-  
-  bg_edl_t * edl;
   } avdec_priv;
 
-bg_edl_t * bg_avdec_convert_edl(const bgav_edl_t * edl);
-
-const bg_edl_t * bg_avdec_get_edl(void * priv);
+const gavl_edl_t * bg_avdec_get_edl(void * priv);
 
 void * bg_avdec_create();
 

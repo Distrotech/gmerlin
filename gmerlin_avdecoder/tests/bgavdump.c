@@ -207,7 +207,7 @@ int main(int argc, char ** argv)
   int64_t start_time;
   const gavl_audio_format_t * audio_format;
   const gavl_video_format_t * video_format;
-  const bgav_edl_t * edl;
+  const gavl_edl_t * edl;
 
   gavl_compression_info_t ci;
 
@@ -404,7 +404,7 @@ int main(int argc, char ** argv)
   if(edl)
     {
     fprintf(stderr, "Found EDL\n");
-    bgav_edl_dump(edl);
+    gavl_edl_dump(edl);
     }
   num_tracks = bgav_num_tracks(file);
 

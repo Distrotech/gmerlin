@@ -31,18 +31,13 @@
 #include <gavl/metadata.h>
 #include <gavl/chapterlist.h>
 #include <gavl/connectors.h>
+#include <gavl/edl.h>
 
 #include "bgavdefs.h" // This is ugly, but works
 
 #ifdef __cplusplus
 extern "C" {
 #endif
-
-/** \ingroup edl
- *  \brief Forward declaration
- */
-
-typedef struct bgav_edl_s bgav_edl_t;
 
 /** \defgroup decoding Decoding of multimedia streams
  *
@@ -1065,112 +1060,14 @@ int bgav_open_callbacks(bgav_t * bgav,
 BGAV_PUBLIC
 void bgav_close(bgav_t * bgav);
 
-/** \defgroup edl EDL support
- *  \ingroup decoding
- *  \brief EDL support
- *
- *  Most media files contain one or more A/V streams. In addition however, there
- *  can be additional instructions, how the media should be played back. Basically
- *  you can have "logical" streams, where the EDL tells how they are composed from
- *  phyiscal streams.
- *
- *  To use EDLs with Gmerlin-avdecoder, call \ref bgav_get_edl, make a local copy of
- *  the EDL structure and call \ref bgav_close.
- *
- *  Some files contain only the EDL (with external references) but no actual media
- *  streams. In this case, \ref bgav_num_tracks will return 0.
- *
- *  Gmerlin-avdecoder has no means of composing the logical EDL tracks from physical
- *  files. The Gmerlin library has an edl decoder plugin.
- *
- * @{
- */
-
-/** \brief One segment of a physical stream to appear in a logical stream
- */
-
-typedef struct
-  {
-  char * url;   //!< Location of that segment. If NULL, the "master url" in \ref bgav_edl_t is valid.
-
-  int track;        //!<  Track index for multitrack inputs
-  int stream;       //!<  Index of the A/V stream
-  int timescale;    //!<  Source timescale
-    
-  int64_t src_time; //!< Time within the source in source timescale
-  
-  /* Time and duration within the destination in destination
-     timescale */
-  int64_t dst_time;  //!< Time  within the destination in destination timescale
-  int64_t dst_duration; //!< Duration within the destination in destination timescale
-
-  /*  */
-  int32_t speed_num; //!< Playback speed numerator
-  int32_t speed_den; //!< Playback speed demoninator
-  
-  } bgav_edl_segment_t;
-
-/** \brief A locical stream
- */
-
-typedef struct
-  {
-  bgav_edl_segment_t * segments; //!< Segments
-  int num_segments;              //!< Number of segments 
-  int timescale;                 //!< Destination timescale
-  } bgav_edl_stream_t;
-
-/** \brief A locical track
- */
-
-typedef struct
-  {
-  char * name;                       //!< Name (optional)
-  bgav_metadata_t * metadata;        //!< Metadata (optional)
-  
-  int num_audio_streams;             //!< Number of logical audio streams
-  bgav_edl_stream_t * audio_streams; //!< Logical audio streams
-
-  int num_video_streams;             //!< Number of logical video streams
-  bgav_edl_stream_t * video_streams; //!< Logical video streams
-
-  int num_subtitle_text_streams;     //!< Number of logical text subtitle streams
-  bgav_edl_stream_t * subtitle_text_streams; //!< Logical text subtitle streams
-
-  int num_subtitle_overlay_streams;  //!< Number of logical overlay subtitle streams
-  bgav_edl_stream_t * subtitle_overlay_streams; //!< Logical overlay subtitle streams
-  
-  } bgav_edl_track_t;
-
-/** \brief EDL structure
- */
-
-struct bgav_edl_s
-  {
-  int num_tracks;             //!< Number of logical tracks
-  bgav_edl_track_t * tracks;  //!< Logical tracks
-  char * url;                 //!< Filename if all streams are from the same file
-  };
-
-/** \ingroup edl
+/** \ingroup decoder
  *  \brief Get an EDL from an open decoder
  *  \param bgav A decoder instance
  *  \returns The edl or NULL
  */
 
 BGAV_PUBLIC
-bgav_edl_t * bgav_get_edl(bgav_t * bgav);
-
-/** \brief Dump an EDL to stderr
- *  \param e EDL
- */
-
-BGAV_PUBLIC
-void bgav_edl_dump(const bgav_edl_t * e);
-
-/** 
- * @}
- */
+gavl_edl_t * bgav_get_edl(bgav_t * bgav);
 
 /***************************************************
  * Check for redirecting: You MUST check if you opened

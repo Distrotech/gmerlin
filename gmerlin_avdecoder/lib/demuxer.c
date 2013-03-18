@@ -332,7 +332,7 @@ void bgav_demuxer_destroy(bgav_demuxer_context_t * ctx)
   if(ctx->si)
     bgav_superindex_destroy(ctx->si);
   if(ctx->edl)
-    bgav_edl_destroy(ctx->edl);
+    gavl_edl_destroy(ctx->edl);
 
   if(ctx->redirector)
     bgav_redirector_destroy(ctx->redirector);

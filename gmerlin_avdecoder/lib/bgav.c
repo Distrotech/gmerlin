@@ -528,7 +528,7 @@ const char * bgav_get_disc_name(bgav_t * bgav)
   return NULL;
   }
 
-bgav_edl_t * bgav_get_edl(bgav_t * bgav)
+gavl_edl_t * bgav_get_edl(bgav_t * bgav)
   {
   if(bgav->demuxer && bgav->demuxer->edl)
     return bgav->demuxer->edl;
