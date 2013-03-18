@@ -24,33 +24,8 @@
 
 #include <gavl/gavl.h>
 #include <gavl/compression.h>
+#include <gavl/utils.h>
 
-static void hexdump(const uint8_t * data, int len, int linebreak, int indent)
-  {
-  int i;
-  int bytes_written = 0;
-  int imax;
-  
-  while(bytes_written < len)
-    {
-    for(i = 0; i < indent; i++)
-      fprintf(stderr, " ");
-    imax = (bytes_written + linebreak > len) ? len - bytes_written : linebreak;
-    for(i = 0; i < imax; i++)
-      fprintf(stderr, "%02x ", data[bytes_written + i]);
-    for(i = imax; i < linebreak; i++)
-      fprintf(stderr, "   ");
-    for(i = 0; i < imax; i++)
-      {
-      if((data[bytes_written + i] < 0x7f) && (data[bytes_written + i] >= 32))
-        fprintf(stderr, "%c", data[bytes_written + i]);
-      else
-        fprintf(stderr, ".");
-      }
-    bytes_written += imax;
-    fprintf(stderr, "\n");
-    }
-  }
 
 
 void gavl_compression_info_free(gavl_compression_info_t * info)
@@ -264,8 +239,8 @@ void gavl_compression_info_dumpi(const gavl_compression_info_t * info, int inden
   if(info->global_header_len)
     {
     fprintf(stderr, " (hexdump follows)\n");
-    hexdump(info->global_header,
-            info->global_header_len, 16, indent+2);
+    gavl_hexdump(info->global_header,
+                 info->global_header_len, 16, indent+2);
     }
   else
     fprintf(stderr, "\n");
@@ -386,7 +361,7 @@ void gavl_packet_dump(const gavl_packet_t * p)
     fprintf(stderr, " dst: %d %d", p->dst_x, p->dst_y);
 
   fprintf(stderr, "\n");
-  hexdump(p->data, p->data_len < 16 ? p->data_len : 16, 16, 0);
+  gavl_hexdump(p->data, p->data_len < 16 ? p->data_len : 16, 16, 0);
   
   }
 

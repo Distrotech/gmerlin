@@ -72,6 +72,7 @@ deinterlace_copy.c \
 deinterlace_scale.c \
 dsp.c \
 dsputils.c \
+edl.c \
 frametable.c \
 interleave.c \
 memalign.c \
@@ -97,6 +98,7 @@ timer.c \
 transform.c \
 transform_context.c \
 transform_table.c \
+utils.c \
 videoconnector.c \
 videoconverter.c \
 videoformat.c \
