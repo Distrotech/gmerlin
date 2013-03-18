@@ -167,7 +167,7 @@ void bg_album_set_insert_callback(bg_album_t * a,
 void bg_album_move_selected_to_favourites(bg_album_t * a);
 void bg_album_copy_selected_to_favourites(bg_album_t * a);
 
-bg_edl_t * bg_album_selected_to_edl(bg_album_t * a);
+gavl_edl_t * bg_album_selected_to_edl(bg_album_t * a);
 
 
 /* Return the current entry (might be NULL) */

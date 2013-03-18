@@ -1457,7 +1457,7 @@ static void unload_plugin(bg_plugin_handle_t * h)
     dlclose(h->dll_handle);
 #endif
   if(h->edl)
-    bg_edl_destroy(h->edl);
+    gavl_edl_destroy(h->edl);
   pthread_mutex_destroy(&h->mutex);
   free(h);
   }
@@ -2049,8 +2049,8 @@ int bg_input_plugin_load(bg_plugin_registry_t * reg,
                          bg_input_callbacks_t * callbacks, int prefer_edl)
   {
   bg_input_plugin_t * plugin;
-  const bg_edl_t * edl_c;
-  bg_edl_t * edl;
+  const gavl_edl_t * edl_c;
+  gavl_edl_t * edl;
   int num_tracks = 1;
   if(!input_plugin_load(reg, location, info, ret, callbacks))
     return 0;
@@ -2072,14 +2072,14 @@ int bg_input_plugin_load(bg_plugin_registry_t * reg,
   //  bg_edl_save(edl_c, "test.edl");
     
   /* Load EDL instead */
-  edl = bg_edl_copy(edl_c);
+  edl = gavl_edl_copy(edl_c);
 
   info = bg_plugin_find_by_name(reg, "i_edldec");
   
   if(!bg_input_plugin_load_edl(reg, edl, info, ret,
                                callbacks))
     {
-    bg_edl_destroy(edl);
+    gavl_edl_destroy(edl);
     return 0;
     }
   (*ret)->edl = edl;

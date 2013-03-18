@@ -2337,7 +2337,7 @@ int bg_album_get_unique_id(bg_album_t * album)
   }
 
 static int refresh_entry(bg_album_t * album,
-                         bg_album_entry_t * entry, bg_edl_t * edl)
+                         bg_album_entry_t * entry, gavl_edl_t * edl)
   {
   const bg_plugin_info_t * info;
   //  char * system_location;
@@ -2429,12 +2429,12 @@ void bg_album_refresh_selected(bg_album_t * album)
     }
   }
 
-bg_edl_t * bg_album_selected_to_edl(bg_album_t * album)
+gavl_edl_t * bg_album_selected_to_edl(bg_album_t * album)
   {
-  bg_edl_t * ret;
+  gavl_edl_t * ret;
   bg_album_entry_t * cur;
 
-  ret = bg_edl_create();
+  ret = gavl_edl_create();
   
   cur = album->entries;
   while(cur)

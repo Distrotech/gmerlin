@@ -30,7 +30,7 @@
 
 typedef struct
   {
-  bg_edl_t * edl;
+  gavl_edl_t * edl;
   } edl_t;
 
 static void * create_edl()
@@ -44,7 +44,7 @@ static void close_edl(void * data)
   edl_t * e = data;
   if(e->edl)
     {
-    bg_edl_destroy(e->edl);
+    gavl_edl_destroy(e->edl);
     e->edl = NULL;
     }
   }
@@ -73,7 +73,7 @@ static int get_num_tracks_edl(void * data)
   return 0;
   }
 
-static const bg_edl_t * get_edl_edl(void * data)
+static const gavl_edl_t * get_edl_edl(void * data)
   {
   edl_t * e = data;
   return e->edl;

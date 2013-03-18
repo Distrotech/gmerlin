@@ -85,7 +85,7 @@ typedef struct
 typedef struct
   {
   source_common_t * src;
-  const bg_edl_segment_t * seg;
+  const gavl_edl_segment_t * seg;
   int64_t mute_start;
   int64_t mute_duration;
   } segment_t;
@@ -101,7 +101,7 @@ typedef struct
   int64_t out_time;
   int64_t segment_end_time;
   bg_stream_action_t action;
-  const bg_edl_stream_t * es;
+  const gavl_edl_stream_t * es;
   } stream_common_t;
 
 typedef struct
@@ -169,8 +169,8 @@ typedef struct
   {
   audio_stream_t * audio_streams;
   video_stream_t * video_streams;
-  text_stream_t * subtitle_text_streams;
-  overlay_stream_t * subtitle_overlay_streams;
+  text_stream_t * text_streams;
+  overlay_stream_t * overlay_streams;
   } track_t;
 
 typedef struct
@@ -179,7 +179,7 @@ typedef struct
   track_t * tracks;
   
   bg_track_info_t * track_info;
-  const bg_edl_t * edl;
+  const gavl_edl_t * edl;
 
   bg_plugin_registry_t * plugin_reg;
   bg_input_callbacks_t * callbacks;
@@ -198,7 +198,7 @@ typedef struct
   0             dst_time
 */
   
-static int64_t get_source_offset(const bg_edl_stream_t * st,
+static int64_t get_source_offset(const gavl_edl_stream_t * st,
                                  segment_t * s, int64_t out_time, int64_t out_scale)
   {
   int64_t seg_offset;    /* in out timescale */
@@ -212,7 +212,7 @@ static int64_t get_source_offset(const bg_edl_stream_t * st,
   return source_offset + seg_offset;
   }
 
-static int seek_segment(const bg_edl_stream_t * st,
+static int seek_segment(const gavl_edl_stream_t * st,
                         segment_t * segs, int nsegs, int64_t out_time,
                         int out_scale)
   {
@@ -239,9 +239,9 @@ static int seek_segment(const bg_edl_stream_t * st,
 
 /* Stream initialization */
 
-static const bg_edl_segment_t *
-find_same_source(const bg_edl_segment_t * segments,
-                 const bg_edl_segment_t * seg)
+static const gavl_edl_segment_t *
+find_same_source(const gavl_edl_segment_t * segments,
+                 const gavl_edl_segment_t * seg)
   {
   while(segments < seg)
     {
@@ -267,11 +267,11 @@ find_same_source(const bg_edl_segment_t * segments,
   }
                            
 static void add_audio_segment(edl_dec_t * dec, int track, int stream,
-                              const bg_edl_segment_t * seg)
+                              const gavl_edl_segment_t * seg)
   {
   int i;
   audio_source_t * source = NULL;
-  const bg_edl_segment_t * same_source_seg;
+  const gavl_edl_segment_t * same_source_seg;
   
   bg_audio_info_t * ai;
   audio_stream_t * s = &dec->tracks[track].audio_streams[stream];
@@ -325,11 +325,11 @@ static void add_audio_segment(edl_dec_t * dec, int track, int stream,
   }
 
 static int add_video_segment(edl_dec_t * dec, int track, int stream,
-                             const bg_edl_segment_t * seg)
+                             const gavl_edl_segment_t * seg)
   {
   int i;
   video_source_t * source = NULL;
-  const bg_edl_segment_t * same_source_seg;
+  const gavl_edl_segment_t * same_source_seg;
   
   bg_video_info_t * vi;
   video_stream_t * s = &dec->tracks[track].video_streams[stream];
@@ -383,15 +383,15 @@ static int add_video_segment(edl_dec_t * dec, int track, int stream,
   return 1;
   }
 
-static int add_subtitle_overlay_segment(edl_dec_t * dec, int track, int stream,
-                                        const bg_edl_segment_t * seg)
+static int add_overlay_segment(edl_dec_t * dec, int track, int stream,
+                                        const gavl_edl_segment_t * seg)
   {
   int i;
   overlay_source_t * source = NULL;
-  const bg_edl_segment_t * same_source_seg;
+  const gavl_edl_segment_t * same_source_seg;
   
   bg_overlay_info_t * vi;
-  overlay_stream_t * s = &dec->tracks[track].subtitle_overlay_streams[stream];
+  overlay_stream_t * s = &dec->tracks[track].overlay_streams[stream];
   segment_t * vs;
   
   vi = &dec->track_info[track].overlay_streams[stream];
@@ -402,7 +402,7 @@ static int add_subtitle_overlay_segment(edl_dec_t * dec, int track, int stream,
   vs = s->com.segments + (s->com.num_segments-1);
   
   same_source_seg =
-    find_same_source(dec->edl->tracks[track].subtitle_overlay_streams[stream].segments, seg);
+    find_same_source(dec->edl->tracks[track].overlay_streams[stream].segments, seg);
   
   if(same_source_seg)
     {
@@ -430,15 +430,15 @@ static int add_subtitle_overlay_segment(edl_dec_t * dec, int track, int stream,
   return 1;
   }
 
-static int add_subtitle_text_segment(edl_dec_t * dec, int track, int stream,
-                                     const bg_edl_segment_t * seg)
+static int add_text_segment(edl_dec_t * dec, int track, int stream,
+                                     const gavl_edl_segment_t * seg)
   {
   int i;
   text_source_t * source = NULL;
-  const bg_edl_segment_t * same_source_seg;
+  const gavl_edl_segment_t * same_source_seg;
   
   bg_text_info_t * vi;
-  text_stream_t * s = &dec->tracks[track].subtitle_text_streams[stream];
+  text_stream_t * s = &dec->tracks[track].text_streams[stream];
   segment_t * vs;
   
   vi = &dec->track_info[track].text_streams[stream];
@@ -450,7 +450,7 @@ static int add_subtitle_text_segment(edl_dec_t * dec, int track, int stream,
   vs = s->com.segments + (s->com.num_segments-1);
   
   same_source_seg =
-    find_same_source(dec->edl->tracks[track].subtitle_text_streams[stream].segments, seg);
+    find_same_source(dec->edl->tracks[track].text_streams[stream].segments, seg);
   
   if(same_source_seg)
     {
@@ -654,14 +654,14 @@ static int set_video_stream_edl(void * priv, int stream, bg_stream_action_t acti
 static int set_text_stream_edl(void * priv, int stream, bg_stream_action_t action)
   {
   edl_dec_t * dec = priv;
-  dec->tracks[dec->current_track].subtitle_text_streams[stream].com.action = action;
+  dec->tracks[dec->current_track].text_streams[stream].com.action = action;
   return 1;
   }
 
 static int set_overlay_stream_edl(void * priv, int stream, bg_stream_action_t action)
   {
   edl_dec_t * dec = priv;
-  dec->tracks[dec->current_track].subtitle_overlay_streams[stream].com.action = action;
+  dec->tracks[dec->current_track].overlay_streams[stream].com.action = action;
   return 1;
   }
 
@@ -696,7 +696,7 @@ static void cleanup_source_common(source_common_t * com)
     bg_plugin_unref(com->handle);
   }
 
-// static int has_subtitle_edl(void * priv, int stream)
+// static int has_edl(void * priv, int stream)
 //  {
   //  edl_dec_t * dec;
   //  dec = (edl_dec_t*)priv;
@@ -797,7 +797,7 @@ read_video_edl(void * priv, gavl_video_frame_t ** frame)
   }
 
 
-static int correct_subtitle_timestamp(int64_t * time, int64_t * duration)
+static int correct_timestamp(int64_t * time, int64_t * duration)
   {
   return 0;
   }
@@ -828,32 +828,32 @@ typedef struct
   int * text_alloc;
   int64_t * start_time;
   int64_t * duration;
-  subtitle_stream_t * s;
-  } decode_subtitle_data;
+  stream_t * s;
+  } decode_data;
 
 static int
-decode_subtitle_text(decode_subtitle_data * d)
+decode_text(decode_data * d)
   {
-  subtitle_source_t * src;
-  src = (subtitle_source_t*)(d->s->com.segments[d->s->com.current_segment].src);
-  return src->com.plugin->read_subtitle_text(src->com.handle->priv,
+  source_t * src;
+  src = (source_t*)(d->s->com.segments[d->s->com.current_segment].src);
+  return src->com.plugin->read_text(src->com.handle->priv,
                                              d->text, d->text_alloc,
                                              d->start_time,
                                              d->duration, src->com.stream);
   }
 
 static int
-decode_subtitle_overlay(decode_subtitle_data * d)
+decode_overlay(decode_data * d)
   {
-  subtitle_source_t * src;
-  src = (subtitle_source_t*)(d->s->com.segments[d->s->com.current_segment].src);
+  source_t * src;
+  src = (source_t*)(d->s->com.segments[d->s->com.current_segment].src);
   return src->read_func(src->com.read_data, d->ovl, src->com.stream);
   }
 
 /* Here, the actual magic happens */
 static int
-decode_subtitle(int (*decode_func)(decode_subtitle_data*),
-                decode_subtitle_data * d)
+decode_subtitle(int (*decode_func)(decode_data*),
+                decode_data * d)
   {
   if(d->s->com.current_segment >= d->s->com.es->com.num_segments)
     return 0;
@@ -866,7 +866,7 @@ decode_subtitle(int (*decode_func)(decode_subtitle_data*),
       d->s->com.current_segment++;
       if(d->s->com.current_segment >= d->s->es->com.num_segments)
         return 0;
-      init_subtitle_segment(d->s);
+      init_segment(d->s);
       }
     
     /* Decode one subtitle */
@@ -875,16 +875,16 @@ decode_subtitle(int (*decode_func)(decode_subtitle_data*),
       d->s->com.current_segment++;
       if(d->s->com.current_segment >= d->s->es->com.num_segments)
         return 0;
-      init_subtitle_segment(d->s);
+      init_segment(d->s);
       continue;
       }
     /* Correct timestamps */
     
     *d->start_time =
-      gavl_time_rescale(((subtitle_source_t*)(d->s->com.segments[d->s->com.current_segment].src))->format->timescale,
+      gavl_time_rescale(((source_t*)(d->s->com.segments[d->s->com.current_segment].src))->format->timescale,
                         d->s->format->timescale, *d->start_time) + d->s->time_offset;
     *d->duration =
-      gavl_time_rescale(((subtitle_source_t*)(d->s->com.segments[d->s->com.current_segment].src))->format->timescale,
+      gavl_time_rescale(((source_t*)(d->s->com.segments[d->s->com.current_segment].src))->format->timescale,
                         d->s->format->timescale, *d->duration);
 
     /* Still inside the segment */
@@ -906,11 +906,11 @@ decode_subtitle(int (*decode_func)(decode_subtitle_data*),
   return 1;
   }
 
-static int read_subtitle_overlay_edl(void * priv,
+static int read_overlay_edl(void * priv,
                                      gavl_overlay_t*ovl, int stream)
   {
   edl_dec_t * dec;
-  decode_subtitle_data d;
+  decode_data d;
   dec = (edl_dec_t*)priv;
   
   d.ovl = ovl;
@@ -918,18 +918,18 @@ static int read_subtitle_overlay_edl(void * priv,
   d.duration   = &ovl->duration;
 
   d.s =
-    &dec->tracks[dec->current_track].subtitle_overlay_streams[stream -
-                                                             dec->edl->tracks[dec->current_track].num_subtitle_text_streams];
-  return decode_subtitle(decode_subtitle_overlay, &d);
+    &dec->tracks[dec->current_track].overlay_streams[stream -
+                                                             dec->edl->tracks[dec->current_track].num_text_streams];
+  return decode_subtitle(decode_overlay, &d);
   }
 
-static int read_subtitle_text_edl(void * priv,
+static int read_text_edl(void * priv,
                                   char ** text, int * text_alloc,
                                   int64_t * start_time,
                                   int64_t * duration, int stream)
   {
   edl_dec_t * dec;
-  decode_subtitle_data d;
+  decode_data d;
 
   dec = (edl_dec_t*)priv;
 
@@ -940,9 +940,9 @@ static int read_subtitle_text_edl(void * priv,
   d.duration   = duration;
 
   d.s =
-    &dec->tracks[dec->current_track].subtitle_text_streams[stream];
+    &dec->tracks[dec->current_track].text_streams[stream];
   
-  return decode_subtitle(decode_subtitle_text, &d);
+  return decode_subtitle(decode_text, &d);
   }
 #endif
 
@@ -1130,15 +1130,15 @@ static int start_edl(void * priv)
       return 0;
     }
   
-  for(i = 0; i < dec->edl->tracks[dec->current_track].num_subtitle_text_streams; i++)
+  for(i = 0; i < dec->edl->tracks[dec->current_track].num_text_streams; i++)
     {
-    if(!start_text(&t->subtitle_text_streams[i], dec, &ti->text_streams[i]))
+    if(!start_text(&t->text_streams[i], dec, &ti->text_streams[i]))
       return 0;
     }
   
-  for(i = 0; i < dec->edl->tracks[dec->current_track].num_subtitle_overlay_streams; i++)
+  for(i = 0; i < dec->edl->tracks[dec->current_track].num_overlay_streams; i++)
     {
-    if(!start_overlay(&t->subtitle_overlay_streams[i], dec, &ti->overlay_streams[i]))
+    if(!start_overlay(&t->overlay_streams[i], dec, &ti->overlay_streams[i]))
       return 0;
     }
   
@@ -1152,7 +1152,7 @@ static void seek_edl(void * priv, int64_t * time, int scale)
   edl_dec_t * dec;
   int i;
   track_t * t;
-  bg_edl_track_t * et;
+  gavl_edl_track_t * et;
   int64_t time_scaled;
   dec = (edl_dec_t*)priv;
   t = &dec->tracks[dec->current_track];
@@ -1198,47 +1198,47 @@ static void seek_edl(void * priv, int64_t * time, int scale)
     init_video_segment(&t->video_streams[i]);
     
     }
-  for(i = 0; i < et->num_subtitle_text_streams; i++)
+  for(i = 0; i < et->num_text_streams; i++)
     {
-    if(t->subtitle_text_streams[i].com.action != BG_STREAM_ACTION_DECODE)
+    if(t->text_streams[i].com.action != BG_STREAM_ACTION_DECODE)
       continue;
 
-    time_scaled = gavl_time_rescale(scale, t->subtitle_text_streams[i].dst_timescale,
+    time_scaled = gavl_time_rescale(scale, t->text_streams[i].dst_timescale,
                                     *time);
     
-    t->subtitle_text_streams[i].com.current_segment =
-      seek_segment(t->subtitle_text_streams[i].com.es,
-                   t->subtitle_text_streams[i].com.segments,
-                   t->subtitle_text_streams[i].com.num_segments,
-                   time_scaled, t->subtitle_text_streams[i].dst_timescale);
-    if(t->subtitle_text_streams[i].com.current_segment < 0)
+    t->text_streams[i].com.current_segment =
+      seek_segment(t->text_streams[i].com.es,
+                   t->text_streams[i].com.segments,
+                   t->text_streams[i].com.num_segments,
+                   time_scaled, t->text_streams[i].dst_timescale);
+    if(t->text_streams[i].com.current_segment < 0)
       {
       bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Seeked text subtitles out of range");
       return;
       }
-    t->subtitle_text_streams[i].com.out_time = time_scaled;
-    init_text_segment(&t->subtitle_text_streams[i]);
+    t->text_streams[i].com.out_time = time_scaled;
+    init_text_segment(&t->text_streams[i]);
     }
-  for(i = 0; i < et->num_subtitle_overlay_streams; i++)
+  for(i = 0; i < et->num_overlay_streams; i++)
     {
-    if(t->subtitle_overlay_streams[i].com.action != BG_STREAM_ACTION_DECODE)
+    if(t->overlay_streams[i].com.action != BG_STREAM_ACTION_DECODE)
       continue;
 
-    time_scaled = gavl_time_rescale(scale, t->subtitle_overlay_streams[i].dst_fmt->timescale,
+    time_scaled = gavl_time_rescale(scale, t->overlay_streams[i].dst_fmt->timescale,
                                     *time);
     
-    t->subtitle_overlay_streams[i].com.current_segment =
-      seek_segment(t->subtitle_overlay_streams[i].com.es,
-                   t->subtitle_overlay_streams[i].com.segments,
-                   t->subtitle_overlay_streams[i].com.num_segments,
-                   time_scaled, t->subtitle_overlay_streams[i].dst_fmt->timescale);
-    if(t->subtitle_overlay_streams[i].com.current_segment < 0)
+    t->overlay_streams[i].com.current_segment =
+      seek_segment(t->overlay_streams[i].com.es,
+                   t->overlay_streams[i].com.segments,
+                   t->overlay_streams[i].com.num_segments,
+                   time_scaled, t->overlay_streams[i].dst_fmt->timescale);
+    if(t->overlay_streams[i].com.current_segment < 0)
       {
       bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Seeked overlay subtitles out of range");
       return;
       }
-    t->subtitle_overlay_streams[i].com.out_time = time_scaled;
-    init_overlay_segment(&t->subtitle_overlay_streams[i]);
+    t->overlay_streams[i].com.out_time = time_scaled;
+    init_overlay_segment(&t->overlay_streams[i]);
     }
         
   }
@@ -1294,26 +1294,26 @@ static void close_edl(void * priv)
     if(dec->tracks[i].video_streams)
       free(dec->tracks[i].video_streams);
 
-    for(j = 0; j < dec->edl->tracks[i].num_subtitle_text_streams; j++)
+    for(j = 0; j < dec->edl->tracks[i].num_text_streams; j++)
       {
-      text_stream_t * s = &dec->tracks[i].subtitle_text_streams[j];
+      text_stream_t * s = &dec->tracks[i].text_streams[j];
       /* Close sources */
       for(k = 0; k < s->num_sources; k++)
         cleanup_source_common(&s->sources[k].com);
 
       if(s->sources)
-        free(dec->tracks[i].subtitle_text_streams[j].sources);
+        free(dec->tracks[i].text_streams[j].sources);
 
       if(s->src_ext)
         gavl_packet_source_destroy(s->src_ext);
       close_stream_common(&s->com);
       }
-    if(dec->tracks[i].subtitle_text_streams)
-      free(dec->tracks[i].subtitle_text_streams);
+    if(dec->tracks[i].text_streams)
+      free(dec->tracks[i].text_streams);
 
-    for(j = 0; j < dec->edl->tracks[i].num_subtitle_overlay_streams; j++)
+    for(j = 0; j < dec->edl->tracks[i].num_overlay_streams; j++)
       {
-      overlay_stream_t * s = &dec->tracks[i].subtitle_overlay_streams[j];
+      overlay_stream_t * s = &dec->tracks[i].overlay_streams[j];
 
       /* Close sources */
       for(k = 0; k < s->num_sources; k++)
@@ -1327,8 +1327,8 @@ static void close_edl(void * priv)
       
       close_stream_common(&s->com);
       }
-    if(dec->tracks[i].subtitle_overlay_streams)
-      free(dec->tracks[i].subtitle_overlay_streams);
+    if(dec->tracks[i].overlay_streams)
+      free(dec->tracks[i].overlay_streams);
     }
   if(dec->tracks)
     {
@@ -1367,14 +1367,14 @@ static gavl_packet_source_t * get_text_source_edl(void * priv, int stream)
   {
   edl_dec_t * dec = priv;
   track_t * t = &dec->tracks[dec->current_track];
-  return t->subtitle_text_streams[stream].src_ext;
+  return t->text_streams[stream].src_ext;
   }
 
 static gavl_video_source_t * get_overlay_source_edl(void * priv, int stream)
   {
   edl_dec_t * dec = priv;
   track_t * t = &dec->tracks[dec->current_track];
-  return t->subtitle_overlay_streams[stream].src_ext;
+  return t->overlay_streams[stream].src_ext;
   }
 
 static void destroy_edl(void * priv)
@@ -1447,14 +1447,14 @@ bg_plugin_info_t * bg_edldec_get_info()
   }
 
 int bg_input_plugin_load_edl(bg_plugin_registry_t * reg,
-                             const bg_edl_t * edl,
+                             const gavl_edl_t * edl,
                              const bg_plugin_info_t * info,
                              bg_plugin_handle_t ** ret1,
                              bg_input_callbacks_t * callbacks)
   {
   int i, j, k;
-  const bg_edl_track_t * track;
-  const bg_edl_stream_t * stream;
+  const gavl_edl_track_t * track;
+  const gavl_edl_stream_t * stream;
   bg_track_info_t * ti;
   track_t * t;
   edl_dec_t * priv;
@@ -1555,24 +1555,24 @@ int bg_input_plugin_load_edl(bg_plugin_registry_t * reg,
     ti->text_streams = calloc(ti->num_text_streams,
                               sizeof(*ti->text_streams));
     
-    t->subtitle_text_streams = calloc(track->num_subtitle_text_streams,
-                                      sizeof(*t->subtitle_text_streams));
-    t->subtitle_overlay_streams = calloc(track->num_subtitle_overlay_streams,
-                                      sizeof(*t->subtitle_overlay_streams));
+    t->text_streams = calloc(track->num_text_streams,
+                                      sizeof(*t->text_streams));
+    t->overlay_streams = calloc(track->num_overlay_streams,
+                                      sizeof(*t->overlay_streams));
     
-    for(j = 0; j < track->num_subtitle_text_streams; j++)
+    for(j = 0; j < track->num_text_streams; j++)
       {
-      stream = &track->subtitle_text_streams[j];
+      stream = &track->text_streams[j];
 
-      t->subtitle_text_streams[j].sources =
+      t->text_streams[j].sources =
         calloc(stream->num_segments,
-               sizeof(*t->subtitle_text_streams[j].sources));
+               sizeof(*t->text_streams[j].sources));
 
-      t->subtitle_text_streams[j].com.es = stream;
+      t->text_streams[j].com.es = stream;
 
       for(k = 0; k < stream->num_segments; k++)
         {
-        add_subtitle_text_segment(priv, i, j, &stream->segments[k]);
+        add_text_segment(priv, i, j, &stream->segments[k]);
         }
       test_duration =
         gavl_time_unscale(stream->timescale,
@@ -1581,20 +1581,20 @@ int bg_input_plugin_load_edl(bg_plugin_registry_t * reg,
         duration = test_duration;
       }
     /* Subtitle overlay streams */
-    for(j = 0; j < track->num_subtitle_overlay_streams; j++)
+    for(j = 0; j < track->num_overlay_streams; j++)
       {
-      stream = &track->subtitle_overlay_streams[j];
+      stream = &track->overlay_streams[j];
       
-      t->subtitle_overlay_streams[j].sources =
+      t->overlay_streams[j].sources =
         calloc(stream->num_segments,
-               sizeof(*t->subtitle_overlay_streams[j].sources));
+               sizeof(*t->overlay_streams[j].sources));
 
-      t->subtitle_overlay_streams[j].com.es = stream;
+      t->overlay_streams[j].com.es = stream;
 
 
       for(k = 0; k < stream->num_segments; k++)
         {
-        add_subtitle_overlay_segment(priv, i, j, &stream->segments[k]);
+        add_overlay_segment(priv, i, j, &stream->segments[k]);
         }
       test_duration =
         gavl_time_unscale(stream->timescale,

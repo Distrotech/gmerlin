@@ -173,7 +173,7 @@ struct bg_plugin_handle_s
   void * priv; //!< Private handle, passed as the first argument to most plugin functions
 
   char * location; //!< Applications can save the argument of an open call here
-  bg_edl_t * edl; //!< EDL
+  gavl_edl_t * edl; //!< EDL
   };
 
 /*
@@ -375,7 +375,7 @@ int bg_input_plugin_load(bg_plugin_registry_t * reg,
  */
 
 int bg_input_plugin_load_edl(bg_plugin_registry_t * reg,
-                             const bg_edl_t * edl,
+                             const gavl_edl_t * edl,
                              const bg_plugin_info_t * info,
                              bg_plugin_handle_t ** ret,
                              bg_input_callbacks_t * callbacks);

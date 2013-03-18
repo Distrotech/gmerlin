@@ -1342,7 +1342,7 @@ static void menu_callback(GtkWidget * w, gpointer data)
     }
   else if(w == widget->menu.selected_menu.export_edl_item)
     {
-    bg_edl_t * edl;
+    gavl_edl_t * edl;
 
     tmp_string = bg_gtk_get_filename_write("Export edl",
                                            NULL,
@@ -1353,7 +1353,7 @@ static void menu_callback(GtkWidget * w, gpointer data)
       if(edl)
         {
         bg_edl_save(edl, tmp_string);
-        bg_edl_destroy(edl);
+        gavl_edl_destroy(edl);
         }
       free(tmp_string);
       }

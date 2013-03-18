@@ -25,6 +25,8 @@
 #include <gavl/gavl.h>
 #include <gavl/compression.h>
 #include <gavl/connectors.h>
+#include <gavl/metadata.h>
+#include <gavl/edl.h>
 
 #include <gmerlin/parameter.h>
 #include <gmerlin/streaminfo.h>
@@ -514,7 +516,7 @@ struct bg_input_plugin_s
    *  \returns The edl if any
    */
 
-  const bg_edl_t * (*get_edl)(void * priv);
+  const gavl_edl_t * (*get_edl)(void * priv);
     
   /** \brief Get the disc name (optional)
    *  \param priv The handle returned by the create() method
