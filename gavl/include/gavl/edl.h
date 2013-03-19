@@ -178,7 +178,7 @@ void gavl_edl_destroy(gavl_edl_t * e);
 GAVL_PUBLIC
 void gavl_edl_dump(const gavl_edl_t * e);
 
-  #ifdef __cplusplus
+#ifdef __cplusplus
 }
 #endif
 
