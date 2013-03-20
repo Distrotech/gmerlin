@@ -1733,13 +1733,31 @@ typedef struct
   const gavl_edl_track_t * t;
 
   bg_track_info_t * ti;
-
+  bg_track_info_t * ti_cur;
   } edldec_t;
 
-static source_t * get_source(edldec_t * dec, bg_stream_type_t * type,
+static source_t * get_source(edldec_t * dec, bg_stream_type_t type,
                              const gavl_edl_segment_t * seg)
   {
+  int i;
+  const char * location = seg->url ? seg->url : dec->edl->url;
 
+  /* Find a cached source */
+  for(i = 0; i < dec->num_sources; i++)
+    {
+    source_t * s = dec->sources + i;
+
+    if(s->location &&
+       !strcmp(s->location, location) &&
+       (s->track == seg->track) &&
+       (s->type == type) &&
+       (s->stream == seg->stream) &&
+       !s->refcount)
+      return s;
+    }
+
+  /* Find an empty slot */
+  
   }
 
 static void destroy_edl(void * priv)
@@ -1802,6 +1820,7 @@ static int set_track_edl(void * priv, int track)
     }
 
   ed->t = &ed->edl->tracks[track];
+  ed->ti_cur = &ed->ti[track];
   /* Create streams */
 
   ed->audio_streams   = streams_create(ed->t->audio_streams,   ed->t->num_audio_streams);
@@ -1854,9 +1873,56 @@ static int set_overlay_stream_edl(void * priv, int stream, bg_stream_action_t ac
   return 1;
   }
 
+static int start_audio_stream(edldec_t * ed, stream_t * s, bg_audio_info_t * ai)
+  {
+  if(s->action == BG_STREAM_ACTION_OFF)
+    return 1;
+  }
+
+static int start_video_stream(edldec_t * ed, stream_t * s, bg_video_info_t * vi)
+  {
+  if(s->action == BG_STREAM_ACTION_OFF)
+    return 1;
+  }
+
+static int start_text_stream(edldec_t * ed, stream_t * s, bg_text_info_t * ti)
+  {
+  if(s->action == BG_STREAM_ACTION_OFF)
+    return 1;
+  }
+
+static int start_overlay_stream(edldec_t * ed, stream_t * s, bg_overlay_info_t * oi)
+  {
+  if(s->action == BG_STREAM_ACTION_OFF)
+    return 1;
+  }
+
 static int start_edl(void * priv)
   {
+  int i;
   edldec_t * ed = priv;
+
+  for(i = 0; i < ed->t->num_audio_streams; i++)
+    {
+    if(!start_audio_stream(ed, &ed->audio_streams[i], &ed->ti_cur->audio_streams[i]))
+      return 0;
+    }
+  for(i = 0; i < ed->t->num_video_streams; i++)
+    {
+    if(!start_video_stream(ed, &ed->video_streams[i], &ed->ti_cur->video_streams[i]))
+      return 0;
+    }
+  for(i = 0; i < ed->t->num_text_streams; i++)
+    {
+    if(!start_text_stream(ed, &ed->text_streams[i], &ed->ti_cur->text_streams[i]))
+      return 0;
+    }
+  for(i = 0; i < ed->t->num_overlay_streams; i++)
+    {
+    if(!start_overlay_stream(ed, &ed->overlay_streams[i], &ed->ti_cur->overlay_streams[i]))
+      return 0;
+    }
+  return 1;
   }
 
 static gavl_audio_source_t * get_audio_source_edl(void * priv, int stream)
@@ -1954,7 +2020,8 @@ int bg_input_plugin_load_edl(bg_plugin_registry_t * reg,
                              bg_plugin_handle_t ** ret1,
                              bg_input_callbacks_t * callbacks)
   {
-  int i, j;
+  int i;
+  int max_streams = 0;
   bg_plugin_handle_t * ret;
   edldec_t * priv;
 
@@ -1981,6 +2048,7 @@ int bg_input_plugin_load_edl(bg_plugin_registry_t * reg,
     {
     gavl_edl_track_t * track;
     bg_track_info_t * ti;
+    int total_streams;
 
     track = priv->edl->tracks + i;
     ti = priv->ti + i;
@@ -1996,8 +2064,19 @@ int bg_input_plugin_load_edl(bg_plugin_registry_t * reg,
     ti->video_streams = calloc(ti->num_video_streams, sizeof(*ti->video_streams));
     ti->text_streams  = calloc(ti->num_text_streams,  sizeof(*ti->text_streams));
     ti->overlay_streams = calloc(ti->num_overlay_streams, sizeof(*ti->overlay_streams));
+
+    total_streams = 
+      ti->num_audio_streams +
+      ti->num_video_streams +
+      ti->num_text_streams +
+      ti->num_overlay_streams;
+
+    if(total_streams > max_streams)
+      max_streams = total_streams;
     }
 
+  priv->num_sources = max_streams * 2; // We can keep twice as many files open than we have streams
+  priv->sources = calloc(priv->num_sources, sizeof(*priv->sources));
   return 1;
   }
 
