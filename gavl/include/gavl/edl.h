@@ -178,6 +178,24 @@ void gavl_edl_destroy(gavl_edl_t * e);
 GAVL_PUBLIC
 void gavl_edl_dump(const gavl_edl_t * e);
 
+GAVL_PUBLIC
+int64_t gavl_edl_src_time_to_dst(const gavl_edl_stream_t * st,
+                                 const gavl_edl_segment_t * seg,
+                                 int64_t src_time);
+  
+GAVL_PUBLIC
+const gavl_edl_segment_t *
+gavl_edl_dst_time_to_src(const gavl_edl_track_t * t,
+                         const gavl_edl_stream_t * st,
+                         int64_t dst_time,
+                         int64_t * src_time,
+                         int64_t * mute_time);
+                             
+
+GAVL_PUBLIC gavl_time_t
+gavl_edl_track_get_duration(const gavl_edl_track_t * t);
+
+  
 #ifdef __cplusplus
 }
 #endif

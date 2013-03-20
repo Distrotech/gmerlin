@@ -295,3 +295,120 @@ void gavl_edl_dump(const gavl_edl_t * e)
     dump_track(&e->tracks[i]);
     }
   }
+
+int64_t gavl_edl_src_time_to_dst(const gavl_edl_stream_t * st,
+                                 const gavl_edl_segment_t * seg,
+                                 int64_t src_time)
+  {
+  int64_t ret;
+  /* Offset from the segment start in src scale */
+  ret = src_time - seg->src_time; 
+  
+  /* Src scale -> dst_scale */
+  ret = gavl_time_rescale(seg->timescale, st->timescale,
+                          ret);
+
+  /* Add offset of the segment start in dst scale */
+  ret += seg->dst_time;
+  
+  return ret;
+  }
+
+static gavl_time_t get_streams_duration(const gavl_edl_stream_t * s,
+                                        int num)
+  {
+  int i;
+  gavl_time_t ret = 0;
+  gavl_time_t test_time;
+  const gavl_edl_segment_t * seg;
+  
+  for(i = 0; i < num; i++)
+    {
+    if(!s[i].num_segments)
+      continue;
+
+    seg = &s[i].segments[s[i].num_segments-1];
+    
+    test_time = gavl_time_unscale(s[i].timescale,
+                                  seg->dst_time + seg->dst_duration);
+    if(test_time > ret)
+      ret = test_time;
+    }
+  return ret;
+  }
+
+gavl_time_t
+gavl_edl_track_get_duration(const gavl_edl_track_t * t)
+  {
+  gavl_time_t test_time;
+  gavl_time_t ret = 0;
+
+  test_time = get_streams_duration(t->audio_streams,
+                                   t->num_audio_streams);
+  if(test_time > ret)
+    ret = test_time;
+
+  test_time = get_streams_duration(t->video_streams,
+                                   t->num_video_streams);
+  if(test_time > ret)
+    ret = test_time;
+
+  test_time = get_streams_duration(t->text_streams,
+                                   t->num_text_streams);
+  if(test_time > ret)
+    ret = test_time;
+
+  test_time = get_streams_duration(t->overlay_streams,
+                                   t->num_overlay_streams);
+  if(test_time > ret)
+    ret = test_time;
+  
+  return ret;
+  }
+
+GAVL_PUBLIC
+const gavl_edl_segment_t *
+gavl_edl_dst_time_to_src(const gavl_edl_track_t * t,
+                         const gavl_edl_stream_t * st,
+                         int64_t dst_time,
+                         int64_t * src_time,
+                         int64_t * mute_time)
+  {
+  int i;
+  const gavl_edl_segment_t * ret = NULL;
+  
+  for(i = 0; i < st->num_segments; i++)
+    {
+    if(st->segments[i].dst_time + st->segments[i].dst_duration > dst_time)
+      {
+      ret = &st->segments[i];
+      break;
+      }
+    }
+
+  if(!ret) // After the last segment
+    {
+    gavl_time_t duration = gavl_edl_track_get_duration(t);
+
+    *mute_time = gavl_time_scale(st->timescale, duration) - dst_time;
+    if(*mute_time < 0)
+      *mute_time = 0;
+
+    return NULL;
+    }
+
+  /* Get the next segment */
+
+  *src_time = ret->src_time;
+  
+  if(ret->dst_time > dst_time)
+    *mute_time = ret->dst_time - dst_time;
+
+  if(dst_time > ret->dst_time)
+    {
+    *src_time += gavl_time_rescale(st->timescale,
+                                   ret->timescale,
+                                   dst_time - ret->dst_time);
+    }
+  return ret;
+  }
