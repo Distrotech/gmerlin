@@ -37,6 +37,8 @@
 #include <gmerlin/log.h>
 #define LOG_DOMAIN "edldec"
 
+#if 0 // Old version
+
 #define PTS_UNDEFINED 0x8000000000000000LL
 
 /* Sources */
@@ -1606,3 +1608,397 @@ int bg_input_plugin_load_edl(bg_plugin_registry_t * reg,
     }
   return 1;
   }
+
+#else // New version
+
+typedef struct
+  {
+  bg_plugin_handle_t * h;
+  bg_input_plugin_t * plugin;
+  int track;
+  const char * location;
+  int refcount;
+  int stream;
+  bg_stream_type_t type;  
+  } source_t;
+
+static int source_init(source_t * s, 
+                       bg_plugin_registry_t * plugin_reg,
+                       const gavl_edl_t * edl, 
+                       const gavl_edl_segment_t * seg,
+                       bg_stream_type_t type)
+  {
+  bg_track_info_t * ti;
+  s->location = seg->url ? seg->url : edl->url;
+
+  if(!bg_input_plugin_load(plugin_reg,
+                           s->location,
+                           NULL,
+                           &s->h,
+                           NULL, 0))
+    return 0;
+  
+  s->track = seg->track;
+  s->stream = seg->stream;
+  s->type = type;
+
+  s->plugin = (bg_input_plugin_t*)(s->h->plugin);
+  if(s->plugin->set_track && !s->plugin->set_track(s->h->priv, s->track))
+    return 0;
+  
+  ti = s->plugin->get_track_info(s->h->priv, s->track);
+
+  if(!(ti->flags & BG_TRACK_SEEKABLE))
+    {
+    bg_log(BG_LOG_ERROR, LOG_DOMAIN, "EDL only works with seekable sources");
+    return 0;
+    }
+
+  switch(type)
+    {
+    case BG_STREAM_AUDIO:
+      s->plugin->set_audio_stream(s->h->priv, s->stream, BG_STREAM_ACTION_DECODE);
+      break;
+    case BG_STREAM_VIDEO:
+      s->plugin->set_video_stream(s->h->priv, s->stream, BG_STREAM_ACTION_DECODE);
+      break;
+    case BG_STREAM_TEXT:
+      s->plugin->set_text_stream(s->h->priv, s->stream, BG_STREAM_ACTION_DECODE);
+      break;
+    case BG_STREAM_OVERLAY:
+      s->plugin->set_overlay_stream(s->h->priv, s->stream, BG_STREAM_ACTION_DECODE);
+      break;
+    }
+  
+  if(s->plugin->start && !s->plugin->start(s->h->priv))
+    return 0;
+
+  return 1;
+  }
+
+static void source_cleanup(source_t * s)
+  {
+
+  }
+
+static void source_ref(source_t * s)
+  {
+  s->refcount++;
+  }
+
+static void source_uref(source_t * s)
+  {
+  s->refcount--;
+  }
+
+typedef struct
+  {
+  gavl_audio_source_t * asrc_ext;
+  gavl_audio_source_t * asrc_int;
+
+  gavl_video_source_t * vsrc_ext;
+  gavl_video_source_t * vsrc_int;
+
+  gavl_packet_source_t * psrc_ext;
+  gavl_packet_source_t * psrc_int;
+
+  bg_stream_action_t action;
+
+  const gavl_edl_stream_t * s;
+
+  int64_t pts;
+  } stream_t;
+
+static void stream_init(stream_t * s, gavl_edl_stream_t * es)
+  {
+  s->s = es;
+  }
+
+static void stream_cleanup(stream_t * s)
+  {
+
+  }
+
+typedef struct
+  {
+  int num_sources;
+  source_t * sources;
+
+  stream_t * audio_streams;
+  stream_t * video_streams; 
+  stream_t * text_streams; 
+  stream_t * overlay_streams; 
+
+  const gavl_edl_t * edl;
+  const gavl_edl_track_t * t;
+
+  bg_track_info_t * ti;
+
+  } edldec_t;
+
+static source_t * get_source(edldec_t * dec, bg_stream_type_t * type,
+                             const gavl_edl_segment_t * seg)
+  {
+
+  }
+
+static void destroy_edl(void * priv)
+  {
+
+  }
+
+static void set_callbacks_edl(void * priv, bg_input_callbacks_t * cb)
+  {
+
+  }
+
+static int get_num_tracks_edl(void * priv)
+  {
+  edldec_t * ed = priv;
+  return ed->edl->num_tracks;
+  }
+
+static bg_track_info_t * get_track_info_edl(void * priv, int track)
+  {
+  edldec_t * ed = priv;
+  return &ed->ti[track];
+  }
+
+static stream_t * streams_create(gavl_edl_stream_t * es, int num)
+  {
+  int i;
+  stream_t * ret;
+
+  if(!num)
+    return NULL;
+
+  ret = calloc(num, sizeof(*ret));
+
+  for(i = 0; i < num; i++)
+    stream_init(&ret[i], &es[i]);
+
+  return ret;
+  }
+
+static void streams_destroy(stream_t * s, int num)
+  {
+  int i;
+  for(i = 0; i < num; i++)
+    stream_cleanup(&s[i]);
+  if(s)
+    free(s);
+  }
+
+static int set_track_edl(void * priv, int track)
+  {
+  edldec_t * ed = priv;
+  /* Clean up earlier streams */
+  if(ed->t)
+    {
+    streams_destroy(ed->audio_streams, ed->t->num_audio_streams);
+    streams_destroy(ed->video_streams, ed->t->num_video_streams);
+    streams_destroy(ed->text_streams, ed->t->num_text_streams);
+    streams_destroy(ed->overlay_streams, ed->t->num_overlay_streams);
+    }
+
+  ed->t = &ed->edl->tracks[track];
+  /* Create streams */
+
+  ed->audio_streams   = streams_create(ed->t->audio_streams,   ed->t->num_audio_streams);
+  ed->video_streams   = streams_create(ed->t->video_streams,   ed->t->num_video_streams);
+  ed->text_streams    = streams_create(ed->t->text_streams,    ed->t->num_text_streams);
+  ed->overlay_streams = streams_create(ed->t->overlay_streams, ed->t->num_overlay_streams);
+
+  }
+
+static int set_audio_stream_edl(void * priv, int stream, bg_stream_action_t action)
+  {
+  edldec_t * ed = priv;
+  if((action != BG_STREAM_ACTION_OFF) && (action != BG_STREAM_ACTION_DECODE))
+    {
+    bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Invalid action for audio stream");
+    return 0;
+    }
+  ed->audio_streams[stream].action = action;
+  return 1;
+  }
+
+static int set_video_stream_edl(void * priv, int stream, bg_stream_action_t action)
+  {
+  edldec_t * ed = priv;
+  if((action != BG_STREAM_ACTION_OFF) && (action != BG_STREAM_ACTION_DECODE))
+    {
+    bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Invalid action for video stream");
+    return 0;
+    }
+  ed->video_streams[stream].action = action;
+  return 1;
+  }
+
+static int set_text_stream_edl(void * priv, int stream, bg_stream_action_t action)
+  {
+  edldec_t * ed = priv;
+  ed->text_streams[stream].action = action;
+  return 1;
+  }
+
+static int set_overlay_stream_edl(void * priv, int stream, bg_stream_action_t action)
+  {
+  edldec_t * ed = priv;
+  if((action != BG_STREAM_ACTION_OFF) && (action != BG_STREAM_ACTION_DECODE))
+    {
+    bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Invalid action for overlay stream");
+    return 0;
+    }
+  ed->overlay_streams[stream].action = action;
+  return 1;
+  }
+
+static int start_edl(void * priv)
+  {
+  edldec_t * ed = priv;
+  }
+
+static gavl_audio_source_t * get_audio_source_edl(void * priv, int stream)
+  {
+  edldec_t * ed = priv;
+  return ed->audio_streams[stream].asrc_ext;
+  }
+
+static gavl_video_source_t * get_video_source_edl(void * priv, int stream)
+  {
+  edldec_t * ed = priv;
+  return ed->video_streams[stream].vsrc_ext;
+  }
+
+static gavl_packet_source_t * get_text_source_edl(void * priv, int stream)
+  {
+  edldec_t * ed = priv;
+  return ed->text_streams[stream].psrc_ext;
+  }
+
+static gavl_video_source_t * get_overlay_source_edl(void * priv, int stream)
+  {
+  edldec_t * ed = priv;
+  return ed->overlay_streams[stream].vsrc_ext;
+  }
+
+static void seek_edl(void * priv, int64_t * time, int scale)
+  {
+
+  }
+
+static void close_edl(void * priv)
+  {
+
+  }
+
+static const bg_input_plugin_t edl_plugin =
+  {
+    .common =
+    {
+      BG_LOCALE,
+      .name =           "i_edldec",
+      .long_name =      TRS("EDL decoder"),
+      .description =    TRS("This metaplugin decodes an EDL as if it was a single file."),
+      .type =           BG_PLUGIN_INPUT,
+      .flags =          0,
+      .priority =       1,
+      .create =         NULL,
+      .destroy =        destroy_edl,
+      //      .get_parameters = get_parameters_edl,
+      //      .set_parameter =  set_parameter_edl
+    },
+    //    .open =          open_input,
+    .set_callbacks = set_callbacks_edl,
+    .get_num_tracks = get_num_tracks_edl,
+    .get_track_info = get_track_info_edl,
+    .set_track      = set_track_edl,
+    /* Set streams */
+    .set_video_stream =         set_video_stream_edl,
+    .set_audio_stream =         set_audio_stream_edl,
+    .set_text_stream =      set_text_stream_edl,
+    .set_overlay_stream =      set_overlay_stream_edl,
+    /*
+     *  Start decoding.
+     *  Track info is the track, which should be played.
+     *  The plugin must take care of the "active" fields
+     *  in the stream infos to check out, which streams are to be decoded
+     */
+    .start =                 start_edl,
+    /* Read one video frame (returns FALSE on EOF) */
+    .get_audio_source = get_audio_source_edl,
+    .get_video_source = get_video_source_edl,
+    .get_text_source = get_text_source_edl,
+    .get_overlay_source = get_overlay_source_edl,
+    /*
+     *  Do percentage seeking (can be NULL)
+     *  Media streams are supposed to be seekable, if this
+     *  function is non-NULL AND the duration field of the track info
+     *  is > 0
+     */
+    .seek = seek_edl,
+    /* Stop playback, close all decoders */
+    //    .stop = stop_edl,
+    .close = close_edl,
+  };
+
+bg_plugin_info_t * bg_edldec_get_info()
+  {
+  return bg_plugin_info_create(&edl_plugin.common);
+  }
+
+int bg_input_plugin_load_edl(bg_plugin_registry_t * reg,
+                             const gavl_edl_t * edl,
+                             const bg_plugin_info_t * info,
+                             bg_plugin_handle_t ** ret1,
+                             bg_input_callbacks_t * callbacks)
+  {
+  int i, j;
+  bg_plugin_handle_t * ret;
+  edldec_t * priv;
+
+  if(*ret1)
+    bg_plugin_unref(*ret1);
+  
+  ret = calloc(1, sizeof(*ret));
+  *ret1 = ret;
+    
+  ret->plugin = (bg_plugin_common_t*)(&edl_plugin);
+  ret->info = info;
+  
+  pthread_mutex_init(&ret->mutex, NULL);
+
+  priv = calloc(1, sizeof(*priv));
+  ret->priv = priv;
+  ret->refcount = 1;
+  priv->edl = edl;
+  /* Create track info */
+  
+  priv->ti = calloc(priv->edl->num_tracks, sizeof(*priv->ti));
+  
+  for(i = 0; i < priv->edl->num_tracks; i++)
+    {
+    gavl_edl_track_t * track;
+    bg_track_info_t * ti;
+
+    track = priv->edl->tracks + i;
+    ti = priv->ti + i;
+
+    gavl_metadata_copy(&ti->metadata, &track->metadata);
+
+    ti->num_audio_streams   = track->num_audio_streams;
+    ti->num_video_streams   = track->num_video_streams;
+    ti->num_text_streams    = track->num_text_streams;
+    ti->num_overlay_streams = track->num_overlay_streams;
+    
+    ti->audio_streams = calloc(ti->num_audio_streams, sizeof(*ti->audio_streams));
+    ti->video_streams = calloc(ti->num_video_streams, sizeof(*ti->video_streams));
+    ti->text_streams  = calloc(ti->num_text_streams,  sizeof(*ti->text_streams));
+    ti->overlay_streams = calloc(ti->num_overlay_streams, sizeof(*ti->overlay_streams));
+    }
+
+  return 1;
+  }
+
+#endif
