@@ -1611,6 +1611,8 @@ int bg_input_plugin_load_edl(bg_plugin_registry_t * reg,
 
 #else // New version
 
+typedef struct edldec_s edldec_t;
+
 typedef struct
   {
   bg_plugin_handle_t * h;
@@ -1657,16 +1659,20 @@ static int source_init(source_t * s,
   switch(type)
     {
     case BG_STREAM_AUDIO:
-      s->plugin->set_audio_stream(s->h->priv, s->stream, BG_STREAM_ACTION_DECODE);
+      s->plugin->set_audio_stream(s->h->priv, s->stream,
+                                  BG_STREAM_ACTION_DECODE);
       break;
     case BG_STREAM_VIDEO:
-      s->plugin->set_video_stream(s->h->priv, s->stream, BG_STREAM_ACTION_DECODE);
+      s->plugin->set_video_stream(s->h->priv, s->stream,
+                                  BG_STREAM_ACTION_DECODE);
       break;
     case BG_STREAM_TEXT:
-      s->plugin->set_text_stream(s->h->priv, s->stream, BG_STREAM_ACTION_DECODE);
+      s->plugin->set_text_stream(s->h->priv, s->stream,
+                                 BG_STREAM_ACTION_DECODE);
       break;
     case BG_STREAM_OVERLAY:
-      s->plugin->set_overlay_stream(s->h->priv, s->stream, BG_STREAM_ACTION_DECODE);
+      s->plugin->set_overlay_stream(s->h->priv, s->stream,
+                                    BG_STREAM_ACTION_DECODE);
       break;
     }
   
@@ -1678,7 +1684,9 @@ static int source_init(source_t * s,
 
 static void source_cleanup(source_t * s)
   {
-
+  if(s->h)
+    bg_plugin_unref(s->h);
+  memset(s, 0, sizeof(*s));
   }
 
 static void source_ref(source_t * s)
@@ -1686,7 +1694,7 @@ static void source_ref(source_t * s)
   s->refcount++;
   }
 
-static void source_uref(source_t * s)
+static void source_unref(source_t * s)
   {
   s->refcount--;
   }
@@ -1705,21 +1713,37 @@ typedef struct
   bg_stream_action_t action;
 
   const gavl_edl_stream_t * s;
+  const gavl_edl_segment_t * seg;
 
+  source_t * src;
+  
+  int64_t mute_time;
   int64_t pts;
+
+  struct edldec_s * dec;
+
+  const gavl_audio_format_t * afmt;
+  const gavl_video_format_t * vfmt;
   } stream_t;
 
-static void stream_init(stream_t * s, gavl_edl_stream_t * es)
+static void stream_init(stream_t * s, gavl_edl_stream_t * es,
+                        struct edldec_s * dec)
   {
   s->s = es;
+  s->dec = dec;
   }
 
 static void stream_cleanup(stream_t * s)
   {
-
+  if(s->asrc_ext)
+    gavl_audio_source_destroy(s->asrc_ext);
+  if(s->vsrc_ext)
+    gavl_video_source_destroy(s->vsrc_ext);
+  if(s->psrc_ext)
+    gavl_packet_source_destroy(s->psrc_ext);
   }
 
-typedef struct
+struct edldec_s
   {
   int num_sources;
   source_t * sources;
@@ -1734,12 +1758,16 @@ typedef struct
 
   bg_track_info_t * ti;
   bg_track_info_t * ti_cur;
-  } edldec_t;
+
+  bg_plugin_registry_t * plugin_reg;
+  };
 
 static source_t * get_source(edldec_t * dec, bg_stream_type_t type,
-                             const gavl_edl_segment_t * seg)
+                             const gavl_edl_segment_t * seg,
+                             int64_t src_time)
   {
   int i;
+  source_t * ret;
   const char * location = seg->url ? seg->url : dec->edl->url;
 
   /* Find a cached source */
@@ -1753,11 +1781,47 @@ static source_t * get_source(edldec_t * dec, bg_stream_type_t type,
        (s->type == type) &&
        (s->stream == seg->stream) &&
        !s->refcount)
-      return s;
+      ret = s;
+    }
+  
+  /* Find an empty slot */
+  if(!ret)
+    {
+    for(i = 0; i < dec->num_sources; i++)
+      {
+      source_t * s = dec->sources + i;
+      if(!s->location)
+        {
+        ret = s;
+        break;
+        }
+      }
     }
 
-  /* Find an empty slot */
+  /* Free an existing slot */
+  if(!ret)
+    {
+    for(i = 0; i < dec->num_sources; i++)
+      {
+      source_t * s = dec->sources + i;
+      if(!s->refcount)
+        {
+        ret = s;
+        source_cleanup(ret);
+        break;
+        }
+      }
+    }
+
+  if(!ret->location)
+    {
+    if(!source_init(ret, dec->plugin_reg, dec->edl, seg, type))
+      return NULL;
+    }
+
+  ret->plugin->seek(ret->h->priv, &src_time, seg->timescale);
   
+  return ret;  
   }
 
 static void destroy_edl(void * priv)
@@ -1782,7 +1846,8 @@ static bg_track_info_t * get_track_info_edl(void * priv, int track)
   return &ed->ti[track];
   }
 
-static stream_t * streams_create(gavl_edl_stream_t * es, int num)
+static stream_t * streams_create(edldec_t * dec,
+                                 gavl_edl_stream_t * es, int num)
   {
   int i;
   stream_t * ret;
@@ -1793,7 +1858,7 @@ static stream_t * streams_create(gavl_edl_stream_t * es, int num)
   ret = calloc(num, sizeof(*ret));
 
   for(i = 0; i < num; i++)
-    stream_init(&ret[i], &es[i]);
+    stream_init(&ret[i], &es[i], dec);
 
   return ret;
   }
@@ -1823,14 +1888,19 @@ static int set_track_edl(void * priv, int track)
   ed->ti_cur = &ed->ti[track];
   /* Create streams */
 
-  ed->audio_streams   = streams_create(ed->t->audio_streams,   ed->t->num_audio_streams);
-  ed->video_streams   = streams_create(ed->t->video_streams,   ed->t->num_video_streams);
-  ed->text_streams    = streams_create(ed->t->text_streams,    ed->t->num_text_streams);
-  ed->overlay_streams = streams_create(ed->t->overlay_streams, ed->t->num_overlay_streams);
-
+  ed->audio_streams   =
+    streams_create(ed, ed->t->audio_streams,   ed->t->num_audio_streams);
+  ed->video_streams   =
+    streams_create(ed, ed->t->video_streams,   ed->t->num_video_streams);
+  ed->text_streams    =
+    streams_create(ed, ed->t->text_streams,    ed->t->num_text_streams);
+  ed->overlay_streams =
+    streams_create(ed, ed->t->overlay_streams, ed->t->num_overlay_streams);
+  return 1;
   }
 
-static int set_audio_stream_edl(void * priv, int stream, bg_stream_action_t action)
+static int set_audio_stream_edl(void * priv, int stream,
+                                bg_stream_action_t action)
   {
   edldec_t * ed = priv;
   if((action != BG_STREAM_ACTION_OFF) && (action != BG_STREAM_ACTION_DECODE))
@@ -1842,7 +1912,8 @@ static int set_audio_stream_edl(void * priv, int stream, bg_stream_action_t acti
   return 1;
   }
 
-static int set_video_stream_edl(void * priv, int stream, bg_stream_action_t action)
+static int set_video_stream_edl(void * priv, int stream,
+                                bg_stream_action_t action)
   {
   edldec_t * ed = priv;
   if((action != BG_STREAM_ACTION_OFF) && (action != BG_STREAM_ACTION_DECODE))
@@ -1854,14 +1925,16 @@ static int set_video_stream_edl(void * priv, int stream, bg_stream_action_t acti
   return 1;
   }
 
-static int set_text_stream_edl(void * priv, int stream, bg_stream_action_t action)
+static int set_text_stream_edl(void * priv, int stream,
+                               bg_stream_action_t action)
   {
   edldec_t * ed = priv;
   ed->text_streams[stream].action = action;
   return 1;
   }
 
-static int set_overlay_stream_edl(void * priv, int stream, bg_stream_action_t action)
+static int set_overlay_stream_edl(void * priv, int stream,
+                                  bg_stream_action_t action)
   {
   edldec_t * ed = priv;
   if((action != BG_STREAM_ACTION_OFF) && (action != BG_STREAM_ACTION_DECODE))
@@ -1873,28 +1946,204 @@ static int set_overlay_stream_edl(void * priv, int stream, bg_stream_action_t ac
   return 1;
   }
 
+static gavl_audio_source_t * get_audio_source(edldec_t * ed,
+                                              const gavl_edl_segment_t * seg,
+                                              source_t ** src,
+                                              int64_t src_time)
+  {
+  if(*src)
+    source_unref(*src);
+  if(!(*src = get_source(ed, BG_STREAM_AUDIO, seg, src_time)))
+    return NULL;
+  source_ref(*src);
+  return (*src)->plugin->get_audio_source((*src)->h->priv, seg->stream);
+  }
+
+static gavl_video_source_t * get_video_source(edldec_t * ed,
+                                              const gavl_edl_segment_t * seg,
+                                              source_t ** src,
+                                              int64_t src_time)
+  {
+  if(*src)
+    source_unref(*src);
+  if(!(*src = get_source(ed, BG_STREAM_VIDEO, seg, src_time)))
+    return NULL;
+  source_ref(*src);
+  return (*src)->plugin->get_video_source((*src)->h->priv, seg->stream);
+  }
+
+static gavl_packet_source_t * get_text_source(edldec_t * ed,
+                                              const gavl_edl_segment_t * seg,
+                                              source_t ** src,
+                                              int64_t src_time)
+  {
+  if(*src)
+    source_unref(*src);
+  if(!(*src = get_source(ed, BG_STREAM_TEXT, seg, src_time)))
+    return NULL;
+  source_ref(*src);
+  return (*src)->plugin->get_text_source((*src)->h->priv, seg->stream);
+  }
+
+static gavl_video_source_t * get_overlay_source(edldec_t * ed,
+                                                const gavl_edl_segment_t * seg,
+                                                source_t ** src,
+                                                int64_t src_time)
+  {
+  if(*src)
+    source_unref(*src);
+
+  if(!(*src = get_source(ed, BG_STREAM_OVERLAY, seg, src_time)))
+    return NULL;
+  source_ref(*src);
+  return (*src)->plugin->get_overlay_source((*src)->h->priv, seg->stream);
+  }
+
+static gavl_source_status_t read_audio(void * priv,
+                                       gavl_audio_frame_t ** frame)
+  {
+  gavl_source_status_t st;
+  stream_t * s = priv;
+
+  /* Early return */
+  if(!s->seg && !s->mute_time)
+    return GAVL_SOURCE_EOF;
+    
+  /* Check for segment end */
+  if(s->seg && (s->pts >= s->seg->dst_time + s->seg->dst_duration))
+    {
+    int64_t src_time;
+
+    s->seg = gavl_edl_dst_time_to_src(s->dec->t, s->s, 0,
+                                      &src_time, &s->mute_time);
+
+    if(!s->seg && !s->mute_time)
+      return GAVL_SOURCE_EOF;
+    
+    if(s->seg &&
+       !(s->asrc_int = get_audio_source(s->dec, s->seg, &s->src, src_time)))
+      return GAVL_SOURCE_EOF;
+    }
+  
+  /* Check for mute */
+  if(s->mute_time)
+    {
+    gavl_audio_frame_mute(*frame, s->afmt);
+    if((*frame)->valid_samples > s->mute_time)
+      (*frame)->valid_samples = s->mute_time;
+    s->mute_time -= (*frame)->valid_samples;
+    s->pts += (*frame)->valid_samples;
+    return GAVL_SOURCE_OK;
+    }
+  
+  /* Read audio */
+  st = gavl_audio_source_read_frame(s->asrc_int, frame);
+  if(st != GAVL_SOURCE_OK)
+    return st;
+  
+  if(s->pts + (*frame)->valid_samples >
+     s->seg->dst_time + s->seg->dst_duration)
+    {
+    (*frame)->valid_samples =
+      s->seg->dst_time + s->seg->dst_duration - s->pts;
+    }
+  s->pts += (*frame)->valid_samples;
+  return GAVL_SOURCE_OK;
+  }
+
 static int start_audio_stream(edldec_t * ed, stream_t * s, bg_audio_info_t * ai)
   {
+  int64_t src_time;
   if(s->action == BG_STREAM_ACTION_OFF)
     return 1;
+  if(!(s->seg = gavl_edl_dst_time_to_src(ed->t, s->s, 0,
+                                         &src_time, &s->mute_time)))
+    return 0;
+
+  if(!(s->asrc_int = get_audio_source(ed, s->seg, &s->src, src_time)))
+    return 0;
+
+  /* Get format */
+  gavl_audio_format_copy(&ai->format,
+                         gavl_audio_source_get_src_format(s->asrc_int));
+  s->afmt = &ai->format;
+  
+  /* Adjust format */
+  ai->format.samplerate = s->s->timescale;
+  
+  /* Set destination format */
+  gavl_audio_source_set_dst(s->asrc_int, 0, &ai->format);
+
+  /* Create external source */
+  s->asrc_ext = gavl_audio_source_create(read_audio, s,
+                                         GAVL_SOURCE_SRC_FRAMESIZE_MAX,
+                                         &ai->format);
+  
+  return 1;
   }
 
 static int start_video_stream(edldec_t * ed, stream_t * s, bg_video_info_t * vi)
   {
+  int64_t src_time;
   if(s->action == BG_STREAM_ACTION_OFF)
     return 1;
+
+  if(!(s->seg = gavl_edl_dst_time_to_src(ed->t, s->s, 0,
+                                         &src_time, &s->mute_time)))
+    return 0;
+  
+  if(!(s->vsrc_int = get_video_source(ed, s->seg, &s->src, src_time)))
+    return 0;
+
+  /* Get format */
+  gavl_video_format_copy(&vi->format,
+                         gavl_video_source_get_src_format(s->vsrc_int));
+  s->vfmt = &vi->format;
+
+  /* Adjust format */
+  vi->format.timescale = s->s->timescale;
+  vi->format.frame_duration = 0;
+  vi->format.framerate_mode = GAVL_FRAMERATE_VARIABLE;
+  
+  /* Set destination format */
+  gavl_video_source_set_dst(s->vsrc_int, 0, &vi->format);
+
+  /* Create external source */
+  
+  return 1;
   }
 
 static int start_text_stream(edldec_t * ed, stream_t * s, bg_text_info_t * ti)
   {
+  int64_t src_time;
   if(s->action == BG_STREAM_ACTION_OFF)
     return 1;
+  s->seg = gavl_edl_dst_time_to_src(ed->t, s->s, 0, &src_time, &s->mute_time);
+  if(!s->seg)
+    return 0;
+  s->psrc_int = get_text_source(ed, s->seg, &s->src, src_time);
+  if(s->psrc_int)
+    return 0;
   }
 
-static int start_overlay_stream(edldec_t * ed, stream_t * s, bg_overlay_info_t * oi)
+static int start_overlay_stream(edldec_t * ed, stream_t * s,
+                                bg_overlay_info_t * oi)
   {
+  int64_t src_time;
   if(s->action == BG_STREAM_ACTION_OFF)
     return 1;
+  s->seg = gavl_edl_dst_time_to_src(ed->t, s->s, 0, &src_time, &s->mute_time);
+  if(!s->seg)
+    return 0;
+  s->vsrc_int = get_overlay_source(ed, s->seg, &s->src, src_time);
+  if(s->vsrc_int)
+    return 0;
+
+  /* Get format */
+  gavl_video_format_copy(&oi->format,
+                         gavl_video_source_get_src_format(s->vsrc_int));
+  s->vfmt = &oi->format;
+  
   }
 
 static int start_edl(void * priv)
@@ -1904,22 +2153,26 @@ static int start_edl(void * priv)
 
   for(i = 0; i < ed->t->num_audio_streams; i++)
     {
-    if(!start_audio_stream(ed, &ed->audio_streams[i], &ed->ti_cur->audio_streams[i]))
+    if(!start_audio_stream(ed, &ed->audio_streams[i],
+                           &ed->ti_cur->audio_streams[i]))
       return 0;
     }
   for(i = 0; i < ed->t->num_video_streams; i++)
     {
-    if(!start_video_stream(ed, &ed->video_streams[i], &ed->ti_cur->video_streams[i]))
+    if(!start_video_stream(ed, &ed->video_streams[i],
+                           &ed->ti_cur->video_streams[i]))
       return 0;
     }
   for(i = 0; i < ed->t->num_text_streams; i++)
     {
-    if(!start_text_stream(ed, &ed->text_streams[i], &ed->ti_cur->text_streams[i]))
+    if(!start_text_stream(ed, &ed->text_streams[i],
+                          &ed->ti_cur->text_streams[i]))
       return 0;
     }
   for(i = 0; i < ed->t->num_overlay_streams; i++)
     {
-    if(!start_overlay_stream(ed, &ed->overlay_streams[i], &ed->ti_cur->overlay_streams[i]))
+    if(!start_overlay_stream(ed, &ed->overlay_streams[i],
+                             &ed->ti_cur->overlay_streams[i]))
       return 0;
     }
   return 1;
@@ -2040,6 +2293,8 @@ int bg_input_plugin_load_edl(bg_plugin_registry_t * reg,
   ret->priv = priv;
   ret->refcount = 1;
   priv->edl = edl;
+  priv->plugin_reg = reg;
+  
   /* Create track info */
   
   priv->ti = calloc(priv->edl->num_tracks, sizeof(*priv->ti));
