@@ -2120,9 +2120,45 @@ static gavl_source_status_t read_video(void * priv,
 
   /* Check for mute */
 
+  if(s->mute_time > 0)
+    {
+    gavl_video_frame_clear(*frame, s->vfmt);
+    (*frame)->timestamp = s->pts;
+    (*frame)->duration = s->mute_time;
+
+    /* TODO: Limit frame duration */
+    
+    s->pts += (*frame)->duration;
+    s->mute_time -= (*frame)->duration;
+    return GAVL_SOURCE_OK;
+    }
+  
   /* Read video */
+  st = gavl_video_source_read_frame(s->asrc_int, frame);
+  if(st != GAVL_SOURCE_OK)
+    return st;
+  
+  if(s->pts + (*frame)->duration >
+     s->seg->dst_time + s->seg->dst_duration)
+    {
+    (*frame)->duration =
+      s->seg->dst_time + s->seg->dst_duration - s->pts;
+    }
+  s->pts += (*frame)->duration;
+  return GAVL_SOURCE_OK;
   
   
+  }
+
+static gavl_source_status_t read_text(void * priv,
+                                      gavl_packet_t ** p)
+  {
+  gavl_source_status_t st;
+  stream_t * s = priv;
+
+  /* Early return */
+  if(!s->seg && !s->mute_time)
+    return GAVL_SOURCE_EOF;
   }
 
 static int start_video_stream(edldec_t * ed, stream_t * s, bg_video_info_t * vi)
@@ -2168,6 +2204,11 @@ static int start_text_stream(edldec_t * ed, stream_t * s, bg_text_info_t * ti)
   s->psrc_int = get_text_source(ed, s->seg, &s->src, src_time);
   if(s->psrc_int)
     return 0;
+
+  /* Create external source */
+  s->psrc_ext = gavl_packet_source_create_text(read_text, s, 0,
+                                               s->s->timescale);
+
   }
 
 static int start_overlay_stream(edldec_t * ed, stream_t * s,
