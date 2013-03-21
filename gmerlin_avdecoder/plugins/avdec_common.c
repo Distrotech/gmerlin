@@ -478,13 +478,14 @@ static void metadata_change_callback(void * priv,
   /* Merge metadata */
 
   if(avdec->current_track)
+    {
     gavl_metadata_copy(&avdec->current_track->metadata,
                        metadata);
-  
-  if(avdec->bg_callbacks && avdec->bg_callbacks->metadata_changed)
-    {
-    avdec->bg_callbacks->metadata_changed(avdec->bg_callbacks->data,
-                                          &avdec->current_track->metadata);
+    if(avdec->bg_callbacks && avdec->bg_callbacks->metadata_changed)
+      {
+      avdec->bg_callbacks->metadata_changed(avdec->bg_callbacks->data,
+                                            &avdec->current_track->metadata);
+      }
     }
   }
 
