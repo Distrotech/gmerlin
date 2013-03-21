@@ -2008,7 +2008,7 @@ static gavl_source_status_t read_audio(void * priv,
   /* Early return */
   if(!s->seg && !s->mute_time)
     return GAVL_SOURCE_EOF;
-    
+  
   /* Check for segment end */
   if(s->seg && (s->pts >= s->seg->dst_time + s->seg->dst_duration))
     {
@@ -2019,10 +2019,15 @@ static gavl_source_status_t read_audio(void * priv,
 
     if(!s->seg && !s->mute_time)
       return GAVL_SOURCE_EOF;
-    
-    if(s->seg &&
-       !(s->asrc_int = get_audio_source(s->dec, s->seg, &s->src, src_time)))
-      return GAVL_SOURCE_EOF;
+
+    if(s->seg)
+      {
+      if(!(s->asrc_int = get_audio_source(s->dec, s->seg, &s->src, src_time)))
+        return GAVL_SOURCE_EOF;
+      gavl_audio_source_set_dst(s->asrc_int, 0, s->afmt);
+      }
+    else
+      s->asrc_int = NULL;
     }
   
   /* Check for mute */
@@ -2082,6 +2087,44 @@ static int start_audio_stream(edldec_t * ed, stream_t * s, bg_audio_info_t * ai)
   return 1;
   }
 
+static gavl_source_status_t read_video(void * priv,
+                                       gavl_video_frame_t ** frame)
+  {
+  gavl_source_status_t st;
+  stream_t * s = priv;
+
+  /* Early return */
+  if(!s->seg && !s->mute_time)
+    return GAVL_SOURCE_EOF;
+
+  /* Check for segment end */
+  if(s->seg && (s->pts >= s->seg->dst_time + s->seg->dst_duration))
+    {
+    int64_t src_time;
+
+    s->seg = gavl_edl_dst_time_to_src(s->dec->t, s->s, 0,
+                                      &src_time, &s->mute_time);
+
+    if(!s->seg && !s->mute_time)
+      return GAVL_SOURCE_EOF;
+    
+    if(s->seg)
+      {
+      if(!(s->vsrc_int = get_video_source(s->dec, s->seg, &s->src, src_time)))
+        return GAVL_SOURCE_EOF;
+      gavl_video_source_set_dst(s->vsrc_int, 0, s->vfmt);
+      }
+    else
+      s->vsrc_int = NULL;
+    }
+
+  /* Check for mute */
+
+  /* Read video */
+  
+  
+  }
+
 static int start_video_stream(edldec_t * ed, stream_t * s, bg_video_info_t * vi)
   {
   int64_t src_time;
@@ -2109,6 +2152,7 @@ static int start_video_stream(edldec_t * ed, stream_t * s, bg_video_info_t * vi)
   gavl_video_source_set_dst(s->vsrc_int, 0, &vi->format);
 
   /* Create external source */
+  s->vsrc_ext = gavl_video_source_create(read_video, s, 0, &vi->format);
   
   return 1;
   }
