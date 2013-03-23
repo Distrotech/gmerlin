@@ -93,7 +93,8 @@ int bg_remote_server_init(bg_remote_server_t * s)
   if(!s->allow_remote)
     flags |= BG_SOCKET_LOOPBACK;
   
-  s->fd = bg_listen_socket_create_inet(s->listen_port,
+  s->fd = bg_listen_socket_create_inet(NULL,
+                                       s->listen_port,
                                        s->max_connections,
                                        flags);
   if(s->fd < 0)

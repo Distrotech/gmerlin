@@ -56,7 +56,8 @@ void bg_socket_disconnect(int);
 // #define BG_SOCKET_IPV6     (1<<0)
 #define BG_SOCKET_LOOPBACK (1<<1)
 
-int bg_listen_socket_create_inet(int port,
+int bg_listen_socket_create_inet(bg_host_address_t * addr,
+                                 int port,
                                  int queue_size,
                                  int flags);
 

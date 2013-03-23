@@ -540,7 +540,7 @@ static gavf_io_t * open_tcp(const char * location, int wr)
   
   /* Return */
   s = calloc(1, sizeof(*s));
-
+  s->fd = fd;
   ret = gavf_io_create(wr ? NULL : read_socket,
                        wr ? write_socket : NULL,
                        NULL, // seek
@@ -604,7 +604,12 @@ static gavf_io_t * open_unix(const char * addr, int wr)
 
 static gavf_io_t * open_tcpserv(const char * addr, int wr)
   {
+  socket_t * s;
+  
+  bg_host_address_t * a = NULL;
   int port;
+  int server_fd, fd;
+
   char * host = NULL;
   gavf_io_t * ret = NULL;
 
@@ -620,10 +625,57 @@ static gavf_io_t * open_tcpserv(const char * addr, int wr)
       free(host);
     bg_log(BG_LOG_ERROR, LOG_DOMAIN,
            "Invalid TCP address %s", addr);
-    return NULL;
+    goto fail;
     }
 
+  a = bg_host_address_create();
+  if(!bg_host_address_set(a, host,
+                          port, SOCK_STREAM))
+    goto fail;
+
+  server_fd = bg_listen_socket_create_inet(a, 0, 1, 0);
   
+  if(server_fd < 0)
+    {
+    return NULL;
+    }
+  while(1)
+    {
+    fd = bg_listen_socket_accept(server_fd, -1);
+    
+    if(fd < 0)
+      break;
+
+    bg_log(BG_LOG_INFO, LOG_DOMAIN,
+           "Got connection");
+    
+    if(socket_handshake(fd, wr, 1))
+      break;
+
+    bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Handshake failed");
+    close(fd);
+    }
+  
+  bg_listen_socket_destroy(server_fd);
+
+  if(fd < 0)
+    goto fail;
+  
+  s = calloc(1, sizeof(*s));
+  s->fd = fd;
+  ret = gavf_io_create(wr ? NULL : read_socket,
+                       wr ? write_socket : NULL,
+                       NULL, // seek
+                       close_socket,
+                       NULL, // flush
+                       s);
+  
+  fail:
+
+  if(a)
+    bg_host_address_destroy(a);
+  
+  return ret;
   }
 
 static gavf_io_t * open_unixserv(const char * addr, int wr)

@@ -129,6 +129,7 @@ static struct addrinfo * hostbyname(const char * hostname, int port, int socktyp
   {
   int err;
   struct in_addr ipv4_addr;
+  struct in6_addr ipv6_addr;
   
   struct addrinfo hints;
   struct addrinfo * ret;
@@ -141,7 +142,8 @@ static struct addrinfo * hostbyname(const char * hostname, int port, int socktyp
 
   /* prevent DNS lookup for numeric IP addresses */
 
-  if(inet_aton(hostname, &ipv4_addr))
+  if(inet_pton(AF_INET, hostname, &ipv4_addr) ||
+     inet_pton(AF_INET6, hostname, &ipv6_addr))
     hints.ai_flags |= AI_NUMERICHOST;
   if((err = getaddrinfo(hostname, NULL /* service */,
                         &hints, &ret)))
@@ -320,18 +322,22 @@ static int have_ipv6()
 
 /* Server socket (stream oriented) */
 
-int bg_listen_socket_create_inet(int port,
+int bg_listen_socket_create_inet(bg_host_address_t * addr,
+                                 int port,
                                  int queue_size,
                                  int flags)
   {
-  int ret, err, use_ipv6;
+  int ret, err, use_ipv6 = 0;
   struct sockaddr_in  name_ipv4;
   struct sockaddr_in6 name_ipv6;
 
-  if(flags & BG_SOCKET_LOOPBACK)
+  if(addr)
+    {
+    if(addr->addr->ai_family == AF_INET6)
+      use_ipv6 = 1;
+    }
+  else if(flags & BG_SOCKET_LOOPBACK)
     use_ipv6 = have_ipv6();
-  else
-    use_ipv6 = 0;
   
   memset(&name_ipv4, 0, sizeof(name_ipv4));
   memset(&name_ipv6, 0, sizeof(name_ipv6));
@@ -342,7 +348,7 @@ int bg_listen_socket_create_inet(int port,
     ret = create_socket(PF_INET, SOCK_STREAM, 0);
   
   /* Create the socket. */
-  if (ret < 0)
+  if(ret < 0)
     {
     bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Cannot create inet server socket");
     return -1;
@@ -350,7 +356,11 @@ int bg_listen_socket_create_inet(int port,
   
   /* Give the socket a name. */
 
-  if(use_ipv6)
+  if(addr)
+    {
+    err = bind(ret, addr->addr->ai_addr, addr->addr->ai_addrlen);
+    }
+  else if(use_ipv6)
     {
     name_ipv6.sin6_family = AF_INET6;
     name_ipv6.sin6_port   = htons(port);

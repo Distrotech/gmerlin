@@ -335,12 +335,25 @@ int bg_url_split(const char * url,
   
   /* Hostname */
 
-  while((*pos2 != '\0') && (*pos2 != ':') && (*pos2 != '/'))
+  if(*pos1 == '[') // IPV6
+    {
+    pos1++;
+    pos2 = strchr(pos1, ']');
+    if(!pos2)
+      return 0;
+
+    if(hostname)
+      *hostname = bg_strndup(NULL, pos1, pos2);
     pos2++;
-
-  if(hostname)
-    *hostname = bg_strndup(NULL, pos1, pos2);
-
+    }
+  else
+    {
+    while((*pos2 != '\0') && (*pos2 != ':') && (*pos2 != '/'))
+      pos2++;
+    if(hostname)
+      *hostname = bg_strndup(NULL, pos1, pos2);
+    }
+  
   switch(*pos2)
     {
     case '\0':
