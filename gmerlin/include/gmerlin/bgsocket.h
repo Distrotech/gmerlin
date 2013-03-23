@@ -65,7 +65,7 @@ int bg_listen_socket_create_unix(const char * name,
 
 /* Accept a new client connection, return -1 if there is none */
 
-int bg_listen_socket_accept(int);
+int bg_listen_socket_accept(int sock, int milliseconds);
 
 void bg_listen_socket_destroy(int);
 

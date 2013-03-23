@@ -271,7 +271,8 @@ int bg_socket_connect_unix(const char * name)
   
   if(connect(ret,(struct sockaddr*)(&addr),addr_len)<0)
     {
-    bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Connecting unix socket failed");
+    bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Connecting unix socket failed: %s",
+           strerror(errno));
     return -1;
     }
   return ret;
@@ -376,11 +377,6 @@ int bg_listen_socket_create_inet(int port,
     bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Cannot bind inet socket: %s", strerror(errno));
     return -1;
     }
-  if(fcntl(ret, F_SETFL, O_NONBLOCK) < 0)
-    {
-    bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Cannot set nonblocking mode");
-    return -1;
-    }
   if(listen(ret, queue_size))
     {
     bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Cannot put socket into listening mode");
@@ -412,11 +408,6 @@ int bg_listen_socket_create_unix(const char * name,
     bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Could not bind socket");
     return -1;
     }
-  if(fcntl(ret, F_SETFL, O_NONBLOCK) < 0)
-    {
-    bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Cannot set nonblocking mode");
-    return -1;
-    }
   if(listen(ret, queue_size))
     {
     bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Cannot put socket into listening mode");
@@ -427,9 +418,30 @@ int bg_listen_socket_create_unix(const char * name,
 
 /* Accept a new client connection, return -1 if there is none */
 
-int bg_listen_socket_accept(int sock)
+int bg_listen_socket_accept(int sock, int milliseconds)
   {
   int ret;
+
+  if(milliseconds >= 0)
+    {
+    int err;
+    struct timeval timeout;
+    fd_set read_fds;
+    
+    timeout.tv_sec = milliseconds / 1000;
+    timeout.tv_usec = 1000 * (milliseconds % 1000);
+    FD_ZERO (&read_fds);
+    FD_SET (sock, &read_fds);
+
+    err = select(sock+1, &read_fds, NULL, NULL,&timeout);
+    
+    if(!err)
+      {
+      bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Connection timed out");
+      return -1;
+      }
+    }
+  
   ret = accept(sock, NULL, NULL);
   if(ret < 0)
     return -1;

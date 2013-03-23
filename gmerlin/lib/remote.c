@@ -204,7 +204,7 @@ static void check_connections(bg_remote_server_t * s)
   
   /* Check for new connections */
 
-  new_fd = bg_listen_socket_accept(s->fd);
+  new_fd = bg_listen_socket_accept(s->fd, 0);
 
   if(new_fd >= 0)
     {

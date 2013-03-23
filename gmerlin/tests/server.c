@@ -100,14 +100,14 @@ int main(int argc, char ** argv)
 
   while(keep_going)
     {
-    if((new_fd = bg_listen_socket_accept(tcp_socket)) != -1)
+    if((new_fd = bg_listen_socket_accept(tcp_socket, 0)) != -1)
       {
       fprintf(stderr, "TCP Connection coming in: %d\n", new_fd);
       connections = add_connection(connections, new_fd);
       num_connections++;
       }
 
-    if((new_fd = bg_listen_socket_accept(unix_socket)) != -1)
+    if((new_fd = bg_listen_socket_accept(unix_socket, 0)) != -1)
       {
       fprintf(stderr, "Local connection coming in: %d\n", new_fd);
       connections = add_connection(connections, new_fd);

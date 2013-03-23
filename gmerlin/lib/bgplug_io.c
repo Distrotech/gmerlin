@@ -43,7 +43,7 @@
 #include <gmerlin/log.h>
 #define LOG_DOMAIN "plug_io"
 
-#define TIMEOUT 1000
+#define TIMEOUT 5000
 
 /* stdin / stdout */
 
@@ -179,63 +179,259 @@ static gavf_io_t * open_pipe(const char * location, int wr)
  * 503 Service Unavailable
  */
 
+static const struct
+  {
+  int status_int;
+  const char * status_str;
+  }
+status_codes[] =
+  {
+    { 200, "OK"          },
+    { 400, "Bad Request" },
+    { 405, "Method Not Allowed" },
+    { 505, "Protocol Version Not Supported" },
+    { 503, "Service Unavailable" },
+    { /* End */ }
+  };
+  
 #define META_METHOD   "$METHOD"
 #define META_LOCATION "$LOCATION"
 #define META_PROTOCOL "$PROTOCOL"
+#define META_STATUS   "$STATUS"
 
 #define PROTOCOL "bgplug/"VERSION
 
+static int read_vars(int fd, char ** line, int * line_alloc,
+                     gavl_metadata_t * m)
+  {
+  char * pos;
+  while(1)
+    {
+    if(!bg_socket_read_line(fd, line, line_alloc, TIMEOUT))
+      return 0;
+
+    fprintf(stderr, "Got line: %s\n", *line);
+    
+    if(**line == '\0')
+      return 1;
+    
+    pos = strchr(*line, ':');
+    if(!pos)
+      return 0;
+    *pos = '\0';
+    pos++;
+    while(isspace(*pos) && (*pos != '\0'))
+      pos++;
+    if(*pos == '\0')
+      return 0;
+    
+    gavl_metadata_set(m, *line, pos);
+    }
+  return 1;
+  }
+
+static char * write_vars(char * str, const gavl_metadata_t * m)
+  {
+  int i;
+  char * line;
+
+  for(i = 0; i < m->num_tags; i++)
+    {
+    if(*(m->tags[i].key) != '$')
+      {
+      line = bg_sprintf("%s: %s\n",
+                        m->tags[i].key,
+                        m->tags[i].val);
+
+      str = bg_strcat(str, line);
+      free(line);
+      }
+    }
+  str = bg_strcat(str, "\n");
+  return str;
+  }
+
 static int socket_request_read(int fd, gavl_metadata_t * req)
   {
+  int result;
+  char * line = NULL;
+  int line_alloc = 0;
+  char * pos1, *pos2;
   
+  if(!bg_socket_read_line(fd, &line, &line_alloc, TIMEOUT))
+    return 0;
+
+  fprintf(stderr, "Got line: %s\n", line);
+  
+  pos1 = strchr(line, ' ');
+  pos2 = strrchr(line, ' ');
+
+  if(!pos1 || !pos2 || (pos1 == pos2))
+    return 0;
+  
+  gavl_metadata_set_nocpy(req, META_METHOD,
+                          bg_strndup(NULL, line, pos1));
+  gavl_metadata_set_nocpy(req, META_LOCATION,
+                           bg_strndup(NULL, pos1+1, pos2));
+  gavl_metadata_set_nocpy(req, META_PROTOCOL,
+                          bg_strdup(NULL, pos2+1));
+  
+  result = read_vars(fd, &line, &line_alloc, req);
+  
+  if(line)
+    free(line);
+  
+  return result;
   }
 
 static int socket_request_write(int fd, gavl_metadata_t * req)
   {
+  const char * method;
+  const char * location;
+  int result;
+  char * line;
   
+  method = gavl_metadata_get(req, META_METHOD);
+  location = gavl_metadata_get(req, META_LOCATION);
+
+  if(!method || !location)
+    return 0;
+  
+  line = bg_sprintf("%s %s %s\n", method, location, PROTOCOL);
+
+  line = write_vars(line, req);
+  fprintf(stderr, "Writing request:\n%s", line);
+  
+  result = bg_socket_write_data(fd, (const uint8_t*)line, strlen(line));
+  free(line);
+
+  return result;
   }
 
 static int socket_response_read(int fd, gavl_metadata_t * req)
   {
+  int result;
+  char * line = NULL;
+  int line_alloc = 0;
+  char * pos1;
+  char * pos2;
   
+  if(!bg_socket_read_line(fd, &line, &line_alloc, TIMEOUT))
+    return 0;
+
+  fprintf(stderr, "Got line: %s\n", line);
+  
+  pos1 = strchr(line, ' ');
+  if(!pos1)
+    return 0;
+
+  pos2 = strchr(pos1+1, ' ');
+  
+  if(!pos2)
+    return 0;
+  
+  gavl_metadata_set_nocpy(req, META_PROTOCOL,
+                          bg_strndup(NULL, line, pos1));
+  gavl_metadata_set_nocpy(req, META_STATUS,
+                          bg_strndup(NULL, pos1+1, pos2));
+  
+  result = read_vars(fd, &line, &line_alloc, req);
+  
+  if(line)
+    free(line);
+  
+  return result;
   }
 
-static int socket_response_write(int fd, gavl_metadata_t * req)
+static int
+socket_response_write(int fd, gavl_metadata_t * req)
   {
+  int result;
+  char * line;
+  int status, i;
   
+  i = 0;
+  if(!gavl_metadata_get_int(req, META_STATUS, &status))
+    return 0;
+
+  while(status_codes[i].status_str)
+    {
+    if(status_codes[i].status_int == status)
+      break;
+    i++;
+    }
+  if(!status_codes[i].status_str)
+    return 0;
+
+  line = bg_sprintf("%s %d %s\n", PROTOCOL, status,
+                    status_codes[i].status_str);
+
+  line = write_vars(line, req);
+
+  fprintf(stderr, "Writing response:\n%s", line);
+  
+  result = bg_socket_write_data(fd, (const uint8_t*)line, strlen(line));
+  free(line);
+  return result;
   }
 
 static int socket_handshake(int fd, int wr, int server)
   {
+  int ret = 0;
   const char * val;
+  int status = 0;
   gavl_metadata_t req;
-  gavl_metadata_init(&req);
+  gavl_metadata_t res;
 
+  gavl_metadata_init(&req);
+  gavl_metadata_init(&res);
+  
   if(server)
     {
     if(!socket_request_read(fd, &req))
-      return 0;
+      {
+      bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Reading request failed");
+      goto fail;
+      }
     val = gavl_metadata_get(&req, "$PROTOCOL");
     if(!val)
       {
       // 400 Bad Request
+      status = 400;
       }
     else if(strcmp(val, PROTOCOL))
       {
       // 505 Protocol Version Not Supported
+      status = 505;
       }
     val = gavl_metadata_get(&req, "$METHOD");
     if(!val)
       {
       // 400 Bad Request
+      status = 400;
       }
-    if(wr && strcmp(val, "WRITE"))
+    if(wr && !strcmp(val, "WRITE"))
       {
       // 405 Method Not Allowed
+      status = 405;
       }
-    else if(!wr && strcmp(val, "READ"))
+    else if(!wr && !strcmp(val, "READ"))
       {
       // 405 Method Not Allowed
+      status = 405;
+      }
+    if(!status)
+      {
+      status = 200;
+      ret = 1;
+      }
+    
+    gavl_metadata_set_int(&res, META_STATUS, status);
+    
+    if(!socket_response_write(fd, &res))
+      {
+      bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Writing response failed");
+      goto fail;
       }
     }
   else
@@ -247,9 +443,29 @@ static int socket_handshake(int fd, int wr, int server)
     gavl_metadata_set(&req, "$LOCATION", "*");
     gavl_metadata_set(&req, "$PROTOCOL", PROTOCOL);
     if(!socket_request_write(fd, &req))
-      return 0;
+      {
+      bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Writing request failed");
+      goto fail;
+      }
+    if(!socket_response_read(fd, &res))
+      {
+      bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Reading response failed");
+      goto fail;
+      }
+
+    if(!gavl_metadata_get_int(&res, META_STATUS, &status))
+      goto fail;
+
+    if(status != 200)
+      goto fail;
     
+    ret = 1;
     }
+
+  fail:
+  gavl_metadata_free(&req);
+  gavl_metadata_free(&res);
+  return ret;
   }
 
 typedef struct
@@ -317,8 +533,11 @@ static gavf_io_t * open_tcp(const char * location, int wr)
   if(fd < 0)
     goto fail;
 
-  /* TODO: Handshake */
+  /* Handshake */
 
+  if(!socket_handshake(fd, wr, 0))
+    goto fail;
+  
   /* Return */
   s = calloc(1, sizeof(*s));
 
@@ -339,19 +558,40 @@ static gavf_io_t * open_tcp(const char * location, int wr)
 
 static gavf_io_t * open_unix(const char * addr, int wr)
   {
+  char * name = NULL;
   socket_t * s;
   int fd;
   gavf_io_t * ret = NULL;
-  
-  fd = bg_socket_connect_unix(addr);
 
+  if(!bg_url_split(addr,
+                   NULL,
+                   NULL,
+                   NULL,
+                   &name,
+                   NULL,
+                   NULL))
+    {
+    if(name)
+      free(name);
+    bg_log(BG_LOG_ERROR, LOG_DOMAIN,
+           "Invalid UNIX domain address address %s", addr);
+    return NULL;
+    }
+  
+  fd = bg_socket_connect_unix(name);
+  free(name);
+  
   if(fd < 0)
     return NULL;
 
-  /* TODO: Handshake */
+  /* Handshake */
+  
+  if(!socket_handshake(fd, wr, 0))
+    return NULL;
 
   /* Return */
   s = calloc(1, sizeof(*s));
+  s->fd = fd;
 
   ret = gavf_io_create(wr ? NULL : read_socket,
                        wr ? write_socket : NULL,
@@ -359,6 +599,100 @@ static gavf_io_t * open_unix(const char * addr, int wr)
                        close_socket,
                        NULL, // flush
                        s);
+  return ret;
+  }
+
+static gavf_io_t * open_tcpserv(const char * addr, int wr)
+  {
+  int port;
+  char * host = NULL;
+  gavf_io_t * ret = NULL;
+
+  if(!bg_url_split(addr,
+                   NULL,
+                   NULL,
+                   NULL,
+                   &host,
+                   &port,
+                   NULL))
+    {
+    if(host)
+      free(host);
+    bg_log(BG_LOG_ERROR, LOG_DOMAIN,
+           "Invalid TCP address %s", addr);
+    return NULL;
+    }
+
+  
+  }
+
+static gavf_io_t * open_unixserv(const char * addr, int wr)
+  {
+  socket_t * s;
+  int server_fd, fd;
+  char * name = NULL;
+  gavf_io_t * ret = NULL;
+
+  if(!bg_url_split(addr,
+                   NULL,
+                   NULL,
+                   NULL,
+                   &name,
+                   NULL,
+                   NULL))
+    {
+    if(name)
+      free(name);
+    bg_log(BG_LOG_ERROR, LOG_DOMAIN,
+           "Invalid UNIX domain address address %s", addr);
+    return NULL;
+    }
+  server_fd = bg_listen_socket_create_unix(name, 1);
+    
+  if(server_fd < 0)
+    {
+    free(name);
+    return NULL;
+    }
+  while(1)
+    {
+    fd = bg_listen_socket_accept(server_fd, -1);
+    
+    if(fd < 0)
+      break;
+
+    bg_log(BG_LOG_INFO, LOG_DOMAIN,
+           "Got connection");
+    
+    if(socket_handshake(fd, wr, 1))
+      break;
+
+    bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Handshake failed");
+    close(fd);
+    }
+  
+  bg_listen_socket_destroy(server_fd);
+  
+  if(unlink(name))
+    {
+    bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Unlinking socket failed: %s",
+           strerror(errno));
+    }
+  
+  free(name);
+  
+  if(fd < 0)
+    return NULL;
+
+  s = calloc(1, sizeof(*s));
+  s->fd = fd;
+  ret = gavf_io_create(wr ? NULL : read_socket,
+                       wr ? write_socket : NULL,
+                       NULL, // seek
+                       close_socket,
+                       NULL, // flush
+                       s);
+  
   return ret;
   }
 
@@ -408,6 +742,16 @@ gavf_io_t * bg_plug_io_open_location(const char * location,
     /* Local UNIX domain socket */
     return open_unix(location, wr);
     }
+  else if(!strncmp(location, "tcpserv://", 10))
+    {
+    return open_tcpserv(location, wr);
+    }
+  else if(!strncmp(location, "unixserv://", 11))
+    {
+    *flags |= BG_PLUG_IO_IS_LOCAL;
+    return open_unixserv(location, wr);
+    }
+  
   else if((location[0] == '|') ||
           (location[0] == '<'))
     {
