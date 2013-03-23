@@ -29,6 +29,7 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <sys/socket.h>
+#include <netinet/in.h>
 
 #include <unistd.h>
 #include <ctype.h>
@@ -153,6 +154,103 @@ static gavf_io_t * open_pipe(const char * location, int wr)
   }
 
 /* Socket */
+
+/* Handshake */
+
+/*
+ * Protocol
+ *
+ * Client to server:
+ * METHOD location protocol
+ *
+ * METHOD can be READ or WRITE
+ *
+ * Server: PROTOCOL STATUS STATUS_STRING
+ *
+ * If the method was read: Server starts to write
+ * If the method was write: Server starts to read
+ *
+ * Supported status codes:
+ *
+ * 200 OK
+ * 400 Bad Request
+ * 405 Method Not Allowed
+ * 505 Protocol Version Not Supported
+ * 503 Service Unavailable
+ */
+
+#define META_METHOD   "$METHOD"
+#define META_LOCATION "$LOCATION"
+#define META_PROTOCOL "$PROTOCOL"
+
+#define PROTOCOL "bgplug/"VERSION
+
+static int socket_request_read(int fd, gavl_metadata_t * req)
+  {
+  
+  }
+
+static int socket_request_write(int fd, gavl_metadata_t * req)
+  {
+  
+  }
+
+static int socket_response_read(int fd, gavl_metadata_t * req)
+  {
+  
+  }
+
+static int socket_response_write(int fd, gavl_metadata_t * req)
+  {
+  
+  }
+
+static int socket_handshake(int fd, int wr, int server)
+  {
+  const char * val;
+  gavl_metadata_t req;
+  gavl_metadata_init(&req);
+
+  if(server)
+    {
+    if(!socket_request_read(fd, &req))
+      return 0;
+    val = gavl_metadata_get(&req, "$PROTOCOL");
+    if(!val)
+      {
+      // 400 Bad Request
+      }
+    else if(strcmp(val, PROTOCOL))
+      {
+      // 505 Protocol Version Not Supported
+      }
+    val = gavl_metadata_get(&req, "$METHOD");
+    if(!val)
+      {
+      // 400 Bad Request
+      }
+    if(wr && strcmp(val, "WRITE"))
+      {
+      // 405 Method Not Allowed
+      }
+    else if(!wr && strcmp(val, "READ"))
+      {
+      // 405 Method Not Allowed
+      }
+    }
+  else
+    {
+    if(wr)
+      gavl_metadata_set(&req, "$METHOD", "WRITE");
+    else
+      gavl_metadata_set(&req, "$METHOD", "READ");
+    gavl_metadata_set(&req, "$LOCATION", "*");
+    gavl_metadata_set(&req, "$PROTOCOL", PROTOCOL);
+    if(!socket_request_write(fd, &req))
+      return 0;
+    
+    }
+  }
 
 typedef struct
   {
@@ -333,11 +431,18 @@ static int socket_is_local(int fd)
   socklen_t slen;
   slen = sizeof(ss);
   
-  if(getsockname(fd, (struct sockaddr*)&ss, &slen) == -1 ||
-     slen == 0 ||
-     ss.ss_family == AF_LOCAL)
+  if(getsockname(fd, (struct sockaddr*)&ss, &slen) == -1)
     return 1;
-  
+
+  if(slen == 0 || ss.ss_family == AF_LOCAL)
+    return 1;
+
+  if(ss.ss_family == AF_INET)
+    {
+    struct sockaddr_in * a = (struct sockaddr_in *)&ss;
+    if(a->sin_addr.s_addr == INADDR_LOOPBACK)
+      return 1;
+    }
   return 0;
   }
 
