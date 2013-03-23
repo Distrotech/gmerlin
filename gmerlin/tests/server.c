@@ -90,7 +90,8 @@ int main(int argc, char ** argv)
   
   /* Create unix listener */
 
-  tcp_socket = bg_listen_socket_create_inet(1122, 10, INADDR_LOOPBACK);
+  tcp_socket = bg_listen_socket_create_inet(NULL,
+                                            1122, 10, INADDR_LOOPBACK);
   if(tcp_socket == -1)
     fprintf(stderr, "Cannot create TCP Socket\n");
 
