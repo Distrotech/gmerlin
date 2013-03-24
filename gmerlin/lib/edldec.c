@@ -340,6 +340,14 @@ static void destroy_edl(void * priv)
       source_cleanup(&ed->sources[i]);
     free(ed->sources);
     }
+
+  if(ed->ti)
+    {
+    for(i = 0; i < ed->edl->num_tracks; i++)
+      bg_track_info_free(ed->ti + i);
+    free(ed->ti);
+    }
+  
   free(ed);
   }
 
