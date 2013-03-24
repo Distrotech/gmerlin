@@ -456,7 +456,7 @@ int bg_listen_socket_accept(int sock, int milliseconds)
     
     if(!err)
       {
-      bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Connection timed out");
+      // bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Connection timed out");
       return -1;
       }
     }

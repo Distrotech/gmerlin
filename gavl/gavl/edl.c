@@ -31,16 +31,15 @@
 #include <stdlib.h>
 #include <string.h>
 
-#ifdef HAVE_STRDUP
-#define my_strdup(s) strdup(s)
-#else
 static char * my_strdup(char * s)
   {
-  char * ret = malloc(strlen(s)+1);
+  char * ret;
+  if(!s)
+    return NULL;
+  ret = malloc(strlen(s)+1);
   strcpy(ret, s);
   return ret;
   }
-#endif
 
 gavl_edl_t * gavl_edl_create()
   {
@@ -175,6 +174,7 @@ gavl_edl_t * gavl_edl_copy(const gavl_edl_t * e)
   
   /* Copy pointers */
   ret->tracks = copy_tracks(e->tracks, e->num_tracks);
+  ret->url = my_strdup(e->url);
   return ret;
   }
 
