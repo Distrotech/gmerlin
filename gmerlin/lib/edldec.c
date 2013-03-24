@@ -297,7 +297,12 @@ static void streams_destroy(stream_t * s, int num)
 
 static int set_track_edl(void * priv, int track)
   {
+  int i;
   edldec_t * ed = priv;
+  /* Reset sources */
+  for(i = 0; i < ed->num_sources; i++)
+    ed->sources[i].refcount = 0;
+  
   /* Clean up earlier streams */
   if(ed->t)
     {
