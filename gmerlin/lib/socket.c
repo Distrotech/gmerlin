@@ -125,7 +125,8 @@ static void address_set_port(struct addrinfo * info, int port)
     }
   }
 
-static struct addrinfo * hostbyname(const char * hostname, int port, int socktype)
+static struct addrinfo *
+hostbyname(const char * hostname, int port, int socktype)
   {
   int err;
   struct in_addr ipv4_addr;
@@ -142,9 +143,17 @@ static struct addrinfo * hostbyname(const char * hostname, int port, int socktyp
 
   /* prevent DNS lookup for numeric IP addresses */
 
-  if(inet_pton(AF_INET, hostname, &ipv4_addr) ||
-     inet_pton(AF_INET6, hostname, &ipv6_addr))
+  if(inet_pton(AF_INET, hostname, &ipv4_addr))
+    {
     hints.ai_flags |= AI_NUMERICHOST;
+    hints.ai_family   = PF_INET;
+    }
+  else if(inet_pton(AF_INET6, hostname, &ipv6_addr))
+    {
+    hints.ai_flags |= AI_NUMERICHOST;
+    hints.ai_family   = PF_INET6;
+    }
+  
   if((err = getaddrinfo(hostname, NULL /* service */,
                         &hints, &ret)))
     {

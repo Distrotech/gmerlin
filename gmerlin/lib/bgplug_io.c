@@ -45,6 +45,8 @@
 
 #define TIMEOUT 5000
 
+static int socket_is_local(int fd);
+
 /* stdin / stdout */
 
 static gavf_io_t * open_dash(int wr, int * flags)
@@ -210,7 +212,7 @@ static int read_vars(int fd, char ** line, int * line_alloc,
     if(!bg_socket_read_line(fd, line, line_alloc, TIMEOUT))
       return 0;
 
-    fprintf(stderr, "Got line: %s\n", *line);
+    //    fprintf(stderr, "Got line: %s\n", *line);
     
     if(**line == '\0')
       return 1;
@@ -261,7 +263,7 @@ static int socket_request_read(int fd, gavl_metadata_t * req)
   if(!bg_socket_read_line(fd, &line, &line_alloc, TIMEOUT))
     return 0;
 
-  fprintf(stderr, "Got line: %s\n", line);
+  //  fprintf(stderr, "Got line: %s\n", line);
   
   pos1 = strchr(line, ' ');
   pos2 = strrchr(line, ' ');
@@ -300,7 +302,7 @@ static int socket_request_write(int fd, gavl_metadata_t * req)
   line = bg_sprintf("%s %s %s\n", method, location, PROTOCOL);
 
   line = write_vars(line, req);
-  fprintf(stderr, "Writing request:\n%s", line);
+  //  fprintf(stderr, "Writing request:\n%s", line);
   
   result = bg_socket_write_data(fd, (const uint8_t*)line, strlen(line));
   free(line);
@@ -319,7 +321,7 @@ static int socket_response_read(int fd, gavl_metadata_t * req)
   if(!bg_socket_read_line(fd, &line, &line_alloc, TIMEOUT))
     return 0;
 
-  fprintf(stderr, "Got line: %s\n", line);
+  //  fprintf(stderr, "Got line: %s\n", line);
   
   pos1 = strchr(line, ' ');
   if(!pos1)
@@ -368,7 +370,7 @@ socket_response_write(int fd, gavl_metadata_t * req)
 
   line = write_vars(line, req);
 
-  fprintf(stderr, "Writing response:\n%s", line);
+  //  fprintf(stderr, "Writing response:\n%s", line);
   
   result = bg_socket_write_data(fd, (const uint8_t*)line, strlen(line));
   free(line);
@@ -492,7 +494,7 @@ static void close_socket(void * priv)
   free(s);
   }
 
-static gavf_io_t * open_tcp(const char * location, int wr)
+static gavf_io_t * open_tcp(const char * location, int wr, int * flags)
   {
   /* Remote TCP socket */
   char * host = NULL;
@@ -541,6 +543,10 @@ static gavf_io_t * open_tcp(const char * location, int wr)
   /* Return */
   s = calloc(1, sizeof(*s));
   s->fd = fd;
+  
+  if(socket_is_local(s->fd))
+    *flags |= BG_PLUG_IO_IS_LOCAL;
+  
   ret = gavf_io_create(wr ? NULL : read_socket,
                        wr ? write_socket : NULL,
                        NULL, // seek
@@ -602,7 +608,7 @@ static gavf_io_t * open_unix(const char * addr, int wr)
   return ret;
   }
 
-static gavf_io_t * open_tcpserv(const char * addr, int wr)
+static gavf_io_t * open_tcpserv(const char * addr, int wr, int * flags)
   {
   socket_t * s;
   
@@ -663,6 +669,10 @@ static gavf_io_t * open_tcpserv(const char * addr, int wr)
   
   s = calloc(1, sizeof(*s));
   s->fd = fd;
+
+  if(socket_is_local(s->fd))
+    *flags |= BG_PLUG_IO_IS_LOCAL;
+  
   ret = gavf_io_create(wr ? NULL : read_socket,
                        wr ? write_socket : NULL,
                        NULL, // seek
@@ -787,7 +797,7 @@ gavf_io_t * bg_plug_io_open_location(const char * location,
   if(!strcmp(location, "-"))
     return open_dash(wr, flags);
   else if(!strncmp(location, "tcp://", 6))
-    return open_tcp(location, wr);
+    return open_tcp(location, wr, flags);
   else if(!strncmp(location, "unix://", 7))
     {
     *flags |= BG_PLUG_IO_IS_LOCAL;
@@ -796,7 +806,7 @@ gavf_io_t * bg_plug_io_open_location(const char * location,
     }
   else if(!strncmp(location, "tcpserv://", 10))
     {
-    return open_tcpserv(location, wr);
+    return open_tcpserv(location, wr, flags);
     }
   else if(!strncmp(location, "unixserv://", 11))
     {
@@ -823,21 +833,54 @@ gavf_io_t * bg_plug_io_open_location(const char * location,
 
 static int socket_is_local(int fd)
   {
-  struct sockaddr_storage ss;
+  struct sockaddr_storage us;
+  struct sockaddr_storage them;
   socklen_t slen;
-  slen = sizeof(ss);
+  slen = sizeof(us);
   
-  if(getsockname(fd, (struct sockaddr*)&ss, &slen) == -1)
+  if(getsockname(fd, (struct sockaddr*)&us, &slen) == -1)
     return 1;
 
-  if(slen == 0 || ss.ss_family == AF_LOCAL)
+  if(slen == 0 || us.ss_family == AF_LOCAL)
     return 1;
 
-  if(ss.ss_family == AF_INET)
+  if(us.ss_family == AF_INET)
     {
-    struct sockaddr_in * a = (struct sockaddr_in *)&ss;
-    if(a->sin_addr.s_addr == INADDR_LOOPBACK)
+    struct sockaddr_in * a1, *a2;
+    a1 = (struct sockaddr_in *)&us;
+    if(a1->sin_addr.s_addr == INADDR_LOOPBACK)
       return 1;
+
+    slen = sizeof(them);
+    
+    if(getpeername(fd, (struct sockaddr*)&them, &slen) == -1)
+      return 0;
+
+    a2 = (struct sockaddr_in *)&them;
+
+    if(!memcmp(&a1->sin_addr.s_addr, &a2->sin_addr.s_addr,
+               sizeof(a2->sin_addr.s_addr)))
+      return 1;
+    }
+  else if(us.ss_family == AF_INET6)
+    {
+    struct sockaddr_in6 * a1, *a2;
+    a1 = (struct sockaddr_in6 *)&us;
+
+    /* Detect loopback */
+    if(!memcmp(&a1->sin6_addr.s6_addr, &in6addr_loopback,
+               sizeof(in6addr_loopback)))
+      return 1;
+
+    if(getpeername(fd, (struct sockaddr*)&them, &slen) == -1)
+      return 0;
+
+    a2 = (struct sockaddr_in6 *)&them;
+
+    if(!memcmp(&a1->sin6_addr.s6_addr, &a2->sin6_addr.s6_addr,
+               sizeof(a2->sin6_addr.s6_addr)))
+      return 1;
+
     }
   return 0;
   }
