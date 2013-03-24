@@ -530,6 +530,7 @@ static int start_audio_stream(edldec_t * ed, stream_t * s, bg_audio_info_t * ai)
   
   /* Adjust format */
   ai->format.samplerate = s->s->timescale;
+  ai->format.samples_per_frame = 1024;
   
   /* Set destination format */
   gavl_audio_source_set_dst(s->asrc_int, 0, &ai->format);
@@ -589,7 +590,7 @@ static gavl_source_status_t read_video(void * priv,
     }
   
   /* Read video */
-  st = gavl_video_source_read_frame(s->asrc_int, frame);
+  st = gavl_video_source_read_frame(s->vsrc_int, frame);
   if(st != GAVL_SOURCE_OK)
     return st;
   

@@ -127,7 +127,7 @@ static gavl_edl_stream_t * copy_streams(const gavl_edl_stream_t * src, int len)
   for(i = 0; i < len; i++)
     {
     /* Copy pointers */
-    ret[i].segments = copy_segments(src[i].segments, len);
+    ret[i].segments = copy_segments(src[i].segments, ret[i].num_segments);
     }
   return ret;
   }
@@ -314,22 +314,25 @@ int64_t gavl_edl_src_time_to_dst(const gavl_edl_stream_t * st,
   return ret;
   }
 
-static gavl_time_t get_streams_duration(const gavl_edl_stream_t * s,
+static gavl_time_t get_streams_duration(const gavl_edl_stream_t * streams,
                                         int num)
   {
   int i;
   gavl_time_t ret = 0;
   gavl_time_t test_time;
   const gavl_edl_segment_t * seg;
+  const gavl_edl_stream_t * s;
   
   for(i = 0; i < num; i++)
     {
-    if(!s[i].num_segments)
+    s = streams + i;
+    
+    if(!s->num_segments)
       continue;
 
-    seg = &s[i].segments[s[i].num_segments-1];
+    seg = s->segments + (s->num_segments-1);
     
-    test_time = gavl_time_unscale(s[i].timescale,
+    test_time = gavl_time_unscale(s->timescale,
                                   seg->dst_time + seg->dst_duration);
     if(test_time > ret)
       ret = test_time;
