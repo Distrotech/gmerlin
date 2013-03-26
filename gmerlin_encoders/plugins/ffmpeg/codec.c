@@ -396,6 +396,7 @@ gavl_audio_sink_t * bg_ffmpeg_codec_open_audio(bg_ffmpeg_codec_context_t * ctx,
         ctx->afmt.samplerate * ctx->afmt.num_channels * 8;
       break;
     case CODEC_ID_AAC:
+    case CODEC_ID_VORBIS:
       if(!ctx->avctx->bit_rate)
         ctx->avctx->flags |= CODEC_FLAG_QSCALE;
       break;

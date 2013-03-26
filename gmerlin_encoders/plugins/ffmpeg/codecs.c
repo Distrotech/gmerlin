@@ -102,6 +102,22 @@ static const bg_parameter_info_t parameters_libfaac[] =
     { /* */ }
   };
 
+static const bg_parameter_info_t parameters_libvorbis[] =
+  {
+    PARAM_BITRATE_AUDIO,
+    PARAM_RC_MIN_RATE,
+    PARAM_RC_MAX_RATE,
+    {
+      .name =        "vorbis_quality",
+      .long_name =   TRS("Quality"),
+      .type =        BG_PARAMETER_SLIDER_INT,
+      .val_min =     { .val_i = -1 },
+      .val_max =     { .val_i = 10 },
+      .val_default = { .val_i = 3 },
+      .help_string = TRS("Quantizer quality"),
+    },
+    
+  };
     
 #define ENCODE_PARAM_VIDEO_RATECONTROL \
   {                                           \
@@ -452,6 +468,12 @@ static const ffmpeg_codec_info_t audio_codecs[] =
       .long_name = TRS("AAC"),
       .id        = CODEC_ID_AAC,
       .parameters = parameters_libfaac,
+    },
+    {
+      .name      = "libvorbis",
+      .long_name = TRS("Vorbis"),
+      .id        = CODEC_ID_VORBIS,
+      .parameters = parameters_libvorbis,
     },
     { /* End of array */ }
   };
@@ -1025,6 +1047,7 @@ bg_ffmpeg_set_codec_parameter(AVCodecContext * ctx,
  */
   
   PARAM_INT_SCALE("ff_bit_rate_video",bit_rate,1000);
+  PARAM_INT_SCALE("ff_bit_rate_audio",bit_rate,1000);
   
   PARAM_STR_INT_SCALE("ff_bit_rate_str", bit_rate, 1000);
 
@@ -1118,6 +1141,8 @@ bg_ffmpeg_set_codec_parameter(AVCodecContext * ctx,
   PARAM_ENUM("faac_profile", profile, faac_profile);
 
   if(!strcmp(name, "faac_quality"))
+    ctx->global_quality = FF_QP2LAMBDA * val->val_i;
+  else if(!strcmp(name, "vorbis_quality"))
     ctx->global_quality = FF_QP2LAMBDA * val->val_i;
   
   if(!strcmp(name, "tga_rle"))
