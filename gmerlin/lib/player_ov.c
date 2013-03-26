@@ -428,7 +428,7 @@ static void wait_or_skip(bg_player_t * p, gavl_time_t diff_time)
   else if(diff_time < -100000) // 100 ms
     {
     s->skip -= diff_time;
-    // fprintf(stderr, "Diff time: %ld, skip: %ld\n", diff_time, s->skip);
+    bg_log(BG_LOG_WARNING, LOG_DOMAIN, "Skipping frame, delta: %f", gavl_time_to_seconds(s->skip));
     }
   }
 
