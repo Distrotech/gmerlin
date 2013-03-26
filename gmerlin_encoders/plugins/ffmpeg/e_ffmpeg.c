@@ -157,6 +157,7 @@ static const ffmpeg_format_info_t formats[] =
                                          CODEC_ID_MPEG4,
                                          CODEC_ID_MPEG1VIDEO,
                                          CODEC_ID_MPEG2VIDEO,
+                                         CODEC_ID_VP8,
                                          CODEC_ID_NONE },
       //      .flags = FLAG_CONSTANT_FRAMERATE,
       //      .framerates = bg_ffmpeg_mpeg_framerates,

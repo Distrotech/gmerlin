@@ -370,6 +370,11 @@ static const bg_parameter_info_t parameters_libx264[] = {
   { /* End */ },
 };
 
+static const bg_parameter_info_t parameters_libvpx[] = {
+  ENCODE_PARAM_VIDEO_RATECONTROL,
+  { /* End */ },
+};
+
 static const bg_parameter_info_t parameters_tga[] = {
   {
     .name =      "tga_rle",
@@ -547,6 +552,13 @@ static const ffmpeg_codec_info_t video_codecs[] =
       .id         = CODEC_ID_TARGA,
       .parameters = parameters_tga,
       .flags      = FLAG_INTRA_ONLY,
+    },
+    {
+      .name       = "libvpx",
+      .long_name  = TRS("VP8"),
+      .id         = CODEC_ID_VP8,
+      .parameters = parameters_libvpx,
+      .flags      = 0,
     },
 #if 0
     {
