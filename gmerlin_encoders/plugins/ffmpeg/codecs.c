@@ -372,6 +372,50 @@ static const bg_parameter_info_t parameters_libx264[] = {
 
 static const bg_parameter_info_t parameters_libvpx[] = {
   ENCODE_PARAM_VIDEO_RATECONTROL,
+  {
+    .name = "altref",
+    .long_name = TRS("Alternate Ref"),
+    .type = BG_PARAMETER_SECTION,
+  },
+  {
+    .name = "libvpx_auto-alt-ref",
+    .long_name = TRS("Enable alternate reference frames"),
+    .help_string = TRS("Enable use of alternate reference frames (2-pass only)"),
+    .type = BG_PARAMETER_CHECKBUTTON,
+  },
+  {
+    .name = "libvpx_lag-in-frames",
+    .long_name = TRS("Lookahead"),
+    .help_string = TRS("Number of frames to look ahead for alternate reference frame selection"),
+    .type = BG_PARAMETER_INT,
+    .val_min = { .val_i = 0 },
+    .val_max = { .val_i = 100 },
+    .val_default = { .val_i = 0 },
+  },
+  {
+    .name = "libvpx_arnr-maxframes",
+    .long_name = TRS("Frame count for noise reduction"),
+    .type = BG_PARAMETER_INT,
+    .val_min = { .val_i = 0 },
+    .val_max = { .val_i = 100 },
+    .val_default = { .val_i = 0 },
+  },
+  {
+    .name =      "libvpx_arnr-type",
+    .long_name = TRS("Noise reduction filter"),
+    .type =      BG_PARAMETER_STRINGLIST,
+    .val_default = {val_str: "backward"},
+    .multi_names = (char const *[]){"$none",
+                                    "backward",
+                                    "forward",
+                                    "centered",
+                                    (char *)0},
+    .multi_labels = (char const *[]){TRS("None"),
+                                     TRS("Backward"),
+                                     TRS("Forward"),
+                                     TRS("Centered"),
+                                     (char *)0},
+  },
   { /* End */ },
 };
 
