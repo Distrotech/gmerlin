@@ -142,11 +142,17 @@ put_packet_func(void * priv, gavl_packet_t * p)
   /* Subsequent packets */
   else
     {
-    if(s->h->foot.duration_min > p->duration)
-      s->h->foot.duration_min = p->duration;
-    
-    if(s->h->foot.duration_max < p->duration)
-      s->h->foot.duration_max = p->duration;
+    if(!(p->flags & GAVL_PACKET_NOOUTPUT))
+      {
+      if(s->h->foot.duration_min > p->duration)
+        s->h->foot.duration_min = p->duration;
+
+      if(s->h->foot.duration_max < p->duration)
+        s->h->foot.duration_max = p->duration;
+
+      if(s->h->foot.pts_end < p->pts + p->duration)
+        s->h->foot.pts_end = p->pts + p->duration;
+      }
 
     if(s->h->foot.size_min > p->data_len)
       s->h->foot.size_min = p->data_len;
@@ -154,8 +160,6 @@ put_packet_func(void * priv, gavl_packet_t * p)
     if(s->h->foot.size_max < p->data_len)
       s->h->foot.size_max = p->data_len;
     
-    if(s->h->foot.pts_end < p->pts + p->duration)
-      s->h->foot.pts_end = p->pts + p->duration;
     }
 
   return gavf_flush_packets(s->g, s);

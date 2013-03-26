@@ -73,7 +73,7 @@ compression_ids[] =
     { GAVL_CODEC_ID_THEORA,    NULL,       "theora", "Theora"       },
     { GAVL_CODEC_ID_DIRAC,     NULL,       "dirac",  "Dirac"        },
     { GAVL_CODEC_ID_DV,        "dv",       "dv",     "DV",          FLAG_NEEDS_PIXELFORMAT },
-    
+    { GAVL_CODEC_ID_VP8,       NULL,       "vp8",    "VP8"          },
   };
 
 #define NUM_CODEC_IDS (sizeof(compression_ids)/sizeof(compression_ids[0]))
@@ -351,6 +351,9 @@ void gavl_packet_dump(const gavl_packet_t * p)
           p->header_size, p->field2_offset);
 
   fprintf(stderr, " type: %s ", coding_type_strings[p->flags & GAVL_PACKET_TYPE_MASK]);
+
+  if(p->flags & GAVL_PACKET_NOOUTPUT)
+    fprintf(stderr, " nooutput");
 
   if(p->src_rect.w && p->src_rect.h)
     {

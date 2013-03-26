@@ -94,6 +94,7 @@ typedef enum
     GAVL_CODEC_ID_THEORA,         //!< Theora (segmented extradata)
     GAVL_CODEC_ID_DIRAC,          //!< Complete DIRAC frames, sequence end code appended to last packet
     GAVL_CODEC_ID_DV,             //!< DV (several variants)
+    GAVL_CODEC_ID_VP8,            //!< VP8 (as used in webm)
   } gavl_codec_id_t;
 
 #define GAVL_BITRATE_VBR -1 //!< Use this to specify a VBR stream
@@ -265,6 +266,7 @@ gavl_codec_id_t gavl_get_compression(int index);
 #define GAVL_PACKET_LAST     (1<<3) //!< Packet is the last in the stream (only Xiph codecs need this flag)
 #define GAVL_PACKET_EXT      (1<<4) //!< Packet has extensions (used only in gavf files)
 #define GAVL_PACKET_REF      (1<<5) //!< B-frame used as reference (can't savely be skipped)
+#define GAVL_PACKET_NOOUTPUT (1<<6) //!< Packet will produce no decoder output (e.g. VP8 alternate reference)
 
 #define GAVL_PACKET_PADDING  32 //!< Packets are padded with this many zero bytes
   
