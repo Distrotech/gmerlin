@@ -108,7 +108,7 @@ static const bg_parameter_info_t parameters_libvorbis[] =
     PARAM_RC_MIN_RATE,
     PARAM_RC_MAX_RATE,
     {
-      .name =        "vorbis_quality",
+      .name =        "quality",
       .long_name =   TRS("Quality"),
       .type =        BG_PARAMETER_SLIDER_INT,
       .val_min =     { .val_i = -1 },
@@ -116,7 +116,7 @@ static const bg_parameter_info_t parameters_libvorbis[] =
       .val_default = { .val_i = 3 },
       .help_string = TRS("Quantizer quality"),
     },
-    
+    { /* End */ },
   };
     
 #define ENCODE_PARAM_VIDEO_RATECONTROL \

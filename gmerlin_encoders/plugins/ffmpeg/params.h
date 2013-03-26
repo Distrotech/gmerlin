@@ -32,7 +32,7 @@
     .name =      "ff_bit_rate_audio",                 \
     .long_name = TRS("Bit rate (kbps)"),                \
     .type =      BG_PARAMETER_INT,                \
-    .val_default = { .val_i = 128 },               \
+    .val_default = { .val_i = 0 },               \
   }
 
 /** Rate control */
