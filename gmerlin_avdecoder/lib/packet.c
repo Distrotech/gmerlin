@@ -95,6 +95,9 @@ void bgav_packet_dump(bgav_packet_t * p)
 
   if(PACKET_GET_SKIP(p))
     bgav_dprintf(", skip");
+
+  if(p->flags & GAVL_PACKET_NOOUTPUT)
+    bgav_dprintf(", nooutput");
   
   if(p->tc != GAVL_TIMECODE_UNDEFINED)
     {

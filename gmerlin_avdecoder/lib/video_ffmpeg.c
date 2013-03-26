@@ -477,7 +477,8 @@ static gavl_source_status_t decode_picture(bgav_stream_t * s)
           }
         }
       
-      if(priv->ctx->skip_frame == AVDISCARD_DEFAULT)
+      if((priv->ctx->skip_frame == AVDISCARD_DEFAULT) &&
+         !(p->flags & GAVL_PACKET_NOOUTPUT))
         bgav_pts_cache_push(&priv->pts_cache, p, NULL, &e);
       
       priv->pkt.data = p->data;

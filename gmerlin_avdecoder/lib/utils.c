@@ -751,7 +751,8 @@ fourccs[] =
     { GAVL_CODEC_ID_H264,      BGAV_MK_FOURCC('H','2','6','4') },
     { GAVL_CODEC_ID_THEORA,    BGAV_MK_FOURCC('T','H','R','A') },
     { GAVL_CODEC_ID_DIRAC,     BGAV_MK_FOURCC('d','r','a','c') },
-    { GAVL_CODEC_ID_DV,        BGAV_MK_FOURCC('D','V',' ',' '),},
+    { GAVL_CODEC_ID_DV,        BGAV_MK_FOURCC('D','V',' ',' ') },
+    { GAVL_CODEC_ID_VP8,       BGAV_MK_FOURCC('V','P','8','0') },
     { /* End */                                                },
   };
 

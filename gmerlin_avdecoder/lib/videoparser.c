@@ -95,6 +95,7 @@ parsers[] =
     { BGAV_MK_FOURCC('m', 'j', 'p', 'a'), bgav_video_parser_init_mjpa },
     { BGAV_MK_FOURCC('j', 'p', 'e', 'g'), bgav_video_parser_init_jpeg },
     { BGAV_MK_FOURCC('B', 'B', 'C', 'D'), bgav_video_parser_init_dirac },
+    { BGAV_MK_FOURCC('V', 'P', '8', '0'), bgav_video_parser_init_vp8 },
     
     { BGAV_MK_FOURCC('D', 'V', 'D', 'S'), bgav_video_parser_init_dvdsub },
     { BGAV_MK_FOURCC('m', 'p', '4', 's'), bgav_video_parser_init_dvdsub },

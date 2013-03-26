@@ -166,6 +166,7 @@ static void print_usage()
   fprintf(stderr, "-vdpau           Try to use vdpau\n");
   fprintf(stderr, "-dh              Dump headers of the file\n");
   fprintf(stderr, "-di              Dump indices of the file\n");
+  fprintf(stderr, "-dp              Dump packets\n");
   fprintf(stderr, "-L               List all demultiplexers and codecs\n");
   }
 
@@ -285,6 +286,11 @@ int main(int argc, char ** argv)
     else if(!strcmp(argv[arg_index], "-dh"))
       {
       bgav_options_set_dump_headers(opt, 1);
+      arg_index++;
+      }
+    else if(!strcmp(argv[arg_index], "-dp"))
+      {
+      bgav_options_set_dump_packets(opt, 1);
       arg_index++;
       }
     else if(!strcmp(argv[arg_index], "-di"))

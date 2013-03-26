@@ -141,7 +141,8 @@ int bgav_video_start(bgav_stream_t * s)
     {
     if(bgav_check_fourcc(s->fourcc, bgav_dv_fourccs) ||
        bgav_check_fourcc(s->fourcc, bgav_png_fourccs) ||
-       (s->fourcc == BGAV_MK_FOURCC('a', 'v', 'c', '1')))
+       (s->fourcc == BGAV_MK_FOURCC('a', 'v', 'c', '1')) ||
+       (s->fourcc == BGAV_MK_FOURCC('V', 'P', '8', '0')))
       s->flags |= STREAM_PARSE_FRAME;
     }
   
@@ -750,6 +751,12 @@ static uint32_t mpeg4_fourccs[] =
     0x00
   };
 
+static uint32_t vp8_fourccs[] =
+  {
+    BGAV_MK_FOURCC('V','P','8','0'),
+    0x00
+  };
+
 static uint32_t d10_fourccs[] =
   {
     BGAV_MK_FOURCC('m', 'x', '5', 'p'),
@@ -831,6 +838,8 @@ int bgav_get_video_compression_info(bgav_t * bgav, int stream,
     id = GAVL_CODEC_ID_MPEG4_ASP;
   else if(bgav_check_fourcc(s->fourcc, bgav_dv_fourccs))
     id = GAVL_CODEC_ID_DV;
+  else if(bgav_check_fourcc(s->fourcc, vp8_fourccs))
+    id = GAVL_CODEC_ID_VP8;
   else if(bgav_check_fourcc(s->fourcc, avc1_fourccs))
     {
     id = GAVL_CODEC_ID_H264;

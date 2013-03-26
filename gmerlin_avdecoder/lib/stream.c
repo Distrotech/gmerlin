@@ -26,7 +26,6 @@
 #include <limits.h>
 
 // #define DUMP_IN_PACKETS
-// #define DUMP_OUT_PACKETS
 
 int bgav_stream_start(bgav_stream_t * stream)
   {
@@ -356,10 +355,11 @@ bgav_stream_get_packet_read(bgav_stream_t * s, bgav_packet_t ** ret)
     p->tc =
       bgav_timecode_table_get_timecode(s->timecode_table,
                                        p->pts);
-#ifdef DUMP_OUT_PACKETS
-  bgav_dprintf("Packet out (stream %d): ", s->stream_id);
-  bgav_packet_dump(p);
-#endif
+  if(s->opt->dump_packets)
+    {
+    bgav_dprintf("Packet out (stream %d): ", s->stream_id);
+    bgav_packet_dump(p);
+    }
   
   if(s->max_packet_size_tmp < p->data_size)
     s->max_packet_size_tmp = p->data_size;

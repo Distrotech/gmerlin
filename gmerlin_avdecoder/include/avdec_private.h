@@ -889,7 +889,7 @@ struct bgav_options_s
 
   int dump_headers;
   int dump_indices;
-  
+  int dump_packets; 
   /* Callbacks */
 
   bgav_log_callback log_callback;

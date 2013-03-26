@@ -223,6 +223,12 @@ void bgav_options_set_dump_indices(bgav_options_t* opt,
   opt->dump_indices = enable;
   }
 
+void bgav_options_set_dump_packets(bgav_options_t* opt,
+                                   int enable)
+  {
+  opt->dump_packets = enable;
+  }
+
 
 #define FREE(ptr) if(ptr) free(ptr)
 
@@ -337,9 +343,9 @@ void bgav_options_copy(bgav_options_t * dst, const bgav_options_t * src)
   CP_INT(threads);
   CP_INT(dump_headers);
   CP_INT(dump_indices);
+  CP_INT(dump_packets);
   
   /* Callbacks */
-  
   
   CP_INT(log_callback);
   CP_INT(log_callback_data);

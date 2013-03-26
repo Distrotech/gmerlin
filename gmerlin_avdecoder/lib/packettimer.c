@@ -53,8 +53,9 @@ struct bgav_packet_timer_s
   int b_pyramid;
   };
 
-#define IS_B(idx) (PACKET_GET_CODING_TYPE(pt->packets[idx]) == BGAV_CODING_TYPE_B)
-#define IS_IP(idx) (PACKET_GET_CODING_TYPE(pt->packets[idx]) != BGAV_CODING_TYPE_B)
+// #define IS_B(idx) (PACKET_GET_CODING_TYPE(pt->packets[idx]) == BGAV_CODING_TYPE_B)
+#define IS_IP(idx) ((PACKET_GET_CODING_TYPE(pt->packets[idx]) != BGAV_CODING_TYPE_B) && \
+                    !(pt->packets[idx]->flags & GAVL_PACKET_NOOUTPUT))
 
 static gavl_source_status_t
 insert_packet(bgav_packet_timer_t * pt, bgav_packet_t ** ret, int force)
@@ -266,7 +267,7 @@ set_duration_from_pts(bgav_packet_timer_t * pt,
   }
 
 /*
- *  Get the index of the next smallest pts aftet pts in the
+ *  Get the index of the next smallest pts after pts in the
  *  range between start (inclusive) and end (exclusive)
  */
 
@@ -279,6 +280,8 @@ static int get_next_pts(bgav_packet_timer_t * pt,
   
   for(i = start; i < end; i++)
     {
+    if(pt->packets[i]->flags & GAVL_PACKET_NOOUTPUT)
+      continue;
     if(pt->packets[i]->pts <= pt->packets[current]->pts)
       continue;
     if((ret < 0) || (pt->packets[i]->pts < next_pts))
@@ -300,7 +303,8 @@ flush_duration_from_pts(bgav_packet_timer_t * pt,
 
   for(i = start; i < end; i++)
     {
-    if(pt->packets[i]->duration > 0)
+    if((pt->packets[i]->duration > 0) || 
+       (pt->packets[i]->flags & GAVL_PACKET_NOOUTPUT))
       continue;
     next = get_next_pts(pt, start_seek, end_seek, i);
     set_duration_from_pts(pt, i, next);
@@ -315,7 +319,8 @@ next_packet_duration_from_pts(bgav_packet_timer_t * pt, int force)
   gavl_source_status_t st = GAVL_SOURCE_OK;
   
   if(pt->num_packets &&
-     ((pt->packets[0]->duration > 0) || PACKET_GET_SKIP(pt->packets[0])))
+     ((pt->packets[0]->duration > 0) || PACKET_GET_SKIP(pt->packets[0]) ||
+      (pt->packets[0]->flags & GAVL_PACKET_NOOUTPUT)))
     return GAVL_SOURCE_OK;
 
   if((st = get_next_ip_duration_from_pts(pt, -1, &ip1, force)) != GAVL_SOURCE_OK)

@@ -671,6 +671,18 @@ void bgav_options_set_dump_indices(bgav_options_t* opt,
                                    int enable);
 
   
+/** \ingroup options
+ *  \brief Dump packets
+ *  \param opt Option container
+ *  \param enable 1 to dump packets, 0 else
+ *
+ *  Since 1.1.1
+ */
+
+BGAV_PUBLIC
+void bgav_options_set_dump_packets(bgav_options_t* opt,
+                                   int enable);
+
 
 /** \ingroup options
  *  \brief Enumeration for log levels
