@@ -115,6 +115,14 @@ add_audio_stream_compressed_oggvideo(void * data,
   else if(ci->id == GAVL_CODEC_ID_OPUS)
     bg_ogg_encoder_init_stream(data, s, &bg_opus_codec);
 #endif  
+#ifdef HAVE_FLAC
+  else if(ci->id == GAVL_CODEC_ID_FLAC)
+    bg_ogg_encoder_init_stream(data, s, &bg_flacogg_codec);
+#endif
+#ifdef HAVE_SPEEX
+  else if(ci->id == GAVL_CODEC_ID_SPEEX)
+    bg_ogg_encoder_init_stream(data, s, &bg_speex_codec);
+#endif
   return s->index;
   }
 
@@ -136,6 +144,18 @@ add_video_stream_compressed_oggvideo(void * data,
   {
   bg_ogg_stream_t * s;
   s = bg_ogg_encoder_add_video_stream_compressed(data, m, format, ci);
+
+#ifdef HAVE_THEORAENC
+  if(ci->id == GAVL_CODEC_ID_THEORA)
+    bg_ogg_encoder_init_stream(data, s, &bg_theora_codec);
+#endif
+
+#ifdef HAVE_SCHROEDINGER
+  if(ci->id == GAVL_CODEC_ID_DIRAC)
+    bg_ogg_encoder_init_stream(data, s, &bg_schroedinger_codec);
+
+#endif
+
   return s->index;
   }
 
@@ -207,7 +227,17 @@ static int writes_compressed_audio_oggvideo(void* data,
                                             const gavl_audio_format_t * format,
                                             const gavl_compression_info_t * ci)
   {
-  if(ci->id == GAVL_CODEC_ID_VORBIS)
+  if((ci->id == GAVL_CODEC_ID_VORBIS)
+#ifdef HAVE_FLAC
+     || (ci->id == GAVL_CODEC_ID_FLAC)
+#endif
+#ifdef HAVE_SPEEX
+     || (ci->id == GAVL_CODEC_ID_SPEEX)
+#endif
+#ifdef HAVE_OPUS
+     || (ci->id == GAVL_CODEC_ID_OPUS)
+#endif
+     )
     return 1;
   else
     return 0;
@@ -217,7 +247,8 @@ static int writes_compressed_video_oggvideo(void * data,
                                             const gavl_video_format_t * format,
                                             const gavl_compression_info_t * ci)
   {
-  if(ci->id == GAVL_CODEC_ID_THEORA)
+  if((ci->id == GAVL_CODEC_ID_THEORA) ||
+     (ci->id == GAVL_CODEC_ID_DIRAC))
     return 1;
   else
     return 0;

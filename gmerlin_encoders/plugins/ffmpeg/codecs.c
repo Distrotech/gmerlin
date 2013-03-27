@@ -372,6 +372,16 @@ static const bg_parameter_info_t parameters_libx264[] = {
 
 static const bg_parameter_info_t parameters_libvpx[] = {
   ENCODE_PARAM_VIDEO_RATECONTROL,
+  {                     \
+    .name =        "ff_qcompress",                   \
+    .long_name =   TRS("2-Pass VBR/CBR"),\
+    .type =        BG_PARAMETER_SLIDER_FLOAT,  \
+    .val_default = { .val_f = 0.5 }, \
+    .val_min =     { .val_f = 0.0 }, \
+    .val_max =     { .val_f = 1.0 }, \
+    .num_digits =  2, \
+    .help_string = TRS("0: CBR, 1: VBR") \
+  },
   {
     .name = "altref",
     .long_name = TRS("Alternate Ref"),
