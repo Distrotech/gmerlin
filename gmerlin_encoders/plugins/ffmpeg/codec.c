@@ -533,23 +533,30 @@ static int flush_video(bg_ffmpeg_codec_context_t * ctx,
     if(ctx->vfmt.framerate_mode == GAVL_FRAMERATE_CONSTANT)
       ctx->gp.pts *= ctx->vfmt.frame_duration;
     
-    /* Decide frame type */
-    if(ctx->gp.pts < ctx->out_pts)
-      ctx->gp.flags |= GAVL_PACKET_TYPE_B;
+    /* Detect VP8 alternate reference frames */
+    if((ctx->id == CODEC_ID_VP8) &&
+       !(ctx->gp.data[0] & 0x10))
+      ctx->gp.flags |= GAVL_PACKET_NOOUTPUT; 
     else
       {
-      if(ctx->gp.flags & GAVL_PACKET_KEYFRAME)
-        ctx->gp.flags |= GAVL_PACKET_TYPE_I;
+      /* Decide frame type */
+      if(ctx->gp.pts < ctx->out_pts)
+        ctx->gp.flags |= GAVL_PACKET_TYPE_B;
       else
-        ctx->gp.flags |= GAVL_PACKET_TYPE_P;
-      ctx->out_pts = ctx->gp.pts;
-      }
+        {
+        if(ctx->gp.flags & GAVL_PACKET_KEYFRAME)
+          ctx->gp.flags |= GAVL_PACKET_TYPE_I;
+        else
+          ctx->gp.flags |= GAVL_PACKET_TYPE_P;
+        ctx->out_pts = ctx->gp.pts;
+        }
 
-    if(!bg_encoder_pts_cache_pop_packet(ctx->pc, &ctx->gp, -1, ctx->gp.pts))
-      {
-      ctx->flags |= FLAG_ERROR;
-      bg_log(BG_LOG_ERROR, LOG_DOMAIN,
-             "Got no packet in cache for pts %"PRId64, ctx->gp.pts);
+      if(!bg_encoder_pts_cache_pop_packet(ctx->pc, &ctx->gp, -1, ctx->gp.pts))
+        {
+        ctx->flags |= FLAG_ERROR;
+        bg_log(BG_LOG_ERROR, LOG_DOMAIN,
+               "Got no packet in cache for pts %"PRId64, ctx->gp.pts);
+        }
       }
     /* Write frame */
 

@@ -372,15 +372,63 @@ static const bg_parameter_info_t parameters_libx264[] = {
 
 static const bg_parameter_info_t parameters_libvpx[] = {
   ENCODE_PARAM_VIDEO_RATECONTROL,
-  {                     \
-    .name =        "ff_qcompress",                   \
-    .long_name =   TRS("2-Pass VBR/CBR"),\
-    .type =        BG_PARAMETER_SLIDER_FLOAT,  \
-    .val_default = { .val_f = 0.5 }, \
-    .val_min =     { .val_f = 0.0 }, \
-    .val_max =     { .val_f = 1.0 }, \
-    .num_digits =  2, \
-    .help_string = TRS("0: CBR, 1: VBR") \
+  {
+    .name =        "ff_qcompress",
+    .long_name =   TRS("2-Pass VBR/CBR"),
+    .type =        BG_PARAMETER_SLIDER_FLOAT,
+    .val_default = { .val_f = 0.5 },
+    .val_min =     { .val_f = 0.0 },
+    .val_max =     { .val_f = 1.0 },
+    .num_digits =  2,
+    .help_string = TRS("0: CBR, 1: VBR")
+  },
+  {
+    .name = "frametypes",
+    .long_name = TRS("Frame types"),
+    .type = BG_PARAMETER_SECTION,
+  },
+  {
+    .name = "ff_keyint_min",
+    .long_name = TRS("Minimum GOP size"),
+    .type = BG_PARAMETER_INT,
+    .val_min = { .val_i = 0 },
+    .val_max = { .val_i = 1000 }, // Bogus
+    .val_default = { .val_i = 0 },
+  },
+  {
+    .name = "ff_gop_size",
+    .long_name = TRS("Maximum GOP size"),
+    .type = BG_PARAMETER_INT,
+    .val_min = { .val_i = 0 },
+    .val_max = { .val_i = 1000 }, // Bogus
+    .val_default = { .val_i = 0 },
+  },
+  {
+    .name = "speed",
+    .long_name = TRS("Speed"),
+    .type = BG_PARAMETER_SECTION,
+  },
+  {
+    .name =      "libvpx_deadline",
+    .long_name = TRS("Speed"),
+    .type =      BG_PARAMETER_STRINGLIST,
+    .val_default = { .val_str = "good"},
+    .multi_names = (char const *[]){"best",
+                                    "good",
+                                    "realtime",
+                                    (char *)0},
+    .multi_labels = (char const *[]){TRS("Best"),
+                                     TRS("Good"),
+                                     TRS("Realtime"),
+                                     (char *)0},
+  },
+  {
+    .name = "libvpx_cpu-used",
+    .long_name = TRS("CPU usage modifier"),
+    .type = BG_PARAMETER_INT,
+    .val_min = { .val_i = 0 },
+    .val_max = { .val_i = 1000 }, // Bogus
+    .val_default = { .val_i = 0 },
   },
   {
     .name = "altref",
@@ -1174,6 +1222,7 @@ bg_ffmpeg_set_codec_parameter(AVCodecContext * ctx,
   PARAM_INT("ff_me_penalty_compensation",me_penalty_compensation);
   PARAM_INT("ff_bidir_refine",bidir_refine);
   PARAM_INT("ff_brd_scale",brd_scale);
+  PARAM_INT("ff_keyint_min",keyint_min);
   PARAM_INT("ff_scenechange_factor",scenechange_factor);
   PARAM_FLAG("ff_flag_qscale",CODEC_FLAG_QSCALE);
   PARAM_FLAG("ff_flag_4mv",CODEC_FLAG_4MV);
@@ -1218,6 +1267,10 @@ bg_ffmpeg_set_codec_parameter(AVCodecContext * ctx,
     else
       ctx->coder_type = FF_CODER_TYPE_RAW;
     }
+
+  PARAM_DICT_STRING("libvpx_deadline", "deadline");
+  PARAM_DICT_INT("libvpx_cpu-used",   "cpu-used");
+
   }
 
 /* Type conversion */
@@ -1428,6 +1481,7 @@ codec_ids[] =
     { GAVL_CODEC_ID_THEORA,    CODEC_ID_THEORA     }, //!< Theora (segmented extradata
     { GAVL_CODEC_ID_DIRAC,     CODEC_ID_DIRAC      }, //!< Complete DIRAC frames, sequence end code appended to last packet
     { GAVL_CODEC_ID_DV,        CODEC_ID_DVVIDEO    }, //!< DV (several variants)
+    { GAVL_CODEC_ID_VP8,       CODEC_ID_VP8        }, //!< VP8 (as in webm)
     { GAVL_CODEC_ID_NONE,      CODEC_ID_NONE       },
   };
 

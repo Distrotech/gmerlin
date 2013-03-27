@@ -162,6 +162,20 @@ static const ffmpeg_format_info_t formats[] =
       //      .flags = FLAG_CONSTANT_FRAMERATE,
       //      .framerates = bg_ffmpeg_mpeg_framerates,
     },
+    {
+      .name =       "webm",
+      .short_name = "webm",
+      .extension =  "webm",
+      .max_audio_streams = -1,
+      .max_video_streams = -1,
+      .audio_codecs = (enum CodecID[]){  CODEC_ID_VORBIS,
+                                         CODEC_ID_NONE },
+      
+      .video_codecs = (enum CodecID[]){  CODEC_ID_VP8,
+                                         CODEC_ID_NONE },
+      //      .flags = FLAG_CONSTANT_FRAMERATE,
+      //      .framerates = bg_ffmpeg_mpeg_framerates,
+    },
 #if 0 // Encoded file is messed up
     {
       .name =       "Real Media",
