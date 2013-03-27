@@ -83,7 +83,7 @@ void bgav_audio_parser_init_vorbis(bgav_audio_parser_t * parser)
   vorbis_priv_t * priv;
   ogg_packet op;
   int i;
-  uint8_t * ptr;
+  int len;
   
   priv = calloc(1, sizeof(*priv));
   parser->priv = priv;
@@ -99,13 +99,16 @@ void bgav_audio_parser_init_vorbis(bgav_audio_parser_t * parser)
     return;
     }
 
-  ptr = parser->s->ext_data;
-
+  
   op.b_o_s = 1;
 
   for(i = 0; i < 3; i++)
     {
-    if(ptr - parser->s->ext_data > parser->s->ext_size - 4)
+    op.packet =
+      gavl_extract_xiph_header(parser->s->ext_data, parser->s->ext_size,
+                               i, &len);
+    
+    if(!op.packet)
       {
       bgav_log(parser->s->opt, BGAV_LOG_ERROR, LOG_DOMAIN,
                "Truncated vorbis header %d", i+1);
@@ -114,10 +117,9 @@ void bgav_audio_parser_init_vorbis(bgav_audio_parser_t * parser)
     
     if(i)
       op.b_o_s = 0;
-      
-    op.bytes = BGAV_PTR_2_32BE(ptr); ptr+=4;
-    op.packet = ptr;
-      
+    
+    op.bytes = len;
+    
     if(vorbis_synthesis_headerin(&priv->vi, &priv->vc,
                                  &op) < 0)
       {
@@ -126,7 +128,6 @@ void bgav_audio_parser_init_vorbis(bgav_audio_parser_t * parser)
       return;
       }
     op.packetno++;
-    ptr += op.bytes;
     }
   
   parser->parse_frame = parse_frame_vorbis;

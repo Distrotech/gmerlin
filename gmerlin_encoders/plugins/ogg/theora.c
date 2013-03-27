@@ -274,42 +274,39 @@ static int init_compressed_theora(bg_ogg_stream_t * s)
   {
   ogg_packet packet;
   
-  uint8_t * ptr;
-  uint32_t len;
+  int len;
   
   theora_t * theora = s->codec_priv;
 
   theora->format = &s->vfmt;
-
   
   memset(&packet, 0, sizeof(packet));
 
   /* Write ID packet */
-  ptr = s->ci.global_header;
-  
-  len = PTR_2_32BE(ptr); ptr += 4;
 
-  packet.packet = ptr;
+  packet.packet = gavl_extract_xiph_header(s->ci.global_header,
+                                           s->ci.global_header_len,
+                                           0, &len);
+
+  if(!packet.packet)
+    {
+    bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Broken theora header");
+    return 0;
+    }
+
   packet.bytes  = len;
-
+  
   theora->ti.keyframe_granule_shift = 
-    (char) ((ptr[40] & 0x03) << 3);
+    (char) ((packet.packet[40] & 0x03) << 3);
 
   theora->ti.keyframe_granule_shift |=
-    (ptr[41] & 0xe0) >> 5;
+    (packet.packet[41] & 0xe0) >> 5;
 
   if(!bg_ogg_stream_write_header_packet(s, &packet))
     return 0;
   
-  ptr += len;
-
-  /* Skip comment from codec header */
-
-  len = GAVL_PTR_2_32BE(ptr); ptr += 4;
-  ptr += len;
-
   /* Build comment packet */
-
+  
   bg_ogg_create_comment_packet(comment_header, 7,
                                &s->m_stream, s->m_global, 1, &packet);
 
@@ -319,18 +316,24 @@ static int init_compressed_theora(bg_ogg_stream_t * s)
   bg_ogg_free_comment_packet(&packet);
   
   /* Codepages */
-  len = PTR_2_32BE(ptr); ptr += 4;
-  
-  packet.packet = ptr;
-  packet.bytes  = len;
 
+  packet.packet = gavl_extract_xiph_header(s->ci.global_header,
+                                           s->ci.global_header_len,
+                                           2, &len);
+  
+  if(!packet.packet)
+    {
+    bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Broken vorbis header");
+    return 0;
+    }
+  
+  packet.bytes  = len;
+  
   if(!bg_ogg_stream_write_header_packet(s, &packet))
     return 0;
-  
-  theora->frames_since_keyframe = -1;
 
+  theora->frames_since_keyframe = -1;
   return 1;
-  
   }
 
 static gavl_sink_status_t
@@ -548,15 +551,10 @@ init_theora(void * data, gavl_compression_info_t * ci,
   /* Build global header */
   while(th_encode_flushheader(theora->ts, &theora->tc, &op) > 0)
     {
-    ci->global_header = realloc(ci->global_header, 
-                                ci->global_header_len + 4 + op.bytes);
-
-    ptr = ci->global_header + ci->global_header_len;
-
-    GAVL_32BE_2_PTR(op.bytes, ptr); ptr += 4;
-    memcpy(ptr, op.packet, op.bytes);
-    ci->global_header_len += 4 + op.bytes;
-
+    gavl_append_xiph_header(&ci->global_header,
+                            (int*)&ci->global_header_len,
+                            op.packet, op.bytes);
+    
     if(header_packets == 1)
       {
       char * vendor;

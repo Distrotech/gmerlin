@@ -412,6 +412,7 @@ static int init_vorbis(bgav_stream_t * s)
     {
     ogg_packet op;
     int i;
+    int len;
     memset(&op, 0, sizeof(op));
     
     if(!s->ext_data)
@@ -424,20 +425,16 @@ static int init_vorbis(bgav_stream_t * s)
 
     op.b_o_s = 1;
 
+    bgav_hexdump(s->ext_data, 64, 16);
+    
     for(i = 0; i < 3; i++)
       {
-      if(ptr - s->ext_data > s->ext_size - 4)
-        {
-        bgav_log(s->opt, BGAV_LOG_ERROR, LOG_DOMAIN,
-                 "Truncated vorbis header %d", i+1);
-        return 0;
-        }
-      
       if(i)
         op.b_o_s = 0;
       
-      op.bytes = BGAV_PTR_2_32BE(ptr); ptr+=4;
-      op.packet = ptr;
+      op.packet = gavl_extract_xiph_header(s->ext_data, s->ext_size,
+                                           i, &len);
+      op.bytes = len;
       
       if(vorbis_synthesis_headerin(&priv->dec_vi, &priv->dec_vc,
                                    &op) < 0)
@@ -447,7 +444,6 @@ static int init_vorbis(bgav_stream_t * s)
         return 0;
         }
       op.packetno++;
-      ptr += op.bytes;
       }
     }
   

@@ -163,6 +163,33 @@ GAVL_PUBLIC
 void gavl_compression_info_copy(gavl_compression_info_t * dst,
                                 const gavl_compression_info_t * src);
 
+/** \brief Append a Xiph packet to a global header
+ *  \param global_header Global header (will be changed)
+ *  \param global_header_len Global header length (will be changed)
+ *  \param header header to append
+ *  \param header_len length of header to append
+ */
+
+GAVL_PUBLIC
+void gavl_append_xiph_header(uint8_t ** global_header,
+                             int * global_header_len,
+                             uint8_t * header,
+                             int header_len);
+
+/** \brief Extract a Xiph packet to a global header
+ *  \param global_header Global header
+ *  \param global_header_len Global header length
+ *  \param idx Index of the packet (starting with 0)
+ *  \param header_len Returns the length of the header
+ *  \returns The data of the header packet
+ */
+  
+GAVL_PUBLIC
+uint8_t * gavl_extract_xiph_header(uint8_t * global_header,
+                                   int global_header_len,
+                                   int idx,
+                                   int * header_len);
+  
   
 /** \brief Get the file extension of the corresponding raw format
  *  \param id A codec ID

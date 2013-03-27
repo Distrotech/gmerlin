@@ -53,8 +53,7 @@ static int init_theora(bgav_stream_t * s)
   {
   int sub_h, sub_v;
   int i;
-  uint32_t len;
-  uint8_t * ptr;
+  int len;
   ogg_packet op;
   theora_priv_t * priv;
   priv = calloc(1, sizeof(*priv));
@@ -72,7 +71,6 @@ static int init_theora(bgav_stream_t * s)
     return 0;
     }
   
-  ptr = s->ext_data;
   memset(&op, 0, sizeof(op));
   op.b_o_s = 1;
 
@@ -80,18 +78,19 @@ static int init_theora(bgav_stream_t * s)
     {
     if(i)
       op.b_o_s = 0;
-    len = BGAV_PTR_2_32BE(ptr); ptr += 4;
-    op.packet = ptr;
-    op.bytes  = len;
 
-    if(th_decode_headerin(&priv->ti, &priv->tc, &priv->ts, &op) <= 0)
+    op.packet = gavl_extract_xiph_header(s->ext_data, s->ext_size,
+                                         i, &len);
+    op.bytes = len;
+    
+    if(!op.packet ||
+       th_decode_headerin(&priv->ti, &priv->tc, &priv->ts, &op) <= 0)
       {
       bgav_log(s->opt, BGAV_LOG_ERROR, LOG_DOMAIN,
-               "Parsing header packet %d failed", i+1);
+               "Theora header broken");
       return 0;
       }
     op.packetno++;
-    ptr += op.bytes;
     }
   
   /* Initialize the decoder */

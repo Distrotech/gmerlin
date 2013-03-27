@@ -461,13 +461,8 @@ static int get_page(bgav_demuxer_context_t * ctx)
 static void append_extradata(bgav_stream_t * s, ogg_packet * op)
   {
   uint8_t * ptr;
-  s->ext_data = realloc(s->ext_data, s->ext_size + op->bytes + 4);
-  ptr = s->ext_data + s->ext_size;
-  BGAV_32BE_2_PTR(op->bytes, ptr); ptr+=4;
-  memcpy(ptr, op->packet, op->bytes);
-  s->ext_size += op->bytes + 4;
-  //  fprintf(stderr, "Append extradata %ld\n", op->bytes);
-  //  bgav_hexdump(op->packet, 16, 16);
+  gavl_append_xiph_header(&s->ext_data, &s->ext_size,
+                          op->packet, op->bytes);
   }
 
 /* Get the fourcc from the identification packet */

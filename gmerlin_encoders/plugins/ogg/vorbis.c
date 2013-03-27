@@ -151,60 +151,32 @@ static const bg_parameter_info_t * get_parameters_vorbis()
   return parameters;
   }
 
-#if 0
-#define PTR_2_32BE(p) \
-  ((*(p) << 24) |     \
-   (*(p+1) << 16) |   \
-   (*(p+2) << 8) |    \
-   *(p+3))
-
-#define INT_32BE_2_PTR(num, p) \
-  (p)[0] = ((num)>>24) & 0xff; \
-  (p)[1] = ((num)>>16) & 0xff; \
-  (p)[2] = ((num)>>8) & 0xff;  \
-  (p)[3] = (num) & 0xff;
-
-#define PTR_2_32LE(p) \
-  ((*(p+3) << 24) |     \
-   (*(p+2) << 16) |   \
-   (*(p+1) << 8) |    \
-   *(p))
-
-#define WRITE_STRING(s, p) string_len = strlen(s); \
-  GAVL_32LE_2_PTR(string_len, p); p += 4; \
-  memcpy(p, s, string_len); \
-  p+=string_len;
-#endif
-
 static const uint8_t comment_header[7] = { 0x03, 'v', 'o', 'r', 'b', 'i', 's' };
 
 static int init_compressed_vorbis(bg_ogg_stream_t * s)
   {
   ogg_packet packet;
-  uint8_t * ptr;
-  uint32_t len;
-
-  
+  int len;
+    
   memset(&packet, 0, sizeof(packet));
   
   /* Write ID packet */
-  ptr = s->ci.global_header;
-  
-  len = GAVL_PTR_2_32BE(ptr); ptr += 4;
 
-  packet.packet = ptr;
+  packet.packet = gavl_extract_xiph_header(s->ci.global_header,
+                                           s->ci.global_header_len,
+                                           0, &len);
+
+  if(!packet.packet)
+    {
+    bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Broken vorbis header");
+    return 0;
+    }
+
   packet.bytes  = len;
-
+  
   if(!bg_ogg_stream_write_header_packet(s, &packet))
     return 0;
   
-  ptr += len;
-  
-  /* Skip comment from codec header */
-
-  len = GAVL_PTR_2_32BE(ptr); ptr += 4;
-  ptr += len;
-
   /* Build comment packet */
 
   bg_ogg_create_comment_packet(comment_header, 7,
@@ -216,9 +188,17 @@ static int init_compressed_vorbis(bg_ogg_stream_t * s)
   bg_ogg_free_comment_packet(&packet);
   
   /* Codepages */
-  len = GAVL_PTR_2_32BE(ptr); ptr += 4;
+
+  packet.packet = gavl_extract_xiph_header(s->ci.global_header,
+                                           s->ci.global_header_len,
+                                           2, &len);
   
-  packet.packet = ptr;
+  if(!packet.packet)
+    {
+    bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Broken vorbis header");
+    return 0;
+    }
+  
   packet.bytes  = len;
   
   if(!bg_ogg_stream_write_header_packet(s, &packet))
@@ -374,24 +354,18 @@ static gavl_audio_sink_t * init_vorbis(void * data,
   gavl_metadata_set_nocpy(stream_metadata, GAVL_META_SOFTWARE, vendor);
   // fprintf(stderr, "Got vendor: %s\n", vendor);
   /* And stream them out */
-  
-  ci_ret->global_header_len =
-    header_main.bytes + header_comments.bytes + header_codebooks.bytes + 12;
-  
-  ci_ret->global_header = malloc(ci_ret->global_header_len);
-  ptr = ci_ret->global_header;
 
-  GAVL_32BE_2_PTR(header_main.bytes, ptr); ptr += 4;
-  memcpy(ptr, header_main.packet, header_main.bytes);
-  ptr += header_main.bytes;
+  gavl_append_xiph_header(&ci_ret->global_header,
+                          (int*)&ci_ret->global_header_len,
+                          header_main.packet, header_main.bytes);
 
-  GAVL_32BE_2_PTR(header_comments.bytes, ptr); ptr += 4;
-  memcpy(ptr, header_comments.packet, header_comments.bytes);
-  ptr += header_comments.bytes;
+  gavl_append_xiph_header(&ci_ret->global_header,
+                          (int*)&ci_ret->global_header_len,
+                          header_comments.packet, header_comments.bytes);
 
-  GAVL_32BE_2_PTR(header_codebooks.bytes, ptr); ptr += 4;
-  memcpy(ptr, header_codebooks.packet, header_codebooks.bytes);
-  ptr += header_codebooks.bytes;
+  gavl_append_xiph_header(&ci_ret->global_header,
+                          (int*)&ci_ret->global_header_len,
+                          header_codebooks.packet, header_codebooks.bytes);
   
   ci_ret->id = GAVL_CODEC_ID_VORBIS;
   return gavl_audio_sink_create(NULL, write_audio_frame_vorbis,

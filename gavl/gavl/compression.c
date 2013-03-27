@@ -382,3 +382,168 @@ void gavl_packet_init(gavl_packet_t * p)
   p->timecode   = GAVL_TIMECODE_UNDEFINED;
   }
 
+/* Xiph style lacing */
+
+// Format of xiph lacing:
+// <num_laces - 1>
+// 255 255 233
+// 255 255 123
+// Segment 1
+// Segment 2
+
+static uint8_t * get_xiph_len(uint8_t * ptr, int * len)
+  {
+  *len = 0;
+  while(*ptr == 255)
+    {
+    *len += 255;
+    ptr++;
+    }
+  *len += *ptr;
+  ptr++;
+  return ptr;
+  }
+
+typedef struct
+  {
+  int len;
+  uint8_t * ptr;
+  } xiph_buffer_t;
+
+static int xiph_buffer_get(xiph_buffer_t * ret,
+                           uint8_t * global_header, int global_header_len)
+  {
+  int i;
+  uint8_t * ptr = global_header;
+  int num_segments = (*ptr) + 1;
+  ptr++;
+
+  for(i = 0; i < num_segments-1; i++)
+    {
+    ptr = get_xiph_len(ptr, &ret[i].len);
+    if(ptr - global_header > global_header_len)
+      return 0;
+    }
+  for(i = 0; i < num_segments-1; i++)
+    {
+    ret[i].ptr = ptr;
+    ptr += ret[i].len;
+    if(ptr - global_header > global_header_len)
+      return 0;
+    }
+  
+  ret[num_segments-1].ptr = ptr;
+  ret[num_segments-1].len = global_header_len - (ptr - global_header);
+
+  if(ret[num_segments-1].len <= 0)
+    return 0;
+  return 1;
+  }
+
+static uint8_t * xiph_buffer_put(xiph_buffer_t * buf, int num,
+                                 int * global_header_len)
+  {
+  int len;
+  uint8_t * ret;
+  uint8_t * ptr;
+  
+  int i;
+  *global_header_len = 1;
+
+  for(i = 0; i < num-1; i++)
+    {
+    *global_header_len += buf[i].len / 255 + 1;
+    *global_header_len += buf[i].len;
+    }
+
+  *global_header_len += buf[num-1].len;
+
+  ret = malloc(*global_header_len + GAVL_PACKET_PADDING);
+
+  ptr = ret;
+  *ptr = num - 1;
+  ptr++;
+  
+  for(i = 0; i < num-1; i++)
+    {
+    len = buf[i].len;
+
+    while(len >= 255)
+      {
+      *ptr++ = 255;
+      len -= 255;
+      }
+    *ptr++ = len;
+    }
+
+  for(i = 0; i < num; i++)
+    {
+    memcpy(ptr, buf[i].ptr, buf[i].len);
+    ptr += buf[i].len;
+    }
+  memset(ptr, 0, GAVL_PACKET_PADDING);
+  return ret;
+  }
+
+void gavl_append_xiph_header(uint8_t ** global_header,
+                             int * global_header_len,
+                             uint8_t * header,
+                             int header_len)
+  {
+  if(!(*global_header_len))
+    {
+    xiph_buffer_t buf;
+    buf.ptr = header;
+    buf.len = header_len;
+    *global_header = xiph_buffer_put(&buf, 1, global_header_len);
+    }
+  else
+    {
+    uint8_t * ret;
+    int num_segments = (*global_header)[0] + 1;
+    xiph_buffer_t * buf;
+
+    buf = calloc(num_segments + 1, sizeof(*buf));
+
+    xiph_buffer_get(buf, *global_header, *global_header_len);
+    
+    buf[num_segments].ptr = header;
+    buf[num_segments].len = header_len;
+
+    ret = xiph_buffer_put(buf, num_segments+1, global_header_len);
+    free(*global_header);
+    free(buf);
+    *global_header = ret;
+    }
+  }
+
+uint8_t * gavl_extract_xiph_header(uint8_t * global_header,
+                                   int global_header_len,
+                                   int idx,
+                                   int * header_len)
+  {
+  int num_segments;
+  uint8_t * ret;
+  xiph_buffer_t * buf;
+  
+  if(!global_header)
+    return NULL;
+  
+  num_segments = global_header[0] + 1;
+  
+  if((idx < 0) || (idx >= num_segments))
+    return NULL;
+  
+  buf = calloc(num_segments, sizeof(*buf));
+  if(!xiph_buffer_get(buf, global_header, global_header_len))
+    {
+    free(buf);
+    return NULL;
+    }
+
+  ret = buf[idx].ptr;
+  *header_len = buf[idx].len;
+  
+  free(buf);
+  return ret;
+  }

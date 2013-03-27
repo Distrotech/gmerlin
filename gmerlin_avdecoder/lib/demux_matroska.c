@@ -114,67 +114,10 @@ typedef struct
   int flags;
   } codec_info_t;
 
-static void append_ogg_extradata(bgav_stream_t * s,
-                                 uint8_t * data, int len)
-  {
-  uint8_t * ptr;
-  s->ext_data = realloc(s->ext_data, s->ext_size + len + 4);
-  ptr = s->ext_data + s->ext_size;
-  BGAV_32BE_2_PTR(len, ptr); ptr+=4;
-  memcpy(ptr, data, len);
-  s->ext_size += len + 4;
-  }
-
 static void setup_ogg_extradata(bgav_stream_t * s)
   {
-  uint8_t * ptr;
-  int len1;
-  int len2;
-  int len3;
-  
   bgav_mkv_track_t * p = s->priv;
-  
-  ptr = p->CodecPrivate;
-  if(*ptr != 0x02)
-    {
-    bgav_log(s->opt, BGAV_LOG_ERROR, LOG_DOMAIN,
-             "Ogg extradata must start with 0x02n");
-    return;
-    }
-  ptr++;
-
-  /* 1st packet */
-  len1 = 0;
-  while(*ptr == 255)
-    {
-    len1 += 255;
-    ptr++;
-    }
-  len1 += *ptr;
-  ptr++;
-
-  /* 2nd packet */
-  len2 = 0;
-  while(*ptr == 255)
-    {
-    len2 += 255;
-    ptr++;
-    }
-  len2 += *ptr;
-  ptr++;
-
-  /* 3rd packet */
-  len3 = p->CodecPrivateLen - (ptr - p->CodecPrivate) - len1 - len2;
-
-  /* Append header packets */
-  append_ogg_extradata(s, ptr, len1);
-  ptr += len1;
-  
-  append_ogg_extradata(s, ptr, len2);
-  ptr += len2;
-
-  append_ogg_extradata(s, ptr, len3);
-  
+  bgav_stream_set_extradata(s, p->CodecPrivate, p->CodecPrivateLen);
   }
 
 

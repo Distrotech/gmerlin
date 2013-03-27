@@ -767,3 +767,4 @@ uint32_t bgav_compression_id_2_fourcc(gavl_codec_id_t id)
     }
   return 0;
   }
+
