@@ -26,8 +26,9 @@ gavf-decode \
 gavf-encode \
 gavf-filter \
 gavf-info \
-gavf-record \
-gavf-play
+gavf-play \
+gavf-recompress \
+gavf-record
 
 gavf_decode_SOURCES = gavf-decode.c \
 decode_album.c \

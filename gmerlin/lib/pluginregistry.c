@@ -645,21 +645,17 @@ static bg_plugin_info_t * plugin_info_create(const bg_plugin_common_t * plugin,
   if(plugin->type & BG_PLUGIN_CODEC)
     {
     bg_codec_plugin_t  * p;
+    int num = 0;
+    const gavl_codec_id_t * compressions;
     p = (bg_codec_plugin_t*)plugin;
 
-    if(p->get_compressions)
-      {
-      int num = 0;
-      const gavl_codec_id_t * compressions;
-
-      compressions = p->get_compressions(plugin_priv);
-      
-      while(compressions[num])
-        num++;
-      new_info->compressions = calloc(num+1, sizeof(*new_info->compressions));
-      memcpy(new_info->compressions, compressions,
-             num * sizeof(*new_info->compressions));
-      }
+    compressions = p->get_compressions(plugin_priv);
+    
+    while(compressions[num])
+      num++;
+    new_info->compressions = calloc(num+1, sizeof(*new_info->compressions));
+    memcpy(new_info->compressions, compressions,
+           num * sizeof(*new_info->compressions));
     }
   
   if(plugin->find_devices)
