@@ -34,6 +34,7 @@ extern const bg_ogg_codec_t bg_opus_codec;
 #define CODEC_NAME "c_opusenc"
 #define CODEC_LONG_NAME TRS("Opus")
 #define CODEC bg_opus_codec
+#define COMPRESSION GAVL_CODEC_ID_OPUS
 
 #define CODEC_DESC TRS("Libopus based encoder")
 
