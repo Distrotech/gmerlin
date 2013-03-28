@@ -29,6 +29,8 @@
 #define CODEC_NAME "c_ffmpeg_tga"
 #define CODEC_LONG_NAME TRS("Targa")
 #define CODEC_ID CODEC_ID_TARGA
+#define COMPRESSION GAVL_CODEC_ID_TGA
+
 #define CODEC_DESC TRS("libavcodec Targa encoder")
 
 #include "_codec_plugin.c"

@@ -29,6 +29,7 @@
 #define CODEC_NAME "c_ffmpeg_ac3"
 #define CODEC_LONG_NAME TRS("AC3")
 #define CODEC_ID CODEC_ID_AC3
+#define COMPRESSION GAVL_CODEC_ID_AC3
 #define CODEC_DESC TRS("libavcodec AC3 encoder")
 #define IS_AUDIO
 

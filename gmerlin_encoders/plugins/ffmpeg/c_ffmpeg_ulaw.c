@@ -29,6 +29,8 @@
 #define CODEC_NAME "c_ffmpeg_ulaw"
 #define CODEC_LONG_NAME TRS("ulaw")
 #define CODEC_ID CODEC_ID_PCM_MULAW
+#define COMPRESSION GAVL_CODEC_ID_ULAW
+
 #define CODEC_DESC TRS("libavcodec ulaw encoder")
 #define IS_AUDIO
 #define NO_PARAMS

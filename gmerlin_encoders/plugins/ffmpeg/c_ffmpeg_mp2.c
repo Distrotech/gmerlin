@@ -29,6 +29,8 @@
 #define CODEC_NAME "c_ffmpeg_mp2"
 #define CODEC_LONG_NAME TRS("mp2")
 #define CODEC_ID CODEC_ID_MP2
+#define COMPRESSION GAVL_CODEC_ID_MP2
+
 #define CODEC_DESC TRS("libavcodec mp2 encoder")
 #define IS_AUDIO
 

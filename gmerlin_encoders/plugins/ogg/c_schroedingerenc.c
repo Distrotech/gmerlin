@@ -32,7 +32,7 @@ extern const bg_ogg_codec_t bg_schroedinger_codec;
 #define CODEC_NAME "e_schroedingerenc"
 #define CODEC_LONG_NAME TRS("Dirac")
 #define CODEC bg_schroedinger_codec
-
+#define COMPRESSION GAVL_CODEC_ID_DIRAC
 #define CODEC_DESC TRS("Libschroedinger based Dirac encoder")
 
 #include "_codec_plugin.c"

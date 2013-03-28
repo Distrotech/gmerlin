@@ -33,6 +33,7 @@ extern const bg_ogg_codec_t bg_theora_codec;
 #define CODEC_NAME "c_theoraenc"
 #define CODEC_LONG_NAME TRS("Theora")
 #define CODEC bg_theora_codec
+#define COMPRESSION GAVL_CODEC_ID_THEORA
 
 #define CODEC_DESC TRS("Libtheora based encoder")
 

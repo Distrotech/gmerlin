@@ -34,6 +34,7 @@ extern const bg_ogg_codec_t bg_speex_codec;
 #define CODEC_NAME "c_speexenc"
 #define CODEC_LONG_NAME TRS("Speex")
 #define CODEC bg_speex_codec
+#define COMPRESSION GAVL_CODEC_ID_SPEEX
 
 #define CODEC_DESC TRS("Libspeex based encoder")
 

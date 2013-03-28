@@ -34,6 +34,7 @@ extern const bg_ogg_codec_t bg_vorbis_codec;
 #define CODEC_NAME "c_vorbisenc"
 #define CODEC_LONG_NAME TRS("Vorbis")
 #define CODEC bg_vorbis_codec
+#define COMPRESSION GAVL_CODEC_ID_VORBIS
 
 #define CODEC_DESC TRS("Libvorbis based encoder")
 

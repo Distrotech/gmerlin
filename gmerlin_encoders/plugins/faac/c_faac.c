@@ -68,6 +68,18 @@ static void set_packet_sink(void * priv, gavl_packet_sink_t * s)
   bg_faac_set_packet_sink(priv, s);
   }
 
+gavl_codec_id_t compressions[] =
+  {
+    GAVL_CODEC_ID_AAC,
+    GAVL_CODEC_ID_NONE
+  };
+
+static const gavl_codec_id_t * get_compressions(void * priv)
+  {
+  return compressions;
+  }
+
+
 const bg_codec_plugin_t the_plugin =
   {
     .common =
@@ -86,6 +98,7 @@ const bg_codec_plugin_t the_plugin =
     },
     .open_encode_audio = open_audio,
     .set_packet_sink = set_packet_sink,
+    .get_compressions = get_compressions,
   };
 /* Include this into all plugin modules exactly once
    to let the plugin loader obtain the API version */

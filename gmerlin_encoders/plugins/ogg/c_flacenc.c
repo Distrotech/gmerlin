@@ -34,7 +34,7 @@ extern const bg_ogg_codec_t bg_flacogg_codec;
 #define CODEC_NAME "c_flacenc"
 #define CODEC_LONG_NAME TRS("Flac")
 #define CODEC bg_flacogg_codec
-
+#define COMPRESSION GAVL_CODEC_ID_FLAC
 #define CODEC_DESC TRS("Libflac based encoder")
 
 #include "_codec_plugin.c"
