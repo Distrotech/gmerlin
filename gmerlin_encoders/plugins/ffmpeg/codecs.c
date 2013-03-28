@@ -371,7 +371,16 @@ static const bg_parameter_info_t parameters_libx264[] = {
 };
 
 static const bg_parameter_info_t parameters_libvpx[] = {
-  ENCODE_PARAM_VIDEO_RATECONTROL,
+  {
+    .name = "rc",
+    .long_name = TRS("Rate control"),
+    .type = BG_PARAMETER_SECTION,
+  },
+  PARAM_BITRATE_VIDEO,
+  PARAM_RC_MIN_RATE,
+  PARAM_RC_MAX_RATE,
+  PARAM_RC_BUFFER_SIZE,
+  PARAM_RC_INITIAL_BUFFER_OCCUPANCY,
   {
     .name =        "ff_qcompress",
     .long_name =   TRS("2-Pass VBR/CBR"),
@@ -383,25 +392,31 @@ static const bg_parameter_info_t parameters_libvpx[] = {
     .help_string = TRS("0: CBR, 1: VBR")
   },
   {
-    .name = "frametypes",
-    .long_name = TRS("Frame types"),
-    .type = BG_PARAMETER_SECTION,
+    .name =      "ff_qmin",
+    .long_name = TRS("Minimum quantizer scale"),
+    .type =      BG_PARAMETER_SLIDER_INT,
+    .val_default = { .val_i = 2 },
+    .val_min =     { .val_i = 0 },
+    .val_max =     { .val_i = 63 },
+    .help_string = TRS("recommended value 0-4")
   },
   {
-    .name = "ff_keyint_min",
-    .long_name = TRS("Minimum GOP size"),
-    .type = BG_PARAMETER_INT,
-    .val_min = { .val_i = 0 },
-    .val_max = { .val_i = 1000 }, // Bogus
-    .val_default = { .val_i = 0 },
+    .name =      "ff_qmax",
+    .long_name = TRS("Maximum quantizer scale"),
+    .type =      BG_PARAMETER_SLIDER_INT,
+    .val_default = { .val_i = 55 },
+    .val_min =     { .val_i = 0 },
+    .val_max =     { .val_i = 63 },
+    .help_string = TRS("Must be larger than minimum, recommended value 50-63")
   },
   {
-    .name = "ff_gop_size",
-    .long_name = TRS("Maximum GOP size"),
-    .type = BG_PARAMETER_INT,
-    .val_min = { .val_i = 0 },
-    .val_max = { .val_i = 1000 }, // Bogus
-    .val_default = { .val_i = 0 },
+    .name =      "libvpx_crf",
+    .long_name = TRS("Constant quality"),
+    .type =      BG_PARAMETER_SLIDER_INT,
+    .val_default = { .val_i = 10 },
+    .val_min =     { .val_i = 0 },
+    .val_max =     { .val_i = 63 },
+    .help_string = TRS("Set this to 0 for enabling VBR")
   },
   {
     .name = "speed",
@@ -417,8 +432,8 @@ static const bg_parameter_info_t parameters_libvpx[] = {
                                     "good",
                                     "realtime",
                                     (char *)0},
-    .multi_labels = (char const *[]){TRS("Best"),
-                                     TRS("Good"),
+    .multi_labels = (char const *[]){TRS("Best quality"),
+                                     TRS("Good quality"),
                                      TRS("Realtime"),
                                      (char *)0},
   },
@@ -430,10 +445,30 @@ static const bg_parameter_info_t parameters_libvpx[] = {
     .val_max = { .val_i = 1000 }, // Bogus
     .val_default = { .val_i = 0 },
   },
+  PARAM_THREAD_COUNT,
   {
-    .name = "altref",
-    .long_name = TRS("Alternate Ref"),
+    .name = "frametypes",
+    .long_name = TRS("Frame types"),
     .type = BG_PARAMETER_SECTION,
+  },
+#if 0 // Has no effect??
+  {
+    .name = "ff_keyint_min",
+    .long_name = TRS("Minimum GOP size"),
+    .type = BG_PARAMETER_INT,
+    .val_min = { .val_i = 0 },
+    .val_max = { .val_i = 1000 }, // Bogus
+    .val_default = { .val_i = 0 },
+  },
+#endif
+  {
+    .name = "ff_gop_size",
+    .long_name = TRS("Maximum GOP size"),
+    .type = BG_PARAMETER_INT,
+    .val_min = { .val_i = -1 },
+    .val_max = { .val_i = 1000 }, // Bogus
+    .val_default = { .val_i = -1 },
+    .help_string = TRS("Maximum keyframe distance, -1 means automatic"),
   },
   {
     .name = "libvpx_auto-alt-ref",
@@ -1247,7 +1282,8 @@ bg_ffmpeg_set_codec_parameter(AVCodecContext * ctx,
   PARAM_FLAG("ff_flag_closed_gop",CODEC_FLAG_CLOSED_GOP);
   PARAM_FLAG2("ff_flag2_fast",CODEC_FLAG2_FAST);
   PARAM_FLAG2("ff_flag2_strict_gop",CODEC_FLAG2_STRICT_GOP);
-
+  PARAM_INT("ff_thread_count",thread_count);
+  
   PARAM_DICT_STRING("libx264_preset", "preset");
   PARAM_DICT_STRING("libx264_tune",   "tune");
   PARAM_DICT_FLOAT("libx264_crf", "crf");
@@ -1267,10 +1303,14 @@ bg_ffmpeg_set_codec_parameter(AVCodecContext * ctx,
     else
       ctx->coder_type = FF_CODER_TYPE_RAW;
     }
-
+  
   PARAM_DICT_STRING("libvpx_deadline", "deadline");
   PARAM_DICT_INT("libvpx_cpu-used",   "cpu-used");
-
+  PARAM_DICT_INT("libvpx_auto-alt-ref", "alt-ref");
+  PARAM_DICT_INT("libvpx_lag-in-frames", "lag-in-frames");
+  PARAM_DICT_INT("libvpx_arnr-max-frames", "arnr-max-frames");
+  PARAM_DICT_INT("libvpx_crf", "crf");
+  PARAM_DICT_STRING("libvpx_arnr-type", "arnr-type");
   }
 
 /* Type conversion */

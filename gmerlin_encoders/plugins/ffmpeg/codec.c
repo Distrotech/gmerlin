@@ -755,10 +755,10 @@ gavl_video_sink_t * bg_ffmpeg_codec_open_video(bg_ffmpeg_codec_context_t * ctx,
     {
     if(!(info->flags & FLAG_INTRA_ONLY))
       {
-      if(ctx->avctx->gop_size > 0)
+      if((ctx->avctx->gop_size > 1) ||
+         (ctx->avctx->gop_size < 0))
         {
         ci->flags |= GAVL_COMPRESSION_HAS_P_FRAMES;
-      
         }
       if((info->flags & FLAG_B_FRAMES) &&
          ((ctx->avctx->max_b_frames > 0) || ctx->avctx->has_b_frames))

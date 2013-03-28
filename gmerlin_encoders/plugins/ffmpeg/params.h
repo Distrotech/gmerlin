@@ -1017,3 +1017,13 @@ RC buffer size") \
     .val_default = { .val_i = 0 },    \
 }
 
+
+/**  */
+#define PARAM_THREAD_COUNT  \
+  { \
+    .name = "ff_thread_count", \
+    .long_name = TRS("Thread count"),    \
+    .type = BG_PARAMETER_INT,             \
+    .val_default = { .val_i = 0 }, \
+    .help_string = TRS("Number of threads to use") \
+  }
