@@ -34,6 +34,54 @@ static bg_parameter_info_t * ac_parameters = NULL;
 static bg_parameter_info_t * vc_parameters = NULL;
 static bg_parameter_info_t * oc_parameters = NULL;
 
+static bg_cfg_section_t ** ac_sections = NULL;
+static bg_cfg_section_t ** vc_sections = NULL;
+static bg_cfg_section_t ** oc_sections = NULL;
+
+static int num_audio_streams = 0;
+static int num_video_streams = 0;
+static int num_overlay_streams = 0;
+
+static bg_cfg_section_t **
+create_stream_sections(const bg_parameter_info_t * parameters,
+                       int num, gavl_metadata_t * options)
+  {
+  int i;
+  const char * opt;
+  bg_cfg_section_t ** ret;
+
+  if(!num)
+    return NULL;
+
+  ret = calloc(num, sizeof(*ret));
+
+  for(i = 0; i < num; i++)
+    {
+    opt = bg_cmdline_get_stream_options(options, i);
+    if(opt)
+      {
+      ret[i] = bg_cfg_section_create_from_parameters("compression",
+                                                     parameters);
+      bg_cfg_section_set_parameters_from_string(ret[i], parameters,
+                                                opt);
+      }
+    }
+  return ret;
+  }
+
+static void destroy_stream_sections(bg_cfg_section_t ** sec, int num)
+  {
+  int i;
+  if(!sec)
+    return;
+  for(i = 0; i < num; i++)
+    {
+    if(sec[i])
+      bg_cfg_section_destroy(sec[i]);
+    }
+  free(sec);
+  }
+
 static void opt_ac(void * data, int * argc, char *** _argv, int arg)
   {
   if(arg >= *argc)
@@ -124,7 +172,8 @@ int main(int argc, char ** argv)
   {
   int ret = 1;
   bg_mediaconnector_t conn;
-  
+  gavf_t * g;
+  int i;
   gavl_metadata_init(&ac_options);
   gavl_metadata_init(&vc_options);
   gavl_metadata_init(&oc_options);
@@ -154,5 +203,87 @@ int main(int argc, char ** argv)
   if(!bg_cmdline_check_unsupported(argc, argv))
     return -1;
 
+  /* Open input plug */
+  in_plug = gavftools_create_in_plug();
+  out_plug = gavftools_create_out_plug();
+  
+  if(!bg_plug_open_location(in_plug, gavftools_in_file, NULL, NULL))
+    return ret;
+
+  /* Check which streams we have */
+  g = bg_plug_get_gavf(in_plug);
+
+  num_audio_streams = gavf_get_num_streams(g, GAVF_STREAM_AUDIO);
+  num_video_streams = gavf_get_num_streams(g, GAVF_STREAM_VIDEO);
+  num_overlay_streams = gavf_get_num_streams(g, GAVF_STREAM_OVERLAY);
+
+  ac_sections =
+    create_stream_sections(ac_parameters,
+                           num_audio_streams, &ac_options);
+  vc_sections =
+    create_stream_sections(vc_parameters,
+                           num_video_streams, &vc_options);
+
+  oc_sections =
+    create_stream_sections(oc_parameters,
+                           num_overlay_streams, &oc_options);
+
+  /*
+   *  Check how to recompress the streams.
+   *  - If nothing is given (stream sectio is NULL)
+   *
+   *
+   */
+  
+  for(i = 0; i < num_audio_streams; i++)
+    {
+    if(ac_sections[i])
+      {
+      
+      }
+    else
+      {
+      
+      }
+    }
+  for(i = 0; i < num_video_streams; i++)
+    {
+    if(vc_sections[i])
+      {
+      
+      }
+    else
+      {
+      
+      }
+
+    }
+  for(i = 0; i < num_overlay_streams; i++)
+    {
+    if(oc_sections[i])
+      {
+      
+      }
+    else
+      {
+      
+      }
+
+    
+    }
+  
+#if 1
+  bg_plug_set_compressor_config(out_plug,
+                                ac_parameters,
+                                vc_parameters,
+                                oc_parameters);
+#endif
+
+  /* Cleanup */
+
+  destroy_stream_sections(ac_sections, num_audio_streams);
+  destroy_stream_sections(vc_sections, num_video_streams);
+  destroy_stream_sections(oc_sections, num_overlay_streams);
+  
   return ret;
   }

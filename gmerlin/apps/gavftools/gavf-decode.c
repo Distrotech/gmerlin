@@ -116,9 +116,6 @@ static bg_cmdline_arg_t global_options[] =
     GAVFTOOLS_VIDEO_STREAM_OPTIONS,
     GAVFTOOLS_TEXT_STREAM_OPTIONS,
     GAVFTOOLS_OVERLAY_STREAM_OPTIONS,
-    GAVFTOOLS_AUDIO_COMPRESSOR_OPTIONS,
-    GAVFTOOLS_VIDEO_COMPRESSOR_OPTIONS,
-    GAVFTOOLS_OVERLAY_COMPRESSOR_OPTIONS,
     GAVFTOOLS_OUTPLUG_OPTIONS,
     GAVFTOOLS_LOG_OPTIONS,
     {
@@ -187,7 +184,6 @@ int main(int argc, char ** argv)
 
   gavftools_init();
 
-  gavftools_set_compresspor_options(global_options);
   gavftools_set_cmdline_parameters(global_options);
   
   /* Handle commandline options */
@@ -205,10 +201,6 @@ int main(int argc, char ** argv)
   cb.data = &cb_data;
   cb.metadata_changed = update_metadata;
   
-  bg_plug_set_compressor_config(out_plug,
-                                gavftools_ac_params(),
-                                gavftools_vc_params(),
-                                gavftools_oc_params());
   
   /* Open location */
   if(album_file)

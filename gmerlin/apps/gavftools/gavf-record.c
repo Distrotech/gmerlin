@@ -199,14 +199,14 @@ static int recorder_stream_open(recorder_stream_t * s, int type,
     gavl_audio_source_t * asrc;
     asrc = s->plugin->get_audio_source(s->h->priv);
     bg_mediaconnector_add_audio_stream(conn, &s->m, asrc, NULL,
-                                       gavftools_ac_section());
+                                       NULL);
     }
   else if(type == GAVF_STREAM_VIDEO)
     {
     gavl_video_source_t * vsrc;
     vsrc = s->plugin->get_video_source(s->h->priv);
     bg_mediaconnector_add_video_stream(conn, &s->m, vsrc, NULL,
-                                       gavftools_vc_section());
+                                       NULL);
     }
   return 1;
   }
@@ -274,8 +274,6 @@ static bg_cmdline_arg_t global_options[] =
       .help_string = "Set video recording options",
       .callback =    opt_vid,
     },
-    GAVFTOOLS_AUDIO_COMPRESSOR_OPTIONS,
-    GAVFTOOLS_VIDEO_COMPRESSOR_OPTIONS,
     GAVFTOOLS_OUTPLUG_OPTIONS,
     GAVFTOOLS_LOG_OPTIONS,
     {
@@ -324,18 +322,13 @@ int main(int argc, char ** argv)
 
   gavftools_set_cmdline_parameters(global_options);
   
-  gavftools_set_compresspor_options(global_options);
     
   /* Handle commandline options */
   bg_cmdline_init(&app_data);
   bg_cmdline_parse(global_options, &argc, &argv, NULL);
 
   out_plug = gavftools_create_out_plug();
-  
-  bg_plug_set_compressor_config(out_plug,
-                                gavftools_ac_params(),
-                                gavftools_vc_params(), NULL);
-  
+    
   /* Open plugins */
   if(!recorder_open(&rec, &conn))
     {

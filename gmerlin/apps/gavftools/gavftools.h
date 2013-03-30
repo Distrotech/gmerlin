@@ -40,38 +40,11 @@ void gavftools_cleanup();
 
 int gavftools_stop();
 
-const bg_parameter_info_t *
-gavftools_ac_params(void);
-
-const bg_parameter_info_t *
-gavftools_vc_params(void);
-
-const bg_parameter_info_t *
-gavftools_oc_params(void);
-
-bg_cfg_section_t *
-gavftools_ac_section(void);
-
-bg_cfg_section_t *
-gavftools_vc_section(void);
-
-bg_cfg_section_t *
-gavftools_oc_section(void);
-
 bg_cfg_section_t *
 gavftools_iopt_section(void);
 
 bg_cfg_section_t *
 gavftools_oopt_section(void);
-
-void
-gavftools_opt_ac(void * data, int * argc, char *** _argv, int arg);
-
-void
-gavftools_opt_vc(void * data, int * argc, char *** _argv, int arg);
-
-void
-gavftools_opt_oc(void * data, int * argc, char *** _argv, int arg);
 
 void
 gavftools_opt_aq(void * data, int * argc, char *** _argv, int arg);
@@ -113,29 +86,6 @@ bg_plug_t * gavftools_create_out_plug();
 bg_stream_action_t * gavftools_get_stream_actions(int num, gavf_stream_type_t type);
 
 
-#define GAVFTOOLS_AUDIO_COMPRESSOR_OPTIONS \
-  { \
-    .arg =         "-ac", \
-    .help_arg =    "<compression_options>", \
-    .help_string = "Set audio compression options", \
-    .callback =    gavftools_opt_ac, \
-  }
-
-#define GAVFTOOLS_VIDEO_COMPRESSOR_OPTIONS \
-  { \
-    .arg =         "-vc", \
-    .help_arg =    "<compression_options>", \
-    .help_string = "Set video compression options", \
-    .callback =    gavftools_opt_vc, \
-  }
-
-#define GAVFTOOLS_OVERLAY_COMPRESSOR_OPTIONS      \
-  { \
-    .arg =         "-oc", \
-    .help_arg =    "<compression_options>", \
-    .help_string = "Set overlay compression options", \
-    .callback =    gavftools_opt_oc, \
-  }
 
 #define GAVFTOOLS_INPLUG_OPTIONS                \
   {                                             \

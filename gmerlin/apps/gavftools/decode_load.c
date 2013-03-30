@@ -198,7 +198,7 @@ int load_input_file(const char * file, const char * plugin_name,
 
     if(asrc || psrc)
       bg_mediaconnector_add_audio_stream(conn, stream_metadata, asrc, psrc,
-                                         gavftools_ac_section());
+                                         NULL);
     }
   
   for(i = 0; i < track_info->num_video_streams; i++)
@@ -221,7 +221,7 @@ int load_input_file(const char * file, const char * plugin_name,
       }
     if(vsrc || psrc)
       bg_mediaconnector_add_video_stream(conn, stream_metadata, vsrc, psrc,
-                                         gavftools_vc_section());
+                                         NULL);
     }
   
   for(i = 0; i < track_info->num_text_streams; i++)
@@ -262,7 +262,7 @@ int load_input_file(const char * file, const char * plugin_name,
       }
     if(vsrc || psrc)
       bg_mediaconnector_add_overlay_stream(conn, stream_metadata, vsrc, psrc,
-                                           gavftools_oc_section());
+                                           NULL);
     }
 
   return 1;

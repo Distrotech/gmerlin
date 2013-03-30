@@ -134,16 +134,9 @@ void gavftools_init()
   
   }
 
-static bg_cfg_section_t * ac_section = NULL;
-static bg_cfg_section_t * vc_section = NULL;
-static bg_cfg_section_t * oc_section = NULL;
 
 static bg_cfg_section_t * iopt_section = NULL;
 static bg_cfg_section_t * oopt_section = NULL;
-
-static bg_parameter_info_t * ac_parameters = NULL;
-static bg_parameter_info_t * vc_parameters = NULL;
-static bg_parameter_info_t * oc_parameters = NULL;
 
 static bg_stream_action_t * a_actions = NULL;
 static int num_a_actions = 0;
@@ -165,22 +158,12 @@ void gavftools_cleanup(int save_regs)
   bg_plugin_registry_destroy(plugin_reg);
   bg_cfg_registry_destroy(cfg_reg);
 
-  if(ac_section)
-    bg_cfg_section_destroy(ac_section);
-  if(vc_section)
-    bg_cfg_section_destroy(vc_section);
-  if(oc_section)
-    bg_cfg_section_destroy(oc_section);
 
   if(iopt_section)
     bg_cfg_section_destroy(iopt_section);
   if(oopt_section)
     bg_cfg_section_destroy(oopt_section);
   
-  if(ac_parameters)
-    bg_parameter_info_destroy_array(ac_parameters);
-  if(vc_section)
-    bg_parameter_info_destroy_array(vc_parameters);
 
   if(a_actions) free(a_actions);
   if(v_actions) free(v_actions);
@@ -202,76 +185,6 @@ void gavftools_cleanup(int save_regs)
  
   }
 
-const bg_parameter_info_t * gavftools_ac_params(void)
-  {
-  if(!ac_parameters)
-    {
-    ac_parameters =
-      bg_plugin_registry_create_compressor_parameters(plugin_reg,
-                                                      BG_PLUGIN_AUDIO_COMPRESSOR);
-    
-    }
-  return ac_parameters;
-  }
-
-const bg_parameter_info_t * gavftools_vc_params(void)
-  {
-  if(!vc_parameters)
-    {
-    vc_parameters =
-      bg_plugin_registry_create_compressor_parameters(plugin_reg,
-                                                      BG_PLUGIN_VIDEO_COMPRESSOR);
-    
-    }
-  return vc_parameters;
-
-  }
-
-const bg_parameter_info_t * gavftools_oc_params(void)
-  {
-  if(!oc_parameters)
-    {
-    oc_parameters =
-      bg_plugin_registry_create_compressor_parameters(plugin_reg,
-                                                      BG_PLUGIN_OVERLAY_COMPRESSOR);
-    
-    }
-  return oc_parameters;
-
-  }
-
-bg_cfg_section_t * gavftools_ac_section(void)
-  {
-  if(!ac_section)
-    {
-    ac_section =
-      bg_cfg_section_create_from_parameters("ac",
-                                            gavftools_ac_params());
-    }
-  return ac_section;
-  }
-
-bg_cfg_section_t * gavftools_vc_section(void)
-  {
-  if(!vc_section)
-    {
-    vc_section =
-      bg_cfg_section_create_from_parameters("vc",
-                                            gavftools_vc_params());
-    }
-  return vc_section;
-  }
-
-bg_cfg_section_t * gavftools_oc_section(void)
-  {
-  if(!oc_section)
-    {
-    oc_section =
-      bg_cfg_section_create_from_parameters("oc",
-                                            gavftools_oc_params());
-    }
-  return oc_section;
-  }
 
 bg_cfg_section_t * gavftools_iopt_section(void)
   {
@@ -295,57 +208,6 @@ bg_cfg_section_t * gavftools_oopt_section(void)
   return oopt_section;
   }
 
-void
-gavftools_opt_ac(void * data, int * argc, char *** _argv, int arg)
-  {
-  if(arg >= *argc)
-    {
-    fprintf(stderr, "Option -ac requires an argument\n");
-    exit(-1);
-    }
-  if(!bg_cmdline_apply_options(gavftools_ac_section(),
-                               NULL,
-                               NULL,
-                               gavftools_ac_params(),
-                               (*_argv)[arg]))
-    exit(-1);
-  bg_cmdline_remove_arg(argc, _argv, arg);
-  }
-
-
-void
-gavftools_opt_vc(void * data, int * argc, char *** _argv, int arg)
-  {
-  if(arg >= *argc)
-    {
-    fprintf(stderr, "Option -vc requires an argument\n");
-    exit(-1);
-    }
-  if(!bg_cmdline_apply_options(gavftools_vc_section(),
-                               NULL,
-                               NULL,
-                               gavftools_vc_params(),
-                               (*_argv)[arg]))
-    exit(-1);
-  bg_cmdline_remove_arg(argc, _argv, arg);
-  }
-
-void
-gavftools_opt_oc(void * data, int * argc, char *** _argv, int arg)
-  {
-  if(arg >= *argc)
-    {
-    fprintf(stderr, "Option -oc requires an argument\n");
-    exit(-1);
-    }
-  if(!bg_cmdline_apply_options(gavftools_oc_section(),
-                               NULL,
-                               NULL,
-                               gavftools_oc_params(),
-                               (*_argv)[arg]))
-    exit(-1);
-  bg_cmdline_remove_arg(argc, _argv, arg);
-  }
 
 static void set_aq_parameter(void * data, const char * name,
                              const bg_parameter_value_t * val)
@@ -620,24 +482,6 @@ gavftools_get_stream_actions(int num, gavf_stream_type_t type)
     }
   return ret;
   }
-
-void
-gavftools_set_compresspor_options(bg_cmdline_arg_t * global_options)
-  {
-  int i = 0;
-
-  while(global_options[i].arg)
-    {
-    if(!strcmp(global_options[i].arg, "-ac"))
-      global_options[i].parameters = gavftools_ac_params();
-    if(!strcmp(global_options[i].arg, "-vc"))
-      global_options[i].parameters = gavftools_vc_params();
-    if(!strcmp(global_options[i].arg, "-oc"))
-      global_options[i].parameters = gavftools_oc_params();
-    i++;
-    }
-  }
-
 
 bg_plug_t * gavftools_create_in_plug()
   {
