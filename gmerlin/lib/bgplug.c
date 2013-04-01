@@ -1109,6 +1109,8 @@ static int init_write(bg_plug_t * p)
       {
       bg_codec_plugin_t * codec = (bg_codec_plugin_t*)s->codec_handle->plugin;
 
+      gavl_metadata_delete_compression_fields(&s->m);
+      
       s->asink = codec->open_encode_audio(s->codec_handle->priv,
                                           &s->ci, &s->afmt, &s->m);
       if(!s->asink)
@@ -1128,6 +1130,8 @@ static int init_write(bg_plug_t * p)
     if(s->codec_handle)
       {
       bg_codec_plugin_t * codec = (bg_codec_plugin_t*)s->codec_handle->plugin;
+      gavl_metadata_delete_compression_fields(&s->m);
+
       s->vsink = codec->open_encode_video(s->codec_handle->priv,
                                           &s->ci, &s->vfmt, &s->m);
       if(!s->vsink)
@@ -1147,6 +1151,7 @@ static int init_write(bg_plug_t * p)
     if(s->codec_handle)
       {
       bg_codec_plugin_t * codec = (bg_codec_plugin_t*)s->codec_handle->plugin;
+      gavl_metadata_delete_compression_fields(&s->m);
       s->vsink = codec->open_encode_overlay(s->codec_handle->priv,
                                             &s->ci, &s->vfmt, &s->m);
       if(!s->vsink)
@@ -1489,7 +1494,7 @@ int bg_plug_add_audio_stream(bg_plug_t * p,
     sc.s = s;
     sc.plugin_reg = p->plugin_reg;
     bg_cfg_section_apply(encode_section,
-                         p->vc_params,
+                         p->ac_params,
                          set_codec_parameter,
                          &sc);
     }
@@ -1534,7 +1539,7 @@ int bg_plug_add_overlay_stream(bg_plug_t * p,
   gavl_video_format_copy(&s->vfmt, format);
 
   if(encode_section && (s->ci.id == GAVL_CODEC_ID_NONE) &&
-     p->vc_params)
+     p->oc_params)
     {
     set_codec_parameter_t sc;
     sc.s = s;

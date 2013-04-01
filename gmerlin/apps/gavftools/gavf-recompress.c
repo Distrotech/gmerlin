@@ -71,8 +71,11 @@ create_stream_sections(const bg_parameter_info_t * parameters,
       {
       ret[i] = bg_cfg_section_create_from_parameters("compression",
                                                      parameters);
-      bg_cfg_section_set_parameters_from_string(ret[i], parameters,
-                                                opt);
+      if(!bg_cfg_section_set_parameters_from_string(ret[i], parameters,
+                                                    opt))
+        {
+        exit(-1);
+        }
       }
     }
   return ret;
@@ -266,11 +269,12 @@ int main(int argc, char ** argv)
 
   /* Handle commandline options */
   bg_cmdline_init(&app_data);
+  
   bg_cmdline_parse(global_options, &argc, &argv, NULL);
-
+  
   if(!bg_cmdline_check_unsupported(argc, argv))
     goto fail;
-
+  
   /* Open input plug */
   in_plug = gavftools_create_in_plug();
   out_plug = gavftools_create_out_plug();
