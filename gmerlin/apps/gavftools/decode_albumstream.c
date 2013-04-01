@@ -304,7 +304,7 @@ int stream_create(bg_mediaconnector_stream_t * in_stream,
                                  GAVL_SOURCE_SRC_ALLOC | GAVL_SOURCE_SRC_FRAMESIZE_MAX,
                                  &ret->afmt);
       out_stream = bg_mediaconnector_add_audio_stream(&a->out_conn,
-                                                      NULL, ret->asrc, NULL, NULL);
+                                                      NULL, ret->asrc, NULL);
 
       if(gavl_audio_source_read_frame(ret->in_stream->asrc,
                                       &ret->next_aframe) != GAVL_SOURCE_OK)
@@ -329,7 +329,7 @@ int stream_create(bg_mediaconnector_stream_t * in_stream,
       ret->vsrc =
         gavl_video_source_create(read_video, ret, GAVL_SOURCE_SRC_ALLOC, &ret->vfmt);
       out_stream = bg_mediaconnector_add_video_stream(&a->out_conn,
-                                                      NULL, ret->vsrc, NULL, NULL);
+                                                      NULL, ret->vsrc, NULL);
 
 
       if(gavl_video_source_read_frame(ret->in_stream->vsrc,
@@ -355,7 +355,7 @@ int stream_create(bg_mediaconnector_stream_t * in_stream,
         gavl_video_source_create(read_overlay, ret, GAVL_SOURCE_SRC_ALLOC,
                                  gavl_video_source_get_src_format(ret->in_stream->vsrc));
       out_stream = bg_mediaconnector_add_overlay_stream(&a->out_conn,
-                                                         NULL, ret->vsrc, NULL, NULL);
+                                                         NULL, ret->vsrc, NULL);
       break;
     }
 

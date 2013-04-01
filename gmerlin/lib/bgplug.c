@@ -1692,8 +1692,7 @@ int bg_plug_setup_reader(bg_plug_t * p, bg_mediaconnector_t * conn)
       cs = bg_mediaconnector_add_audio_stream(conn,
                                               &s->h->m,
                                               as,
-                                              ps,
-                                              NULL);
+                                              ps);
       cs->src_index = i;
       }
     else
@@ -1714,8 +1713,7 @@ int bg_plug_setup_reader(bg_plug_t * p, bg_mediaconnector_t * conn)
       cs = bg_mediaconnector_add_video_stream(conn,
                                               &s->h->m,
                                               vs,
-                                              ps,
-                                              NULL);
+                                              ps);
       cs->src_index = i;
       }
     else
@@ -1755,8 +1753,7 @@ int bg_plug_setup_reader(bg_plug_t * p, bg_mediaconnector_t * conn)
       cs = bg_mediaconnector_add_overlay_stream(conn,
                                                 &s->h->m,
                                                 vs,
-                                                ps,
-                                                NULL);
+                                                ps);
       cs->src_index = i;
       }
     else

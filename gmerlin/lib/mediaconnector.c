@@ -183,13 +183,11 @@ bg_mediaconnector_stream_t *
 bg_mediaconnector_add_audio_stream(bg_mediaconnector_t * conn,
                                    const gavl_metadata_t * m,
                                    gavl_audio_source_t * asrc,
-                                   gavl_packet_source_t * psrc,
-                                   bg_cfg_section_t * encode_section)
+                                   gavl_packet_source_t * psrc)
   {
   bg_mediaconnector_stream_t * ret = append_stream(conn, m, psrc);
   ret->type = GAVF_STREAM_AUDIO;
   ret->asrc = asrc;
-  ret->encode_section = encode_section;
   return ret;
   }
 
@@ -197,8 +195,7 @@ bg_mediaconnector_stream_t *
 bg_mediaconnector_add_video_stream(bg_mediaconnector_t * conn,
                                    const gavl_metadata_t * m,
                                    gavl_video_source_t * vsrc,
-                                   gavl_packet_source_t * psrc,
-                                   bg_cfg_section_t * encode_section)
+                                   gavl_packet_source_t * psrc)
   {
   const gavl_video_format_t * fmt;
   bg_mediaconnector_stream_t * ret = append_stream(conn, m, psrc);
@@ -211,7 +208,6 @@ bg_mediaconnector_add_video_stream(bg_mediaconnector_t * conn,
   
   if(fmt->framerate_mode == GAVL_FRAMERATE_STILL)
     ret->flags |= BG_MEDIACONNECTOR_FLAG_DISCONT;
-  ret->encode_section = encode_section;
   return ret;
   }
 
@@ -219,14 +215,12 @@ bg_mediaconnector_stream_t *
 bg_mediaconnector_add_overlay_stream(bg_mediaconnector_t * conn,
                                      const gavl_metadata_t * m,
                                      gavl_video_source_t * vsrc,
-                                     gavl_packet_source_t * psrc,
-                                     bg_cfg_section_t * enc_section)
+                                     gavl_packet_source_t * psrc)
   {
   bg_mediaconnector_stream_t * ret = append_stream(conn, m, psrc);
   ret->type = GAVF_STREAM_OVERLAY;
   ret->vsrc = vsrc;
   ret->flags |= BG_MEDIACONNECTOR_FLAG_DISCONT;
-  ret->encode_section = enc_section;
   return ret;
   }
 

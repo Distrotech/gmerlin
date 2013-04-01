@@ -105,22 +105,19 @@ bg_mediaconnector_stream_t *
 bg_mediaconnector_add_audio_stream(bg_mediaconnector_t * conn,
                                    const gavl_metadata_t * m,
                                    gavl_audio_source_t * asrc,
-                                   gavl_packet_source_t * psrc,
-                                   bg_cfg_section_t * enc_section);
+                                   gavl_packet_source_t * psrc);
 
 bg_mediaconnector_stream_t *
 bg_mediaconnector_add_video_stream(bg_mediaconnector_t * conn,
                                    const gavl_metadata_t * m,
                                    gavl_video_source_t * vsrc,
-                                   gavl_packet_source_t * psrc,
-                                   bg_cfg_section_t * enc_section);
+                                   gavl_packet_source_t * psrc);
 
 bg_mediaconnector_stream_t *
 bg_mediaconnector_add_overlay_stream(bg_mediaconnector_t * conn,
                                      const gavl_metadata_t * m,
                                      gavl_video_source_t * vsrc,
-                                     gavl_packet_source_t * psrc,
-                                     bg_cfg_section_t * enc_section);
+                                     gavl_packet_source_t * psrc);
 
 bg_mediaconnector_stream_t *
 bg_mediaconnector_add_text_stream(bg_mediaconnector_t * conn,

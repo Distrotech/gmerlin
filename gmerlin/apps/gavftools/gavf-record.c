@@ -198,15 +198,13 @@ static int recorder_stream_open(recorder_stream_t * s, int type,
     {
     gavl_audio_source_t * asrc;
     asrc = s->plugin->get_audio_source(s->h->priv);
-    bg_mediaconnector_add_audio_stream(conn, &s->m, asrc, NULL,
-                                       NULL);
+    bg_mediaconnector_add_audio_stream(conn, &s->m, asrc, NULL);
     }
   else if(type == GAVF_STREAM_VIDEO)
     {
     gavl_video_source_t * vsrc;
     vsrc = s->plugin->get_video_source(s->h->priv);
-    bg_mediaconnector_add_video_stream(conn, &s->m, vsrc, NULL,
-                                       NULL);
+    bg_mediaconnector_add_video_stream(conn, &s->m, vsrc, NULL);
     }
   return 1;
   }

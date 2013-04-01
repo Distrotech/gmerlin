@@ -42,6 +42,15 @@ static int num_audio_streams = 0;
 static int num_video_streams = 0;
 static int num_overlay_streams = 0;
 
+static bg_stream_action_t * audio_actions = NULL;
+static bg_stream_action_t * video_actions = NULL;
+static bg_stream_action_t * text_actions = NULL;
+static bg_stream_action_t * overlay_actions = NULL;
+
+static int force_audio = 0;
+static int force_video = 0;
+static int force_overlay = 0;
+
 static bg_cfg_section_t **
 create_stream_sections(const bg_parameter_info_t * parameters,
                        int num, gavl_metadata_t * options)
@@ -118,6 +127,21 @@ static void opt_oc(void * data, int * argc, char *** _argv, int arg)
   bg_cmdline_remove_arg(argc, _argv, arg);
   }
 
+static void opt_fa(void * data, int * argc, char *** _argv, int arg)
+  {
+  force_audio = 1;
+  }
+
+static void opt_fv(void * data, int * argc, char *** _argv, int arg)
+  {
+  force_video = 1;
+  }
+
+static void opt_fo(void * data, int * argc, char *** _argv, int arg)
+  {
+  force_overlay = 1;
+  }
+
 static bg_cmdline_arg_t global_options[] =
   {
     GAVFTOOLS_INPLUG_OPTIONS,
@@ -129,20 +153,35 @@ static bg_cmdline_arg_t global_options[] =
     {
       .arg =         "-ac",
       .help_arg =    "<options>",
-      .help_string = "Audio compression options",
+      .help_string = TRS("Audio compression options"),
       .callback =    opt_ac,
     },
     {
       .arg =         "-vc",
       .help_arg =    "<options>",
-      .help_string = "Video compression options",
+      .help_string = TRS("Video compression options"),
       .callback =    opt_vc,
     },
     {
       .arg =         "-oc",
       .help_arg =    "<options>",
-      .help_string = "Overlay compression options",
+      .help_string = TRS("Overlay compression options"),
       .callback =    opt_oc,
+    },
+    {
+      .arg =         "-fa",
+      .help_string = TRS("Force audio recompression even if the input stream has the desired compression already."),
+      .callback =    opt_fa,
+    },
+    {
+      .arg =         "-fv",
+      .help_string = TRS("Force video recompression even if the input stream has the desired compression already."),
+      .callback =    opt_fv,
+    },
+    {
+      .arg =         "-fo",
+      .help_string = TRS("Force overlay recompression even if the input stream has the desired compression already."),
+      .callback =    opt_fo,
     },
     GAVFTOOLS_LOG_OPTIONS,
     { /* End */ },
@@ -168,12 +207,39 @@ const bg_cmdline_app_data_t app_data =
 
   };
 
+static bg_stream_action_t
+get_stream_action(bg_stream_action_t action, bg_cfg_section_t * section,
+                  int force, const gavl_compression_info_t * ci)
+  {
+  gavl_codec_id_t id;
+  switch(action)
+    {
+    case BG_STREAM_ACTION_OFF:
+    case BG_STREAM_ACTION_DECODE:
+      return action;
+      break;
+    case BG_STREAM_ACTION_READRAW:
+      if(!section)
+        return BG_STREAM_ACTION_READRAW;
+      id = bg_plugin_registry_get_compressor_id(plugin_reg, section);
+      if((id != ci->id) || force)
+        return BG_STREAM_ACTION_DECODE;
+      else
+        return BG_STREAM_ACTION_READRAW;
+      break;
+    }
+  return BG_STREAM_ACTION_OFF;
+  }
+
 int main(int argc, char ** argv)
   {
   int ret = 1;
   bg_mediaconnector_t conn;
   gavf_t * g;
   int i;
+  int num_text_streams;
+  const gavf_stream_header_t * sh;
+  
   gavl_metadata_init(&ac_options);
   gavl_metadata_init(&vc_options);
   gavl_metadata_init(&oc_options);
@@ -216,7 +282,17 @@ int main(int argc, char ** argv)
   num_audio_streams = gavf_get_num_streams(g, GAVF_STREAM_AUDIO);
   num_video_streams = gavf_get_num_streams(g, GAVF_STREAM_VIDEO);
   num_overlay_streams = gavf_get_num_streams(g, GAVF_STREAM_OVERLAY);
+  num_text_streams = gavf_get_num_streams(g, GAVF_STREAM_TEXT);
 
+  audio_actions = gavftools_get_stream_actions(num_audio_streams,
+                                               GAVF_STREAM_AUDIO);
+  video_actions = gavftools_get_stream_actions(num_video_streams,
+                                               GAVF_STREAM_VIDEO);
+  text_actions = gavftools_get_stream_actions(num_text_streams,
+                                               GAVF_STREAM_TEXT);
+  overlay_actions = gavftools_get_stream_actions(num_overlay_streams,
+                                                 GAVF_STREAM_OVERLAY);
+  
   ac_sections =
     create_stream_sections(ac_parameters,
                            num_audio_streams, &ac_options);
@@ -230,47 +306,54 @@ int main(int argc, char ** argv)
 
   /*
    *  Check how to recompress the streams.
-   *  - If nothing is given (stream sectio is NULL)
+   *  - If nothing is given (stream section is NULL) we
+   *    decompress it or keep it depending on the as, vs, os option
+   *
    *
    *
    */
   
   for(i = 0; i < num_audio_streams; i++)
     {
-    if(ac_sections[i])
-      {
-      
-      }
-    else
-      {
-      
-      }
+    sh = gavf_get_stream(g, i, GAVF_STREAM_AUDIO);
+
+    bg_plug_set_stream_action(in_plug, sh,
+                              get_stream_action(audio_actions[i],
+                                                ac_sections[i],
+                                                force_audio, &sh->ci));
     }
   for(i = 0; i < num_video_streams; i++)
     {
-    if(vc_sections[i])
-      {
-      
-      }
-    else
-      {
-      
-      }
+    sh = gavf_get_stream(g, i, GAVF_STREAM_VIDEO);
+    bg_plug_set_stream_action(in_plug, sh,
+                              get_stream_action(video_actions[i],
+                                                vc_sections[i],
+                                                force_video, &sh->ci));
 
     }
   for(i = 0; i < num_overlay_streams; i++)
     {
-    if(oc_sections[i])
-      {
-      
-      }
-    else
-      {
-      
-      }
-
-    
+    sh = gavf_get_stream(g, i, GAVF_STREAM_OVERLAY);
+    bg_plug_set_stream_action(in_plug, sh,
+                              get_stream_action(overlay_actions[i],
+                                                oc_sections[i],
+                                                force_overlay, &sh->ci));
     }
+  for(i = 0; i < num_text_streams; i++)
+    {
+    sh = gavf_get_stream(g, i, GAVF_STREAM_TEXT);
+    bg_plug_set_stream_action(in_plug, sh, text_actions[i]);
+    }
+
+  /* Start decoder and initialize media connector */
+
+  if(!bg_plug_start(in_plug) ||
+     !bg_plug_setup_reader(in_plug, &conn))
+    return 0;
+
+  bg_mediaconnector_create_conn(&conn);
+
+  
   
 #if 1
   bg_plug_set_compressor_config(out_plug,

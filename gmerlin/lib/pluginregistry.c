@@ -3401,3 +3401,19 @@ bg_plugin_registry_set_compressor_parameter(bg_plugin_registry_t * plugin_reg,
     }
   
   }
+
+gavl_codec_id_t
+bg_plugin_registry_get_compressor_id(bg_plugin_registry_t * plugin_reg,
+                                     bg_cfg_section_t * section)
+  {
+  const bg_plugin_info_t * info;
+  const char * codec = NULL;
+  if(!bg_cfg_section_get_parameter_string(section, "codec", &codec))
+    return GAVL_CODEC_ID_NONE;
+
+  info = bg_plugin_find_by_name(plugin_reg, codec);
+  if(!info)
+    return GAVL_CODEC_ID_NONE;
+  return info->compressions[0];
+  
+  }

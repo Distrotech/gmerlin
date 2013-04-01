@@ -531,7 +531,20 @@ bg_plugin_registry_set_compressor_parameter(bg_plugin_registry_t * plugin_reg,
                                             const char * name,
                                             const bg_parameter_value_t * val);
 
+/** \ingroup plugin_registry
+ *  \brief Get a compression ID from a compressor section
+ *  \param plugin_reg A plugin registry
+ *  \param section A section
+ *  \returns The codec ID
+ *
+ *  Call this with a section corrsponding to the parameters created by
+ *  \ref bg_plugin_registry_create_compressor_parameters
+ */
 
+gavl_codec_id_t
+bg_plugin_registry_get_compressor_id(bg_plugin_registry_t * plugin_reg,
+                                     bg_cfg_section_t * section);
+  
 
 /** \ingroup plugin_registry
  *  \brief Get the name for an encoding plugin
