@@ -238,7 +238,9 @@ int main(int argc, char ** argv)
   gavf_t * g;
   int i;
   int num_text_streams;
+  int num;
   const gavf_stream_header_t * sh;
+  bg_mediaconnector_stream_t * mc;
   
   gavl_metadata_init(&ac_options);
   gavl_metadata_init(&vc_options);
@@ -267,14 +269,14 @@ int main(int argc, char ** argv)
   bg_cmdline_parse(global_options, &argc, &argv, NULL);
 
   if(!bg_cmdline_check_unsupported(argc, argv))
-    return -1;
+    goto fail;
 
   /* Open input plug */
   in_plug = gavftools_create_in_plug();
   out_plug = gavftools_create_out_plug();
   
   if(!bg_plug_open_location(in_plug, gavftools_in_file, NULL, NULL))
-    return ret;
+    goto fail;
 
   /* Check which streams we have */
   g = bg_plug_get_gavf(in_plug);
@@ -349,24 +351,92 @@ int main(int argc, char ** argv)
 
   if(!bg_plug_start(in_plug) ||
      !bg_plug_setup_reader(in_plug, &conn))
-    return 0;
+    goto fail;
 
   bg_mediaconnector_create_conn(&conn);
 
+  /* Set encode sections in the media connector */
+
+  num = bg_mediaconnector_get_num_streams(&conn, GAVF_STREAM_AUDIO);
+  for(i = 0; i < num; i++)
+    {
+    mc = bg_mediaconnector_get_stream(&conn, GAVF_STREAM_AUDIO, i);
+    if(mc->asrc)
+      mc->encode_section = ac_sections[mc->src_index];
+    }
+
+  num = bg_mediaconnector_get_num_streams(&conn, GAVF_STREAM_VIDEO);
+  for(i = 0; i < num; i++)
+    {
+    mc = bg_mediaconnector_get_stream(&conn, GAVF_STREAM_VIDEO, i);
+    if(mc->vsrc)
+      mc->encode_section = vc_sections[mc->src_index];
+    
+    }
+
+  num = bg_mediaconnector_get_num_streams(&conn, GAVF_STREAM_OVERLAY);
+  for(i = 0; i < num; i++)
+    {
+    mc = bg_mediaconnector_get_stream(&conn, GAVF_STREAM_OVERLAY, i);
+    if(mc->vsrc)
+      mc->encode_section = oc_sections[mc->src_index];
+    }
   
+  if(!gavftools_open_out_plug_from_in_plug(out_plug, in_plug))
+    goto fail;
   
-#if 1
   bg_plug_set_compressor_config(out_plug,
                                 ac_parameters,
                                 vc_parameters,
                                 oc_parameters);
-#endif
 
+  if(!bg_plug_setup_writer(out_plug, &conn))
+    {
+    bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Setting up plug writer failed");
+    goto fail;
+    }
+
+  /* Fire up connector */
+
+  bg_mediaconnector_start(&conn);
+
+  /* Run */
+
+  while(1)
+    {
+    if(bg_plug_got_error(in_plug))
+      break;
+
+    if(gavftools_stop() ||
+       !bg_mediaconnector_iteration(&conn))
+      break;
+    }
+  
   /* Cleanup */
 
+  ret = 0;
+  fail:
+  
+  
   destroy_stream_sections(ac_sections, num_audio_streams);
   destroy_stream_sections(vc_sections, num_video_streams);
   destroy_stream_sections(oc_sections, num_overlay_streams);
+
+  bg_mediaconnector_free(&conn);
+  bg_plug_destroy(in_plug);
+  bg_plug_destroy(out_plug);
+  
+  gavftools_cleanup();
+
+  if(audio_actions)
+    free(audio_actions);
+  if(video_actions)
+    free(video_actions);
+  if(text_actions)
+    free(text_actions);
+  if(overlay_actions)
+    free(overlay_actions);
+
   
   return ret;
   }
