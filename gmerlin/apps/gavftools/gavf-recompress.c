@@ -309,15 +309,6 @@ int main(int argc, char ** argv)
   oc_sections =
     create_stream_sections(oc_parameters,
                            num_overlay_streams, &oc_options);
-
-  /*
-   *  Check how to recompress the streams.
-   *  - If nothing is given (stream section is NULL) we
-   *    decompress it or keep it depending on the as, vs, os option
-   *
-   *
-   *
-   */
   
   for(i = 0; i < num_audio_streams; i++)
     {
