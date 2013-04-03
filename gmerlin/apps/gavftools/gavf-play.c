@@ -238,12 +238,13 @@ process_cb_video(void * priv, gavl_video_frame_t * frame)
   p = vs->p;
   frame_time = gavl_time_unscale(vs->fmt.timescale,
                                  frame->timestamp);
+
   cur_time = player_get_time(p);
   
   diff_time = frame_time - cur_time;
 
-  //  fprintf(stderr, "cur: %ld, frame: %ld, diff: %ld\n",
-  //          cur_time, frame_time, diff_time);
+  fprintf(stderr, "cur: %"PRId64", frame: %"PRId64", diff: %"PRId64"\n",
+          cur_time, frame_time, diff_time);
   
   if(diff_time > 0)
     gavl_time_delay(&diff_time);

@@ -766,7 +766,8 @@ static int open_v4l(void * priv,
 
   gavl_metadata_set(m, GAVL_META_DEVICE, (char*)cap.card);
   
-  if ((cap.capabilities & V4L2_CAP_STREAMING) && !v4l->force_rw)
+  if((cap.capabilities & V4L2_CAP_STREAMING) &&
+     (!v4l->force_rw || !(cap.capabilities & V4L2_CAP_READWRITE)))
     {
     bg_log(BG_LOG_INFO, LOG_DOMAIN, "Trying mmap i/o");
     v4l->io = BGV4L2_IO_METHOD_MMAP;
@@ -888,7 +889,7 @@ static int open_v4l(void * priv,
     {
     if (EINVAL == errno)
       {
-      bg_log(BG_LOG_ERROR, LOG_DOMAIN, "%s does not support "
+      bg_log(BG_LOG_WARNING, LOG_DOMAIN, "%s does not support "
              "VIDIOC_G_PARAM", v4l->device);
       }
     }
