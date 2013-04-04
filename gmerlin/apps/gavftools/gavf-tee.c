@@ -183,12 +183,19 @@ int main(int argc, char ** argv)
   ret = 0;
   fail:
 
+  bg_log(BG_LOG_INFO, LOG_DOMAIN, "Cleaning up");
+
   bg_mediaconnector_free(&conn);
   bg_plug_destroy(in_plug);
   
   for(i = 0; i < num_outfiles; i++)
     bg_plug_destroy(out_plugs[i]);
 
+  if(outfiles)
+    free(outfiles);
+  if(out_plugs)
+    free(out_plugs);
+  
   gavftools_cleanup();
   
 
