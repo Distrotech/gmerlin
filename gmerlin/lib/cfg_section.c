@@ -549,18 +549,28 @@ bg_cfg_section_set_parameters_from_string(bg_cfg_section_t * sec,
           if(item->value.val_str)
             item->value.val_str = bg_strcat(item->value.val_str, ",");
           item->value.val_str = bg_strcat(item->value.val_str, tmp_string);
+
+          /* Create subsection (regardless of we have subparameters or not) */
+          subsection = bg_cfg_section_find_subsection(real_section, info->name);
+          
+          if(info->type == BG_PARAMETER_MULTI_LIST)
+            subsection = bg_cfg_section_find_subsection(subsection, tmp_string);
+          else
+            subsection = bg_cfg_section_create_subsection_at_pos(subsection, index);
+          
           
           /* Suboptions */
           if(*str == '{')
             {
             str++;
+#if 0
             subsection = bg_cfg_section_find_subsection(real_section, info->name);
 
             if(info->type == BG_PARAMETER_MULTI_LIST)
               subsection = bg_cfg_section_find_subsection(subsection, tmp_string);
             else
               subsection = bg_cfg_section_create_subsection_at_pos(subsection, index);
-            
+#endif            
             i = 0;
             
             while(info->multi_names[i])

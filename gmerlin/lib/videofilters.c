@@ -263,9 +263,7 @@ int bg_video_filter_chain_init(bg_video_filter_chain_t * ch,
                                gavl_video_format_t * out_format)
   {
   ch->need_restart = 0;
-
-  if(ch->need_rebuild)
-    bg_video_filter_chain_rebuild(ch);
+  
 
   if(ch->in_src)
     gavl_video_source_destroy(ch->in_src);
@@ -345,6 +343,9 @@ bg_video_filter_chain_connect(bg_video_filter_chain_t * ch,
                               gavl_video_source_t * src)
   {
   int i;
+
+  if(ch->need_rebuild)
+    bg_video_filter_chain_rebuild(ch);
   
   for(i = 0; i < ch->num_filters; i++)
     {

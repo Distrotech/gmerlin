@@ -72,7 +72,7 @@ static const bg_parameter_info_t parameters[] =
       .long_name = TRS("Pixelformat"),
       .type = BG_PARAMETER_STRINGLIST,
       .flags = BG_PARAMETER_SYNC,
-      .val_default = { .val_str = "YUV 420 Planar" },
+      .val_default = { .val_str = "yuv420p8" },
     },
     { /* End of parameters */ },
   };

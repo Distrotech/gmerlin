@@ -285,9 +285,7 @@ int bg_audio_filter_chain_init(bg_audio_filter_chain_t * ch,
                                gavl_audio_format_t * out_format)
   {
   ch->need_restart = 0;
-
-  if(ch->need_rebuild)
-    bg_audio_filter_chain_rebuild(ch);
+  
 
   if(ch->in_src)
     gavl_audio_source_destroy(ch->in_src);
@@ -363,6 +361,9 @@ bg_audio_filter_chain_connect(bg_audio_filter_chain_t * ch,
                               gavl_audio_source_t * src)
   {
   int i;
+
+  if(ch->need_rebuild)
+    bg_audio_filter_chain_rebuild(ch);
   
   for(i = 0; i < ch->num_filters; i++)
     {
