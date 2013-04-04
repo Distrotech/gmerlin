@@ -75,6 +75,11 @@ void gavl_timer_start(gavl_timer_t * t)
   t->is_running = 1;
   }
 
+int gavl_timer_is_running(gavl_timer_t * t)
+  {
+  return t->is_running;
+  }
+
 void gavl_timer_stop(gavl_timer_t * t)
   {
   gavl_time_t tmp;

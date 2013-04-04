@@ -188,7 +188,6 @@ void bg_threads_start(bg_thread_t ** th, int num)
     {
     if(th[i]->func)
       {
-      // fprintf(stderr, "Sem wait...");
       bin_sem_wait(&th[i]->sem);
       // fprintf(stderr, "done ret: %d, val: %d\n", ret, val);
       }
@@ -234,7 +233,9 @@ void bg_threads_join(bg_thread_t ** th, int num)
 
   /* Start the threads if they where paused.
      If not paused, this call does no harm */
+  //  fprintf(stderr, "bg_threads_start %d\n", getpid());
   bg_threads_start(th, num);
+  //  fprintf(stderr, "bg_threads_start done %d\n", getpid());
   
   for(i = 0; i < num; i++)
     {
@@ -271,6 +272,14 @@ int bg_thread_wait_for_start(bg_thread_t * th)
   pthread_mutex_unlock(&th->mutex);
   bin_sem_post(&th->sem);
   return ret;
+  }
+
+void bg_thread_exit(bg_thread_t * th)
+  {
+  /* bg_threads_start() (called by bg_threads_join())
+     needs this */
+  
+  bin_sem_post(&th->sem);
   }
 
 int bg_thread_check(bg_thread_t * th)

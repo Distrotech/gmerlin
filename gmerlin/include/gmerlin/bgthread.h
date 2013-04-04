@@ -51,5 +51,6 @@ void bg_threads_join(bg_thread_t ** th, int num);
    
 int bg_thread_check(bg_thread_t * th);
 int bg_thread_wait_for_start(bg_thread_t * th);
+void bg_thread_exit(bg_thread_t * th);
 
 

@@ -31,6 +31,7 @@
 #define LOG_DOMAIN "gavf-play"
 
 static bg_plug_t * in_plug = NULL;
+static int nosync = 0;
 
 static char * title = "gavf-play";
 
@@ -242,11 +243,12 @@ process_cb_video(void * priv, gavl_video_frame_t * frame)
   cur_time = player_get_time(p);
   
   diff_time = frame_time - cur_time;
-
+#if 0
   fprintf(stderr, "cur: %"PRId64", frame: %"PRId64", diff: %"PRId64"\n",
           cur_time, frame_time, diff_time);
+#endif
   
-  if(diff_time > 0)
+  if((diff_time > 0) && !nosync)
     gavl_time_delay(&diff_time);
 
   if(vs->sh)
@@ -434,9 +436,6 @@ static void player_open(player_t * p, bg_mediaconnector_t * conn)
 
 static void player_start(player_t * p)
   {
-  if(p->timer)
-    gavl_timer_start(p->timer);
-  
   if(p->as.flags & FLAG_ACTIVE)
     start_audio(&p->as);
   if(p->vs.flags & FLAG_ACTIVE)
@@ -446,13 +445,12 @@ static void player_start(player_t * p)
 static gavl_time_t player_get_time(player_t * p)
   {
   if(p->timer)
-    return gavl_timer_get(p->timer);
-  else
     {
-    return audio_stream_get_time(&p->as);
+    if(!gavl_timer_is_running(p->timer))
+      gavl_timer_start(p->timer);
+    return gavl_timer_get(p->timer);
     }
-  
-  return GAVL_TIME_UNDEFINED;
+  return audio_stream_get_time(&p->as);
   }
 
 /* Option processing */
@@ -557,6 +555,11 @@ static void opt_os(void * data, int * argc, char *** _argv, int arg)
   bg_cmdline_remove_arg(argc, _argv, arg);
   }
 
+static void opt_nosync(void * data, int * argc, char *** _argv, int arg)
+  {
+  nosync = 1;
+  }
+
 static bg_cmdline_arg_t global_options[] =
   {
     {
@@ -607,6 +610,11 @@ static bg_cmdline_arg_t global_options[] =
       .help_arg =    "<title>",
       .help_string = "Set window title",
       .argv =        &title,
+    },
+    {
+      .arg =         "-nosync",
+      .help_string = "Don't try to keep A/V sync",
+      .callback =    opt_nosync,
     },
     GAVFTOOLS_LOG_OPTIONS,
     {

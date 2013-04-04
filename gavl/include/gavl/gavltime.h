@@ -253,6 +253,16 @@ GAVL_PUBLIC
 gavl_time_t gavl_timer_get(gavl_timer_t * timer);
 
 /*! \ingroup timer
+ * \brief Check if a timer is running
+ * \param timer A timer
+ * \returns 1 if the timer is running, 0 else
+ */
+
+GAVL_PUBLIC
+int gavl_timer_is_running(gavl_timer_t * timer);
+
+  
+/*! \ingroup timer
  * \brief Set the current time of the timer
  * \param timer A timer
  * \param t New time

@@ -219,7 +219,8 @@ static int get_pixelformat(int fd, uint32_t * ret)
   {
   int index = 0;
   struct v4l2_fmtdesc desc;
-
+  int result = 0;
+  
   CLEAR(desc);
   
   desc.type = V4L2_BUF_TYPE_VIDEO_CAPTURE; 
@@ -234,13 +235,12 @@ static int get_pixelformat(int fd, uint32_t * ret)
                "VIDIOC_ENUM_FMT failed: %s", strerror(errno));
       break;
       }
-#if 0
-    fprintf(stderr, "Cam pixelformat %c%c%c%c\n",
+    bg_log(BG_LOG_DEBUG, LOG_DOMAIN,
+           "Cam pixelformat %c%c%c%c",
             desc.pixelformat & 0xff,
             (desc.pixelformat >> 8) & 0xff,
             (desc.pixelformat >> 16) & 0xff,
             (desc.pixelformat >> 24) & 0xff);
-#endif
 
     /* Return first pixelformat even if we don't support that */
     if(!desc.index)
@@ -250,26 +250,11 @@ static int get_pixelformat(int fd, uint32_t * ret)
        GAVL_PIXELFORMAT_NONE)
       {
       *ret = desc.pixelformat;
-      return 1;
+      result = 1;
       }
     index++;
     }
-
-#if 0  
-  if(!index)
-    {
-    struct v4l2_format fmt;
-    CLEAR (fmt);
-    fmt.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
-    if (-1 == bgv4l2_ioctl (fd, VIDIOC_G_FMT, &fmt))
-      {
-      bg_log(BG_LOG_ERROR, LOG_DOMAIN, "VIDIOC_G_FMT failed: %s", strerror(errno));
-      return 0;
-      }
-    *ret = fmt.fmt.pix.pixelformat;
-    }
-#endif
-  return 0;
+  return result;
   }
 
 static void close_v4l(void * priv)
@@ -581,14 +566,14 @@ static const bg_parameter_info_t parameters[] =
       .name =      "resolution",
       .long_name = TRS("Resolution"),
       .type =      BG_PARAMETER_STRINGLIST,
-      .val_default = { .val_str = "QVGA (320x240)" },
-      .multi_names =     (char const *[]){ "QSIF (160x112)",
-                              "QCIF (176x144)", 
-                              "QVGA (320x240)", 
-                              "SIF(352x240)", 
-                              "CIF (352x288)", 
-                              "VGA (640x480)", 
-                              "User defined",
+      .val_default = { .val_str = "qvga" },
+      .multi_names =     (char const *[]){ "qsif",
+                              "qcif", 
+                              "qvga", 
+                              "sif", 
+                              "cif", 
+                              "vga", 
+                              "user",
                               NULL },
       .multi_labels =     (char const *[]){ TRS("QSIF (160x112)"),
                                    TRS("QCIF (176x144)"), 
@@ -672,43 +657,43 @@ static void set_parameter_v4l(void * priv, const char * name,
     v4l->force_rw = val->val_i;
   else if(!strcmp(name, "resolution"))
     {
-    if(!strcmp(val->val_str, "QSIF (160x112)"))
+    if(!strcmp(val->val_str, "qsif"))
       {
       v4l->width  = 160;
       v4l->height = 112;
       v4l->user_resolution = 0;
       }
-    else if(!strcmp(val->val_str, "QCIF (176x144)"))
+    else if(!strcmp(val->val_str, "qcif"))
       {
       v4l->width  = 176;
       v4l->height = 144;
       v4l->user_resolution = 0;
       }
-    else if(!strcmp(val->val_str, "QVGA (320x240)"))
+    else if(!strcmp(val->val_str, "qvga"))
       {
       v4l->width  = 320;
       v4l->height = 240;
       v4l->user_resolution = 0;
       }
-    else if(!strcmp(val->val_str, "SIF(352x240)"))
+    else if(!strcmp(val->val_str, "sif"))
       {
       v4l->width  = 352;
       v4l->height = 240;
       v4l->user_resolution = 0;
       }
-    else if(!strcmp(val->val_str, "CIF (352x288)"))
+    else if(!strcmp(val->val_str, "cif"))
       {
       v4l->width  = 352;
       v4l->height = 288;
       v4l->user_resolution = 0;
       }
-    else if(!strcmp(val->val_str, "VGA (640x480)"))
+    else if(!strcmp(val->val_str, "vga"))
       {
       v4l->width  = 640;
       v4l->height = 480;
       v4l->user_resolution = 0;
       }
-    else if(!strcmp(val->val_str, "User defined"))
+    else if(!strcmp(val->val_str, "user"))
       {
       v4l->user_resolution = 1;
       }
@@ -818,12 +803,14 @@ static int open_v4l(void * priv,
                                             &format->pixelformat, v4l->width,
                                             v4l->height);
     if(!v4l->converter)
-      return 0;
-#else
+      {
+#endif
     bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Got no supported pixelformat");
     return 0;
+#ifdef HAVE_V4LCONVERT
+      }
 #endif
-    }
+      }
   else
     {
     format->pixelformat =
@@ -903,7 +890,7 @@ static int open_v4l(void * priv,
     {
     param.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
     param.parm.capture.timeperframe.numerator   = 1;
-    param.parm.capture.timeperframe.denominator = 10;
+    param.parm.capture.timeperframe.denominator = 25;
 
     if (-1 == bgv4l2_ioctl (v4l->fd, VIDIOC_S_PARM, &param))
       {

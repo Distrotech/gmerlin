@@ -542,7 +542,7 @@ static void * thread_func_separate(void * data)
       pthread_mutex_lock(&s->conn->running_threads_mutex);
       s->conn->running_threads--;
       pthread_mutex_unlock(&s->conn->running_threads_mutex);
-      bg_thread_wait_for_start(s->th);
+      bg_thread_exit(s->th);
       break;
       }
     }

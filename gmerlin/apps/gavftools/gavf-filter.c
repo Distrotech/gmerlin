@@ -174,6 +174,9 @@ int main(int argc, char ** argv)
   bg_cmdline_init(&app_data);
   bg_cmdline_parse(global_options, &argc, &argv, NULL);
 
+  if(!bg_cmdline_check_unsupported(argc, argv))
+    return -1;
+  
   in_plug = gavftools_create_in_plug();
   out_plug = gavftools_create_out_plug();
 
@@ -359,6 +362,8 @@ int main(int argc, char ** argv)
     
   /* Cleanup */
 
+  bg_log(BG_LOG_INFO, LOG_DOMAIN, "Cleaning up");
+  
   for(i = 0; i < num_audio_streams; i++)
     {
     if(audio_filters[i])
