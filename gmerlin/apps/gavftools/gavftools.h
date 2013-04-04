@@ -124,7 +124,7 @@ bg_stream_action_t * gavftools_get_stream_actions(int num, gavf_stream_type_t ty
   { \
     .arg =         "-as", \
     .help_arg =    "<stream_selector>", \
-    .help_string = "", \
+    .help_string = TRS("Comma separated list of characters 'd' (decode), 'm' (mute) or 'c' (read compressed)"), \
     .callback =    gavftools_opt_as, \
   }
 
@@ -132,7 +132,7 @@ bg_stream_action_t * gavftools_get_stream_actions(int num, gavf_stream_type_t ty
   { \
     .arg =         "-vs", \
     .help_arg =    "<stream_selector>", \
-    .help_string = "", \
+    .help_string = TRS("Comma separated list of characters 'd' (decode), 'm' (mute) or 'c' (read compressed)"), \
     .callback =    gavftools_opt_vs, \
   }
 
@@ -140,7 +140,7 @@ bg_stream_action_t * gavftools_get_stream_actions(int num, gavf_stream_type_t ty
   { \
     .arg =         "-ts", \
     .help_arg =    "<stream_selector>", \
-    .help_string = "", \
+    .help_string = TRS("Comma separated list of characters 'm' (mute) or 'c' (read)"), \
     .callback =    gavftools_opt_ts, \
   }
 
@@ -148,7 +148,7 @@ bg_stream_action_t * gavftools_get_stream_actions(int num, gavf_stream_type_t ty
   { \
     .arg =         "-os", \
     .help_arg =    "<stream_selector>", \
-    .help_string = "", \
+    .help_string = TRS("Comma separated list of characters 'd' (decode), 'm' (mute) or 'c' (read compressed)"), \
     .callback =    gavftools_opt_os, \
   }
 
