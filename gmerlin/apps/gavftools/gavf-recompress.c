@@ -377,7 +377,7 @@ int main(int argc, char ** argv)
       mc->encode_section = oc_sections[mc->src_index];
     }
   
-  if(!gavftools_open_out_plug_from_in_plug(out_plug, in_plug))
+  if(!gavftools_open_out_plug_from_in_plug(out_plug, NULL, in_plug))
     goto fail;
   
   bg_plug_set_compressor_config(out_plug,
@@ -411,7 +411,6 @@ int main(int argc, char ** argv)
 
   ret = 0;
   fail:
-  
   
   destroy_stream_sections(ac_sections, num_audio_streams);
   destroy_stream_sections(vc_sections, num_video_streams);

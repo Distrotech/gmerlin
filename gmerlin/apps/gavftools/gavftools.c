@@ -521,9 +521,12 @@ static void update_metadata(void * priv, const gavl_metadata_t * m)
   }
 
 int gavftools_open_out_plug_from_in_plug(bg_plug_t * out_plug,
+                                         const char * name,
                                          bg_plug_t * in_plug)
   {
-  if(!bg_plug_open_location(out_plug, gavftools_out_file,
+  if(!name)
+    name = gavftools_out_file;
+  if(!bg_plug_open_location(out_plug, name,
                             bg_plug_get_metadata(in_plug),
                             bg_plug_get_chapter_list(in_plug)))
     return 0;

@@ -101,6 +101,14 @@ bg_stream_action_t * gavftools_get_stream_actions(int num, gavf_stream_type_t ty
     .callback =    gavftools_opt_iopt, \
   }
 
+#define GAVFTOOLS_OOPT_OPTIONS \
+  {                                       \
+    .arg =         "-oopt",                     \
+    .help_arg =    "<output_options>",          \
+    .help_string = TRS("options"),              \
+    .callback =    gavftools_opt_oopt,          \
+  }
+  
 
 #define GAVFTOOLS_OUTPLUG_OPTIONS                \
   { \
@@ -109,12 +117,7 @@ bg_stream_action_t * gavftools_get_stream_actions(int num, gavf_stream_type_t ty
     .help_string = TRS("Output file or location"), \
     .argv    =    &gavftools_out_file, \
   }, \
-  {                                       \
-    .arg =         "-oopt",                     \
-    .help_arg =    "<output_options>",          \
-    .help_string = TRS("options"),              \
-    .callback =    gavftools_opt_oopt,          \
-  }
+  GAVFTOOLS_OOPT_OPTIONS
 
 
 #define GAVFTOOLS_AUDIO_STREAM_OPTIONS \
@@ -190,4 +193,5 @@ void gavftools_block_sigpipe(void);
 void gavftools_set_cmdline_parameters(bg_cmdline_arg_t * args);
 
 int gavftools_open_out_plug_from_in_plug(bg_plug_t * out_plug,
+                                         const char * name,
                                          bg_plug_t * in_plug);

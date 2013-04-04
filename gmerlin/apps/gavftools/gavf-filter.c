@@ -169,7 +169,6 @@ int main(int argc, char ** argv)
   gavl_metadata_init(&vf_options);
 
   gavftools_set_cmdline_parameters(global_options);
-
   
   bg_cmdline_init(&app_data);
   bg_cmdline_parse(global_options, &argc, &argv, NULL);
@@ -334,9 +333,8 @@ int main(int argc, char ** argv)
 
   /* Open output plug */
 
-  if(!gavftools_open_out_plug_from_in_plug(out_plug, in_plug))
+  if(!gavftools_open_out_plug_from_in_plug(out_plug, NULL, in_plug))
     goto fail;
-  
   
   if(!bg_plug_setup_writer(out_plug, &conn))
     {
