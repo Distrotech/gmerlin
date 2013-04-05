@@ -507,8 +507,8 @@ void bg_msg_get_arg_metadata(bg_msg_t * msg, int arg,
   uint32_t num;
   uint8_t * ptr;
   uint8_t * pos;
-  char * key;
-  char * val;
+  char * key = NULL;
+  char * val = NULL;
   
   ptr = bg_msg_get_arg_ptr(msg, arg, NULL);
   

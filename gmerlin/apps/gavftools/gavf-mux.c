@@ -21,44 +21,38 @@
 
 #include "gavftools.h"
 
-#define LOG_DOMAIN "gavf-tee"
+#define LOG_DOMAIN "gavf-mux"
 
-static bg_plug_t * in_plug = NULL;
-static bg_plug_t ** out_plugs = NULL;
+static bg_plug_t ** in_plugs = NULL;
+static bg_plug_t * out_plug = NULL;
 
-static char ** outfiles = NULL;
-static int num_outfiles = 0;
+static char ** infiles = NULL;
+static int num_infiles = 0;
 
 static void
-opt_o(void * data, int * argc, char *** _argv, int arg)
+opt_i(void * data, int * argc, char *** _argv, int arg)
   {
   if(arg >= *argc)
     {
-    fprintf(stderr, "Option -o requires an argument\n");
+    fprintf(stderr, "Option -i requires an argument\n");
     exit(-1);
     }
   
-  outfiles = realloc(outfiles, sizeof(*outfiles) * (num_outfiles+1));
-  outfiles[num_outfiles] = (*_argv)[arg];
-  num_outfiles++;
+  infiles = realloc(infiles, sizeof(*infiles) * (num_infiles+1));
+  infiles[num_infiles] = (*_argv)[arg];
+  num_infiles++;
   bg_cmdline_remove_arg(argc, _argv, arg);
   }
 
-
 static bg_cmdline_arg_t global_options[] =
   {
-    GAVFTOOLS_INPLUG_OPTIONS,
-    GAVFTOOLS_AUDIO_STREAM_OPTIONS,
-    GAVFTOOLS_VIDEO_STREAM_OPTIONS,
-    GAVFTOOLS_TEXT_STREAM_OPTIONS,
-    GAVFTOOLS_OVERLAY_STREAM_OPTIONS,
     {
-      .arg =         "-o",
-      .help_arg =    "<output>",
-      .help_string = TRS("Output file or location. Use this option multiple times to add more outputs."),
-      .callback    = &opt_o,
+      .arg =         "-i",
+      .help_arg =    "<location>",
+      .help_string = TRS("Input file or location. Use this option multiple times to add more inputs."),
+      .callback    = &opt_i,
     },
-    GAVFTOOLS_OOPT_OPTIONS,
+    GAVFTOOLS_OUTPLUG_OPTIONS,
     GAVFTOOLS_LOG_OPTIONS,
     { /* End */ },
   };
@@ -67,8 +61,8 @@ const bg_cmdline_app_data_t app_data =
   {
     .package =  PACKAGE,
     .version =  VERSION,
-    .name =     "gavf-tee",
-    .long_name = TRS("Send a gavf stream to one or more destinations"),
+    .name =     "gavf-mux",
+    .long_name = TRS("Multiplex multiple gavf stream into one"),
     .synopsis = TRS("[options]\n"),
     .help_before = TRS("gavf tee\n"),
     .args = (bg_cmdline_arg_array_t[]) { { TRS("Options"), global_options },
@@ -89,20 +83,15 @@ static void set_stream_actions(bg_plug_t * in_plug, gavf_stream_type_t type)
   int num, i;
   const gavf_stream_header_t * sh;
 
-  bg_stream_action_t * actions = NULL;
   g = bg_plug_get_gavf(in_plug);
 
   num = gavf_get_num_streams(g, type);
-  actions = gavftools_get_stream_actions(num, type);
 
   for(i = 0; i < num; i++)
     {
     sh = gavf_get_stream(g, i, type);
-    bg_plug_set_stream_action(in_plug, sh, actions[i]);
+    bg_plug_set_stream_action(in_plug, sh, BG_STREAM_ACTION_READRAW);
     }
-  
-  if(actions)
-    free(actions);
   }
 
 int main(int argc, char ** argv)
@@ -124,47 +113,51 @@ int main(int argc, char ** argv)
   if(!bg_cmdline_check_unsupported(argc, argv))
     return -1;
 
-  in_plug = gavftools_create_in_plug();
-
-  if(!bg_plug_open_location(in_plug, gavftools_in_file, NULL, NULL))
-    goto fail;
-  
-  set_stream_actions(in_plug, GAVF_STREAM_AUDIO);
-  set_stream_actions(in_plug, GAVF_STREAM_VIDEO);
-  set_stream_actions(in_plug, GAVF_STREAM_TEXT);
-  set_stream_actions(in_plug, GAVF_STREAM_OVERLAY);
-
-  if(!bg_plug_start(in_plug))
-    goto fail;
-
-  if(!num_outfiles)
+  if(!num_infiles)
     {
-    bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Need at least one output file");
+    bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Need at least one input file");
     goto fail;
     }
 
-  if(!bg_plug_setup_reader(in_plug, &conn))
-    goto fail;
+  out_plug = gavftools_create_out_plug();
+  
+  in_plugs = calloc(num_infiles, sizeof(*in_plugs));
+  for(i = 0; i < num_infiles; i++)
+    {
+    in_plugs[i] = gavftools_create_in_plug();
+
+    if(!bg_plug_open_location(in_plugs[i], infiles[i], NULL, NULL))
+      goto fail;
+
+    set_stream_actions(in_plugs[i], GAVF_STREAM_AUDIO);
+    set_stream_actions(in_plugs[i], GAVF_STREAM_VIDEO);
+    set_stream_actions(in_plugs[i], GAVF_STREAM_TEXT);
+    set_stream_actions(in_plugs[i], GAVF_STREAM_OVERLAY);
+
+    if(!bg_plug_start(in_plugs[i]))
+      goto fail;
+
+    if(!bg_plug_setup_reader(in_plugs[i], &conn))
+      goto fail;
+
+    /* Copy metadata and so on from fist source */
+    if(!i)
+      {
+      if(!gavftools_open_out_plug_from_in_plug(out_plug, NULL,
+                                               in_plugs[i]))
+        goto fail;
+      }
+    }
 
   bg_mediaconnector_create_conn(&conn);
   
-  out_plugs = calloc(num_outfiles, sizeof(*out_plugs));
-
-  for(i = 0; i < num_outfiles; i++)
+  if(!bg_plug_setup_writer(out_plug, &conn))
     {
-    out_plugs[i] = gavftools_create_out_plug();
-
-    if(!gavftools_open_out_plug_from_in_plug(out_plugs[i], outfiles[i],
-                                             in_plug))
-      goto fail;
-    
-    if(!bg_plug_setup_writer(out_plugs[i], &conn))
-      {
-      bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Setting up plug writer failed");
-      goto fail;
-      }
+    bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Setting up plug writer failed");
+    goto fail;
     }
-  /* Fire up connector */
+
+    /* Fire up connector */
 
   bg_mediaconnector_start(&conn);
 
@@ -172,9 +165,16 @@ int main(int argc, char ** argv)
 
   while(1)
     {
-    if(bg_plug_got_error(in_plug))
-      break;
-
+    for(i = 0; i < num_infiles; i++)
+      {
+      if(bg_plug_got_error(in_plugs[i]))
+        {
+        bg_log(BG_LOG_INFO, LOG_DOMAIN, "Error reading from %s",
+               infiles[i]);
+        goto fail;
+        }
+      }
+    
     if(gavftools_stop() ||
        !bg_mediaconnector_iteration(&conn))
       break;
@@ -186,19 +186,21 @@ int main(int argc, char ** argv)
   bg_log(BG_LOG_INFO, LOG_DOMAIN, "Cleaning up");
 
   bg_mediaconnector_free(&conn);
-  bg_plug_destroy(in_plug);
+  bg_plug_destroy(out_plug);
   
-  for(i = 0; i < num_outfiles; i++)
-    bg_plug_destroy(out_plugs[i]);
+  for(i = 0; i < num_infiles; i++)
+    bg_plug_destroy(in_plugs[i]);
 
-  if(outfiles)
-    free(outfiles);
-  if(out_plugs)
-    free(out_plugs);
+  if(infiles)
+    free(infiles);
+  if(in_plugs)
+    free(in_plugs);
   
   gavftools_cleanup();
   
 
   
   return ret;
+
+  
   }

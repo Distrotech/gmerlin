@@ -26,6 +26,7 @@ gavf-decode \
 gavf-encode \
 gavf-filter \
 gavf-info \
+gavf-mux \
 gavf-play \
 gavf-recompress \
 gavf-record \

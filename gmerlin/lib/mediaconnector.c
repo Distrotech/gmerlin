@@ -355,7 +355,7 @@ bg_mediaconnector_start(bg_mediaconnector_t * conn)
 
 static int process_stream(bg_mediaconnector_stream_t * s)
   {
-  int ret;
+  int ret = 0;
   if(s->aconn)
     {
     ret = gavl_audio_connector_process(s->aconn);
@@ -382,7 +382,7 @@ static int process_stream(bg_mediaconnector_stream_t * s)
 int bg_mediaconnector_iteration(bg_mediaconnector_t * conn)
   {
   int i;
-  gavl_time_t min_time;
+  gavl_time_t min_time= GAVL_TIME_UNDEFINED;
   int min_index = -1;
   bg_mediaconnector_stream_t * s;
   int ret = 0;
