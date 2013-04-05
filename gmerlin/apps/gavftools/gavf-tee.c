@@ -139,7 +139,7 @@ int main(int argc, char ** argv)
 
   if(!num_outfiles)
     {
-    bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Need at least one outout file");
+    bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Need at least one output file");
     goto fail;
     }
 

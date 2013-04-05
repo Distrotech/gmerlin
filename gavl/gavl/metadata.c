@@ -112,6 +112,9 @@ gavl_metadata_set_nocpy(gavl_metadata_t * m,
       m->tags[idx].val = val;
     else // Delete tag
       {
+      if(m->tags[idx].key)
+        free(m->tags[idx].key);
+      
       if(idx < (m->num_tags - 1))
         {
         memmove(m->tags + idx, m->tags + idx + 1,
