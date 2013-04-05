@@ -140,7 +140,7 @@ int main(int argc, char ** argv)
     if(!bg_plug_setup_reader(in_plugs[i], &conn))
       goto fail;
 
-    /* Copy metadata and so on from fist source */
+    /* Copy metadata and so on from first source */
     if(!i)
       {
       if(!gavftools_open_out_plug_from_in_plug(out_plug, NULL,
@@ -157,7 +157,7 @@ int main(int argc, char ** argv)
     goto fail;
     }
 
-    /* Fire up connector */
+  /* Fire up connector */
 
   bg_mediaconnector_start(&conn);
 
@@ -197,10 +197,5 @@ int main(int argc, char ** argv)
     free(in_plugs);
   
   gavftools_cleanup();
-  
-
-  
   return ret;
-
-  
   }
