@@ -1263,11 +1263,12 @@ int bg_plug_start(bg_plug_t * p)
 
 int bg_plug_open(bg_plug_t * p, gavf_io_t * io,
                  const gavl_metadata_t * m,
-                 const gavl_chapter_list_t * cl)
+                 const gavl_chapter_list_t * cl, int io_flags)
   {
   int flags;
   
   p->io = io;
+  p->io_flags = io_flags;
   
   if(p->wr)
     {
@@ -1309,14 +1310,15 @@ int bg_plug_open_location(bg_plug_t * p, const char * location,
                           const gavl_metadata_t * m,
                           const gavl_chapter_list_t * cl)
   {
+  int io_flags = 0;
   gavf_io_t * io =
     bg_plug_io_open_location(location,
                              p->wr ? BG_PLUG_IO_METHOD_WRITE :
                              BG_PLUG_IO_METHOD_READ,
-                             &p->io_flags);
+                             &io_flags);
   if(io)
     {
-    if(!bg_plug_open(p, io, m, cl))
+    if(!bg_plug_open(p, io, m, cl, io_flags))
       return 0;
     else
       return 1;

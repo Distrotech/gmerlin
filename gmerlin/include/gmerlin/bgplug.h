@@ -49,7 +49,7 @@ void bg_plug_set_parameter(void * data, const char * name,
 
 int bg_plug_open(bg_plug_t *, gavf_io_t * io,
                  const gavl_metadata_t * m,
-                 const gavl_chapter_list_t * cl);
+                 const gavl_chapter_list_t * cl, int io_flags);
 
 int bg_plug_open_location(bg_plug_t * p, const char * location,
                           const gavl_metadata_t * m,
@@ -170,6 +170,7 @@ bg_plug_set_compressor_config(bg_plug_t * p,
 #define BG_PLUG_IO_STATUS_400 400 // Bad Request
 #define BG_PLUG_IO_STATUS_404 404 // Not found
 #define BG_PLUG_IO_STATUS_405 405 // Method Not Allowed
+#define BG_PLUG_IO_STATUS_423 423 // Locked
 #define BG_PLUG_IO_STATUS_505 505 // Protocol Version Not Supported
 #define BG_PLUG_IO_STATUS_503 503 // Service Unavailable
  

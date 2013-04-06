@@ -192,6 +192,7 @@ status_codes[] =
     { BG_PLUG_IO_STATUS_400, "Bad Request" },
     { BG_PLUG_IO_STATUS_404, "Not Found" },
     { BG_PLUG_IO_STATUS_405, "Method Not Allowed" },
+    { BG_PLUG_IO_STATUS_423, "Locked" },
     { BG_PLUG_IO_STATUS_505, "Protocol Version Not Supported" },
     { BG_PLUG_IO_STATUS_503, "Service Unavailable" },
     { /* End */ }

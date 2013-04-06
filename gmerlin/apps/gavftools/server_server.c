@@ -131,14 +131,33 @@ static program_t * find_program(server_t * s, const char * name)
 
   for(i = 0; i < s->num_programs; i++)
     {
-    if(!strcmp(s->programs[i].name, name))
+    if(!strcmp(s->programs[i]->name, name))
       {
-      ret = &s->programs[i];
+      ret = s->programs[i];
       break;
       }
     }
   pthread_mutex_unlock(&s->program_mutex);
   return ret;
+  }
+
+static void append_program(server_t * s, program_t * p)
+  {
+  pthread_mutex_lock(&s->program_mutex);
+
+  if(s->num_programs+1 > s->programs_alloc)
+    {
+    s->programs_alloc += 16;
+    s->programs = realloc(s->programs,
+                          s->programs_alloc * sizeof(*s->programs));
+
+    memset(s->programs + s->num_programs, 0,
+           (s->programs_alloc - s->num_programs) * sizeof(*s->programs));
+    }
+  
+  s->programs[s->num_programs] = p;
+  s->num_programs++;
+  pthread_mutex_unlock(&s->program_mutex);
   }
 
 static void handle_client_connection(server_t * s, int fd)
@@ -147,7 +166,7 @@ static void handle_client_connection(server_t * s, int fd)
   int status = 0;
 
   const char * location;
-  
+  program_t * p;
   gavl_metadata_t req;
   gavl_metadata_t res;
 
@@ -173,20 +192,30 @@ static void handle_client_connection(server_t * s, int fd)
     status = BG_PLUG_IO_STATUS_404;
     goto fail;
     }
+
+  p = find_program(s, location);
   
   switch(method)
     {
     case BG_PLUG_IO_METHOD_READ:
-      {
-      program_t * p = find_program(s, location);
       if(!p)
         {
         status = BG_PLUG_IO_STATUS_404;
         goto fail;
         }
-      }
       break;
     case BG_PLUG_IO_METHOD_WRITE:
+      if(p)
+        {
+        status = BG_PLUG_IO_STATUS_423; // Locked
+        goto fail;
+        }
+      p = program_create_from_socket(location, fd);
+      if(!p)
+        goto fail;
+
+      append_program(s, p);
+      
       break;
     default:
       status = BG_PLUG_IO_STATUS_405;

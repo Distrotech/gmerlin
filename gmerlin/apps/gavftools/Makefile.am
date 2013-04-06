@@ -40,5 +40,6 @@ decode_albumstream.c \
 decode_load.c
 
 gavf_server_SOURCES = gavf-server.c \
+server_program.c \
 server_server.c
 

@@ -19,59 +19,37 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  * *****************************************************************/
 
-#include "gavftools.h"
+#include "gavf-server.h"
 
-typedef struct
+program_t * program_create_from_socket(const char * name, int fd)
   {
-  bg_plug_t * plug;
-  } sink_client_t;
+  gavf_io_t * io;
+  program_t * ret;
+  int flags = 0;
+  ret = calloc(1, sizeof(*ret));
+  ret->name = bg_strdup(NULL, name);
 
-typedef struct
+  ret->in_plug = bg_plug_create_reader(plugin_reg);
+  
+  io = bg_plug_io_open_socket(fd, BG_PLUG_IO_METHOD_READ, &flags);
+
+  if(!bg_plug_open(ret->in_plug, io,
+                   NULL, NULL, flags))
+    goto fail;
+  
+  return ret;
+  
+  fail:
+  program_destroy(ret);
+  return NULL;
+  
+  }
+
+void program_destroy(program_t * p)
   {
-  bg_plug_t * plug;
-  } source_client_t;
-
-#define PROGRAM_STATUS_DONE    0
-#define PROGRAM_STATUS_RUNNING 1
-
-/* One program */
-
-typedef struct
-  {
-  char * name;
-
-  bg_plug_t * in_plug;
-  bg_mediaconnector_t conn;
-  
-  int num_sink_clients;
-  sink_client_t * sinks;
-  
-  } program_t;
-
-program_t * program_create_from_socket(const char * name, int fd);
-
-void program_destroy(program_t *);
-
-
-typedef struct
-  {
-  pthread_mutex_t program_mutex;
-
-  program_t ** programs;
-  int num_programs;
-  int programs_alloc;
-  
-  int * listen_sockets;
-  char ** listen_addresses;
-  
-  int num_listen_sockets;
-    
-  } server_t;
-
-server_t * server_create(char ** listen_addresses,
-                         int num_listen_addresses);
-
-int server_iteration(server_t * s);
-
-void server_destroy(server_t * s);
-
+  if(p->in_plug)
+    bg_plug_destroy(p->in_plug);
+  if(p->name)
+    free(p->name);
+  free(p);
+  }
