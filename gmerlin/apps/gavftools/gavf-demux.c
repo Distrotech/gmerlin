@@ -179,11 +179,17 @@ static void set_stream_actions(bg_plug_t * in_plug, gavf_stream_type_t type)
     free(actions);
   }
 
+static char * get_out_name(bg_mediaconnector_stream_t * st)
+  {
+  
+  }
+
 int main(int argc, char ** argv)
   {
   int ret = 1;
   int i;
   bg_mediaconnector_t conn;
+  bg_mediaconnector_stream_t * st;
   
   gavftools_init();
   
@@ -217,6 +223,21 @@ int main(int argc, char ** argv)
   bg_mediaconnector_create_conn(&conn);
 
   /* Create out plugs */
+  num_out_plugs = conn.num_streams;
+  out_plugs = calloc(num_out_plugs, sizeof(*out_plugs));
+  
+  for(i = 0; i < conn.num_streams; i++)
+    {
+    st = conn.streams[i];
+
+    out_plugs[i] = gavftools_create_out_plug();
+
+    if(!gavftools_open_out_plug_from_in_plug(out_plugs[i], outfiles[i],
+                                             in_plug))
+      goto fail;
+    
+    
+    }
   
   /* Main loop */
   

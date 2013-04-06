@@ -1563,91 +1563,120 @@ int bg_plug_add_text_stream(bg_plug_t * p,
   
   }
 
+int bg_plug_add_mediaconnector_stream(bg_plug_t * p,
+                                      bg_mediaconnector_stream_t * s)
+  {
+  const gavl_audio_format_t * afmt;
+  const gavl_video_format_t * vfmt;
+  const gavl_compression_info_t * ci;
+  gavl_compression_info_t ci_none;
+  memset(&ci_none, 0, sizeof(ci_none));
+  
+  switch(s->type)
+    {
+    case GAVF_STREAM_AUDIO:
+      if(s->psrc)
+        {
+        ci = gavl_packet_source_get_ci(s->psrc);
+        afmt = gavl_packet_source_get_audio_format(s->psrc);
+        }
+      else if(s->asrc)
+        {
+        ci = &ci_none;
+        afmt = gavl_audio_source_get_src_format(s->asrc);
+        }
+      else
+        return 0;
+        
+      if(bg_plug_add_audio_stream(p, ci, afmt, &s->m, s->encode_section) < 0)
+        return 0;
+      break;
+    case GAVF_STREAM_VIDEO:
+      if(s->psrc)
+        {
+        ci = gavl_packet_source_get_ci(s->psrc);
+        vfmt = gavl_packet_source_get_video_format(s->psrc);
+        }
+      else if(s->vsrc)
+        {
+        ci = &ci_none;
+        vfmt = gavl_video_source_get_src_format(s->vsrc);
+        }
+      else
+        return 0;
+        
+      if(bg_plug_add_video_stream(p, ci, vfmt, &s->m, s->encode_section) < 0)
+        return 0;
+      break;
+    case GAVF_STREAM_OVERLAY:
+      if(s->psrc)
+        {
+        ci = gavl_packet_source_get_ci(s->psrc);
+        vfmt = gavl_packet_source_get_video_format(s->psrc);
+        }
+      else if(s->vsrc)
+        {
+        ci = &ci_none;
+        vfmt = gavl_video_source_get_src_format(s->vsrc);
+        }
+      else
+        return 0;
+        
+      if(bg_plug_add_overlay_stream(p, ci, vfmt, &s->m, s->encode_section) < 0)
+        return 0;
+      break;
+    case GAVF_STREAM_TEXT:
+      if(bg_plug_add_text_stream(p, s->timescale, &s->m) < 0)
+        return 0;
+      break;
+    }
+  return 1;
+  }
+
+int bg_plug_connect_mediaconnector_stream(bg_plug_t * p,
+                                          bg_mediaconnector_stream_t * s,
+                                          const gavf_stream_header_t * h)
+  {
+  gavl_audio_sink_t * as;
+  gavl_video_sink_t * vs;
+  gavl_packet_sink_t * ps;
+  
+  as = NULL;
+  vs = NULL;
+  ps = NULL;
+    
+  if(!bg_plug_get_stream_sink(p, h, &as, &vs, &ps))
+    return 0;
+    
+  if(as && s->aconn)
+    gavl_audio_connector_connect(s->aconn, as);
+  else if(vs && s->vconn)
+    gavl_video_connector_connect(s->vconn, vs);
+  else if(ps && s->pconn)
+    gavl_packet_connector_connect(s->pconn, ps);
+  else
+    return 0;
+  return 1;
+  }
+
 /* Setup writer */
 
 int bg_plug_setup_writer(bg_plug_t * p, bg_mediaconnector_t * conn)
   {
   int i;
-  gavl_compression_info_t ci_none;
-  const gavl_audio_format_t * afmt;
-  const gavl_video_format_t * vfmt;
-  const gavl_compression_info_t * ci;
   bg_mediaconnector_stream_t * s;
   const gavf_stream_header_t * h;
-
-  gavl_audio_sink_t * as;
-  gavl_video_sink_t * vs;
-  gavl_packet_sink_t * ps;
-  
-  memset(&ci_none, 0, sizeof(ci_none));
   
   for(i = 0; i < conn->num_streams; i++)
     {
     s = conn->streams[i];
-    switch(s->type)
-      {
-      case GAVF_STREAM_AUDIO:
-        if(s->psrc)
-          {
-          ci = gavl_packet_source_get_ci(s->psrc);
-          afmt = gavl_packet_source_get_audio_format(s->psrc);
-          }
-        else if(s->asrc)
-          {
-          ci = &ci_none;
-          afmt = gavl_audio_source_get_src_format(s->asrc);
-          }
-        else
-          return 0;
-        
-        if(bg_plug_add_audio_stream(p, ci, afmt, &s->m, s->encode_section) < 0)
-          return 0;
-        break;
-      case GAVF_STREAM_VIDEO:
-        if(s->psrc)
-          {
-          ci = gavl_packet_source_get_ci(s->psrc);
-          vfmt = gavl_packet_source_get_video_format(s->psrc);
-          }
-        else if(s->vsrc)
-          {
-          ci = &ci_none;
-          vfmt = gavl_video_source_get_src_format(s->vsrc);
-          }
-        else
-          return 0;
-        
-        if(bg_plug_add_video_stream(p, ci, vfmt, &s->m, s->encode_section) < 0)
-          return 0;
-        break;
-      case GAVF_STREAM_OVERLAY:
-        if(s->psrc)
-          {
-          ci = gavl_packet_source_get_ci(s->psrc);
-          vfmt = gavl_packet_source_get_video_format(s->psrc);
-          }
-        else if(s->vsrc)
-          {
-          ci = &ci_none;
-          vfmt = gavl_video_source_get_src_format(s->vsrc);
-          }
-        else
-          return 0;
-        
-        if(bg_plug_add_overlay_stream(p, ci, vfmt, &s->m, s->encode_section) < 0)
-          return 0;
-        break;
-      case GAVF_STREAM_TEXT:
-        if(bg_plug_add_text_stream(p, s->timescale, &s->m) < 0)
-          return 0;
-        break;
-      }
+    if(!bg_plug_add_mediaconnector_stream(p, s))
+      return 0;
     }
 
   if(!bg_plug_start(p))
     return 0;
-
-
+  
   /* Get sinks and connect them */
 
   for(i = 0; i < conn->num_streams; i++)
@@ -1655,20 +1684,7 @@ int bg_plug_setup_writer(bg_plug_t * p, bg_mediaconnector_t * conn)
     s = conn->streams[i];
     h = p->ph->streams + i;
 
-    as = NULL;
-    vs = NULL;
-    ps = NULL;
-    
-    if(!bg_plug_get_stream_sink(p, h, &as, &vs, &ps))
-      return 0;
-    
-    if(as && s->aconn)
-      gavl_audio_connector_connect(s->aconn, as);
-    else if(vs && s->vconn)
-      gavl_video_connector_connect(s->vconn, vs);
-    else if(ps && s->pconn)
-      gavl_packet_connector_connect(s->pconn, ps);
-    else
+    if(!bg_plug_connect_mediaconnector_stream(p, s, h))
       return 0;
     }
   return 1;

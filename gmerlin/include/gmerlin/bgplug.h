@@ -63,6 +63,12 @@ const gavl_chapter_list_t * bg_plug_get_chapter_list(bg_plug_t*);
 
 /* Initialization function for readers and writers */
 
+int bg_plug_add_mediaconnector_stream(bg_plug_t * p,
+                                      bg_mediaconnector_stream_t * s);
+
+int bg_plug_connect_mediaconnector_stream(bg_plug_t * p,
+                                          bg_mediaconnector_stream_t * s,
+                                          const gavf_stream_header_t * h);
 /* Set up a writer from a media connector */
 int bg_plug_setup_writer(bg_plug_t*, bg_mediaconnector_t * conn);
 
