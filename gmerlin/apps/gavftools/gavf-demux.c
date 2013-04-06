@@ -20,6 +20,7 @@
  * *****************************************************************/
 
 #include "gavftools.h"
+#include <gavl/metatags.h>
 
 #define LOG_DOMAIN "gavf-demux"
 
@@ -30,16 +31,21 @@ static bg_plug_t ** out_plugs = NULL;
 static int num_out_plugs = 0;
 
 static char ** outfiles_a = NULL;
-static int num_outfiles_a = 0;
-
 static char ** outfiles_v = NULL;
-static int num_outfiles_v = 0;
-
 static char ** outfiles_t = NULL;
-static int num_outfiles_t = 0;
-
 static char ** outfiles_o = NULL;
+
+static int num_outfiles_a = 0;
+static int num_outfiles_v = 0;
+static int num_outfiles_t = 0;
 static int num_outfiles_o = 0;
+
+static int files_added_a = 0;
+static int files_added_v = 0;
+static int files_added_t = 0;
+static int files_added_o = 0;
+
+static char * prefix = NULL;
 
 static void
 opt_oa(void * data, int * argc, char *** _argv, int arg)
@@ -132,6 +138,12 @@ static bg_cmdline_arg_t global_options[] =
       .help_string = TRS("Output file or location for overlays. Use this option multiple times to add more outputs."),
       .callback    = &opt_oo,
     },
+    {
+      .arg =         "-pre",
+      .help_arg =    "<prefix>",
+      .help_string = TRS("Output file prefix"),
+      .argv    = &prefix,
+    },
     GAVFTOOLS_OOPT_OPTIONS,
     GAVFTOOLS_LOG_OPTIONS,
     { /* End */ },
@@ -181,8 +193,68 @@ static void set_stream_actions(bg_plug_t * in_plug, gavf_stream_type_t type)
 
 static char * get_out_name(bg_mediaconnector_stream_t * st)
   {
+  const gavl_metadata_t * m;
+  int * num_outfiles;
+  int * files_added;
+  char ** outfiles;
+  char * ret = NULL;
+  const char * label;
+  char * opt = NULL;
   
+  m = bg_plug_get_metadata(in_plug);
+  
+  switch(st->type)
+    {
+    case GAVF_STREAM_AUDIO:
+      num_outfiles = &num_outfiles_a;
+      files_added = &files_added_a;
+      outfiles = outfiles_a;
+      opt = "-oa";
+      break;
+    case GAVF_STREAM_VIDEO:
+      num_outfiles = &num_outfiles_v;
+      files_added = &files_added_v;
+      outfiles = outfiles_v;
+      opt = "-ov";
+      break;
+    case GAVF_STREAM_TEXT:
+      num_outfiles = &num_outfiles_t;
+      files_added = &files_added_t;
+      outfiles = outfiles_t;
+      opt = "-ot";
+      break;
+    case GAVF_STREAM_OVERLAY:
+      num_outfiles = &num_outfiles_o;
+      files_added = &files_added_o;
+      outfiles = outfiles_o;
+      opt = "-oo";
+      break;
+    }
+  if(*num_outfiles > *files_added)
+    {
+    ret = bg_strdup(NULL, outfiles[*files_added]);
+    (*files_added)++;
+    }
+  else if(prefix)
+    {
+    ret = bg_sprintf("%s_%s_%03d.gavf", prefix,
+                     gavf_stream_type_name(st->type), st->src_index + 1);
+    }
+  else if((label = gavl_metadata_get(m, GAVL_META_LABEL)))
+    {
+    ret = bg_sprintf("%s_%s_%03d.gavf", label,
+                     gavf_stream_type_name(st->type),
+                     st->src_index + 1);
+    }
+  else
+    {
+    bg_log(BG_LOG_ERROR, LOG_DOMAIN,
+           "No output filename given, use -pre or %s",
+           opt);
+    }
+  return ret;
   }
+
 
 int main(int argc, char ** argv)
   {
@@ -228,16 +300,31 @@ int main(int argc, char ** argv)
   
   for(i = 0; i < conn.num_streams; i++)
     {
+    char * filename;
+    const gavf_stream_header_t * h;
+
     st = conn.streams[i];
 
-    out_plugs[i] = gavftools_create_out_plug();
-
-    if(!gavftools_open_out_plug_from_in_plug(out_plugs[i], outfiles[i],
-                                             in_plug))
+    if(!(filename = get_out_name(st)))
       goto fail;
     
+    out_plugs[i] = gavftools_create_out_plug();
     
+    if(!gavftools_open_out_plug_from_in_plug(out_plugs[i], filename,
+                                             in_plug) ||
+       !bg_plug_add_mediaconnector_stream(out_plugs[i], st) ||
+       !bg_plug_start(out_plugs[i]) ||
+       !(h = gavf_get_stream(bg_plug_get_gavf(out_plugs[i]), 0, st->type)) ||
+       !bg_plug_connect_mediaconnector_stream(out_plugs[i], st, h))
+      goto fail;
+
+    bg_log(BG_LOG_INFO, LOG_DOMAIN, "Opened %s", filename);
+    
+    free(filename);
     }
+
+  /* Fire up connector */
+  bg_mediaconnector_start(&conn);
   
   /* Main loop */
   
