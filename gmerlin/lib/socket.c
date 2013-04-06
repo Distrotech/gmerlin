@@ -51,7 +51,7 @@
 #include <gmerlin/bgsocket.h>
 
 #include <gmerlin/log.h>
-#define LOG_DOMAIN "tcpsocket"
+#define LOG_DOMAIN "socket"
 
 #if !HAVE_DECL_MSG_NOSIGNAL
 #define MSG_NOSIGNAL 0
@@ -424,7 +424,8 @@ int bg_listen_socket_create_unix(const char * name,
   addr_len = SUN_LEN(&addr);
   if(bind(ret,(struct sockaddr*)(&addr),addr_len)<0)
     {
-    bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Could not bind socket");
+    bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Cannot bind UNIX domain socket: %s",
+           strerror(errno));
     return -1;
     }
   if(listen(ret, queue_size))

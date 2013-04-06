@@ -377,7 +377,7 @@ socket_response_write(int fd, gavl_metadata_t * req)
   return result;
   }
 
-static int socket_handshake(int fd, int wr, int server)
+static int server_handshake(int fd, int wr)
   {
   int ret = 0;
   const char * val;
@@ -387,83 +387,95 @@ static int socket_handshake(int fd, int wr, int server)
 
   gavl_metadata_init(&req);
   gavl_metadata_init(&res);
-  
-  if(server)
+
+  if(!socket_request_read(fd, &req))
     {
-    if(!socket_request_read(fd, &req))
-      {
-      bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Reading request failed");
-      goto fail;
-      }
-    val = gavl_metadata_get(&req, "$PROTOCOL");
-    if(!val)
-      {
-      // 400 Bad Request
-      status = 400;
-      }
-    else if(strcmp(val, PROTOCOL))
-      {
-      // 505 Protocol Version Not Supported
-      status = 505;
-      }
-    val = gavl_metadata_get(&req, "$METHOD");
-    if(!val)
-      {
-      // 400 Bad Request
-      status = 400;
-      }
-    if(wr && !strcmp(val, "WRITE"))
-      {
-      // 405 Method Not Allowed
-      status = 405;
-      }
-    else if(!wr && !strcmp(val, "READ"))
-      {
-      // 405 Method Not Allowed
-      status = 405;
-      }
-    if(!status)
-      {
-      status = 200;
-      ret = 1;
-      }
-    
-    gavl_metadata_set_int(&res, META_STATUS, status);
-    
-    if(!socket_response_write(fd, &res))
-      {
-      bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Writing response failed");
-      goto fail;
-      }
+    bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Reading request failed");
+    goto fail;
     }
-  else
+  val = gavl_metadata_get(&req, "$PROTOCOL");
+  if(!val)
     {
-    if(wr)
-      gavl_metadata_set(&req, "$METHOD", "WRITE");
-    else
-      gavl_metadata_set(&req, "$METHOD", "READ");
-    gavl_metadata_set(&req, "$LOCATION", "*");
-    gavl_metadata_set(&req, "$PROTOCOL", PROTOCOL);
-    if(!socket_request_write(fd, &req))
-      {
-      bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Writing request failed");
-      goto fail;
-      }
-    if(!socket_response_read(fd, &res))
-      {
-      bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Reading response failed");
-      goto fail;
-      }
-
-    if(!gavl_metadata_get_int(&res, META_STATUS, &status))
-      goto fail;
-
-    if(status != 200)
-      goto fail;
-    
+    // 400 Bad Request
+    status = 400;
+    }
+  else if(strcmp(val, PROTOCOL))
+    {
+    // 505 Protocol Version Not Supported
+    status = 505;
+    }
+  val = gavl_metadata_get(&req, "$METHOD");
+  if(!val)
+    {
+    // 400 Bad Request
+    status = 400;
+    }
+  if(wr && !strcmp(val, "WRITE"))
+    {
+    // 405 Method Not Allowed
+    status = 405;
+    }
+  else if(!wr && !strcmp(val, "READ"))
+    {
+    // 405 Method Not Allowed
+    status = 405;
+    }
+  if(!status)
+    {
+    status = 200;
     ret = 1;
     }
+    
+  gavl_metadata_set_int(&res, META_STATUS, status);
+    
+  if(!socket_response_write(fd, &res))
+    {
+    bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Writing response failed");
+    goto fail;
+    }
 
+  fail:
+  gavl_metadata_free(&req);
+  gavl_metadata_free(&res);
+  return ret;
+  
+  }
+
+static int client_handshake(int fd, int wr)
+  {
+  int ret = 0;
+  int status = 0;
+  gavl_metadata_t req;
+  gavl_metadata_t res;
+
+  gavl_metadata_init(&req);
+  gavl_metadata_init(&res);
+  
+  if(wr)
+    gavl_metadata_set(&req, "$METHOD", "WRITE");
+  else
+    gavl_metadata_set(&req, "$METHOD", "READ");
+  gavl_metadata_set(&req, "$LOCATION", "*");
+  gavl_metadata_set(&req, "$PROTOCOL", PROTOCOL);
+  if(!socket_request_write(fd, &req))
+    {
+    bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Writing request failed");
+    goto fail;
+    }
+  if(!socket_response_read(fd, &res))
+    {
+    bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Reading response failed");
+    goto fail;
+    }
+
+  if(!gavl_metadata_get_int(&res, META_STATUS, &status))
+    goto fail;
+
+  if(status != 200)
+    goto fail;
+    
+  ret = 1;
+  
   fail:
   gavl_metadata_free(&req);
   gavl_metadata_free(&res);
@@ -537,7 +549,7 @@ static gavf_io_t * open_tcp(const char * location, int wr, int * flags)
 
   /* Handshake */
 
-  if(!socket_handshake(fd, wr, 0))
+  if(!client_handshake(fd, wr))
     goto fail;
   
   /* Return */
@@ -592,7 +604,7 @@ static gavf_io_t * open_unix(const char * addr, int wr)
 
   /* Handshake */
   
-  if(!socket_handshake(fd, wr, 0))
+  if(!client_handshake(fd, wr))
     return NULL;
 
   /* Return */
@@ -655,7 +667,7 @@ static gavf_io_t * open_tcpserv(const char * addr, int wr, int * flags)
     bg_log(BG_LOG_INFO, LOG_DOMAIN,
            "Got connection");
     
-    if(socket_handshake(fd, wr, 1))
+    if(server_handshake(fd, wr))
       break;
 
     bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Handshake failed");
@@ -726,7 +738,7 @@ static gavf_io_t * open_unixserv(const char * addr, int wr)
     bg_log(BG_LOG_INFO, LOG_DOMAIN,
            "Got connection");
     
-    if(socket_handshake(fd, wr, 1))
+    if(server_handshake(fd, wr))
       break;
 
     bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Handshake failed");

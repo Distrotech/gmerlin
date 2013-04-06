@@ -12,7 +12,7 @@ libgavftools.la
 libgavftools_la_SOURCES = \
 gavftools.c
 
-noinst_HEADERS = gavftools.h gavf-decode.h
+noinst_HEADERS = gavftools.h gavf-decode.h gavf-server.h
 
 INCLUDES = -I$(top_srcdir)/include
 
@@ -31,10 +31,14 @@ gavf-mux \
 gavf-play \
 gavf-recompress \
 gavf-record \
+gavf-server \
 gavf-tee
 
 gavf_decode_SOURCES = gavf-decode.c \
 decode_album.c \
 decode_albumstream.c \
 decode_load.c
+
+gavf_server_SOURCES = gavf-server.c \
+server_server.c
 
