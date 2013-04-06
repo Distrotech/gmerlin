@@ -31,21 +31,28 @@ typedef struct
   bg_plug_t * plug;
   } source_client_t;
 
+#define PROGRAM_STATUS_DONE    0
+#define PROGRAM_STATUS_RUNNING 1
+
 /* One program */
 
 typedef struct
   {
+  char * name;
+  
   source_client_t * src;
 
   int num_sink_clients;
   sink_client_t * sinks;
   
-  } server_program_t;
+  } program_t;
 
 
 typedef struct
   {
-  server_program_t * programs;
+  pthread_mutex_t program_mutex;
+
+  program_t * programs;
   int num_programs;
 
   int * listen_sockets;

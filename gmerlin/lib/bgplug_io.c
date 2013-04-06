@@ -49,14 +49,14 @@ static int socket_is_local(int fd);
 
 /* stdin / stdout */
 
-static gavf_io_t * open_dash(int wr, int * flags)
+static gavf_io_t * open_dash(int method, int * flags)
   {
   struct stat st;
   int fd;
   FILE * f;
     
   /* Stdin/stdout */
-  if(wr)
+  if(method == BG_PLUG_IO_METHOD_WRITE)
     f = stdout;
   else
     f = stdin;
@@ -65,7 +65,7 @@ static gavf_io_t * open_dash(int wr, int * flags)
 
   if(isatty(fd))
     {
-    if(wr)
+    if(method == BG_PLUG_IO_METHOD_WRITE)
       bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Not writing to a TTY");
     else
       bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Not reading from a TTY");
@@ -74,7 +74,7 @@ static gavf_io_t * open_dash(int wr, int * flags)
     
   if(fstat(fd, &st))
     {
-    if(wr)
+    if(method == BG_PLUG_IO_METHOD_WRITE)
       bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Cannot stat stdout");
     else
       bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Cannot stat stdin");
@@ -84,7 +84,7 @@ static gavf_io_t * open_dash(int wr, int * flags)
     *flags |= BG_PLUG_IO_IS_LOCAL;
   else if(S_ISREG(st.st_mode))
     *flags |= BG_PLUG_IO_IS_REGULAR;
-  return gavf_io_create_file(f, wr, 0, 0);
+  return gavf_io_create_file(f, method == BG_PLUG_IO_METHOD_WRITE, 0, 0);
   }
 
 /* TCP client */
@@ -188,20 +188,24 @@ static const struct
   }
 status_codes[] =
   {
-    { 200, "OK"          },
-    { 400, "Bad Request" },
-    { 405, "Method Not Allowed" },
-    { 505, "Protocol Version Not Supported" },
-    { 503, "Service Unavailable" },
+    { BG_PLUG_IO_STATUS_200, "OK"          },
+    { BG_PLUG_IO_STATUS_400, "Bad Request" },
+    { BG_PLUG_IO_STATUS_404, "Not Found" },
+    { BG_PLUG_IO_STATUS_405, "Method Not Allowed" },
+    { BG_PLUG_IO_STATUS_505, "Protocol Version Not Supported" },
+    { BG_PLUG_IO_STATUS_503, "Service Unavailable" },
     { /* End */ }
   };
   
-#define META_METHOD   "$METHOD"
-#define META_LOCATION "$LOCATION"
-#define META_PROTOCOL "$PROTOCOL"
-#define META_STATUS   "$STATUS"
+#define META_METHOD     "$METHOD"
+#define META_LOCATION   "$LOCATION"
+#define META_PROTOCOL   "$PROTOCOL"
+#define META_STATUS     "$STATUS"
+#define META_STATUS_STR "$STATUS_STR"
 
 #define PROTOCOL "bgplug/"VERSION
+
+
 
 static int read_vars(int fd, char ** line, int * line_alloc,
                      gavl_metadata_t * m)
@@ -253,12 +257,15 @@ static char * write_vars(char * str, const gavl_metadata_t * m)
   return str;
   }
 
-static int socket_request_read(int fd, gavl_metadata_t * req)
+int bg_plug_request_read(int fd, gavl_metadata_t * req)
   {
   int result;
   char * line = NULL;
   int line_alloc = 0;
   char * pos1, *pos2;
+  const char * val;
+  int status = 0;
+  
   
   if(!bg_socket_read_line(fd, &line, &line_alloc, TIMEOUT))
     return 0;
@@ -282,6 +289,32 @@ static int socket_request_read(int fd, gavl_metadata_t * req)
   
   if(line)
     free(line);
+
+  if(!result)
+    return result;
+
+  //  fprintf(stderr, "Got request:\n");
+  //  gavl_metadata_dump(req, 0);
+  
+  /* We check the protocol version right here */
+  val = gavl_metadata_get(req, META_PROTOCOL);
+  if(!val)
+    status = BG_PLUG_IO_STATUS_400; // 400 Bad Request
+  else if(strcmp(val, PROTOCOL))
+    status = BG_PLUG_IO_STATUS_505; // 505 Protocol Version Not Supported
+  
+  if(status)
+    {
+    gavl_metadata_t res;
+    gavl_metadata_init(&res);
+
+    gavl_metadata_set_int(&res, META_STATUS, status);
+    
+    if(!bg_plug_response_write(fd, &res))
+      bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Writing response failed");
+    gavl_metadata_free(&res);
+    result = 0;
+    }
   
   return result;
   }
@@ -337,6 +370,9 @@ static int socket_response_read(int fd, gavl_metadata_t * req)
   gavl_metadata_set_nocpy(req, META_STATUS,
                           bg_strndup(NULL, pos1+1, pos2));
   
+  pos2++;
+  gavl_metadata_set(req, META_STATUS_STR, pos2);
+  
   result = read_vars(fd, &line, &line_alloc, req);
   
   if(line)
@@ -345,15 +381,14 @@ static int socket_response_read(int fd, gavl_metadata_t * req)
   return result;
   }
 
-static int
-socket_response_write(int fd, gavl_metadata_t * req)
+int bg_plug_response_write(int fd, gavl_metadata_t * res)
   {
   int result;
   char * line;
   int status, i;
   
   i = 0;
-  if(!gavl_metadata_get_int(req, META_STATUS, &status))
+  if(!gavl_metadata_get_int(res, META_STATUS, &status))
     return 0;
 
   while(status_codes[i].status_str)
@@ -368,7 +403,7 @@ socket_response_write(int fd, gavl_metadata_t * req)
   line = bg_sprintf("%s %d %s\n", PROTOCOL, status,
                     status_codes[i].status_str);
 
-  line = write_vars(line, req);
+  line = write_vars(line, res);
 
   //  fprintf(stderr, "Writing response:\n%s", line);
   
@@ -377,58 +412,98 @@ socket_response_write(int fd, gavl_metadata_t * req)
   return result;
   }
 
-static int server_handshake(int fd, int wr)
+void
+bg_plug_request_set_method(gavl_metadata_t * req, int method)
+  {
+  if(method == BG_PLUG_IO_METHOD_READ)
+    gavl_metadata_set(req, META_METHOD, "READ");
+  else
+    gavl_metadata_set(req, META_METHOD, "WRITE");
+  }
+
+int 
+bg_plug_request_get_method(gavl_metadata_t * req, int * method)
+  {
+  const char * val;
+
+  val = gavl_metadata_get(req, META_METHOD);
+  if(!val)
+    return 0;
+  
+  if(!strcmp(val, "WRITE"))
+    {
+    *method = BG_PLUG_IO_METHOD_WRITE;
+    return 1;
+    }
+  else if(!strcmp(val, "READ"))
+    {
+    *method = BG_PLUG_IO_METHOD_READ;
+    return 1;
+    }
+  else
+    return 0;
+  }
+
+const char * bg_plug_request_get_location(gavl_metadata_t * req)
+  {
+  return gavl_metadata_get(req, META_LOCATION);
+  }
+
+void
+bg_plug_response_set_status(gavl_metadata_t * res, int status)
+  {
+  gavl_metadata_set_int(res, META_STATUS, status);
+  }
+
+static int server_handshake(int fd, int method)
   {
   int ret = 0;
-  const char * val;
   int status = 0;
   gavl_metadata_t req;
   gavl_metadata_t res;
-
+  int request_method;
+  const char * location;
+  
   gavl_metadata_init(&req);
   gavl_metadata_init(&res);
 
-  if(!socket_request_read(fd, &req))
+  if(!bg_plug_request_read(fd, &req))
     {
     bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Reading request failed");
     goto fail;
     }
-  val = gavl_metadata_get(&req, "$PROTOCOL");
-  if(!val)
+  
+  if(!bg_plug_request_get_method(&req, &request_method))
     {
     // 400 Bad Request
-    status = 400;
+    status = BG_PLUG_IO_STATUS_400;
     }
-  else if(strcmp(val, PROTOCOL))
+
+  else if(method == request_method)
+    status = BG_PLUG_IO_STATUS_405;
+
+  else
     {
-    // 505 Protocol Version Not Supported
-    status = 505;
+    location = bg_plug_request_get_location(&req);
+
+    /* We support no locations in our simple servers */
+    if(strcmp(location, "/"))
+      status = BG_PLUG_IO_STATUS_404;
     }
-  val = gavl_metadata_get(&req, "$METHOD");
-  if(!val)
-    {
-    // 400 Bad Request
-    status = 400;
-    }
-  if(wr && !strcmp(val, "WRITE"))
-    {
-    // 405 Method Not Allowed
-    status = 405;
-    }
-  else if(!wr && !strcmp(val, "READ"))
-    {
-    // 405 Method Not Allowed
-    status = 405;
-    }
+  
   if(!status)
     {
-    status = 200;
+    status = BG_PLUG_IO_STATUS_200;
     ret = 1;
     }
-    
-  gavl_metadata_set_int(&res, META_STATUS, status);
-    
-  if(!socket_response_write(fd, &res))
+
+  bg_plug_response_set_status(&res, status);
+  
+
+  //  fprintf(stderr, "Sending response:\n");
+  //  gavl_metadata_dump(&res, 0);
+  
+  if(!bg_plug_response_write(fd, &res))
     {
     bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Writing response failed");
     goto fail;
@@ -441,7 +516,8 @@ static int server_handshake(int fd, int wr)
   
   }
 
-static int client_handshake(int fd, int wr)
+
+static int client_handshake(int fd, int method, const char * path)
   {
   int ret = 0;
   int status = 0;
@@ -450,13 +526,13 @@ static int client_handshake(int fd, int wr)
 
   gavl_metadata_init(&req);
   gavl_metadata_init(&res);
-  
-  if(wr)
-    gavl_metadata_set(&req, "$METHOD", "WRITE");
-  else
-    gavl_metadata_set(&req, "$METHOD", "READ");
-  gavl_metadata_set(&req, "$LOCATION", "*");
-  gavl_metadata_set(&req, "$PROTOCOL", PROTOCOL);
+
+  if(!path)
+    path = "/";
+
+  bg_plug_request_set_method(&req, method);
+  gavl_metadata_set(&req, META_LOCATION, path);
+  gavl_metadata_set(&req, META_PROTOCOL, PROTOCOL);
   if(!socket_request_write(fd, &req))
     {
     bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Writing request failed");
@@ -470,10 +546,16 @@ static int client_handshake(int fd, int wr)
 
   if(!gavl_metadata_get_int(&res, META_STATUS, &status))
     goto fail;
-
-  if(status != 200)
+  
+  if(status != BG_PLUG_IO_STATUS_200)
+    {
+    const char * status_str;
+    status_str = gavl_metadata_get(&res, META_STATUS_STR);
+    if(!status_str)
+      status_str = "??";
+    bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Got status: %d %s", status, status_str);
     goto fail;
-    
+    }
   ret = 1;
   
   fail:
@@ -506,10 +588,22 @@ static void close_socket(void * priv)
   free(s);
   }
 
-static gavf_io_t * open_tcp(const char * location, int wr, int * flags)
+static gavf_io_t * io_create_socket(socket_t * s, int method)
+  {
+  return gavf_io_create((method == BG_PLUG_IO_METHOD_READ) ? read_socket : NULL,
+                        (method == BG_PLUG_IO_METHOD_WRITE) ? write_socket : NULL,
+                        NULL, // seek
+                        close_socket,
+                        NULL, // flush
+                        s);
+  }
+
+static gavf_io_t * open_tcp(const char * location,
+                            int method, int * flags)
   {
   /* Remote TCP socket */
   char * host = NULL;
+  char * path = NULL;
   gavf_io_t * ret = NULL;
   int port;
   int fd;
@@ -522,20 +616,18 @@ static gavf_io_t * open_tcp(const char * location, int wr, int * flags)
                    NULL,
                    &host,
                    &port,
-                   NULL))
+                   &path))
     {
-    if(host)
-      free(host);
     bg_log(BG_LOG_ERROR, LOG_DOMAIN,
            "Invalid TCP address %s", location);
-    return NULL;
+    goto fail;
     }
   
   if(port < 0)
     {
     bg_log(BG_LOG_ERROR, LOG_DOMAIN,
            "Port missing in address %s", location);
-    return NULL;
+    goto fail;
     }
 
   addr = bg_host_address_create();
@@ -549,7 +641,7 @@ static gavf_io_t * open_tcp(const char * location, int wr, int * flags)
 
   /* Handshake */
 
-  if(!client_handshake(fd, wr))
+  if(!client_handshake(fd, method, path))
     goto fail;
   
   /* Return */
@@ -558,25 +650,23 @@ static gavf_io_t * open_tcp(const char * location, int wr, int * flags)
   
   if(socket_is_local(s->fd))
     *flags |= BG_PLUG_IO_IS_LOCAL;
-  
-  ret = gavf_io_create(wr ? NULL : read_socket,
-                       wr ? write_socket : NULL,
-                       NULL, // seek
-                       close_socket,
-                       NULL, // flush
-                       s);
+
+  ret = io_create_socket(s, method);
   
   fail:
   if(host)
     free(host);
+  if(path)
+    free(path);
   if(addr)
     bg_host_address_destroy(addr);
   return ret;
   }
 
-static gavf_io_t * open_unix(const char * addr, int wr)
+static gavf_io_t * open_unix(const char * addr, int method)
   {
   char * name = NULL;
+  char * path = NULL;
   socket_t * s;
   int fd;
   gavf_io_t * ret = NULL;
@@ -587,40 +677,39 @@ static gavf_io_t * open_unix(const char * addr, int wr)
                    NULL,
                    &name,
                    NULL,
-                   NULL))
+                   &path))
     {
-    if(name)
-      free(name);
     bg_log(BG_LOG_ERROR, LOG_DOMAIN,
            "Invalid UNIX domain address address %s", addr);
-    return NULL;
+    goto fail;
     }
   
   fd = bg_socket_connect_unix(name);
-  free(name);
   
   if(fd < 0)
-    return NULL;
+    goto fail;
 
   /* Handshake */
   
-  if(!client_handshake(fd, wr))
-    return NULL;
+  if(!client_handshake(fd, method, path))
+    goto fail;
 
   /* Return */
   s = calloc(1, sizeof(*s));
   s->fd = fd;
 
-  ret = gavf_io_create(wr ? NULL : read_socket,
-                       wr ? write_socket : NULL,
-                       NULL, // seek
-                       close_socket,
-                       NULL, // flush
-                       s);
+  ret = io_create_socket(s, method);
+  
+  fail:
+  if(name)
+    free(name);
+  if(path)
+    free(path);
+  
   return ret;
   }
 
-static gavf_io_t * open_tcpserv(const char * addr, int wr, int * flags)
+static gavf_io_t * open_tcpserv(const char * addr, int method, int * flags)
   {
   socket_t * s;
   
@@ -667,7 +756,7 @@ static gavf_io_t * open_tcpserv(const char * addr, int wr, int * flags)
     bg_log(BG_LOG_INFO, LOG_DOMAIN,
            "Got connection");
     
-    if(server_handshake(fd, wr))
+    if(server_handshake(fd, method))
       break;
 
     bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Handshake failed");
@@ -684,13 +773,8 @@ static gavf_io_t * open_tcpserv(const char * addr, int wr, int * flags)
 
   if(socket_is_local(s->fd))
     *flags |= BG_PLUG_IO_IS_LOCAL;
-  
-  ret = gavf_io_create(wr ? NULL : read_socket,
-                       wr ? write_socket : NULL,
-                       NULL, // seek
-                       close_socket,
-                       NULL, // flush
-                       s);
+
+  ret = io_create_socket(s, method);
   
   fail:
 
@@ -700,7 +784,7 @@ static gavf_io_t * open_tcpserv(const char * addr, int wr, int * flags)
   return ret;
   }
 
-static gavf_io_t * open_unixserv(const char * addr, int wr)
+static gavf_io_t * open_unixserv(const char * addr, int method)
   {
   socket_t * s;
   int server_fd, fd;
@@ -738,7 +822,7 @@ static gavf_io_t * open_unixserv(const char * addr, int wr)
     bg_log(BG_LOG_INFO, LOG_DOMAIN,
            "Got connection");
     
-    if(server_handshake(fd, wr))
+    if(server_handshake(fd, method))
       break;
 
     bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Handshake failed");
@@ -760,12 +844,8 @@ static gavf_io_t * open_unixserv(const char * addr, int wr)
 
   s = calloc(1, sizeof(*s));
   s->fd = fd;
-  ret = gavf_io_create(wr ? NULL : read_socket,
-                       wr ? write_socket : NULL,
-                       NULL, // seek
-                       close_socket,
-                       NULL, // flush
-                       s);
+
+  ret = io_create_socket(s, method);
   
   return ret;
   }
@@ -799,7 +879,7 @@ static gavf_io_t * open_file(const char * file, int wr, int * flags)
   }
 
 gavf_io_t * bg_plug_io_open_location(const char * location,
-                                     int wr, int * flags)
+                                     int method, int * flags)
   {
   *flags = 0;
 
@@ -807,23 +887,23 @@ gavf_io_t * bg_plug_io_open_location(const char * location,
     location = "-";
   
   if(!strcmp(location, "-"))
-    return open_dash(wr, flags);
+    return open_dash(method, flags);
   else if(!strncmp(location, "tcp://", 6))
-    return open_tcp(location, wr, flags);
+    return open_tcp(location, method, flags);
   else if(!strncmp(location, "unix://", 7))
     {
     *flags |= BG_PLUG_IO_IS_LOCAL;
     /* Local UNIX domain socket */
-    return open_unix(location, wr);
+    return open_unix(location, method);
     }
   else if(!strncmp(location, "tcpserv://", 10))
     {
-    return open_tcpserv(location, wr, flags);
+    return open_tcpserv(location, method, flags);
     }
   else if(!strncmp(location, "unixserv://", 11))
     {
     *flags |= BG_PLUG_IO_IS_LOCAL;
-    return open_unixserv(location, wr);
+    return open_unixserv(location, method);
     }
   
   else if((location[0] == '|') ||
@@ -831,12 +911,12 @@ gavf_io_t * bg_plug_io_open_location(const char * location,
     {
     /* Pipe */
     *flags |= BG_PLUG_IO_IS_LOCAL;
-    return open_pipe(location, wr);
+    return open_pipe(location, method);
     }
   else
     {
     /* Regular file */
-    return open_file(location, wr, flags);
+    return open_file(location, method, flags);
     }
   return NULL;
   }
@@ -898,22 +978,18 @@ static int socket_is_local(int fd)
   }
 
 gavf_io_t * bg_plug_io_open_socket(int fd,
-                                   int wr, int * flags)
+                                   int method, int * flags)
   {
   socket_t * s;
 
   if(socket_is_local(fd))
     *flags |= BG_PLUG_IO_IS_LOCAL;
   
-  /* TODO: Handshake */
+  /* Handshake was already done at this point */
 
   /* Return */
   s = calloc(1, sizeof(*s));
   s->fd = fd;
-  return gavf_io_create(wr ? NULL : read_socket,
-                        wr ? write_socket : NULL,
-                        NULL, // seek
-                        close_socket,
-                        NULL, // flush
-                        s);
+  
+  return io_create_socket(s, method);
   }

@@ -163,10 +163,39 @@ bg_plug_set_compressor_config(bg_plug_t * p,
 #define BG_PLUG_IO_IS_LOCAL   (1<<0)
 #define BG_PLUG_IO_IS_REGULAR (1<<1)
 
+#define BG_PLUG_IO_METHOD_READ  0
+#define BG_PLUG_IO_METHOD_WRITE 1
+
+#define BG_PLUG_IO_STATUS_200 200 // OK
+#define BG_PLUG_IO_STATUS_400 400 // Bad Request
+#define BG_PLUG_IO_STATUS_404 404 // Not found
+#define BG_PLUG_IO_STATUS_405 405 // Method Not Allowed
+#define BG_PLUG_IO_STATUS_505 505 // Protocol Version Not Supported
+#define BG_PLUG_IO_STATUS_503 503 // Service Unavailable
+ 
+
 gavf_io_t * bg_plug_io_open_location(const char * location,
-                                     int wr, int * flags);
+                                     int method, int * flags);
 
 gavf_io_t * bg_plug_io_open_socket(int fd,
-                                   int wr, int * flags);
+                                   int method, int * flags);
+
+/* bgplug network protocol primitives */
+
+int bg_plug_request_read(int fd, gavl_metadata_t * req);
+int bg_plug_response_write(int fd, gavl_metadata_t * res);
+  
+
+void
+bg_plug_request_set_method(gavl_metadata_t * req, int metod);
+
+int 
+bg_plug_request_get_method(gavl_metadata_t * req, int * metod);
+
+void
+bg_plug_response_set_status(gavl_metadata_t * res, int status);
+
+
+const char * bg_plug_request_get_location(gavl_metadata_t * req);
 
 #endif // __BGPLUG_H_

@@ -1309,8 +1309,11 @@ int bg_plug_open_location(bg_plug_t * p, const char * location,
                           const gavl_metadata_t * m,
                           const gavl_chapter_list_t * cl)
   {
-  gavf_io_t * io = bg_plug_io_open_location(location, p->wr,
-                                            &p->io_flags);
+  gavf_io_t * io =
+    bg_plug_io_open_location(location,
+                             p->wr ? BG_PLUG_IO_METHOD_WRITE :
+                             BG_PLUG_IO_METHOD_READ,
+                             &p->io_flags);
   if(io)
     {
     if(!bg_plug_open(p, io, m, cl))

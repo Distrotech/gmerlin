@@ -34,6 +34,9 @@ server_t * server_create(char ** listen_addresses,
   int i;
   server_t * ret = calloc(1, sizeof(*ret));
 
+  pthread_mutex_init(&ret->program_mutex, NULL);
+  
+  
   ret->listen_addresses = listen_addresses;
   ret->num_listen_sockets = num_listen_addresses;
   ret->listen_sockets = malloc(ret->num_listen_sockets *
@@ -119,10 +122,95 @@ server_t * server_create(char ** listen_addresses,
   return NULL;
   }
 
+static program_t * find_program(server_t * s, const char * name)
+  {
+  int i;
+  program_t * ret = NULL;
+  
+  pthread_mutex_lock(&s->program_mutex);
+
+  for(i = 0; i < s->num_programs; i++)
+    {
+    if(!strcmp(s->programs[i].name, name))
+      {
+      ret = &s->programs[i];
+      break;
+      }
+    }
+  pthread_mutex_unlock(&s->program_mutex);
+  return ret;
+  }
+
 static void handle_client_connection(server_t * s, int fd)
   {
-  close(fd);
+  int method;
+  int status = 0;
+
+  const char * location;
+  
+  gavl_metadata_t req;
+  gavl_metadata_t res;
+
+  gavl_metadata_init(&req);
+  gavl_metadata_init(&res);
+
+  if(!bg_plug_request_read(fd, &req))
+    goto fail;
+  
+  if(!bg_plug_request_get_method(&req, &method))
+    {
+    status = BG_PLUG_IO_STATUS_400;
+    goto fail;
+    }
+  if(!(location = bg_plug_request_get_location(&req)))
+    {
+    status = BG_PLUG_IO_STATUS_400;
+    goto fail;
+    }
+
+  if(!strcmp(location, "/"))
+    {
+    status = BG_PLUG_IO_STATUS_404;
+    goto fail;
+    }
+  
+  switch(method)
+    {
+    case BG_PLUG_IO_METHOD_READ:
+      {
+      program_t * p = find_program(s, location);
+      if(!p)
+        {
+        status = BG_PLUG_IO_STATUS_404;
+        goto fail;
+        }
+      }
+      break;
+    case BG_PLUG_IO_METHOD_WRITE:
+      break;
+    default:
+      status = BG_PLUG_IO_STATUS_405;
+      goto fail;
+      
+    }
+  
+  fail:
+
+  if(status && (fd >= 0))
+    {
+    bg_plug_response_set_status(&res, status);
+    if(!bg_plug_response_write(fd, &res))
+      bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Writing response failed");
+    }
+  
+  gavl_metadata_free(&req);
+  gavl_metadata_free(&res);
+  
+  if(fd >= 0)
+    close(fd);
   }
+
+
 
 int server_iteration(server_t * s)
   {
@@ -143,6 +231,9 @@ int server_iteration(server_t * s)
 void server_destroy(server_t * s)
   {
   int i;
+
+  pthread_mutex_destroy(&s->program_mutex);
+
   for(i = 0; i < s->num_listen_sockets; i++)
     {
     close(s->listen_sockets[i]);
