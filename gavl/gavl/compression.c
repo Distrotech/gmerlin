@@ -197,7 +197,12 @@ void gavl_compression_info_dumpi(const gavl_compression_info_t * info, int inden
           gavl_compression_get_long_name(info->id),
           gavl_compression_get_short_name(info->id));
   do_indent(indent+2);
-  fprintf(stderr, "Bitrate:         %d bps\n", info->bitrate);
+  if(info->bitrate == GAVL_BITRATE_VBR)
+    fprintf(stderr, "Bitrate:         Variable\n");
+  else if(!info->bitrate)
+    fprintf(stderr, "Bitrate:         Unknown\n");
+  else
+    fprintf(stderr, "Bitrate:         %d bps\n", info->bitrate);
 
   if(info->id < 0x10000)
     {
