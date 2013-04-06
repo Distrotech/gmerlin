@@ -416,7 +416,8 @@ int gavf_get_max_video_packet_size(const gavl_video_format_t * fmt,
   }
 
 
-static void gavf_stream_init_video(gavf_t * g, gavf_stream_t * s)
+static void gavf_stream_init_video(gavf_t * g, gavf_stream_t * s,
+                                   int num_streams)
   {
   s->timescale = s->h->format.video.timescale;
 
@@ -438,9 +439,12 @@ static void gavf_stream_init_video(gavf_t * g, gavf_stream_t * s)
      (s->h->ci.id == GAVL_CODEC_ID_NONE))
     s->flags |= STREAM_FLAG_HAS_INTERLACE;
 
-  if((s->h->format.video.framerate_mode == GAVL_FRAMERATE_STILL) ||
-     (s->h->type == GAVF_STREAM_OVERLAY))
-    s->flags |= STREAM_FLAG_DISCONTINUOUS;
+  if(num_streams > 1)
+    {
+    if((s->h->format.video.framerate_mode == GAVL_FRAMERATE_STILL) ||
+       (s->h->type == GAVF_STREAM_OVERLAY))
+      s->flags |= STREAM_FLAG_DISCONTINUOUS;
+    }
   
   s->h->ci.max_packet_size =
     gavf_get_max_video_packet_size(&s->h->format.video,
@@ -458,14 +462,17 @@ static void gavf_stream_init_video(gavf_t * g, gavf_stream_t * s)
     }
   }
 
-static void gavf_stream_init_text(gavf_t * g, gavf_stream_t * s)
+static void gavf_stream_init_text(gavf_t * g, gavf_stream_t * s,
+                                  int num_streams)
   {
   s->timescale = s->h->format.text.timescale;
   s->flags |=
     (STREAM_FLAG_HAS_PTS |
-     STREAM_FLAG_HAS_DURATION |
-     STREAM_FLAG_DISCONTINUOUS);
+     STREAM_FLAG_HAS_DURATION);
 
+  if(num_streams > 1)
+    s->flags |= STREAM_FLAG_DISCONTINUOUS;
+  
   if(g->wr)
     {
     /* Create packet sink */
@@ -504,10 +511,10 @@ static void init_streams(gavf_t * g)
         break;
       case GAVF_STREAM_VIDEO:
       case GAVF_STREAM_OVERLAY:
-        gavf_stream_init_video(g, &g->streams[i]);
+        gavf_stream_init_video(g, &g->streams[i], g->ph.num_streams);
         break;
       case GAVF_STREAM_TEXT:
-        gavf_stream_init_text(g, &g->streams[i]);
+        gavf_stream_init_text(g, &g->streams[i], g->ph.num_streams);
         break;
       }
     g->streams[i].pb =
