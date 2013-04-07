@@ -38,13 +38,19 @@ typedef struct
 
 typedef struct
   {
+  pthread_mutex_t mutex;
+
   char * name;
 
   bg_plug_t * in_plug;
   bg_mediaconnector_t conn;
   
-  int num_sink_clients;
-  sink_client_t * sinks;
+  //  int num_sink_clients;
+  //  sink_client_t * sinks;
+
+  int status;
+  
+  pthread_t thread;
   
   } program_t;
 
