@@ -310,7 +310,7 @@ int gavf_write_video_format(gavf_io_t * io, const gavl_video_format_t * format)
   if(format->interlace_mode != GAVL_INTERLACE_NONE)
     {
     buf.len = 0;
-    if(!gavf_io_write_uint32v(&bufio, format->interlace_mode) ||
+    if(!gavf_io_write_int32v(&bufio, format->interlace_mode) ||
        !gavf_extension_write(io, GAVF_EXT_VF_INTERLACE,
                              buf.len, buf.buf))
       return 0;

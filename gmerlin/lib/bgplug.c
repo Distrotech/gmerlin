@@ -669,8 +669,11 @@ static gavl_source_status_t read_packet_shm(void * priv,
 
   /* Sanity check */
   if(p->data_len != sizeof(si))
+    {
+    bg_log(BG_LOG_DEBUG, LOG_DOMAIN, "SHM packet data size mismatch, %d != %d\n",
+           (int)p->data_len, (int)(sizeof(si)));
     return GAVL_SOURCE_EOF;
-
+    }
   memcpy(&si, p->data, sizeof(si));
 
   /* Unref the old segment if there is one */

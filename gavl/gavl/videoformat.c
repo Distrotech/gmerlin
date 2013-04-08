@@ -86,12 +86,15 @@ void gavl_video_format_dumpi(const gavl_video_format_t * format, int indent)
     fprintf(stderr, "  Still image\n");
     }
   do_indent(indent);
-  fprintf(stderr, "  Interlace mode:   %s\n", gavl_interlace_mode_to_string(format->interlace_mode));  
+  fprintf(stderr, "  Interlace mode:   %s\n",
+          gavl_interlace_mode_to_string(format->interlace_mode));  
 
-  if((format->pixelformat == GAVL_YUV_420_P) || (format->pixelformat == GAVL_YUVJ_420_P))
+  if((format->pixelformat == GAVL_YUV_420_P) ||
+     (format->pixelformat == GAVL_YUVJ_420_P))
     {
     do_indent(indent);
-    fprintf(stderr, "  Chroma placement: %s\n", gavl_chroma_placement_to_string(format->chroma_placement));
+    fprintf(stderr, "  Chroma placement: %s\n",
+            gavl_chroma_placement_to_string(format->chroma_placement));
     }
   if(format->timecode_format.int_framerate)
     {
@@ -150,7 +153,8 @@ interlace_mode_tab_t interlace_mode_tab[] =
     { GAVL_INTERLACE_MIXED_BOTTOM, "Bottom first + progressive" }
   };
 
-static const int num_interlace_modes = sizeof(interlace_mode_tab)/sizeof(interlace_mode_tab[0]);
+static const int num_interlace_modes =
+  sizeof(interlace_mode_tab)/sizeof(interlace_mode_tab[0]);
 
 const char * gavl_interlace_mode_to_string(gavl_interlace_mode_t mode)
   {
