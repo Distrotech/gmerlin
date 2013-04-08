@@ -183,7 +183,7 @@ void gavf_program_header_free(gavf_program_header_t * ph)
   gavl_metadata_free(&ph->m);
   }
 
-void gavf_program_header_dump(gavf_program_header_t * ph)
+void gavf_program_header_dump(const gavf_program_header_t * ph)
   {
   int i, num;
   const gavf_stream_header_t * h;

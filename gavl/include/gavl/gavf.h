@@ -121,7 +121,7 @@ typedef struct
   } gavf_program_header_t;
 
 GAVL_PUBLIC
-void gavf_program_header_dump(gavf_program_header_t * ph);
+void gavf_program_header_dump(const gavf_program_header_t * ph);
 
 
 typedef struct
