@@ -203,6 +203,16 @@ static void handle_client_connection(server_t * s, int fd)
         status = BG_PLUG_IO_STATUS_404;
         goto fail;
         }
+
+      bg_plug_response_set_status(&res, BG_PLUG_IO_STATUS_200);
+      if(!bg_plug_response_write(fd, &res))
+        {
+        bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Writing response failed");
+        goto fail;
+        }
+      
+
+      program_attach_client(p, fd);
       break;
     case BG_PLUG_IO_METHOD_WRITE:
       if(p)
@@ -210,12 +220,17 @@ static void handle_client_connection(server_t * s, int fd)
         status = BG_PLUG_IO_STATUS_423; // Locked
         goto fail;
         }
+      bg_plug_response_set_status(&res, BG_PLUG_IO_STATUS_200);
+      if(!bg_plug_response_write(fd, &res))
+        {
+        bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Writing response failed");
+        goto fail;
+        }
+      
       p = program_create_from_socket(location, fd);
       if(!p)
         goto fail;
-
       append_program(s, p);
-      
       break;
     default:
       status = BG_PLUG_IO_STATUS_405;

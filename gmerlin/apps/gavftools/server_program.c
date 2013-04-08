@@ -21,6 +21,27 @@
 
 #include "gavf-server.h"
 
+static int program_iteration(program_t * p)
+  {
+  /* Read packet from source */
+
+  /* Distribute to sinks */
+
+  /* Throw away old packets */
+
+  /* Delay */
+
+  return 1;
+  }
+
+static void * thread_func(void * priv)
+  {
+  program_t * p = priv;
+  while(program_iteration(p))
+    ;
+  return NULL;
+  }
+
 program_t * program_create_from_socket(const char * name, int fd)
   {
   gavf_io_t * io;
@@ -52,4 +73,8 @@ void program_destroy(program_t * p)
   if(p->name)
     free(p->name);
   free(p);
+  }
+
+void program_attach_client(program_t * p, int fd)
+  {
   }

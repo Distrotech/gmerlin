@@ -55,8 +55,9 @@ typedef struct
   } program_t;
 
 program_t * program_create_from_socket(const char * name, int fd);
-
 void program_destroy(program_t *);
+void program_attach_client(program_t *, int fd);
+
 
 
 typedef struct
