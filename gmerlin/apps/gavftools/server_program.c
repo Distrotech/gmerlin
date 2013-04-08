@@ -57,6 +57,11 @@ program_t * program_create_from_socket(const char * name, int fd)
   if(!bg_plug_open(ret->in_plug, io,
                    NULL, NULL, flags))
     goto fail;
+
+  gavftools_set_stream_actions(ret->in_plug);
+
+  if(!bg_plug_start(ret->in_plug))
+    goto fail;
   
   return ret;
   
@@ -77,4 +82,5 @@ void program_destroy(program_t * p)
 
 void program_attach_client(program_t * p, int fd)
   {
+
   }

@@ -62,6 +62,8 @@ static int write_sync_header(gavf_t * g, int stream, const gavl_packet_t * p)
   {
   int i;
   gavf_stream_t * s;
+
+  
   for(i = 0; i < g->ph.num_streams; i++)
     {
     s = &g->streams[i];
@@ -105,7 +107,9 @@ static int write_sync_header(gavf_t * g, int stream, const gavl_packet_t * p)
 
   if(!g->first_sync_pos)
     g->first_sync_pos = g->io->position;
-  
+
+  if(!gavf_io_cb(g->io, GAVF_IO_CB_SYNC_HEADER_START, g->sync_pts))
+    return 0;
   /* Write the sync header */
   if(gavf_io_write_data(g->io, (uint8_t*)GAVF_TAG_SYNC_HEADER, 8) < 8)
     return 0;
@@ -128,7 +132,12 @@ static int write_sync_header(gavf_t * g, int stream, const gavl_packet_t * p)
     if(g->sync_pts[i] != GAVL_TIME_UNDEFINED)
       g->streams[i].last_sync_pts = g->sync_pts[i];
     }
-  return gavf_io_flush(g->io);
+  if(!gavf_io_flush(g->io))
+    return 0;
+  
+  if(!gavf_io_cb(g->io, GAVF_IO_CB_SYNC_HEADER_END, g->sync_pts))
+    return 0;
+  return 1;
   }
 
 static gavl_sink_status_t
@@ -172,11 +181,18 @@ write_packet(gavf_t * g, int stream, const gavl_packet_t * p)
   /* Write stored metadata if there is one */
   if(g->meta_buf.len)
     {
+    if(!gavf_io_cb(g->io, GAVF_IO_CB_METADATA_START, &g->metadata))
+      return GAVL_SINK_ERROR;
+
     if((gavf_io_write_data(g->io,
                            (const uint8_t*)GAVF_TAG_METADATA_HEADER, 1) < 1) ||
        !gavf_io_write_buffer(g->io, &g->meta_buf))
       return GAVL_SINK_ERROR;
     gavf_buffer_reset(&g->meta_buf);
+
+    if(!gavf_io_cb(g->io, GAVF_IO_CB_METADATA_END, &g->metadata))
+      return GAVL_SINK_ERROR;
+
     }
   
   // If a stream has B-frames, this won't be correct
@@ -194,6 +210,9 @@ write_packet(gavf_t * g, int stream, const gavl_packet_t * p)
                           s->h->id, p->flags, g->io->position,
                           p->pts);
     }
+
+  if(!gavf_io_cb(g->io, GAVF_IO_CB_PACKET_START, p))
+    return GAVL_SINK_ERROR;
   
   if((gavf_io_write_data(g->io,
                          (const uint8_t*)GAVF_TAG_PACKET_HEADER, 1) < 1) ||
@@ -216,11 +235,10 @@ write_packet(gavf_t * g, int stream, const gavl_packet_t * p)
   
   if(!gavf_io_flush(g->io))
     return GAVL_SINK_ERROR;
-
   
   s->packets_since_sync++;
 
-  if(g->io->cb && !g->io->cb(g->io->cb_priv, GAVF_IO_CB_PACKET, p))
+  if(!gavf_io_cb(g->io, GAVF_IO_CB_PACKET_END, p))
     return GAVL_SINK_ERROR;
   
   return GAVL_SINK_OK;
@@ -598,6 +616,10 @@ static int read_sync_header(gavf_t * g)
       g->streams[i].next_pts = g->sync_pts[i];
       }
     }
+
+  if(!gavf_io_cb(g->io, GAVF_IO_CB_SYNC_HEADER_END, g->sync_pts))
+    return 0;
+  
   return 1;
   }
   
@@ -730,7 +752,7 @@ const gavf_packet_header_t * gavf_packet_read_header(gavf_t * g)
         else
           {
           gavf_packet_skip(g);
-          if(g->io->cb && !g->io->cb(g->io->cb_priv, GAVF_IO_CB_PACKET, NULL))
+          if(!gavf_io_cb(g->io, GAVF_IO_CB_PACKET_END, NULL))
             {
 #ifdef DUMP_EOF
             fprintf(stderr, "EOF 3\n");
@@ -772,6 +794,9 @@ const gavf_packet_header_t * gavf_packet_read_header(gavf_t * g)
           if(g->opt.metadata_cb)
             g->opt.metadata_cb(g->opt.metadata_cb_priv,
                                &g->metadata);
+
+          if(!gavf_io_cb(g->io, GAVF_IO_CB_METADATA_END, &g->metadata))
+            goto got_eof;
           
           if(g->opt.flags & GAVF_OPT_FLAG_DUMP_METADATA)
             {
@@ -793,6 +818,8 @@ const gavf_packet_header_t * gavf_packet_read_header(gavf_t * g)
           }
         gavf_io_skip(g->io, len);
         }
+      if(!gavf_io_cb(g->io, GAVF_IO_CB_METADATA_END, NULL))
+        goto got_eof;
       }
     else
       {
@@ -843,13 +870,13 @@ int gavf_update_metadata(gavf_t * g, const gavl_metadata_t * m)
   gavl_metadata_free(&g->metadata);
   gavl_metadata_init(&g->metadata);
   gavl_metadata_copy(&g->metadata, m);
-  gavf_buffer_reset(&g->meta_buf);
 
   /*
    *  Write metadata to buffer.
    *  Will be flushed after the next sync header.
    */
 
+  gavf_buffer_reset(&g->meta_buf);
   if(!gavf_write_metadata(&g->meta_io, &g->metadata))
     return 0;
   

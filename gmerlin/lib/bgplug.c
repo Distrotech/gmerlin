@@ -240,7 +240,7 @@ static int io_cb_read(void * priv, int type, const void * data)
 
   //  fprintf(stderr, "io_cb_read %d %d\n", type, p->packets++);
 
-  if((type == GAVF_IO_CB_PROGRAM_HEADER) && (p->mq < 0))
+  if((type == GAVF_IO_CB_PROGRAM_HEADER_END) && (p->mq < 0))
     create_messate_queue(p, &p->ph->m);
 #if 0  
   if(type == GAVF_IO_CB_PACKET)
@@ -254,7 +254,8 @@ static int io_cb_read(void * priv, int type, const void * data)
   if(p->mq < 0)
     return 1;
   
-  if(mq_send(p->mq, (const char *)&type, sizeof(type), 0))
+  if(GAVF_IO_CB_TYPE_END(type) && 
+     mq_send(p->mq, (const char *)&type, sizeof(type), 0))
     {
     bg_log(BG_LOG_ERROR, LOG_DOMAIN, "mq_send failed: %s",
            strerror(errno));
@@ -282,21 +283,24 @@ static int io_cb_write(void * priv, int type, const void * data)
 
   //  if((type == GAVF_IO_CB_PACKET) && data)
   //    gavl_packet_dump(data);
-  
-  size_ret =
-    mq_timedreceive(p->mq, (char *)&type_ret,
-                    sizeof(type_ret), &msg_prio, &timeout);
 
-  if(size_ret < 0)
+  if(GAVF_IO_CB_TYPE_END(type))
     {
-    bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Reading message failed: %s",
-           strerror(errno));
-    p->got_error = 1;
-    }
+    size_ret =
+      mq_timedreceive(p->mq, (char *)&type_ret,
+                      sizeof(type_ret), &msg_prio, &timeout);
+
+    if(size_ret < 0)
+      {
+      bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Reading message failed: %s",
+             strerror(errno));
+      p->got_error = 1;
+      }
   
-  if((size_ret != sizeof(type_ret)) ||
-     (type_ret != type))
-    return 0;
+    if((size_ret != sizeof(type_ret)) ||
+       (type_ret != type))
+      return 0;
+    }
   return 1;
   }
 

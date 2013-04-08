@@ -658,7 +658,7 @@ int gavf_read_gavl_packet(gavf_io_t * io,
     gavl_packet_dump(p);
     }
   
-  if(io->cb && !io->cb(io->cb_priv, GAVF_IO_CB_PACKET, p))
+  if(io->cb && !io->cb(io->cb_priv, GAVF_IO_CB_PACKET_END, p))
     return 0;
   
   return 1;

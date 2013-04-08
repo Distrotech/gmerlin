@@ -16,9 +16,16 @@
 typedef struct gavf_s gavf_t;
 typedef struct gavf_options_s gavf_options_t;
 
-#define GAVF_IO_CB_PROGRAM_HEADER 0
-#define GAVF_IO_CB_PACKET         1
-#define GAVF_IO_CB_METADATA       2
+#define GAVF_IO_CB_PROGRAM_HEADER_START 1
+#define GAVF_IO_CB_PROGRAM_HEADER_END   (1|0x100)
+#define GAVF_IO_CB_PACKET_START         2
+#define GAVF_IO_CB_PACKET_END           (2|0x100)
+#define GAVF_IO_CB_METADATA_START       3
+#define GAVF_IO_CB_METADATA_END         (3|0x100)
+#define GAVF_IO_CB_SYNC_HEADER_START    4
+#define GAVF_IO_CB_SYNC_HEADER_END      (4|0x100)
+
+#define GAVF_IO_CB_TYPE_END(t) (!!(t & 0x100))
 
 /* I/O Structure */
 

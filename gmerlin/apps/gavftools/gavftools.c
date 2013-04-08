@@ -536,3 +536,39 @@ int gavftools_open_out_plug_from_in_plug(bg_plug_t * out_plug,
 
   return 1;
   }
+
+static void set_stream_actions(bg_plug_t * in_plug, gavf_stream_type_t type)
+  {
+  gavf_t * g;
+  int num, i;
+  const gavf_stream_header_t * sh;
+
+  bg_stream_action_t * actions = NULL;
+  
+  g = bg_plug_get_gavf(in_plug);
+
+  num = gavf_get_num_streams(g, type);
+
+  if(!num)
+    return;
+  
+  actions = gavftools_get_stream_actions(num, type);
+
+  for(i = 0; i < num; i++)
+    {
+    sh = gavf_get_stream(g, i, type);
+    bg_plug_set_stream_action(in_plug, sh, actions[i]);
+    }
+  
+  if(actions)
+    free(actions);
+  }
+
+
+void gavftools_set_stream_actions(bg_plug_t * p)
+  {
+  set_stream_actions(p, GAVF_STREAM_AUDIO);
+  set_stream_actions(p, GAVF_STREAM_VIDEO);
+  set_stream_actions(p, GAVF_STREAM_TEXT);
+  set_stream_actions(p, GAVF_STREAM_OVERLAY);
+  }

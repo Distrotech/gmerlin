@@ -84,6 +84,7 @@ int gavf_io_write_float(gavf_io_t * io, float num);
 
 void gavf_io_skip(gavf_io_t * io, int bytes);
 
+int gavf_io_cb(gavf_io_t * io, int type, const void * data);
 
 /* Buffer as io */
 
@@ -404,7 +405,7 @@ struct gavf_s
   gavf_io_t pkt_io;
   gavf_buffer_t pkt_buf;
 
-  /* Imline metadata support */
+  /* Inline metadata support */
   gavf_io_t meta_io;
   gavf_buffer_t meta_buf;
   gavl_metadata_t metadata;

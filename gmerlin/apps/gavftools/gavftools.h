@@ -195,3 +195,5 @@ void gavftools_set_cmdline_parameters(bg_cmdline_arg_t * args);
 int gavftools_open_out_plug_from_in_plug(bg_plug_t * out_plug,
                                          const char * name,
                                          bg_plug_t * in_plug);
+
+void gavftools_set_stream_actions(bg_plug_t * p);
