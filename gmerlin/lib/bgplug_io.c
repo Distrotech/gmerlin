@@ -45,7 +45,6 @@
 
 #define TIMEOUT 5000
 
-static int socket_is_local(int fd);
 
 /* stdin / stdout */
 
@@ -649,7 +648,7 @@ static gavf_io_t * open_tcp(const char * location,
   s = calloc(1, sizeof(*s));
   s->fd = fd;
   
-  if(socket_is_local(s->fd))
+  if(bg_socket_is_local(s->fd))
     *flags |= BG_PLUG_IO_IS_LOCAL;
 
   ret = io_create_socket(s, method);
@@ -772,7 +771,7 @@ static gavf_io_t * open_tcpserv(const char * addr, int method, int * flags)
   s = calloc(1, sizeof(*s));
   s->fd = fd;
 
-  if(socket_is_local(s->fd))
+  if(bg_socket_is_local(s->fd))
     *flags |= BG_PLUG_IO_IS_LOCAL;
 
   ret = io_create_socket(s, method);
@@ -922,68 +921,13 @@ gavf_io_t * bg_plug_io_open_location(const char * location,
   return NULL;
   }
 
-/* Socket utility function */
-
-static int socket_is_local(int fd)
-  {
-  struct sockaddr_storage us;
-  struct sockaddr_storage them;
-  socklen_t slen;
-  slen = sizeof(us);
-  
-  if(getsockname(fd, (struct sockaddr*)&us, &slen) == -1)
-    return 1;
-
-  if(slen == 0 || us.ss_family == AF_LOCAL)
-    return 1;
-
-  if(us.ss_family == AF_INET)
-    {
-    struct sockaddr_in * a1, *a2;
-    a1 = (struct sockaddr_in *)&us;
-    if(a1->sin_addr.s_addr == INADDR_LOOPBACK)
-      return 1;
-
-    slen = sizeof(them);
-    
-    if(getpeername(fd, (struct sockaddr*)&them, &slen) == -1)
-      return 0;
-
-    a2 = (struct sockaddr_in *)&them;
-
-    if(!memcmp(&a1->sin_addr.s_addr, &a2->sin_addr.s_addr,
-               sizeof(a2->sin_addr.s_addr)))
-      return 1;
-    }
-  else if(us.ss_family == AF_INET6)
-    {
-    struct sockaddr_in6 * a1, *a2;
-    a1 = (struct sockaddr_in6 *)&us;
-
-    /* Detect loopback */
-    if(!memcmp(&a1->sin6_addr.s6_addr, &in6addr_loopback,
-               sizeof(in6addr_loopback)))
-      return 1;
-
-    if(getpeername(fd, (struct sockaddr*)&them, &slen) == -1)
-      return 0;
-
-    a2 = (struct sockaddr_in6 *)&them;
-
-    if(!memcmp(&a1->sin6_addr.s6_addr, &a2->sin6_addr.s6_addr,
-               sizeof(a2->sin6_addr.s6_addr)))
-      return 1;
-
-    }
-  return 0;
-  }
 
 gavf_io_t * bg_plug_io_open_socket(int fd,
                                    int method, int * flags)
   {
   socket_t * s;
 
-  if(socket_is_local(fd))
+  if(bg_socket_is_local(fd))
     *flags |= BG_PLUG_IO_IS_LOCAL;
   
   /* Handshake was already done at this point */

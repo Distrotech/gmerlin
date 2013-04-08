@@ -44,6 +44,7 @@ typedef struct
 
   bg_plug_t * in_plug;
   bg_mediaconnector_t conn;
+  bg_plug_t * conn_plug;
   
   //  int num_sink_clients;
   //  sink_client_t * sinks;

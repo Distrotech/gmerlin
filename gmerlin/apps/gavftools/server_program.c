@@ -42,6 +42,40 @@ static void * thread_func(void * priv)
   return NULL;
   }
 
+static int conn_write_func(void * priv, const uint8_t * data, int len)
+  {
+  return len;
+  }
+
+static int conn_cb_func(void * priv, int type, const void * data)
+  {
+  program_t * p = priv;
+
+  switch(type)
+    {
+    case GAVF_IO_CB_PROGRAM_HEADER_START:
+      fprintf(stderr, "Got program header:\n");
+      gavf_program_header_dump(data);
+      break;
+    case GAVF_IO_CB_PROGRAM_HEADER_END:
+      break;
+    case GAVF_IO_CB_PACKET_START:
+      break;
+    case GAVF_IO_CB_PACKET_END:
+      break;
+    case GAVF_IO_CB_METADATA_START:
+      break;
+    case GAVF_IO_CB_METADATA_END:
+      break;
+    case GAVF_IO_CB_SYNC_HEADER_START:
+      break;
+    case GAVF_IO_CB_SYNC_HEADER_END:
+      break;
+    }
+  
+  return 1;
+  }
+
 program_t * program_create_from_socket(const char * name, int fd)
   {
   gavf_io_t * io;
@@ -61,6 +95,27 @@ program_t * program_create_from_socket(const char * name, int fd)
   gavftools_set_stream_actions(ret->in_plug);
 
   if(!bg_plug_start(ret->in_plug))
+    goto fail;
+
+  /* Set up media connector */
+  
+  bg_plug_setup_reader(ret->in_plug, &ret->conn);
+  bg_mediaconnector_create_conn(&ret->conn);
+  
+  /* Setup connection plug (TODO: Compress this) */
+  io = gavf_io_create(NULL,
+                      conn_write_func,
+                      NULL,
+                      NULL,
+                      NULL,
+                      ret);
+
+  gavf_io_set_cb(io, conn_cb_func, ret);
+
+  ret->conn_plug = bg_plug_create_writer(plugin_reg);
+  bg_plug_setup_writer(ret->conn_plug, &ret->conn);
+
+  if(bg_plug_start(ret->conn_plug))
     goto fail;
   
   return ret;
