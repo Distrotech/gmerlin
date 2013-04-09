@@ -1104,6 +1104,58 @@ static int init_write_common(bg_plug_t * p, stream_t * s)
   return 1;
   }
 
+static void create_sinks(bg_plug_t * p)
+  {
+  int i;
+  stream_t * s;
+
+  /* Create sinks */
+  for(i = 0; i < p->num_audio_streams; i++)
+    {
+    s = p->audio_streams + i;
+    init_write_common(p, s);
+    
+    if(s->h->ci.id == GAVL_CODEC_ID_NONE)
+      {
+      s->asink = gavl_audio_sink_create(get_audio_func,
+                                        put_audio_func,
+                                        s, &s->h->format.audio);
+      s->aframe = gavl_audio_frame_create(NULL);
+      }
+    }
+  for(i = 0; i < p->num_video_streams; i++)
+    {
+    s = p->video_streams + i;
+    init_write_common(p, s);
+    
+    if(s->h->ci.id == GAVL_CODEC_ID_NONE)
+      {
+      s->vsink = gavl_video_sink_create(get_video_func,
+                                        put_video_func,
+                                       s, &s->h->format.video);
+      s->vframe = gavl_video_frame_create(NULL);
+      }
+    }
+  for(i = 0; i < p->num_overlay_streams; i++)
+    {
+    s = p->overlay_streams + i;
+    init_write_common(p, s);
+    
+    if(s->h->ci.id == GAVL_CODEC_ID_NONE)
+      {
+      s->vsink = gavl_video_sink_create(NULL,
+                                        put_overlay_func,
+                                        s, &s->h->format.video);
+      s->vframe = gavl_video_frame_create(NULL);
+      }
+    }
+  for(i = 0; i < p->num_text_streams; i++)
+    {
+    s = p->text_streams + i;
+    init_write_common(p, s);
+    }
+
+  }
 
 
 static int init_write(bg_plug_t * p)
@@ -1207,52 +1259,8 @@ static int init_write(bg_plug_t * p)
   
   if(!gavf_start(p->g))
     return 0;
-  
-  /* Create sinks */
-  for(i = 0; i < p->num_audio_streams; i++)
-    {
-    s = p->audio_streams + i;
-    init_write_common(p, s);
-    
-    if(s->h->ci.id == GAVL_CODEC_ID_NONE)
-      {
-      s->asink = gavl_audio_sink_create(get_audio_func,
-                                        put_audio_func,
-                                        s, &s->h->format.audio);
-      s->aframe = gavl_audio_frame_create(NULL);
-      }
-    }
-  for(i = 0; i < p->num_video_streams; i++)
-    {
-    s = p->video_streams + i;
-    init_write_common(p, s);
-    
-    if(s->h->ci.id == GAVL_CODEC_ID_NONE)
-      {
-      s->vsink = gavl_video_sink_create(get_video_func,
-                                        put_video_func,
-                                       s, &s->h->format.video);
-      s->vframe = gavl_video_frame_create(NULL);
-      }
-    }
-  for(i = 0; i < p->num_overlay_streams; i++)
-    {
-    s = p->overlay_streams + i;
-    init_write_common(p, s);
-    
-    if(s->h->ci.id == GAVL_CODEC_ID_NONE)
-      {
-      s->vsink = gavl_video_sink_create(NULL,
-                                        put_overlay_func,
-                                        s, &s->h->format.video);
-      s->vframe = gavl_video_frame_create(NULL);
-      }
-    }
-  for(i = 0; i < p->num_text_streams; i++)
-    {
-    s = p->text_streams + i;
-    init_write_common(p, s);
-    }
+
+  create_sinks(p);
   
   return 1;
   }
@@ -1260,16 +1268,67 @@ static int init_write(bg_plug_t * p)
 int bg_plug_set_from_ph(bg_plug_t * p,
                         const gavf_program_header_t * ph)
   {
+  int i;
+  int idx;
+  gavf_stream_header_t * sh;
+  stream_t * s;
+
   if(!p->wr)
     {
     bg_log(BG_LOG_ERROR, LOG_DOMAIN,
            "bg_plug_set_from_ph only works for write plugs");
     return 0;
     }
+  gavf_add_streams(p->g, ph);
 
+  for(i = 0; i < ph->num_streams; i++)
+    {
+    sh = ph->streams + i;
+    
+    switch(sh->type)
+      {
+      case GAVF_STREAM_AUDIO:
+        idx = bg_plug_add_audio_stream(p,
+                                       &sh->ci,
+                                       &sh->format.audio,
+                                       &sh->m,
+                                       NULL);
+        s = p->audio_streams + idx;
+        break;
+      case GAVF_STREAM_VIDEO:
+        bg_plug_add_video_stream(p,
+                                 &sh->ci,
+                                 &sh->format.video,
+                                 &sh->m,
+                                 NULL);
+        s = p->video_streams + idx;
+        break;
+      case GAVF_STREAM_TEXT:
+        bg_plug_add_text_stream(p,
+                                sh->format.text.timescale,
+                                &sh->m);
+        s = p->text_streams + idx;
+        break;
+      case GAVF_STREAM_OVERLAY:
+        bg_plug_add_overlay_stream(p,
+                                   &sh->ci,
+                                   &sh->format.video,
+                                   &sh->m,
+                                   NULL);
+        s = p->overlay_streams + idx;
+        break;
+      }
+    s->index = i;
+    check_shm_write(p, s, &sh->m, &sh->ci);
+    s->h = sh;
+    }
+
+  if(!gavf_start(p->g))
+    return 0;
+
+  create_sinks(p);
   
-  
-  return 0;
+  return 1;
   }
 
 
