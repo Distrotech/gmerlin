@@ -260,3 +260,25 @@ gavf_program_header_get_stream(const gavf_program_header_t * ph,
   return NULL;
   }
 
+void gavf_program_header_copy(gavf_program_header_t * dst,
+                              const gavf_program_header_t * src)
+  {
+  int i;
+
+  /* Copy metadata */
+  gavl_metadata_copy(&dst->m, &src->m);
+
+  /* Copy streams */
+  dst->num_streams = src->num_streams;
+  dst->streams = malloc(dst->num_streams * sizeof(*dst->streams));
+  
+  for(i = 0; i < dst->num_streams; i++)
+    {
+    /* Copy status fields */
+    memcpy(&dst->streams[i], &src->streams[i], sizeof(dst->streams[i]));
+
+    /* Copy pointers */
+    gavl_metadata_init(&dst->streams[i].m);
+    gavl_metadata_copy(&dst->streams[i].m, &src->streams[i].m);
+    }
+  }

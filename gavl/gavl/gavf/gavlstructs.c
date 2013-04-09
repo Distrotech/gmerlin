@@ -544,6 +544,8 @@ int gavf_read_gavl_packet(gavf_io_t * io,
   start_pos = io->position;
 
   gavl_packet_reset(p);
+
+  p->id = s->h->id;
   
   /* Flags */
   if(!gavf_io_read_uint32v(io, (uint32_t*)&p->flags))

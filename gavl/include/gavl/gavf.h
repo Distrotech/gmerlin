@@ -123,6 +123,13 @@ typedef struct
 GAVL_PUBLIC
 void gavf_program_header_dump(const gavf_program_header_t * ph);
 
+GAVL_PUBLIC
+void gavf_program_header_copy(gavf_program_header_t * dst,
+                              const gavf_program_header_t * src);
+
+GAVL_PUBLIC
+void gavf_program_header_free(gavf_program_header_t * ph);
+
 
 typedef struct
   {
@@ -294,6 +301,8 @@ int gavf_add_overlay_stream(gavf_t * g,
                             const gavl_video_format_t * format,
                             const gavl_metadata_t * m);
 
+GAVL_PUBLIC
+void gavf_add_streams(gavf_t * g, const gavf_program_header_t * ph);
 
 /* Call this after adding all streams and before writing the first packet */
 GAVL_PUBLIC

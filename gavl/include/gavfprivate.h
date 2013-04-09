@@ -127,7 +127,6 @@ int gavf_program_header_add_text_stream(gavf_program_header_t * ph,
 int gavf_program_header_read(gavf_io_t * io, gavf_program_header_t * ph);
 int gavf_program_header_write(gavf_io_t * io,
                               const gavf_program_header_t * ph);
-void gavf_program_header_free(gavf_program_header_t * ph);
 
 int
 gavf_program_header_get_num_streams(const gavf_program_header_t * ph,

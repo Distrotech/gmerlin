@@ -1037,6 +1037,10 @@ int gavf_add_overlay_stream(gavf_t * g,
   return gavf_program_header_add_overlay_stream(&g->ph, ci, format, m);
   }
 
+void gavf_add_streams(gavf_t * g, const gavf_program_header_t * ph)
+  {
+  gavf_program_header_copy(&g->ph, ph);
+  }
 
 int gavf_start(gavf_t * g)
   {

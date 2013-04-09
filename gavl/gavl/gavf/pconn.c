@@ -123,6 +123,8 @@ put_packet_func(void * priv, gavl_packet_t * p)
   {
   gavf_stream_t * s = priv;
 
+  p->id = s->h->id;
+  
   /* Update footer */
 #if 0
   fprintf(stderr, "put packet %d\n", s->h->id);

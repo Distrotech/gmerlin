@@ -20,6 +20,7 @@
  * *****************************************************************/
 
 #include "gavf-server.h"
+#include <string.h>
 
 static int program_iteration(program_t * p)
   {
@@ -56,18 +57,29 @@ static int conn_cb_func(void * priv, int type, const void * data)
     case GAVF_IO_CB_PROGRAM_HEADER_START:
       fprintf(stderr, "Got program header:\n");
       gavf_program_header_dump(data);
+
+      if(!(p->flags & PROGRAM_HAVE_HEADER))
+        {
+        gavf_program_header_copy(&p->ph, data);
+        p->flags |= PROGRAM_HAVE_HEADER;
+        }
       break;
     case GAVF_IO_CB_PROGRAM_HEADER_END:
       break;
     case GAVF_IO_CB_PACKET_START:
+      fprintf(stderr, "Got packet:\n");
+      gavl_packet_dump(data);
       break;
     case GAVF_IO_CB_PACKET_END:
       break;
     case GAVF_IO_CB_METADATA_START:
+      fprintf(stderr, "Got metadata:\n");
+      gavl_metadata_dump(data, 0);
       break;
     case GAVF_IO_CB_METADATA_END:
       break;
     case GAVF_IO_CB_SYNC_HEADER_START:
+      fprintf(stderr, "Got sync_header\n");
       break;
     case GAVF_IO_CB_SYNC_HEADER_END:
       break;
@@ -82,6 +94,9 @@ program_t * program_create_from_socket(const char * name, int fd)
   program_t * ret;
   int flags = 0;
   ret = calloc(1, sizeof(*ret));
+
+  pthread_mutex_init(&ret->mutex, NULL);
+
   ret->name = bg_strdup(NULL, name);
 
   ret->in_plug = bg_plug_create_reader(plugin_reg);
@@ -113,9 +128,11 @@ program_t * program_create_from_socket(const char * name, int fd)
   gavf_io_set_cb(io, conn_cb_func, ret);
 
   ret->conn_plug = bg_plug_create_writer(plugin_reg);
-  bg_plug_setup_writer(ret->conn_plug, &ret->conn);
 
-  if(bg_plug_start(ret->conn_plug))
+  bg_plug_open(ret->conn_plug, io,
+               bg_plug_get_metadata(ret->in_plug), NULL, 0);
+
+  if(!bg_plug_setup_writer(ret->conn_plug, &ret->conn))
     goto fail;
   
   return ret;
@@ -132,10 +149,27 @@ void program_destroy(program_t * p)
     bg_plug_destroy(p->in_plug);
   if(p->name)
     free(p->name);
+  pthread_mutex_destroy(&p->mutex);
+
   free(p);
   }
 
 void program_attach_client(program_t * p, int fd)
   {
+  client_t * cl = client_create(fd, &p->ph);
 
+  pthread_mutex_lock(&p->mutex);
+
+  if(p->num_clients + 1 > p->clients_alloc)
+    {
+    p->clients_alloc += 16;
+    p->clients = realloc(p->clients,
+                         p->clients_alloc * sizeof(*p->clients));
+    memset(p->clients + p->num_clients, 0,
+           (p->clients_alloc - p->num_clients) * sizeof(*p->clients));
+    }
+
+  p->clients[p->num_clients] = cl;
+  p->num_clients++;
+  pthread_mutex_unlock(&p->mutex);
   }

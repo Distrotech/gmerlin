@@ -332,6 +332,8 @@ typedef struct
   int32_t dst_x;             //!< X-coordinate in the destination frame (for overlays)
   int32_t dst_y;             //!< Y-coordinate in the destination frame (for overlays)
 
+  uint32_t id;    //!< ID of the gavf stream where this packet belongs
+  
   } gavl_packet_t;
 
 /** \brief Initialize a packet

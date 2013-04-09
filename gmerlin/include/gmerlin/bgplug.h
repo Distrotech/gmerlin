@@ -51,6 +51,9 @@ int bg_plug_open(bg_plug_t *, gavf_io_t * io,
                  const gavl_metadata_t * m,
                  const gavl_chapter_list_t * cl, int io_flags);
 
+int bg_plug_set_from_ph(bg_plug_t *,
+                        const gavf_program_header_t * ph);
+
 int bg_plug_open_location(bg_plug_t * p, const char * location,
                           const gavl_metadata_t * m,
                           const gavl_chapter_list_t * cl);
@@ -158,7 +161,7 @@ bg_plug_set_compressor_config(bg_plug_t * p,
                               const bg_parameter_info_t * vc_params,
                               const bg_parameter_info_t * oc_params);
 
-/* Called by bg_plug_open */
+/* I/O Stuff */
 
 #define BG_PLUG_IO_IS_LOCAL   (1<<0)
 #define BG_PLUG_IO_IS_REGULAR (1<<1)
@@ -173,7 +176,9 @@ bg_plug_set_compressor_config(bg_plug_t * p,
 #define BG_PLUG_IO_STATUS_423 423 // Locked
 #define BG_PLUG_IO_STATUS_505 505 // Protocol Version Not Supported
 #define BG_PLUG_IO_STATUS_503 503 // Service Unavailable
- 
+
+/* Called by bg_plug_open_location */
+
 
 gavf_io_t * bg_plug_io_open_location(const char * location,
                                      int method, int * flags);
@@ -185,7 +190,6 @@ gavf_io_t * bg_plug_io_open_socket(int fd,
 
 int bg_plug_request_read(int fd, gavl_metadata_t * req);
 int bg_plug_response_write(int fd, gavl_metadata_t * res);
-  
 
 void
 bg_plug_request_set_method(gavl_metadata_t * req, int metod);

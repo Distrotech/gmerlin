@@ -24,15 +24,15 @@
 typedef struct
   {
   bg_plug_t * plug;
-  } sink_client_t;
+  } client_t;
 
-typedef struct
-  {
-  bg_plug_t * plug;
-  } source_client_t;
+client_t * client_create(int fd, const gavf_program_header_t * ph);
+void client_destroy(client_t * cl);
 
 #define PROGRAM_STATUS_DONE    0
 #define PROGRAM_STATUS_RUNNING 1
+
+#define PROGRAM_HAVE_HEADER    (1<<0)
 
 /* One program */
 
@@ -46,12 +46,17 @@ typedef struct
   bg_mediaconnector_t conn;
   bg_plug_t * conn_plug;
   
-  //  int num_sink_clients;
-  //  sink_client_t * sinks;
-
+  int clients_alloc;
+  int num_clients;
+  client_t ** clients;
+  
+  
   int status;
+  int flags;
   
   pthread_t thread;
+
+  gavf_program_header_t ph;
   
   } program_t;
 
