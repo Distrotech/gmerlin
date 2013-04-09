@@ -1053,16 +1053,18 @@ static gavl_sink_status_t put_packet_shm(void * priv, gavl_packet_t * pp)
   return gavl_packet_sink_put_packet(s->sink_int, p);
   }
 
-static void check_shm_write(bg_plug_t * p, stream_t * s)
+static void check_shm_write(bg_plug_t * p, stream_t * s,
+                            gavl_metadata_t * m,
+                            const gavl_compression_info_t * ci)
   {
 #ifdef HAVE_MQ
   if((p->io_flags & BG_PLUG_IO_IS_LOCAL) &&
      (p->shm_threshold > 0) &&
-     (s->ci.max_packet_size > p->shm_threshold))
+     (ci->max_packet_size > p->shm_threshold))
     {
-    s->shm_size = s->ci.max_packet_size + GAVL_PACKET_PADDING;
+    s->shm_size = ci->max_packet_size + GAVL_PACKET_PADDING;
     s->sp = bg_shm_pool_create(s->shm_size, 1);
-    gavl_metadata_set_int(&s->m, META_SHM_SIZE, s->shm_size);
+    gavl_metadata_set_int(m, META_SHM_SIZE, s->shm_size);
     bg_log(BG_LOG_INFO, LOG_DOMAIN, "Using shm for writing (segment size: %d)",
            s->shm_size);
 
@@ -1102,6 +1104,8 @@ static int init_write_common(bg_plug_t * p, stream_t * s)
   return 1;
   }
 
+
+
 static int init_write(bg_plug_t * p)
   {
   int i;
@@ -1125,7 +1129,7 @@ static int init_write(bg_plug_t * p)
       }
 
     s->ci.max_packet_size = gavf_get_max_audio_packet_size(&s->afmt, &s->ci);
-    check_shm_write(p, s);
+    check_shm_write(p, s, &s->m, &s->ci);
     
     if((s->index = gavf_add_audio_stream(p->g, &s->ci, &s->afmt, &s->m)) < 0)
       return 0;
@@ -1146,7 +1150,7 @@ static int init_write(bg_plug_t * p)
       }
 
     s->ci.max_packet_size = gavf_get_max_video_packet_size(&s->vfmt, &s->ci);
-    check_shm_write(p, s);
+    check_shm_write(p, s, &s->m, &s->ci);
 
     if((s->index = gavf_add_video_stream(p->g, &s->ci, &s->vfmt, &s->m)) < 0)
       return 0;
@@ -1166,7 +1170,7 @@ static int init_write(bg_plug_t * p)
       }
 
     s->ci.max_packet_size = gavf_get_max_video_packet_size(&s->vfmt, &s->ci);
-    check_shm_write(p, s);
+    check_shm_write(p, s, &s->m, &s->ci);
 
     if((s->index = gavf_add_overlay_stream(p->g, &s->ci, &s->vfmt, &s->m)) < 0)
       return 0;
@@ -1174,7 +1178,7 @@ static int init_write(bg_plug_t * p)
   for(i = 0; i < p->num_text_streams; i++)
     {
     s = p->text_streams + i;
-    check_shm_write(p, s);
+    check_shm_write(p, s, &s->m, &s->ci);
     if((s->index = gavf_add_text_stream(p->g, s->timescale, &s->m)) < 0)
       return 0;
     }
@@ -1252,6 +1256,22 @@ static int init_write(bg_plug_t * p)
   
   return 1;
   }
+
+int bg_plug_set_from_ph(bg_plug_t * p,
+                        const gavf_program_header_t * ph)
+  {
+  if(!p->wr)
+    {
+    bg_log(BG_LOG_ERROR, LOG_DOMAIN,
+           "bg_plug_set_from_ph only works for write plugs");
+    return 0;
+    }
+
+  
+  
+  return 0;
+  }
+
 
 int bg_plug_start(bg_plug_t * p)
   {
