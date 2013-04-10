@@ -143,6 +143,7 @@ static int write_sync_header(gavf_t * g, int stream, const gavl_packet_t * p)
 static gavl_sink_status_t
 write_packet(gavf_t * g, int stream, const gavl_packet_t * p)
   {
+  gavl_time_t pts;
   int write_sync = 0;
   gavf_stream_t * s = &g->streams[stream];
 #if 1
@@ -152,13 +153,14 @@ write_packet(gavf_t * g, int stream, const gavl_packet_t * p)
     gavl_packet_dump(p);
     }
 #endif
+  pts = gavl_time_unscale(s->timescale, p->pts);
+  
   /* Decide whether to write a sync header */
   if(!g->first_sync_pos)
     write_sync = 1;
   else if(g->sync_distance)
     {
-    if(gavl_time_unscale(s->timescale, p->pts) - g->last_sync_time >
-       g->sync_distance)
+    if(pts - g->last_sync_time > g->sync_distance)
       write_sync = 1;
     }
   else
@@ -175,7 +177,7 @@ write_packet(gavf_t * g, int stream, const gavl_packet_t * p)
     if(!write_sync_header(g, stream, p))
       return GAVL_SINK_ERROR;
     if(g->sync_distance)
-      g->last_sync_time = gavl_time_unscale(s->timescale, p->pts);
+      g->last_sync_time = pts;
     }
 
   /* Write stored metadata if there is one */

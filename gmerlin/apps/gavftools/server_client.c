@@ -68,7 +68,6 @@ client_t * client_create(int fd, const gavf_program_header_t * ph,
   return NULL;
   }
 
-
 void client_destroy(client_t * cl)
   {
   if(cl->plug)

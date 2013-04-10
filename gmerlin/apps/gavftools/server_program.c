@@ -24,8 +24,10 @@
 
 #define LOG_DOMAIN "gavf-server.program"
 
-
 #define BUF_ELEMENTS 30
+
+static void program_remove_client(program_t * p, int idx);
+
 
 static void set_status(program_t * p, int status)
   {
@@ -73,7 +75,8 @@ static int program_iteration(program_t * p)
 
   for(i = 0; i < p->num_clients; i++)
     {
-    client_iteration(p->clients[i]);
+    if(!client_iteration(p->clients[i]))
+      program_remove_client(p, i);
     }
   
   /* Throw away old packets */
@@ -90,7 +93,7 @@ static int program_iteration(program_t * p)
     {
     gavl_time_t delay_time;
     delay_time = conn_time - program_time - GAVL_TIME_SCALE/2;
-    fprintf(stderr, "delay %"PRId64"\n", delay_time);
+    //    fprintf(stderr, "delay %"PRId64"\n", delay_time);
     gavl_time_delay(&delay_time);
     }
   
@@ -151,7 +154,7 @@ static int conn_cb_func(void * priv, int type, const void * data)
     case GAVF_IO_CB_METADATA_END:
       break;
     case GAVF_IO_CB_SYNC_HEADER_START:
-      //      fprintf(stderr, "Got sync_header\n");
+      fprintf(stderr, "Got sync_header\n");
 
       if(!gavl_timer_is_running(p->timer))
         gavl_timer_start(p->timer);
@@ -311,9 +314,26 @@ void program_attach_client(program_t * p, int fd)
   bg_log(BG_LOG_INFO, LOG_DOMAIN,
          "Got new client connection for program %s", p->name);
   
-
   p->num_clients++;
   pthread_mutex_unlock(&p->client_mutex);
+  }
+
+static void program_remove_client(program_t * p, int idx)
+  {
+  pthread_mutex_lock(&p->client_mutex);
+
+  client_destroy(p->clients[idx]);
+  if(idx < p->num_clients-1)
+    {
+    memmove(&p->clients[idx], &p->clients[idx+1],
+            (p->num_clients-1 - idx) * sizeof(p->clients[idx]));
+    }
+  p->num_clients--;
+  pthread_mutex_unlock(&p->client_mutex);
+
+  bg_log(BG_LOG_INFO, LOG_DOMAIN,
+         "Closed client connection for program %s", p->name);
+  
   }
 
 int program_get_status(program_t * p)

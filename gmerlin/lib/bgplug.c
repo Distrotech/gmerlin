@@ -360,6 +360,9 @@ bg_plug_t * bg_plug_create_writer(bg_plugin_registry_t * plugin_reg)
   {
   bg_plug_t * ret = bg_plug_create_reader(plugin_reg);
   ret->wr = 1;
+  
+  gavf_options_set_sync_distance(ret->opt, GAVL_TIME_SCALE / 2);
+
   return ret;
   }
 
