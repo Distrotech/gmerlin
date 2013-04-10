@@ -22,6 +22,9 @@
 #include "gavf-server.h"
 #include <string.h>
 
+#define LOG_DOMAIN "gavf-server.program"
+
+
 #define BUF_ELEMENTS 30
 
 static void set_status(program_t * p, int status)
@@ -31,12 +34,12 @@ static void set_status(program_t * p, int status)
   pthread_mutex_unlock(&p->status_mutex);
   }
 
-static client_t * element_used(program_t * p, buffer_element_t * el)
+static client_t * element_used(program_t * p, uint64_t seq)
   {
   int i;
   for(i = 0; i < p->num_clients; i++)
     {
-    if(p->clients[i]->cur == el)
+    if(p->clients[i]->seq == seq)
       return p->clients[i];
     }
   return NULL;
@@ -44,16 +47,17 @@ static client_t * element_used(program_t * p, buffer_element_t * el)
 
 static int program_iteration(program_t * p)
   {
+  int i;
   gavl_time_t conn_time;
   gavl_time_t program_time;
 
   /* Kill dead clients: We need at least 3 elements in the pool */
   
-  while(p->buf->pool_size < 3)
+  while(p->buf->elements_alloc - p->buf->num_elements < 3)
     {
     client_t * cl;
-
-    while((cl = element_used(p, p->buf->first)))
+    
+    while((cl = element_used(p, p->buf->elements[0]->seq)))
       {
       
       }
@@ -67,9 +71,15 @@ static int program_iteration(program_t * p)
   
   /* Distribute to clients */
 
+  for(i = 0; i < p->num_clients; i++)
+    {
+    client_iteration(p->clients[i]);
+    }
+  
   /* Throw away old packets */
 
-  while(p->buf->first && !element_used(p, p->buf->first))
+  while(p->buf->num_elements &&
+        !element_used(p, p->buf->elements[0]->seq))
     buffer_advance(p->buf);
   
   /* Delay */
@@ -121,7 +131,7 @@ static int conn_cb_func(void * priv, int type, const void * data)
     case GAVF_IO_CB_PROGRAM_HEADER_END:
       break;
     case GAVF_IO_CB_PACKET_START:
-      //      fprintf(stderr, "Got packet:\n");
+      //      fprintf(stderr, "Got packet: %d\n", ((gavl_packet_t*)data)->id);
       //      gavl_packet_dump(data);
 
       el = buffer_get_write(p->buf);
@@ -195,6 +205,8 @@ program_t * program_create_from_plug(const char * name, bg_plug_t * plug)
   {
   gavf_io_t * io;
   program_t * ret;
+  gavf_t * g;
+  
   ret = calloc(1, sizeof(*ret));
 
   ret->in_plug = plug;
@@ -208,13 +220,12 @@ program_t * program_create_from_plug(const char * name, bg_plug_t * plug)
   ret->timer = gavl_timer_create();
   ret->status = PROGRAM_STATUS_RUNNING;
   
-
   /* Set up media connector */
   
   bg_plug_setup_reader(ret->in_plug, &ret->conn);
   bg_mediaconnector_create_conn(&ret->conn);
   
-  /* Setup connection plug (TODO: Compress this) */
+  /* Setup connection plug */
   io = gavf_io_create(NULL,
                       conn_write_func,
                       NULL,
@@ -233,6 +244,16 @@ program_t * program_create_from_plug(const char * name, bg_plug_t * plug)
     goto fail;
 
   bg_mediaconnector_start(&ret->conn);
+
+  g = bg_plug_get_gavf(ret->conn_plug);
+  bg_log(BG_LOG_INFO, LOG_DOMAIN,
+         "Created program: %s (AS: %d, VS: %d, TS: %d, OS: %d)",
+         name,
+         gavf_get_num_streams(g, GAVF_STREAM_AUDIO),
+         gavf_get_num_streams(g, GAVF_STREAM_VIDEO),
+         gavf_get_num_streams(g, GAVF_STREAM_TEXT),
+         gavf_get_num_streams(g, GAVF_STREAM_OVERLAY));
+  
   pthread_create(&ret->thread, NULL, thread_func, ret);
   
   return ret;
@@ -269,7 +290,7 @@ void program_destroy(program_t * p)
 
 void program_attach_client(program_t * p, int fd)
   {
-  client_t * cl = client_create(fd, &p->ph);
+  client_t * cl = client_create(fd, &p->ph, p->buf);
 
   if(!cl)
     return;
@@ -286,6 +307,11 @@ void program_attach_client(program_t * p, int fd)
     }
 
   p->clients[p->num_clients] = cl;
+
+  bg_log(BG_LOG_INFO, LOG_DOMAIN,
+         "Got new client connection for program %s", p->name);
+  
+
   p->num_clients++;
   pthread_mutex_unlock(&p->client_mutex);
   }

@@ -78,4 +78,7 @@ int bg_socket_read_line(int fd, char ** ret,
 
 int bg_socket_is_local(int fd);
 
+int bg_socket_can_read(int fd, int milliseconds);
+int bg_socket_can_write(int fd, int milliseconds);
+
 #endif // __BG_SOCKET_H_

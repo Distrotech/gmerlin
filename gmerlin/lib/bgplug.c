@@ -1334,6 +1334,7 @@ int bg_plug_set_from_ph(bg_plug_t * p,
   }
 
 
+
 int bg_plug_start(bg_plug_t * p)
   {
   if(!p->io)
@@ -1459,7 +1460,7 @@ bg_plug_header_from_id(bg_plug_t * p, uint32_t id)
 
 /* Get stream sources */
 
-static stream_t * find_stream_by_id(stream_t * streams, int num, int id)
+static stream_t * find_stream_by_id(stream_t * streams, int num, uint32_t id)
   {
   int i;
   for(i = 0; i < num; i++)
@@ -1470,7 +1471,7 @@ static stream_t * find_stream_by_id(stream_t * streams, int num, int id)
   return NULL;
   }
 
-static stream_t * find_stream_by_id_all(bg_plug_t * p, int id)
+static stream_t * find_stream_by_id_all(bg_plug_t * p, uint32_t id)
   {
   stream_t * ret;
   ret = find_stream_by_id(p->audio_streams, p->num_audio_streams, id);
@@ -1896,6 +1897,16 @@ int bg_plug_got_error(bg_plug_t * p)
   pthread_mutex_unlock(&p->mutex);
   return ret;
   }
+
+gavl_sink_status_t bg_plug_put_packet(bg_plug_t * p,
+                                      gavl_packet_t * pkt)
+  {
+  stream_t * s = find_stream_by_id_all(p, pkt->id);
+  if(!s)
+    return GAVL_SINK_ERROR;
+  return gavl_packet_sink_put_packet(s->sink_ext, pkt);
+  }
+
 
 /* Proxy stuff */
 

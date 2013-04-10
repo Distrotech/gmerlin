@@ -21,6 +21,7 @@
 
 #include "gavf-server.h"
 #include <stdlib.h>
+#include <string.h>
 
 void buffer_element_set_sync_header(buffer_element_t * el)
   {
@@ -60,75 +61,62 @@ void buffer_element_destroy(buffer_element_t * el)
 buffer_t * buffer_create(int num_elements)
   {
   int i;
-  buffer_element_t * el;
   buffer_t * ret = calloc(1, sizeof(*ret));
 
-  for(i = 0; i < num_elements; i++)
-    {
-    el = buffer_element_create();
-    el->next = ret->pool;
-    ret->pool = el;
-    ret->pool_size++;
-    }
+  ret->elements_alloc = num_elements;
+  ret->elements = calloc(ret->elements_alloc, sizeof(*ret->elements));
+  
+  for(i = 0; i < ret->elements_alloc; i++)
+    ret->elements[i] = buffer_element_create();
+  
   return ret;
-  }
-
-static void free_elements(buffer_element_t * el)
-  {
-  buffer_element_t * tmp;
-  
-  while(el)
-    {
-    tmp = el->next;
-    buffer_element_destroy(el);
-    el = tmp;
-    }
-  
   }
 
 void buffer_destroy(buffer_t * b)
   {
-  free_elements(b->first);
-  free_elements(b->pool);
+  int i;
+  for(i = 0; i < b->elements_alloc; i++)
+    buffer_element_destroy(b->elements[i]);
+  free(b->elements);
   free(b);
   }
 
 buffer_element_t * buffer_get_write(buffer_t * b)
   {
   buffer_element_t * ret;
-  if(!b->pool)
+
+  if(b->num_elements == b->elements_alloc)
     return NULL;
 
-  /* Remove from pool */
-  ret = b->pool;
-  b->pool = b->pool->next;
-  ret->next = NULL;
+  ret = b->elements[b->num_elements];
+  b->num_elements++;
 
-  b->pool_size--;
+  ret->seq = b->seq++;
   
-  /* Append to list */
-  if(!b->first)
-    {
-    b->first = ret;
-    b->last = ret;
-    }
-  else
-    {
-    b->last->next = ret;
-    b->last = ret;
-    }
   return ret;
   }
 
 void buffer_advance(buffer_t * b)
   {
   buffer_element_t * el;
-  el = b->first;
   
-  b->first = b->first->next;
+  el = b->elements[0];
 
-  el->next = b->pool;
-  b->pool = el;
-  b->pool_size++;
+  memmove(b->elements, b->elements + 1,
+          (b->elements_alloc - 1) * sizeof(*b->elements));
 
+  b->elements[b->elements_alloc-1] = el;
+  
+  b->num_elements--;
+  }
+
+buffer_element_t *
+buffer_get_read(buffer_t * b, uint64_t seq)
+  {
+  int idx = seq - b->elements[0]->seq;
+
+  if(idx >= b->num_elements)
+    return NULL;
+  
+  return b->elements[idx];
   }

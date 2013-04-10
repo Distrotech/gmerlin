@@ -32,6 +32,9 @@ typedef struct buffer_element_s
   int type;
   gavl_packet_t p;
   gavl_metadata_t m;
+
+  uint64_t seq; // Sequence number
+
   struct buffer_element_s * next;
   } buffer_element_t;
 
@@ -48,35 +51,47 @@ void buffer_element_destroy(buffer_element_t *);
 
 typedef struct
   {
-  buffer_element_t * first;
-  buffer_element_t * last;
+  int elements_alloc;
+  int num_elements;
+  buffer_element_t ** elements;
 
-  buffer_element_t * pool;
-  int pool_size;
+  uint64_t seq;
   } buffer_t;
 
 buffer_t * buffer_create(int num_elements);
+
 void buffer_destroy(buffer_t *);
+
 buffer_element_t * buffer_get_write(buffer_t *);
+buffer_element_t * buffer_get_read(buffer_t *, uint64_t seq);
+
 
 void buffer_advance(buffer_t *);
-
 
 /* Client (= listener) connection */
 
 #define CLIENT_WAIT_SYNC    0
-#define CLIENT_PLAYING      1
+#define CLIENT_RUNNING      1
 #define CLIENT_ERROR        2
 
 typedef struct
   {
   bg_plug_t * plug;
-  buffer_element_t * cur;
+  buffer_t * buf;
+
+  uint64_t seq;
+  
   int status;
+  int fd;
+
+
   } client_t;
 
-client_t * client_create(int fd, const gavf_program_header_t * ph);
+client_t * client_create(int fd, const gavf_program_header_t * ph,
+                         buffer_t * buf);
+
 void client_destroy(client_t * cl);
+int client_iteration(client_t * cl);
 
 /* One program */
 

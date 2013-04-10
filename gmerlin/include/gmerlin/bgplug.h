@@ -145,6 +145,10 @@ void bg_plug_set_stream_action(bg_plug_t * p,
                                const gavf_stream_header_t * h,
                                bg_stream_action_t action);
 
+gavl_sink_status_t bg_plug_put_packet(bg_plug_t * p,
+                                      gavl_packet_t * pkt);
+
+
 int bg_plug_got_error(bg_plug_t * p);
 
 const gavf_stream_header_t *

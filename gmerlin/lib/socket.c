@@ -193,8 +193,6 @@ int bg_socket_connect_inet(bg_host_address_t * a, int milliseconds)
   int err;
   socklen_t err_len;
 
-  struct timeval timeout;
-  fd_set write_fds;
                                                                                
   /* Create the socket */
   if((ret = create_socket(a->addr->ai_family, SOCK_STREAM, 0)) < 0)
@@ -215,21 +213,9 @@ int bg_socket_connect_inet(bg_host_address_t * a, int milliseconds)
     {
     if(errno == EINPROGRESS)
       {
-      timeout.tv_sec = milliseconds / 1000;
-      timeout.tv_usec = 1000 * (milliseconds % 1000);
-      FD_ZERO (&write_fds);
-      FD_SET (ret, &write_fds);
-
-      err = select(ret+1, NULL, &write_fds, NULL,&timeout);
-      
-      if(!err)
+      if(!bg_socket_can_write(ret, milliseconds))
         {
         bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Connection timed out");
-        return -1;
-        }
-      else if(err < 0)
-        {
-        bg_log(BG_LOG_ERROR, LOG_DOMAIN, "select() failed on connect");
         return -1;
         }
       }
@@ -442,25 +428,8 @@ int bg_listen_socket_accept(int sock, int milliseconds)
   {
   int ret;
 
-  if(milliseconds >= 0)
-    {
-    int err;
-    struct timeval timeout;
-    fd_set read_fds;
-    
-    timeout.tv_sec = milliseconds / 1000;
-    timeout.tv_usec = 1000 * (milliseconds % 1000);
-    FD_ZERO (&read_fds);
-    FD_SET (sock, &read_fds);
-
-    err = select(sock+1, &read_fds, NULL, NULL,&timeout);
-    
-    if(!err)
-      {
-      // bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Connection timed out");
-      return -1;
-      }
-    }
+  if((milliseconds >= 0) && !bg_socket_can_read(sock, milliseconds))
+    return -1;
   
   ret = accept(sock, NULL, NULL);
   if(ret < 0)
@@ -473,27 +442,51 @@ void bg_listen_socket_destroy(int sock)
   close(sock);
   }
 
+int bg_socket_can_read(int fd, int milliseconds)
+  {
+  fd_set set;
+  struct timeval timeout;
+  FD_ZERO (&set);
+  FD_SET  (fd, &set);
+
+  timeout.tv_sec  = milliseconds / 1000;
+  timeout.tv_usec = (milliseconds % 1000) * 1000;
+    
+  if(select(fd+1, &set, NULL, NULL, &timeout) <= 0)
+    {
+    // bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Got read timeout");
+    return 0;
+    }
+  return 1;
+  }
+
+
+int bg_socket_can_write(int fd, int milliseconds)
+  {
+  fd_set set;
+  struct timeval timeout;
+  FD_ZERO (&set);
+  FD_SET  (fd, &set);
+
+  timeout.tv_sec  = milliseconds / 1000;
+  timeout.tv_usec = (milliseconds % 1000) * 1000;
+    
+  if(select(fd+1, NULL, &set, NULL, &timeout) <= 0)
+    {
+    // bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Got read timeout");
+    return 0;
+    }
+  return 1;
+  }
+
+
 int bg_socket_read_data(int fd, uint8_t * data, int len, int milliseconds)
   {
   int result;
-  fd_set rset;
-  struct timeval timeout;
-
-  if(milliseconds >= 0)
-    {
-    FD_ZERO (&rset);
-    FD_SET  (fd, &rset);
-    
-    timeout.tv_sec  = milliseconds / 1000;
-    timeout.tv_usec = (milliseconds % 1000) * 1000;
-    
-    if(select (fd+1, &rset, NULL, NULL, &timeout) <= 0)
-      {
-      // bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Got read timeout");
-      return 0;
-      }
-    }
-
+  
+  if((milliseconds >= 0) && !bg_socket_can_read(fd, milliseconds))
+    return 0;
+  
   result = recv(fd, data, len, MSG_WAITALL);
   if(result <= 0)
     {
