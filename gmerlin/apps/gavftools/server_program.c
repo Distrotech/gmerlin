@@ -22,7 +22,14 @@
 #include "gavf-server.h"
 #include <string.h>
 
-#define BUF_ELEMENTS 20
+#define BUF_ELEMENTS 30
+
+static void set_status(program_t * p, int status)
+  {
+  pthread_mutex_lock(&p->status_mutex);
+  p->status = status;
+  pthread_mutex_unlock(&p->status_mutex);
+  }
 
 static client_t * element_used(program_t * p, buffer_element_t * el)
   {
@@ -37,9 +44,12 @@ static client_t * element_used(program_t * p, buffer_element_t * el)
 
 static int program_iteration(program_t * p)
   {
-  /* Kill dead clients: We need at least 2 elements in the pool */
+  gavl_time_t conn_time;
+  gavl_time_t program_time;
+
+  /* Kill dead clients: We need at least 3 elements in the pool */
   
-  while(!p->buf->pool || !p->buf->pool->next)
+  while(p->buf->pool_size < 3)
     {
     client_t * cl;
 
@@ -59,20 +69,30 @@ static int program_iteration(program_t * p)
 
   /* Throw away old packets */
 
-  while(!element_used(p, p->buf->first))
+  while(p->buf->first && !element_used(p, p->buf->first))
     buffer_advance(p->buf);
   
   /* Delay */
+  conn_time = bg_mediaconnector_get_time(&p->conn);
+  program_time = gavl_timer_get(p->timer);
 
+  if(conn_time - program_time > GAVL_TIME_SCALE/2)
+    {
+    gavl_time_t delay_time;
+    delay_time = conn_time - program_time - GAVL_TIME_SCALE/2;
+    fprintf(stderr, "delay %"PRId64"\n", delay_time);
+    gavl_time_delay(&delay_time);
+    }
+  
   return 1;
   }
-
 
 static void * thread_func(void * priv)
   {
   program_t * p = priv;
   while(program_iteration(p))
     ;
+  set_status(p, PROGRAM_STATUS_DONE);
   return NULL;
   }
 
@@ -89,8 +109,8 @@ static int conn_cb_func(void * priv, int type, const void * data)
   switch(type)
     {
     case GAVF_IO_CB_PROGRAM_HEADER_START:
-      fprintf(stderr, "Got program header:\n");
-      gavf_program_header_dump(data);
+      //      fprintf(stderr, "Got program header:\n");
+      //      gavf_program_header_dump(data);
 
       if(!(p->flags & PROGRAM_HAVE_HEADER))
         {
@@ -101,22 +121,34 @@ static int conn_cb_func(void * priv, int type, const void * data)
     case GAVF_IO_CB_PROGRAM_HEADER_END:
       break;
     case GAVF_IO_CB_PACKET_START:
-      fprintf(stderr, "Got packet:\n");
-      gavl_packet_dump(data);
+      //      fprintf(stderr, "Got packet:\n");
+      //      gavl_packet_dump(data);
 
-      
+      el = buffer_get_write(p->buf);
+      buffer_element_set_packet(el, data);
 
       break;
     case GAVF_IO_CB_PACKET_END:
       break;
     case GAVF_IO_CB_METADATA_START:
-      fprintf(stderr, "Got metadata:\n");
-      gavl_metadata_dump(data, 0);
+      //      fprintf(stderr, "Got metadata:\n");
+      //      gavl_metadata_dump(data, 0);
+
+      el = buffer_get_write(p->buf);
+      buffer_element_set_metadata(el, data);
+
       break;
     case GAVF_IO_CB_METADATA_END:
       break;
     case GAVF_IO_CB_SYNC_HEADER_START:
-      fprintf(stderr, "Got sync_header\n");
+      //      fprintf(stderr, "Got sync_header\n");
+
+      if(!gavl_timer_is_running(p->timer))
+        gavl_timer_start(p->timer);
+      
+      el = buffer_get_write(p->buf);
+      buffer_element_set_sync_header(el);
+      
       break;
     case GAVF_IO_CB_SYNC_HEADER_END:
       break;
@@ -127,29 +159,55 @@ static int conn_cb_func(void * priv, int type, const void * data)
 
 program_t * program_create_from_socket(const char * name, int fd)
   {
-  gavf_io_t * io;
-  program_t * ret;
+  bg_plug_t * plug = NULL;
+  gavf_io_t * io = NULL;
   int flags = 0;
-  ret = calloc(1, sizeof(*ret));
 
-  pthread_mutex_init(&ret->mutex, NULL);
-
-  ret->name = bg_strdup(NULL, name);
-
-  ret->buf = buffer_create(BUF_ELEMENTS);
-    
-  ret->in_plug = bg_plug_create_reader(plugin_reg);
-  
   io = bg_plug_io_open_socket(fd, BG_PLUG_IO_METHOD_READ, &flags);
+  if(!io)
+    goto fail;
+  
+  plug = bg_plug_create_reader(plugin_reg);
+  if(!plug)
+    goto fail;
 
-  if(!bg_plug_open(ret->in_plug, io,
+  if(!bg_plug_open(plug, io,
                    NULL, NULL, flags))
     goto fail;
 
-  gavftools_set_stream_actions(ret->in_plug);
+  gavftools_set_stream_actions(plug);
 
-  if(!bg_plug_start(ret->in_plug))
+  if(!bg_plug_start(plug))
     goto fail;
+
+  return program_create_from_plug(name, plug);
+  
+  fail:
+
+  if(plug)
+    bg_plug_destroy(plug);
+  return NULL;
+  
+  }
+
+
+program_t * program_create_from_plug(const char * name, bg_plug_t * plug)
+  {
+  gavf_io_t * io;
+  program_t * ret;
+  ret = calloc(1, sizeof(*ret));
+
+  ret->in_plug = plug;
+  
+  pthread_mutex_init(&ret->client_mutex, NULL);
+  pthread_mutex_init(&ret->status_mutex, NULL);
+  
+  ret->name = bg_strdup(NULL, name);
+
+  ret->buf = buffer_create(BUF_ELEMENTS);
+  ret->timer = gavl_timer_create();
+  ret->status = PROGRAM_STATUS_RUNNING;
+  
 
   /* Set up media connector */
   
@@ -174,6 +232,8 @@ program_t * program_create_from_socket(const char * name, int fd)
   if(!bg_plug_setup_writer(ret->conn_plug, &ret->conn))
     goto fail;
 
+  bg_mediaconnector_start(&ret->conn);
+  pthread_create(&ret->thread, NULL, thread_func, ret);
   
   return ret;
   
@@ -183,13 +243,26 @@ program_t * program_create_from_socket(const char * name, int fd)
   
   }
 
+
 void program_destroy(program_t * p)
   {
+  if(program_get_status(p) == PROGRAM_STATUS_RUNNING)
+    set_status(p, PROGRAM_STATUS_STOP);
+
+  pthread_join(p->thread, NULL);
+  
   if(p->in_plug)
     bg_plug_destroy(p->in_plug);
   if(p->name)
     free(p->name);
-  pthread_mutex_destroy(&p->mutex);
+  if(p->buf)
+    buffer_destroy(p->buf);
+  if(p->timer)
+    gavl_timer_destroy(p->timer);
+  
+  
+  pthread_mutex_destroy(&p->client_mutex);
+  pthread_mutex_destroy(&p->status_mutex);
 
   free(p);
   }
@@ -201,7 +274,7 @@ void program_attach_client(program_t * p, int fd)
   if(!cl)
     return;
   
-  pthread_mutex_lock(&p->mutex);
+  pthread_mutex_lock(&p->client_mutex);
 
   if(p->num_clients + 1 > p->clients_alloc)
     {
@@ -214,5 +287,14 @@ void program_attach_client(program_t * p, int fd)
 
   p->clients[p->num_clients] = cl;
   p->num_clients++;
-  pthread_mutex_unlock(&p->mutex);
+  pthread_mutex_unlock(&p->client_mutex);
+  }
+
+int program_get_status(program_t * p)
+  {
+  int ret;
+  pthread_mutex_lock(&p->status_mutex);
+  ret = p->status;
+  pthread_mutex_unlock(&p->status_mutex);
+  return ret;  
   }

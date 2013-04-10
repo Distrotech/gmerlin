@@ -160,6 +160,28 @@ static void append_program(server_t * s, program_t * p)
   pthread_mutex_unlock(&s->program_mutex);
   }
 
+static void remove_program(server_t * s, program_t * p)
+  {
+  int i;
+  pthread_mutex_lock(&s->program_mutex);
+
+  for(i = 0; i < s->num_programs; i++)
+    {
+    if(p == s->programs[i])
+      {
+      if(i < s->num_programs - 1)
+        {
+        memmove(&s->programs[i], &s->programs[i+1],
+                sizeof(s->programs[i]) * (s->num_programs - 1 - i));
+        }
+      s->num_programs--;
+      break;
+      }
+    }
+  
+  pthread_mutex_unlock(&s->program_mutex);
+  }
+
 static void handle_client_connection(server_t * s, int fd)
   {
   int method;
@@ -210,9 +232,8 @@ static void handle_client_connection(server_t * s, int fd)
         bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Writing response failed");
         goto fail;
         }
-      
-
       program_attach_client(p, fd);
+      fd = -1;
       break;
     case BG_PLUG_IO_METHOD_WRITE:
       if(p)
@@ -231,6 +252,7 @@ static void handle_client_connection(server_t * s, int fd)
       if(!p)
         goto fail;
       append_program(s, p);
+      fd = -1;
       break;
     default:
       status = BG_PLUG_IO_STATUS_405;
@@ -261,6 +283,23 @@ int server_iteration(server_t * s)
   int i;
   int fd;
 
+  /* Remove dead programs */
+  i = 0;
+  while(i < s->num_programs)
+    {
+    program_t * p = s->programs[i];
+    
+    if(program_get_status(p) == PROGRAM_STATUS_DONE)
+      {
+      remove_program(s, p);
+      bg_log(BG_LOG_INFO, LOG_DOMAIN, "Removing dead program %s",
+             p->name);
+      program_destroy(p);
+      }
+    else
+      i++;
+    }
+  
   for(i = 0; i < s->num_listen_sockets; i++)
     {
     if((fd = bg_listen_socket_accept(s->listen_sockets[i], 0)) >= 0)

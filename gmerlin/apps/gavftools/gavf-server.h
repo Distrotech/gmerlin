@@ -52,6 +52,7 @@ typedef struct
   buffer_element_t * last;
 
   buffer_element_t * pool;
+  int pool_size;
   } buffer_t;
 
 buffer_t * buffer_create(int num_elements);
@@ -81,12 +82,14 @@ void client_destroy(client_t * cl);
 
 #define PROGRAM_STATUS_DONE    0
 #define PROGRAM_STATUS_RUNNING 1
+#define PROGRAM_STATUS_STOP    2
 
 #define PROGRAM_HAVE_HEADER    (1<<0)
 
 typedef struct
   {
-  pthread_mutex_t mutex;
+  pthread_mutex_t client_mutex;
+  pthread_mutex_t status_mutex;
 
   char * name;
 
@@ -107,13 +110,20 @@ typedef struct
   gavf_program_header_t ph;
 
   buffer_t * buf;
+
+  gavl_timer_t * timer;
   
   } program_t;
 
 program_t * program_create_from_socket(const char * name, int fd);
+program_t * program_create_from_plug(const char * name, bg_plug_t * plug);
+
+int program_get_status(program_t * p);
+
 void program_destroy(program_t *);
 void program_attach_client(program_t *, int fd);
 
+void program_run(program_t * p);
 
 
 typedef struct

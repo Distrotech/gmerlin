@@ -1296,25 +1296,25 @@ int bg_plug_set_from_ph(bg_plug_t * p,
         s = p->audio_streams + idx;
         break;
       case GAVF_STREAM_VIDEO:
-        bg_plug_add_video_stream(p,
-                                 &sh->ci,
-                                 &sh->format.video,
-                                 &sh->m,
-                                 NULL);
+        idx = bg_plug_add_video_stream(p,
+                                       &sh->ci,
+                                       &sh->format.video,
+                                       &sh->m,
+                                       NULL);
         s = p->video_streams + idx;
         break;
       case GAVF_STREAM_TEXT:
-        bg_plug_add_text_stream(p,
-                                sh->format.text.timescale,
-                                &sh->m);
+        idx = bg_plug_add_text_stream(p,
+                                      sh->format.text.timescale,
+                                      &sh->m);
         s = p->text_streams + idx;
         break;
       case GAVF_STREAM_OVERLAY:
-        bg_plug_add_overlay_stream(p,
-                                   &sh->ci,
-                                   &sh->format.video,
-                                   &sh->m,
-                                   NULL);
+        idx = bg_plug_add_overlay_stream(p,
+                                         &sh->ci,
+                                         &sh->format.video,
+                                         &sh->m,
+                                         NULL);
         s = p->overlay_streams + idx;
         break;
       }
@@ -1324,8 +1324,10 @@ int bg_plug_set_from_ph(bg_plug_t * p,
     }
 
   if(!gavf_start(p->g))
+    {
+    bg_log(BG_LOG_ERROR, LOG_DOMAIN, "gavf_start failed");
     return 0;
-
+    }
   create_sinks(p);
   
   return 1;

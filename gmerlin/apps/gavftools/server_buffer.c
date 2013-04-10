@@ -61,13 +61,14 @@ buffer_t * buffer_create(int num_elements)
   {
   int i;
   buffer_element_t * el;
-  buffer_t * ret = calloc(1, sizeof(ret));
+  buffer_t * ret = calloc(1, sizeof(*ret));
 
   for(i = 0; i < num_elements; i++)
     {
     el = buffer_element_create();
     el->next = ret->pool;
     ret->pool = el;
+    ret->pool_size++;
     }
   return ret;
   }
@@ -103,6 +104,8 @@ buffer_element_t * buffer_get_write(buffer_t * b)
   b->pool = b->pool->next;
   ret->next = NULL;
 
+  b->pool_size--;
+  
   /* Append to list */
   if(!b->first)
     {
@@ -126,4 +129,6 @@ void buffer_advance(buffer_t * b)
 
   el->next = b->pool;
   b->pool = el;
+  b->pool_size++;
+
   }

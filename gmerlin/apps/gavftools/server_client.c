@@ -22,6 +22,8 @@
 #include "gavf-server.h"
 #include <stdlib.h>
 
+#define LOG_DOMAIN "gavf-server.client"
+
 client_t * client_create(int fd, const gavf_program_header_t * ph)
   {
   int flags = 0;
@@ -31,13 +33,23 @@ client_t * client_create(int fd, const gavf_program_header_t * ph)
 
   ret->plug = bg_plug_create_writer(plugin_reg);
 
-  io = bg_plug_io_open_socket(fd, BG_PLUG_IO_METHOD_READ, &flags);
-
-  if(!io ||
-     !bg_plug_open(ret->plug, io, NULL, NULL, flags) ||
-     !bg_plug_set_from_ph(ret->plug, ph))
+  if(!(io = bg_plug_io_open_socket(fd, BG_PLUG_IO_METHOD_WRITE, &flags)))
+    {
+    bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Creating client I/O module failed");
     goto fail;
+    }
 
+  if(!bg_plug_open(ret->plug, io, NULL, NULL, flags))
+    {
+    bg_log(BG_LOG_ERROR, LOG_DOMAIN, "bg_plug_open failed");
+    goto fail;
+    }
+  
+  if(!bg_plug_set_from_ph(ret->plug, ph))
+    {
+    bg_log(BG_LOG_ERROR, LOG_DOMAIN, "bg_plug_set_from_ph failed");
+    goto fail;
+    }
   return ret;
   
   fail:
