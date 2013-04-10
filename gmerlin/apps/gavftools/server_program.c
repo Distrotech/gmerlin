@@ -22,18 +22,51 @@
 #include "gavf-server.h"
 #include <string.h>
 
+#define BUF_ELEMENTS 20
+
+static client_t * element_used(program_t * p, buffer_element_t * el)
+  {
+  int i;
+  for(i = 0; i < p->num_clients; i++)
+    {
+    if(p->clients[i]->cur == el)
+      return p->clients[i];
+    }
+  return NULL;
+  }
+
 static int program_iteration(program_t * p)
   {
+  /* Kill dead clients: We need at least 2 elements in the pool */
+  
+  while(!p->buf->pool || !p->buf->pool->next)
+    {
+    client_t * cl;
+
+    while((cl = element_used(p, p->buf->first)))
+      {
+      
+      }
+    buffer_advance(p->buf);
+    }
+  
   /* Read packet from source */
 
-  /* Distribute to sinks */
+  if(!bg_mediaconnector_iteration(&p->conn))
+    return 0;
+  
+  /* Distribute to clients */
 
   /* Throw away old packets */
 
+  while(!element_used(p, p->buf->first))
+    buffer_advance(p->buf);
+  
   /* Delay */
 
   return 1;
   }
+
 
 static void * thread_func(void * priv)
   {
@@ -50,8 +83,9 @@ static int conn_write_func(void * priv, const uint8_t * data, int len)
 
 static int conn_cb_func(void * priv, int type, const void * data)
   {
+  buffer_element_t * el;
   program_t * p = priv;
-
+  
   switch(type)
     {
     case GAVF_IO_CB_PROGRAM_HEADER_START:
@@ -69,6 +103,9 @@ static int conn_cb_func(void * priv, int type, const void * data)
     case GAVF_IO_CB_PACKET_START:
       fprintf(stderr, "Got packet:\n");
       gavl_packet_dump(data);
+
+      
+
       break;
     case GAVF_IO_CB_PACKET_END:
       break;
@@ -99,6 +136,8 @@ program_t * program_create_from_socket(const char * name, int fd)
 
   ret->name = bg_strdup(NULL, name);
 
+  ret->buf = buffer_create(BUF_ELEMENTS);
+    
   ret->in_plug = bg_plug_create_reader(plugin_reg);
   
   io = bg_plug_io_open_socket(fd, BG_PLUG_IO_METHOD_READ, &flags);
@@ -134,6 +173,7 @@ program_t * program_create_from_socket(const char * name, int fd)
 
   if(!bg_plug_setup_writer(ret->conn_plug, &ret->conn))
     goto fail;
+
   
   return ret;
   
@@ -158,6 +198,9 @@ void program_attach_client(program_t * p, int fd)
   {
   client_t * cl = client_create(fd, &p->ph);
 
+  if(!cl)
+    return;
+  
   pthread_mutex_lock(&p->mutex);
 
   if(p->num_clients + 1 > p->clients_alloc)

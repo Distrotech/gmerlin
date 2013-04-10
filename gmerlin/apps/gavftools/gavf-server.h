@@ -21,20 +21,68 @@
 
 #include "gavftools.h"
 
+/* Buffer */
+
+#define BUFFER_TYPE_PACKET      0
+#define BUFFER_TYPE_METADATA    1
+#define BUFFER_TYPE_SYNC_HEADER 2
+
+typedef struct buffer_element_s
+  {
+  int type;
+  gavl_packet_t p;
+  gavl_metadata_t m;
+  struct buffer_element_s * next;
+  } buffer_element_t;
+
+void buffer_element_set_sync_header(buffer_element_t * el);
+
+void buffer_element_set_packet(buffer_element_t * el,
+                               const gavl_packet_t * p);
+
+void buffer_element_set_metadata(buffer_element_t * el,
+                                 const gavl_metadata_t * m);
+
+buffer_element_t * buffer_element_create();
+void buffer_element_destroy(buffer_element_t *);
+
+typedef struct
+  {
+  buffer_element_t * first;
+  buffer_element_t * last;
+
+  buffer_element_t * pool;
+  } buffer_t;
+
+buffer_t * buffer_create(int num_elements);
+void buffer_destroy(buffer_t *);
+buffer_element_t * buffer_get_write(buffer_t *);
+
+void buffer_advance(buffer_t *);
+
+
+/* Client (= listener) connection */
+
+#define CLIENT_WAIT_SYNC    0
+#define CLIENT_PLAYING      1
+#define CLIENT_ERROR        2
+
 typedef struct
   {
   bg_plug_t * plug;
+  buffer_element_t * cur;
+  int status;
   } client_t;
 
 client_t * client_create(int fd, const gavf_program_header_t * ph);
 void client_destroy(client_t * cl);
 
+/* One program */
+
 #define PROGRAM_STATUS_DONE    0
 #define PROGRAM_STATUS_RUNNING 1
 
 #define PROGRAM_HAVE_HEADER    (1<<0)
-
-/* One program */
 
 typedef struct
   {
@@ -57,6 +105,8 @@ typedef struct
   pthread_t thread;
 
   gavf_program_header_t ph;
+
+  buffer_t * buf;
   
   } program_t;
 
