@@ -33,7 +33,7 @@ typedef struct buffer_element_s
   gavl_packet_t p;
   gavl_metadata_t m;
 
-  uint64_t seq; // Sequence number
+  int64_t seq; // Sequence number
 
   struct buffer_element_s * next;
   } buffer_element_t;
@@ -46,44 +46,45 @@ void buffer_element_set_packet(buffer_element_t * el,
 void buffer_element_set_metadata(buffer_element_t * el,
                                  const gavl_metadata_t * m);
 
-buffer_element_t * buffer_element_create();
-void buffer_element_destroy(buffer_element_t *);
+typedef struct buffer_s buffer_t;
 
-typedef struct
-  {
-  int elements_alloc;
-  int num_elements;
-  buffer_element_t ** elements;
-
-  uint64_t seq;
-  } buffer_t;
 
 buffer_t * buffer_create(int num_elements);
 
 void buffer_destroy(buffer_t *);
 
 buffer_element_t * buffer_get_write(buffer_t *);
-buffer_element_t * buffer_get_read(buffer_t *, uint64_t seq);
+void buffer_done_write(buffer_t *);
 
+buffer_element_t * buffer_get_read(buffer_t *, int64_t seq);
+// void buffer_done_read(buffer_t *, buffer_element_t *);
+
+buffer_element_t * buffer_get_first(buffer_t *);
+
+int64_t buffer_get_start_seq(buffer_t *);
 
 void buffer_advance(buffer_t *);
 
 /* Client (= listener) connection */
 
-#define CLIENT_WAIT_SYNC    0
-#define CLIENT_RUNNING      1
-#define CLIENT_ERROR        2
+#define CLIENT_STATUS_WAIT_SYNC    0
+#define CLIENT_STATUS_RUNNING      1
+#define CLIENT_STATUS_DONE         2
+#define CLIENT_STATUS_STOP         3
 
 typedef struct
   {
   bg_plug_t * plug;
   buffer_t * buf;
 
-  uint64_t seq;
+  pthread_mutex_t status_mutex;
+  pthread_mutex_t seq_mutex;
+  int64_t seq;
   
   int status;
   int fd;
 
+  pthread_t thread;
 
   } client_t;
 
@@ -92,6 +93,10 @@ client_t * client_create(int fd, const gavf_program_header_t * ph,
 
 void client_destroy(client_t * cl);
 int client_iteration(client_t * cl);
+
+int64_t client_get_seq(client_t * cl);
+int client_get_status(client_t * cl);
+void client_set_status(client_t * c, int status);
 
 /* One program */
 

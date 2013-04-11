@@ -144,6 +144,9 @@ bg_mediaconnector_update_time(bg_mediaconnector_t * conn,
 gavl_time_t
 bg_mediaconnector_get_time(bg_mediaconnector_t * conn);
 
+gavl_time_t
+bg_mediaconnector_get_min_time(bg_mediaconnector_t * conn);
+
 void
 bg_mediaconnector_create_threads(bg_mediaconnector_t * conn, int all);
 

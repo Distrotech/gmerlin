@@ -157,6 +157,9 @@ bg_plug_header_from_index(bg_plug_t * p, int index);
 const gavf_stream_header_t *
 bg_plug_header_from_id(bg_plug_t * p, uint32_t id);
 
+void bg_plug_transfer_metadata(bg_plug_t * in_plug, bg_plug_t * out_plug);
+
+
 /* Set parameters */
 
 void

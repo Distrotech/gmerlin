@@ -27,6 +27,25 @@
 
 #define LOG_DOMAIN "gavf-server.client"
 
+
+void client_set_status(client_t * c, int status)
+  {
+  pthread_mutex_lock(&c->status_mutex);
+  c->status = status;
+  pthread_mutex_unlock(&c->status_mutex);
+  }
+
+
+static void * thread_func(void * priv)
+  {
+  client_t * c = priv;
+  while(client_iteration(c))
+    ;
+  client_set_status(c, CLIENT_STATUS_DONE);
+  return NULL;
+  }
+
+
 client_t * client_create(int fd, const gavf_program_header_t * ph,
                          buffer_t * buf)
   {
@@ -36,13 +55,14 @@ client_t * client_create(int fd, const gavf_program_header_t * ph,
 
   client_t * ret = calloc(1, sizeof(*ret));
 
+  pthread_mutex_init(&ret->seq_mutex, NULL);
+  pthread_mutex_init(&ret->status_mutex, NULL);
+
   ret->fd = fd;
   ret->buf = buf;
-
-  ret->seq = buf->num_elements ? buf->elements[0]->seq : buf->seq;
   
   ret->plug = bg_plug_create_writer(plugin_reg);
-  ret->status = CLIENT_WAIT_SYNC;
+  ret->status = CLIENT_STATUS_WAIT_SYNC;
   
   if(!(io = bg_plug_io_open_socket(fd, BG_PLUG_IO_METHOD_WRITE, &flags)))
     {
@@ -67,7 +87,9 @@ client_t * client_create(int fd, const gavf_program_header_t * ph,
     bg_log(BG_LOG_ERROR, LOG_DOMAIN, "bg_plug_set_from_ph failed");
     goto fail;
     }
-  
+
+  pthread_create(&ret->thread, NULL, thread_func, ret);
+    
   return ret;
   
   fail:
@@ -75,48 +97,80 @@ client_t * client_create(int fd, const gavf_program_header_t * ph,
   return NULL;
   }
 
+int client_get_status(client_t * cl)
+  {
+  int ret;
+  pthread_mutex_lock(&cl->status_mutex);
+  ret = cl->status;
+  pthread_mutex_unlock(&cl->status_mutex);
+  return ret;  
+  }
+
+
 void client_destroy(client_t * cl)
   {
+  client_set_status(cl, CLIENT_STATUS_STOP);
+  pthread_join(cl->thread, NULL);
+  pthread_mutex_destroy(&cl->seq_mutex);
+  pthread_mutex_destroy(&cl->status_mutex);
+
   if(cl->plug)
     bg_plug_destroy(cl->plug);
+  
   free(cl);
   }
 
 static buffer_element_t * next_element(client_t * cl)
   {
-  buffer_element_t * ret = buffer_get_read(cl->buf, cl->seq);
-  if(ret)
-    cl->seq++;
+  int64_t seq;
+  buffer_element_t * ret;
+
+  pthread_mutex_lock(&cl->seq_mutex);
+  seq = cl->seq;
+  pthread_mutex_unlock(&cl->seq_mutex);
+  
+  ret = buffer_get_read(cl->buf, seq);
+  
   return ret;
   }
 
 int client_iteration(client_t * cl)
   {
   buffer_element_t * el;
-
+  int status;
   // fprintf(stderr, "Client iteration %d %"PRId64"\n", cl->status, cl->seq);
+
+  status = client_get_status(cl);
+
+  if(status == CLIENT_STATUS_STOP)
+    return 0;
   
-  if(cl->status == CLIENT_WAIT_SYNC)
+  if(status == CLIENT_STATUS_WAIT_SYNC)
     {
     while(1)
       {
       el = next_element(cl);
 
       if(!el)
-        return 1;
+        return 0;
       
       if(el->type == BUFFER_TYPE_SYNC_HEADER)
         {
-        cl->status = CLIENT_RUNNING;
+        client_set_status(cl, CLIENT_STATUS_RUNNING);
         break;
         }
+
+      pthread_mutex_lock(&cl->seq_mutex);
+      cl->seq++;
+      pthread_mutex_unlock(&cl->seq_mutex);
+      
       }
     }
 
   while(bg_socket_can_write(cl->fd, 0))
     {
     if(!(el = next_element(cl)))
-      return 1;
+      return 0;
     
     switch(el->type)
       {
@@ -131,7 +185,20 @@ int client_iteration(client_t * cl)
           return 0;
         break;
       }
+    pthread_mutex_lock(&cl->seq_mutex);
+    cl->seq++;
+    pthread_mutex_unlock(&cl->seq_mutex);
     }
   
   return 1;
   }
+
+int64_t client_get_seq(client_t * cl)
+  {
+  int64_t ret;
+  pthread_mutex_lock(&cl->seq_mutex);
+  ret = cl->seq;
+  pthread_mutex_unlock(&cl->seq_mutex);
+  return ret;
+  }
+

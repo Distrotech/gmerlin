@@ -35,7 +35,6 @@ struct bg_frame_timer_s
   
   gavl_timer_t * timer;
   int64_t next_pts;
-  int64_t last_pts;
 
   /* Only used when bg_frame_timer_wait() is used */
   gavl_time_t capture_start_time;
@@ -53,7 +52,6 @@ bg_frame_timer_t * bg_frame_timer_create(float framerate,
   
   ret->timer = gavl_timer_create();
   ret->next_pts = GAVL_TIME_UNDEFINED;
-  ret->last_pts = GAVL_TIME_UNDEFINED;
   ret->frame_duration = (int)(TIME_SCALE / framerate);
   *timescale = TIME_SCALE;
   return ret;
@@ -81,7 +79,6 @@ void bg_frame_timer_update(bg_frame_timer_t * t,
     frame->duration = t->frame_duration;
     gavl_timer_start(t->timer);
     t->next_pts = frame->duration;
-    t->last_pts = 0;
     t->last_time = 0;
     return;
     }
@@ -89,22 +86,30 @@ void bg_frame_timer_update(bg_frame_timer_t * t,
   frame->timestamp = t->next_pts;
   
   /*
-   * Diff > 0 -> frame too early: Duration was too large
-   * Diff < 0 -> frame too late: Duration was too small
+   * diff: True time minus guessed time
+   *
+   * Diff < 0 -> frame too early: Guessed duration was too large
+   * Diff > 0 -> frame too late: Guessed duration was too small
    */
   
-  diff = t->next_pts - gavl_time_scale(TIME_SCALE, current_time);
+  diff = gavl_time_scale(TIME_SCALE, current_time) - t->next_pts;
   
+  /* Real duration of the last frame */ 
   real_duration =
     gavl_time_scale(TIME_SCALE, current_time - t->last_time);
-  
-  frame->duration = real_duration - diff;
 
+  /* Duration of this frame is real duration of the last frame
+     plus the error */
+  
+  frame->duration = real_duration + diff;
+
+  //  fprintf(stderr, "Cur: %"PRId64", Last: %"PRId64", diff: %"PRId64"\n",
+  //          current_time, t->last_time, current_time - t->last_time);
+  
   if(frame->duration <= 0)
     frame->duration = TIME_SCALE / 100; // 10 ms/100 fps
   
   t->last_time = current_time;
-  t->last_pts = t->next_pts;
   t->next_pts += frame->duration;
   }
 

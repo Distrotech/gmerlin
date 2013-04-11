@@ -379,6 +379,29 @@ static int process_stream(bg_mediaconnector_stream_t * s)
   return ret;
   }
 
+gavl_time_t
+bg_mediaconnector_get_min_time(bg_mediaconnector_t * conn)
+  {
+  int i;
+  bg_mediaconnector_stream_t * s;
+  gavl_time_t min_time= GAVL_TIME_UNDEFINED;
+  
+  for(i = 0; i < conn->num_streams; i++)
+    {
+    s = conn->streams[i];
+    if(s->flags & (BG_MEDIACONNECTOR_FLAG_EOF |
+                   BG_MEDIACONNECTOR_FLAG_DISCONT))
+      continue;
+    
+    if((min_time == GAVL_TIME_UNDEFINED) ||
+       (s->time < min_time))
+      {
+      min_time = s->time;
+      }
+    }
+  return min_time;
+  }
+
 int bg_mediaconnector_iteration(bg_mediaconnector_t * conn)
   {
   int i;

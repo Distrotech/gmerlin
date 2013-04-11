@@ -1268,6 +1268,21 @@ static int init_write(bg_plug_t * p)
   return 1;
   }
 
+static void update_metadata(void * priv, const gavl_metadata_t * m)
+  {
+  gavf_update_metadata(priv, m);
+  }
+
+void bg_plug_transfer_metadata(bg_plug_t * in_plug, bg_plug_t * out_plug)
+  {
+  gavf_options_set_metadata_callback(gavf_get_options(bg_plug_get_gavf(in_plug)),
+                                     update_metadata, bg_plug_get_gavf(out_plug));
+  
+  }
+
+
+
+
 int bg_plug_set_from_ph(bg_plug_t * p,
                         const gavf_program_header_t * ph)
   {

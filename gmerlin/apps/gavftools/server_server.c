@@ -114,6 +114,8 @@ server_t * server_create(char ** listen_addresses,
              "Invalid listen address %s", ret->listen_addresses[i]);
       goto fail;
       }
+    bg_log(BG_LOG_INFO, LOG_DOMAIN, "Listening at %s",
+           ret->listen_addresses[i]);
     }
   
   return ret;

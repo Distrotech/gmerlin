@@ -26,7 +26,7 @@
 
 #define BUF_ELEMENTS 30
 
-static void program_remove_client(program_t * p, int idx);
+static void program_remove_client_nolock(program_t * p, int idx);
 
 
 static void set_status(program_t * p, int status)
@@ -36,13 +36,22 @@ static void set_status(program_t * p, int status)
   pthread_mutex_unlock(&p->status_mutex);
   }
 
-static client_t * element_used(program_t * p, uint64_t seq)
+static client_t * element_used(program_t * p, int64_t seq)
   {
   int i;
+  int status;
+  
   for(i = 0; i < p->num_clients; i++)
     {
-    if(p->clients[i]->seq == seq)
+    status = client_get_status(p->clients[i]);
+    
+    if(status == CLIENT_STATUS_DONE)
+      continue;
+    
+    if(client_get_seq(p->clients[i]) == seq)
+      {
       return p->clients[i];
+      }
     }
   return NULL;
   }
@@ -52,9 +61,23 @@ static int program_iteration(program_t * p)
   int i;
   gavl_time_t conn_time;
   gavl_time_t program_time;
-
-  /* Kill dead clients: We need at least 3 elements in the pool */
+  buffer_element_t * el;
   
+  /* Kill dead clients */
+
+  pthread_mutex_lock(&p->client_mutex);
+  i = 0;
+  while(i < p->num_clients)
+    {
+    if(client_get_status(p->clients[i]) == CLIENT_STATUS_DONE)
+      program_remove_client_nolock(p, i);
+    else
+      i++;
+    }
+  pthread_mutex_unlock(&p->client_mutex);
+
+  /* We need at least 3 elements in the pool */
+#if 0
   while(p->buf->elements_alloc - p->buf->num_elements < 3)
     {
     client_t * cl;
@@ -65,31 +88,26 @@ static int program_iteration(program_t * p)
       }
     buffer_advance(p->buf);
     }
-  
+#endif
   /* Read packet from source */
 
   if(!bg_mediaconnector_iteration(&p->conn))
     return 0;
-  
-  /* Distribute to clients */
 
-  for(i = 0; i < p->num_clients; i++)
-    {
-    if(!client_iteration(p->clients[i]))
-      program_remove_client(p, i);
-    }
-  
   /* Throw away old packets */
 
-  while(p->buf->num_elements &&
-        !element_used(p, p->buf->elements[0]->seq))
+  pthread_mutex_lock(&p->client_mutex);
+  while((el = buffer_get_first(p->buf)) &&
+         !element_used(p, el->seq))
     buffer_advance(p->buf);
-  
+  pthread_mutex_unlock(&p->client_mutex);
+    
   /* Delay */
-  conn_time = bg_mediaconnector_get_time(&p->conn);
+  conn_time = bg_mediaconnector_get_min_time(&p->conn);
   program_time = gavl_timer_get(p->timer);
 
-  if(conn_time - program_time > GAVL_TIME_SCALE/2)
+  if((conn_time != GAVL_TIME_UNDEFINED) &&
+     (conn_time - program_time > GAVL_TIME_SCALE/2))
     {
     gavl_time_t delay_time;
     delay_time = conn_time - program_time - GAVL_TIME_SCALE/2;
@@ -138,8 +156,12 @@ static int conn_cb_func(void * priv, int type, const void * data)
       //      gavl_packet_dump(data);
 
       el = buffer_get_write(p->buf);
+      if(!el)
+        return 0;
+      
       buffer_element_set_packet(el, data);
-
+      buffer_done_write(p->buf);
+      
       break;
     case GAVF_IO_CB_PACKET_END:
       break;
@@ -148,7 +170,11 @@ static int conn_cb_func(void * priv, int type, const void * data)
       //      gavl_metadata_dump(data, 0);
 
       el = buffer_get_write(p->buf);
+      if(!el)
+        return 0;
+
       buffer_element_set_metadata(el, data);
+      buffer_done_write(p->buf);
 
       break;
     case GAVF_IO_CB_METADATA_END:
@@ -160,7 +186,11 @@ static int conn_cb_func(void * priv, int type, const void * data)
         gavl_timer_start(p->timer);
       
       el = buffer_get_write(p->buf);
+      if(!el)
+        return 0;
+
       buffer_element_set_sync_header(el);
+      buffer_done_write(p->buf);
       
       break;
     case GAVF_IO_CB_SYNC_HEADER_END:
@@ -203,7 +233,6 @@ program_t * program_create_from_socket(const char * name, int fd)
   
   }
 
-
 program_t * program_create_from_plug(const char * name, bg_plug_t * plug)
   {
   gavf_io_t * io;
@@ -239,10 +268,12 @@ program_t * program_create_from_plug(const char * name, bg_plug_t * plug)
   gavf_io_set_cb(io, conn_cb_func, ret);
 
   ret->conn_plug = bg_plug_create_writer(plugin_reg);
-
+  
   bg_plug_open(ret->conn_plug, io,
                bg_plug_get_metadata(ret->in_plug), NULL, 0);
 
+  bg_plug_transfer_metadata(ret->in_plug, ret->conn_plug);
+  
   if(!bg_plug_setup_writer(ret->conn_plug, &ret->conn))
     goto fail;
 
@@ -274,13 +305,21 @@ void program_destroy(program_t * p)
     set_status(p, PROGRAM_STATUS_STOP);
 
   pthread_join(p->thread, NULL);
+
+  /* Destrpy buffer: Must be done before the clients are joined */
+  if(p->buf)
+    buffer_destroy(p->buf);
+  
+  pthread_mutex_lock(&p->client_mutex);
+  while(p->num_clients)
+    program_remove_client_nolock(p, 0);
+  
+  pthread_mutex_unlock(&p->client_mutex);
   
   if(p->in_plug)
     bg_plug_destroy(p->in_plug);
   if(p->name)
     free(p->name);
-  if(p->buf)
-    buffer_destroy(p->buf);
   if(p->timer)
     gavl_timer_destroy(p->timer);
   
@@ -297,9 +336,12 @@ void program_attach_client(program_t * p, int fd)
 
   if(!cl)
     return;
+
+  cl->seq = buffer_get_start_seq(p->buf);
   
   pthread_mutex_lock(&p->client_mutex);
 
+    
   if(p->num_clients + 1 > p->clients_alloc)
     {
     p->clients_alloc += 16;
@@ -318,10 +360,8 @@ void program_attach_client(program_t * p, int fd)
   pthread_mutex_unlock(&p->client_mutex);
   }
 
-static void program_remove_client(program_t * p, int idx)
+static void program_remove_client_nolock(program_t * p, int idx)
   {
-  pthread_mutex_lock(&p->client_mutex);
-
   client_destroy(p->clients[idx]);
   if(idx < p->num_clients-1)
     {
@@ -329,8 +369,6 @@ static void program_remove_client(program_t * p, int idx)
             (p->num_clients-1 - idx) * sizeof(p->clients[idx]));
     }
   p->num_clients--;
-  pthread_mutex_unlock(&p->client_mutex);
-
   bg_log(BG_LOG_INFO, LOG_DOMAIN,
          "Closed client connection for program %s", p->name);
   

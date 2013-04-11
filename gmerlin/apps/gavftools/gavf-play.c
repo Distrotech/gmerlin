@@ -244,8 +244,9 @@ process_cb_video(void * priv, gavl_video_frame_t * frame)
   cur_time = player_get_time(p);
   
   diff_time = frame_time - cur_time;
-#if 1
-  fprintf(stderr, "cur: %"PRId64", frame: %"PRId64", dur: %"PRId64", diff: %"PRId64"\n",
+#if 0
+  fprintf(stderr,
+          "cur: %"PRId64", frame: %"PRId64", dur: %"PRId64", diff: %"PRId64"\n",
           cur_time, frame_time,
           gavl_time_unscale(vs->fmt.timescale, frame->duration),
           diff_time);
