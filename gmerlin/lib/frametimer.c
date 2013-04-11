@@ -36,7 +36,8 @@ struct bg_frame_timer_s
   gavl_timer_t * timer;
   int64_t next_pts;
   int64_t last_pts;
-  
+
+  /* Only used when bg_frame_timer_wait() is used */
   gavl_time_t capture_start_time;
   gavl_time_t last_capture_duration;
   

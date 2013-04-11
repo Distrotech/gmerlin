@@ -220,7 +220,8 @@ static gavl_time_t audio_stream_get_time(audio_stream_t * as)
   gavl_time_t ret;
   bg_plugin_lock(as->h);
   ret = gavl_time_unscale(as->fmt.samplerate,
-                          as->samples_written - as->plugin->get_delay(as->h->priv));
+                          as->samples_written -
+                          as->plugin->get_delay(as->h->priv));
   bg_plugin_unlock(as->h);
   return ret;
   }
@@ -243,9 +244,11 @@ process_cb_video(void * priv, gavl_video_frame_t * frame)
   cur_time = player_get_time(p);
   
   diff_time = frame_time - cur_time;
-#if 0
-  fprintf(stderr, "cur: %"PRId64", frame: %"PRId64", diff: %"PRId64"\n",
-          cur_time, frame_time, diff_time);
+#if 1
+  fprintf(stderr, "cur: %"PRId64", frame: %"PRId64", dur: %"PRId64", diff: %"PRId64"\n",
+          cur_time, frame_time,
+          gavl_time_unscale(vs->fmt.timescale, frame->duration),
+          diff_time);
 #endif
   
   if((diff_time > 0) && !nosync)

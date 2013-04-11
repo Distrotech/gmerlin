@@ -58,6 +58,7 @@ client_t * client_create(int fd, const gavf_program_header_t * ph,
 
   //  fprintf(stderr, "Client I/O flags: %08x\n", flags);
 
+  /* HACK */
   val.val_i = 1024;
   bg_plug_set_parameter(ret->plug, "shm", &val);
   

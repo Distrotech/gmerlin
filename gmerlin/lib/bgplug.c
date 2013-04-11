@@ -1286,7 +1286,7 @@ int bg_plug_set_from_ph(bg_plug_t * p,
 
   for(i = 0; i < ph->num_streams; i++)
     {
-    sh = ph->streams + i;
+    sh = p->ph->streams + i;
     
     switch(sh->type)
       {
