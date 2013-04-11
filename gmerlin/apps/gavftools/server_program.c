@@ -154,7 +154,7 @@ static int conn_cb_func(void * priv, int type, const void * data)
     case GAVF_IO_CB_METADATA_END:
       break;
     case GAVF_IO_CB_SYNC_HEADER_START:
-      fprintf(stderr, "Got sync_header\n");
+      //      fprintf(stderr, "Got sync_header\n");
 
       if(!gavl_timer_is_running(p->timer))
         gavl_timer_start(p->timer);

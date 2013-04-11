@@ -1291,14 +1291,20 @@ int bg_plug_set_from_ph(bg_plug_t * p,
     switch(sh->type)
       {
       case GAVF_STREAM_AUDIO:
+        sh->ci.max_packet_size =
+          gavf_get_max_audio_packet_size(&sh->format.audio, &sh->ci);
+
         idx = bg_plug_add_audio_stream(p,
                                        &sh->ci,
                                        &sh->format.audio,
                                        &sh->m,
                                        NULL);
+
         s = p->audio_streams + idx;
         break;
       case GAVF_STREAM_VIDEO:
+        sh->ci.max_packet_size =
+          gavf_get_max_video_packet_size(&sh->format.video, &sh->ci);
         idx = bg_plug_add_video_stream(p,
                                        &sh->ci,
                                        &sh->format.video,
@@ -1313,6 +1319,8 @@ int bg_plug_set_from_ph(bg_plug_t * p,
         s = p->text_streams + idx;
         break;
       case GAVF_STREAM_OVERLAY:
+        sh->ci.max_packet_size =
+          gavf_get_max_video_packet_size(&sh->format.video, &sh->ci);
         idx = bg_plug_add_overlay_stream(p,
                                          &sh->ci,
                                          &sh->format.video,

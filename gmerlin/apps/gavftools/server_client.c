@@ -30,6 +30,7 @@
 client_t * client_create(int fd, const gavf_program_header_t * ph,
                          buffer_t * buf)
   {
+  bg_parameter_value_t val;
   int flags = 0;
   gavf_io_t * io;
 
@@ -54,6 +55,11 @@ client_t * client_create(int fd, const gavf_program_header_t * ph,
     bg_log(BG_LOG_ERROR, LOG_DOMAIN, "bg_plug_open failed");
     goto fail;
     }
+
+  //  fprintf(stderr, "Client I/O flags: %08x\n", flags);
+
+  val.val_i = 1024;
+  bg_plug_set_parameter(ret->plug, "shm", &val);
   
   if(!bg_plug_set_from_ph(ret->plug, ph))
     {
@@ -87,7 +93,7 @@ int client_iteration(client_t * cl)
   {
   buffer_element_t * el;
 
-  fprintf(stderr, "Client iteration %d %"PRId64"\n", cl->status, cl->seq);
+  // fprintf(stderr, "Client iteration %d %"PRId64"\n", cl->status, cl->seq);
   
   if(cl->status == CLIENT_WAIT_SYNC)
     {
