@@ -624,7 +624,53 @@ static int read_sync_header(gavf_t * g)
   
   return 1;
   }
+
+static void calc_pts_offset(gavf_t * g)
+  {
+  gavl_time_t min_time= GAVL_TIME_UNDEFINED;
+  gavl_time_t test_time;
+  int i, min_index = -1;
+  int64_t off;
+  int scale;
   
+  for(i = 0; i < g->ph.num_streams; i++)
+    {
+    if(g->sync_pts[i] != GAVL_TIME_UNDEFINED)
+      {
+      test_time =
+        gavl_time_unscale(g->streams[i].timescale,
+                          g->sync_pts[i]+g->streams[i].h->ci.pre_skip);
+      if((min_time == GAVL_TIME_UNDEFINED) ||
+         (test_time < min_time))
+        {
+        min_index = i;
+        min_time = test_time;
+        }
+      }
+    }
+
+  if(min_index < 0)
+    return;
+
+  off = -(g->sync_pts[min_index]+g->streams[min_index].h->ci.pre_skip);
+  scale = g->streams[min_index].timescale;
+  
+  g->streams[min_index].pts_offset = off;
+  
+  for(i = 0; i < g->ph.num_streams; i++)
+    {
+    if(i != min_index)
+      {
+      g->streams[i].pts_offset =
+        gavl_time_rescale(scale,
+                          g->streams[i].timescale,
+                          off);
+      }
+    fprintf(stderr, "PTS offset %d: %"PRId64"\n", i,
+            g->streams[i].pts_offset);
+    }
+  }
+
 int gavf_open_read(gavf_t * g, gavf_io_t * io)
   {
   char sig[8];
@@ -675,6 +721,9 @@ int gavf_open_read(gavf_t * g, gavf_io_t * io)
     }
   
   gavf_reset(g);
+
+  if(!(g->opt.flags & GAVF_OPT_FLAG_ORIG_PTS))
+    calc_pts_offset(g);
   
   return 1;
   }

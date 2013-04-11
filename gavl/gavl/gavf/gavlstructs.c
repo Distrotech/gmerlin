@@ -654,6 +654,9 @@ int gavf_read_gavl_packet(gavf_io_t * io,
   /* Set pts */
   s->next_pts += p->duration;
 
+  /* Add offset */
+  p->pts += s->pts_offset;
+  
   if(s->g->opt.flags & GAVF_OPT_FLAG_DUMP_PACKETS)
     {
     fprintf(stderr, "ID: %d ", s->g->pkthdr.stream_id);

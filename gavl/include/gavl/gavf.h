@@ -152,6 +152,8 @@ typedef void (*gavf_stream_skip_func)(gavf_t * gavf,
 #define GAVF_OPT_FLAG_DUMP_PACKETS (1<<6)
 #define GAVF_OPT_FLAG_DUMP_METADATA (1<<7)
 
+#define GAVF_OPT_FLAG_ORIG_PTS     (1<<8)
+
 
 GAVL_PUBLIC
 void gavf_options_set_flags(gavf_options_t *, int flags);
