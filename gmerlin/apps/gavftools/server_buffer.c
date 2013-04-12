@@ -123,13 +123,17 @@ buffer_element_t * buffer_get_write(buffer_t * b)
   buffer_element_t * ret;
 
   pthread_mutex_lock(&b->mutex);
-  if(b->num_elements == b->elements_alloc)
+  if(b->num_elements >= b->elements_alloc)
     {
     bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Buffer full");
+    pthread_mutex_unlock(&b->mutex);
     return NULL;
     }
   ret = b->elements[b->num_elements];
   ret->seq = b->seq++;
+
+  //  fprintf(stderr, "get_write: %"PRId64"\n", ret->seq);
+  
   pthread_mutex_unlock(&b->mutex);
   
   return ret;
@@ -198,7 +202,8 @@ buffer_get_read(buffer_t * b, int64_t seq)
     if(idx < b->num_elements)
       {
       pthread_mutex_unlock(&b->mutex);
-      fprintf(stderr, "Got element %"PRId64"\n", b->elements[idx]->seq);
+      fprintf(stderr, "get_read %d %"PRId64"\n", idx,
+              b->elements[idx]->seq);
       return b->elements[idx];
       }
     pthread_cond_wait(&b->cond, &b->mutex);
