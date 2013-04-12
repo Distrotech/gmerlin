@@ -21,6 +21,7 @@
 
 #include "gavf-server.h"
 #include <string.h>
+#include <errno.h>
 
 #define LOG_DOMAIN "gavf-server.program"
 
@@ -62,7 +63,10 @@ static int program_iteration(program_t * p)
   gavl_time_t conn_time;
   gavl_time_t program_time;
   buffer_element_t * el;
-  
+
+  /* Check if we need to stop */
+  if(program_get_status(p) == PROGRAM_STATUS_STOP)
+    return 0;
   /* Kill dead clients */
 
   pthread_mutex_lock(&p->client_mutex);
@@ -310,9 +314,20 @@ void program_destroy(program_t * p)
   if(program_get_status(p) == PROGRAM_STATUS_RUNNING)
     set_status(p, PROGRAM_STATUS_STOP);
 
-  pthread_join(p->thread, NULL);
+  if(pthread_join(p->thread, NULL))
+    {
+    bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Could not join thread: %s",
+           strerror(errno));
+    }
 
-  /* Destrpy buffer: Must be done before the clients are joined */
+  if(p->in_plug)
+    bg_plug_destroy(p->in_plug);
+
+  if(p->conn_plug)
+    bg_plug_destroy(p->conn_plug);
+
+  bg_mediaconnector_free(&p->conn);
+    
   if(p->buf)
     buffer_stop(p->buf);
   
@@ -322,13 +337,19 @@ void program_destroy(program_t * p)
   
   pthread_mutex_unlock(&p->client_mutex);
   
-  if(p->in_plug)
-    bg_plug_destroy(p->in_plug);
+  
   if(p->name)
     free(p->name);
   if(p->timer)
     gavl_timer_destroy(p->timer);
+
+  if(p->buf)
+    buffer_destroy(p->buf);
+
+  gavf_program_header_free(&p->ph);
   
+  if(p->clients)
+    free(p->clients);
   
   pthread_mutex_destroy(&p->client_mutex);
   pthread_mutex_destroy(&p->status_mutex);

@@ -34,6 +34,11 @@ void gavl_compression_info_free(gavl_compression_info_t * info)
     free(info->global_header);
   }
 
+void gavl_compression_info_init(gavl_compression_info_t * info)
+  {
+  memset(info, 0, sizeof(*info));
+  }
+  
 #define FLAG_SEPARATE           (1<<0)
 #define FLAG_NEEDS_PIXELFORMAT  (1<<1)
 #define FLAG_CFS                (1<<2) // Constant Frame Samples

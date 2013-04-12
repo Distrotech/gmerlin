@@ -348,4 +348,18 @@ void server_destroy(server_t * s)
       free(name);
       }
     }
+
+  if(s->listen_sockets)
+    free(s->listen_sockets);
+  
+  while(s->num_programs)
+    {
+    program_t * p = s->programs[0];
+    remove_program(s, s->programs[0]);
+    program_destroy(p);
+    }
+  if(s->programs)
+    free(s->programs);
+  free(s);
+  
   }

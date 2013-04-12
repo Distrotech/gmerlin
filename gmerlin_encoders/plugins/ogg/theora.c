@@ -345,6 +345,8 @@ write_video_frame_theora(void * data, gavl_video_frame_t * frame)
   ogg_packet op;
   gavl_packet_t gp;
   //  int64_t frame_index;
+
+  //  fprintf(stderr, "Write frame theora\n");
   
   theora = data;
   
@@ -421,7 +423,7 @@ write_video_frame_theora(void * data, gavl_video_frame_t * frame)
 
   theora->pts += theora->format->frame_duration;
   
-  if(!(op.packet[0] & 0x40)) // Keyframe
+  if(op.bytes && !(op.packet[0] & 0x40)) // Keyframe
     gp.flags |= GAVL_PACKET_TYPE_I | GAVL_PACKET_KEYFRAME;
   else
     gp.flags |= GAVL_PACKET_TYPE_P;
@@ -432,6 +434,8 @@ write_video_frame_theora(void * data, gavl_video_frame_t * frame)
           op.granulepos >> theora->ti.keyframe_granule_shift,
           op.granulepos & ((1<<theora->ti.keyframe_granule_shift)-1));
 #endif
+  //  fprintf(stderr, "Write frame theora done\n");
+  //  gavl_packet_dump(&gp);
   return gavl_packet_sink_put_packet(theora->psink, &gp);
   }
 
@@ -566,14 +570,14 @@ init_theora(void * data, gavl_compression_info_t * ci,
       vendor = calloc(1, vendor_len + 1);
       memcpy(vendor, ptr, vendor_len);
       gavl_metadata_set_nocpy(stream_metadata, GAVL_META_SOFTWARE, vendor);
-      fprintf(stderr, "Got vendor: %s\n", vendor);
       }
     header_packets++;
     }
   
   if(header_packets < 3)
     {
-    bg_log(BG_LOG_ERROR, LOG_DOMAIN,  "Got %d header packets instead of 3", header_packets);
+    bg_log(BG_LOG_ERROR, LOG_DOMAIN,
+           "Got %d header packets instead of 3", header_packets);
     return 0;
     }
 
@@ -587,7 +591,8 @@ init_theora(void * data, gavl_compression_info_t * ci,
   theora->buf[2].width  = theora->format->frame_width  / sub_h;
   theora->buf[2].height = theora->format->frame_height / sub_v;
   
-  return gavl_video_sink_create(NULL, write_video_frame_theora, theora, theora->format);
+  return gavl_video_sink_create(NULL, write_video_frame_theora, theora,
+                                theora->format);
   }
 
 #ifdef THEORA_1_1
@@ -693,7 +698,8 @@ static int write_packet_theora(void * data, gavl_packet_t * packet)
 
 #endif
 
-static void convert_packet(bg_ogg_stream_t * s, gavl_packet_t * src, ogg_packet * dst)
+static void convert_packet(bg_ogg_stream_t * s,
+                           gavl_packet_t * src, ogg_packet * dst)
   {
   theora_t * theora;
   theora = s->codec_priv;

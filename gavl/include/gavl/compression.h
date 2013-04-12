@@ -126,6 +126,15 @@ typedef struct
   uint32_t max_packet_size;     //!< Maximum packet size or 0 if unknown
   } gavl_compression_info_t;
 
+/** \brief Initialize a compression info
+ *  \param info A compression info
+ *
+ *  Use this for compression infos which are on the stack before
+ *  using them.
+ */
+
+void gavl_compression_info_init(gavl_compression_info_t * info);
+  
 /** \brief Free all dynamically allocated memory of a compression info
  *  \param info A compression info
  */

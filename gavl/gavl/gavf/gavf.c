@@ -146,7 +146,7 @@ write_packet(gavf_t * g, int stream, const gavl_packet_t * p)
   gavl_time_t pts;
   int write_sync = 0;
   gavf_stream_t * s = &g->streams[stream];
-#if 1
+#if 0
   if(p->data_len == 0)
     {
     fprintf(stderr, "write_packet %p\n", p);
@@ -666,8 +666,10 @@ static void calc_pts_offset(gavf_t * g)
                           g->streams[i].timescale,
                           off);
       }
+#if 0
     fprintf(stderr, "PTS offset %d: %"PRId64"\n", i,
             g->streams[i].pts_offset);
+#endif
     }
   }
 

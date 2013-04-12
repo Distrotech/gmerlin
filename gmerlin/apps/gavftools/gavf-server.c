@@ -114,7 +114,9 @@ int main(int argc, char ** argv)
 
   if(s)
     server_destroy(s);
-    
+
+  gavftools_cleanup();
+  
   return ret;
   
   }

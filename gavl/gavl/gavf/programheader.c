@@ -280,5 +280,8 @@ void gavf_program_header_copy(gavf_program_header_t * dst,
     /* Copy pointers */
     gavl_metadata_init(&dst->streams[i].m);
     gavl_metadata_copy(&dst->streams[i].m, &src->streams[i].m);
+    
+    gavl_compression_info_init(&dst->streams[i].ci);
+    gavl_compression_info_copy(&dst->streams[i].ci, &src->streams[i].ci);
     }
   }
