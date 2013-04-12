@@ -23,6 +23,8 @@
 
 #include <gmerlin/bgsocket.h>
 
+#include <sys/socket.h>
+
 #include <stdlib.h>
 
 #define LOG_DOMAIN "gavf-server.client"
@@ -112,6 +114,8 @@ int client_get_status(client_t * cl)
 
 void client_destroy(client_t * cl)
   {
+  shutdown(cl->fd, SHUT_RDWR);
+  
   client_set_status(cl, CLIENT_STATUS_STOP);
   pthread_join(cl->thread, NULL);
   pthread_mutex_destroy(&cl->seq_mutex);

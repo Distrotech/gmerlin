@@ -72,6 +72,8 @@ void buffer_advance(buffer_t *);
 
 void buffer_stop(buffer_t * b);
 
+int buffer_get_free(buffer_t * b);
+
 /* Client (= listener) connection */
 
 #define CLIENT_STATUS_WAIT_SYNC    0

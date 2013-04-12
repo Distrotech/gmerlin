@@ -169,6 +169,15 @@ void buffer_advance(buffer_t * b)
   pthread_mutex_unlock(&b->mutex);
   }
 
+int buffer_get_free(buffer_t * b)
+  {
+  int ret;
+  pthread_mutex_lock(&b->mutex);
+  ret = b->elements_alloc - b->num_elements;
+  pthread_mutex_unlock(&b->mutex);
+  return ret;
+  }
+
 int64_t buffer_get_start_seq(buffer_t * b)
   {
   int64_t ret;

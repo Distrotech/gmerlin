@@ -37,7 +37,7 @@ static void set_status(program_t * p, int status)
   pthread_mutex_unlock(&p->status_mutex);
   }
 
-static client_t * element_used(program_t * p, int64_t seq)
+static int element_used(program_t * p, int64_t seq)
   {
   int i;
   int status;
@@ -50,11 +50,9 @@ static client_t * element_used(program_t * p, int64_t seq)
       continue;
     
     if(client_get_seq(p->clients[i]) == seq)
-      {
-      return p->clients[i];
-      }
+      return i;
     }
-  return NULL;
+  return -1;
   }
 
 static int program_iteration(program_t * p)
@@ -81,18 +79,17 @@ static int program_iteration(program_t * p)
   pthread_mutex_unlock(&p->client_mutex);
 
   /* We need at least 3 elements in the pool */
-#if 0
-  while(p->buf->elements_alloc - p->buf->num_elements < 3)
+
+  while(buffer_get_free(p->buf) < 3)
     {
-    client_t * cl;
+    el = buffer_get_first(p->buf);
     
-    while((cl = element_used(p, p->buf->elements[0]->seq)))
-      {
-      
-      }
+    pthread_mutex_lock(&p->client_mutex);
+    while((i = element_used(p, el->seq)) >= 0)
+      program_remove_client_nolock(p, i);
+    pthread_mutex_unlock(&p->client_mutex);
     buffer_advance(p->buf);
     }
-#endif
   /* Read packet from source */
 
   if(!bg_mediaconnector_iteration(&p->conn))
@@ -102,7 +99,7 @@ static int program_iteration(program_t * p)
 
   pthread_mutex_lock(&p->client_mutex);
   while((el = buffer_get_first(p->buf)) &&
-         !element_used(p, el->seq))
+        (element_used(p, el->seq) < 0))
     buffer_advance(p->buf);
   pthread_mutex_unlock(&p->client_mutex);
     
@@ -360,7 +357,12 @@ void program_destroy(program_t * p)
 void program_attach_client(program_t * p, int fd,
                            const gavl_metadata_t * url_vars)
   {
-  client_t * cl = client_create(fd, &p->ph, p->buf, url_vars);
+  client_t * cl;
+
+  bg_log(BG_LOG_INFO, LOG_DOMAIN,
+         "Got new client connection for program %s", p->name);
+  
+  cl = client_create(fd, &p->ph, p->buf, url_vars);
 
   if(!cl)
     return;
@@ -382,7 +384,7 @@ void program_attach_client(program_t * p, int fd,
   p->clients[p->num_clients] = cl;
 
   bg_log(BG_LOG_INFO, LOG_DOMAIN,
-         "Got new client connection for program %s", p->name);
+         "Established new client connection for program %s", p->name);
   
   p->num_clients++;
   pthread_mutex_unlock(&p->client_mutex);
@@ -390,6 +392,9 @@ void program_attach_client(program_t * p, int fd,
 
 static void program_remove_client_nolock(program_t * p, int idx)
   {
+  bg_log(BG_LOG_INFO, LOG_DOMAIN,
+         "Closing client connection for program %s", p->name);
+  
   client_destroy(p->clients[idx]);
   if(idx < p->num_clients-1)
     {
