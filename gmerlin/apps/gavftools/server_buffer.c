@@ -132,7 +132,8 @@ buffer_element_t * buffer_get_write(buffer_t * b)
   ret = b->elements[b->num_elements];
   ret->seq = b->seq++;
 
-  //  fprintf(stderr, "get_write: %"PRId64"\n", ret->seq);
+  //  fprintf(stderr, "get_write %d %"PRId64"\n", b->num_elements,
+  //          ret->seq);
   
   pthread_mutex_unlock(&b->mutex);
   
@@ -152,6 +153,7 @@ void buffer_done_write(buffer_t * b)
 void buffer_advance(buffer_t * b)
   {
   buffer_element_t * el;
+  //  fprintf(stderr, "buffer_advance\n");
   pthread_mutex_lock(&b->mutex);
   el = b->elements[0];
 
@@ -178,38 +180,48 @@ int64_t buffer_get_start_seq(buffer_t * b)
   }
 
 
-buffer_element_t *
-buffer_get_read(buffer_t * b, int64_t seq)
+int buffer_get_read(buffer_t * b, int64_t * seq, buffer_element_t ** el)
   {
   int idx;
-
+  
   pthread_mutex_lock(&b->mutex);
   
-  while(1)
+  if(!b->elements)
+    return 0;
+    
+  if(*seq < b->elements[0]->seq)
     {
-    if(!b->elements)
-      return NULL;
-    
-    if(seq < b->elements[0]->seq)
-      {
-      bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Tried to read expired buffer element");
-      pthread_mutex_unlock(&b->mutex);
-      return NULL;
-      }
+    bg_log(BG_LOG_ERROR, LOG_DOMAIN,
+           "Tried to read expired buffer element");
+    *seq = b->elements[0]->seq;
+    }
 
-    idx = seq - b->elements[0]->seq;
+  idx = *seq - b->elements[0]->seq;
+  
+  if(idx < b->num_elements)
+    {
+    if(b->elements[idx]->seq != *seq)
+      bg_log(BG_LOG_ERROR, LOG_DOMAIN,
+             "Got wrong buffer element: Wanted %"PRId64", got %"PRId64,
+             *seq, b->elements[idx]->seq);
     
-    if(idx < b->num_elements)
-      {
-      pthread_mutex_unlock(&b->mutex);
-      fprintf(stderr, "get_read %d %"PRId64"\n", idx,
-              b->elements[idx]->seq);
-      return b->elements[idx];
-      }
-    pthread_cond_wait(&b->cond, &b->mutex);
+    fprintf(stderr, "get_read %d %"PRId64"\n", idx,
+            b->elements[idx]->seq);
+    *el = b->elements[idx];
+    (*seq)++;
+    pthread_mutex_unlock(&b->mutex);
+
+    return 1;
     }
   
   pthread_mutex_unlock(&b->mutex);
   
-  return NULL;
+  return 1;
+  }
+
+void buffer_wait(buffer_t * b)
+  {
+  pthread_mutex_lock(&b->mutex);
+  pthread_cond_wait(&b->cond, &b->mutex);
+  pthread_mutex_unlock(&b->mutex);
   }

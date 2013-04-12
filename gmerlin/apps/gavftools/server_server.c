@@ -197,7 +197,7 @@ static void handle_client_connection(server_t * s, int fd)
   gavl_metadata_init(&req);
   gavl_metadata_init(&res);
 
-  if(!bg_plug_request_read(fd, &req))
+  if(!bg_plug_request_read(fd, &req, CLIENT_TIMEOUT))
     goto fail;
   
   if(!bg_plug_request_get_method(&req, &method))

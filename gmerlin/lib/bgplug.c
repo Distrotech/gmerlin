@@ -145,6 +145,7 @@ struct bg_plug_s
   
   int got_error;
   int shm_threshold;
+  int timeout;
   
 #ifdef HAVE_MQ
   mqd_t mq;
@@ -323,6 +324,9 @@ static bg_plug_t * create_common()
   ret->ph = gavf_get_program_header(ret->g);
   ret->opt = gavf_get_options(ret->g);
 
+  ret->timeout = 5000;
+  ret->shm_threshold = 1024;
+  
 #ifdef HAVE_MQ
   ret->mq = -1;
 #endif
@@ -473,6 +477,16 @@ static const bg_parameter_info_t input_parameters[] =
       .type = BG_PARAMETER_CHECKBUTTON,
       .help_string = TRS("Use this for debugging"),
     },
+    {
+      .name = "timeout",
+      .opt = "t",
+      .type = BG_PARAMETER_INT,
+      .val_default = { .val_i = 5000 },
+      .val_min =     { .val_i =  500 },
+      .val_max =     { .val_i = 100000 },
+      .long_name = TRS("Timeout (milliseconds)"),
+      
+    },
     { /* End */ },
   };
 
@@ -535,6 +549,8 @@ void bg_plug_set_parameter(void * data, const char * name,
     }
   else if(!strcmp(name, "shm"))
     p->shm_threshold = val->val_i;
+  else if(!strcmp(name, "timeout"))
+    p->timeout = val->val_i;
   }
 
 #undef SET_GAVF_FLAG
@@ -1430,7 +1446,7 @@ int bg_plug_open_location(bg_plug_t * p, const char * location,
     bg_plug_io_open_location(location,
                              p->wr ? BG_PLUG_IO_METHOD_WRITE :
                              BG_PLUG_IO_METHOD_READ,
-                             &io_flags);
+                             &io_flags, p->timeout);
   if(io)
     {
     if(!bg_plug_open(p, io, m, cl, io_flags))

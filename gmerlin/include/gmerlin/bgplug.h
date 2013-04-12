@@ -188,14 +188,14 @@ bg_plug_set_compressor_config(bg_plug_t * p,
 
 
 gavf_io_t * bg_plug_io_open_location(const char * location,
-                                     int method, int * flags);
+                                     int method, int * flags, int timeout);
 
 gavf_io_t * bg_plug_io_open_socket(int fd,
-                                   int method, int * flags);
+                                   int method, int * flags, int timeout);
 
 /* bgplug network protocol primitives */
 
-int bg_plug_request_read(int fd, gavl_metadata_t * req);
+int bg_plug_request_read(int fd, gavl_metadata_t * req, int timeout);
 int bg_plug_response_write(int fd, gavl_metadata_t * res);
 
 void

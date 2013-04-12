@@ -206,7 +206,7 @@ program_t * program_create_from_socket(const char * name, int fd)
   gavf_io_t * io = NULL;
   int flags = 0;
 
-  io = bg_plug_io_open_socket(fd, BG_PLUG_IO_METHOD_READ, &flags);
+  io = bg_plug_io_open_socket(fd, BG_PLUG_IO_METHOD_READ, &flags, CLIENT_TIMEOUT);
   if(!io)
     goto fail;
   

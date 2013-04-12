@@ -21,6 +21,8 @@
 
 #include "gavftools.h"
 
+#define CLIENT_TIMEOUT 5000
+
 /* Buffer */
 
 #define BUFFER_TYPE_PACKET      0
@@ -56,7 +58,10 @@ void buffer_destroy(buffer_t *);
 buffer_element_t * buffer_get_write(buffer_t *);
 void buffer_done_write(buffer_t *);
 
-buffer_element_t * buffer_get_read(buffer_t *, int64_t seq);
+int buffer_get_read(buffer_t *, int64_t * seq, buffer_element_t ** el);
+
+void buffer_wait(buffer_t * b);
+
 // void buffer_done_read(buffer_t *, buffer_element_t *);
 
 buffer_element_t * buffer_get_first(buffer_t *);

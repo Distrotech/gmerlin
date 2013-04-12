@@ -43,7 +43,7 @@
 #include <gmerlin/log.h>
 #define LOG_DOMAIN "plug_io"
 
-#define TIMEOUT 5000
+// #define TIMEOUT 5000
 
 
 /* stdin / stdout */
@@ -208,12 +208,12 @@ status_codes[] =
 
 
 static int read_vars(int fd, char ** line, int * line_alloc,
-                     gavl_metadata_t * m)
+                     gavl_metadata_t * m, int timeout)
   {
   char * pos;
   while(1)
     {
-    if(!bg_socket_read_line(fd, line, line_alloc, TIMEOUT))
+    if(!bg_socket_read_line(fd, line, line_alloc, timeout))
       return 0;
 
     //    fprintf(stderr, "Got line: %s\n", *line);
@@ -257,7 +257,7 @@ static char * write_vars(char * str, const gavl_metadata_t * m)
   return str;
   }
 
-int bg_plug_request_read(int fd, gavl_metadata_t * req)
+int bg_plug_request_read(int fd, gavl_metadata_t * req, int timeout)
   {
   int result;
   char * line = NULL;
@@ -266,8 +266,7 @@ int bg_plug_request_read(int fd, gavl_metadata_t * req)
   const char * val;
   int status = 0;
   
-  
-  if(!bg_socket_read_line(fd, &line, &line_alloc, TIMEOUT))
+  if(!bg_socket_read_line(fd, &line, &line_alloc, timeout))
     return 0;
 
   //  fprintf(stderr, "Got line: %s\n", line);
@@ -285,7 +284,7 @@ int bg_plug_request_read(int fd, gavl_metadata_t * req)
   gavl_metadata_set_nocpy(req, META_PROTOCOL,
                           bg_strdup(NULL, pos2+1));
   
-  result = read_vars(fd, &line, &line_alloc, req);
+  result = read_vars(fd, &line, &line_alloc, req, timeout);
   
   if(line)
     free(line);
@@ -343,7 +342,7 @@ static int socket_request_write(int fd, gavl_metadata_t * req)
   return result;
   }
 
-static int socket_response_read(int fd, gavl_metadata_t * req)
+static int socket_response_read(int fd, gavl_metadata_t * req, int timeout)
   {
   int result;
   char * line = NULL;
@@ -351,7 +350,7 @@ static int socket_response_read(int fd, gavl_metadata_t * req)
   char * pos1;
   char * pos2;
   
-  if(!bg_socket_read_line(fd, &line, &line_alloc, TIMEOUT))
+  if(!bg_socket_read_line(fd, &line, &line_alloc, timeout))
     return 0;
 
   //  fprintf(stderr, "Got line: %s\n", line);
@@ -373,7 +372,7 @@ static int socket_response_read(int fd, gavl_metadata_t * req)
   pos2++;
   gavl_metadata_set(req, META_STATUS_STR, pos2);
   
-  result = read_vars(fd, &line, &line_alloc, req);
+  result = read_vars(fd, &line, &line_alloc, req, timeout);
   
   if(line)
     free(line);
@@ -455,7 +454,7 @@ bg_plug_response_set_status(gavl_metadata_t * res, int status)
   gavl_metadata_set_int(res, META_STATUS, status);
   }
 
-static int server_handshake(int fd, int method)
+static int server_handshake(int fd, int method, int timeout)
   {
   int ret = 0;
   int status = 0;
@@ -467,7 +466,7 @@ static int server_handshake(int fd, int method)
   gavl_metadata_init(&req);
   gavl_metadata_init(&res);
 
-  if(!bg_plug_request_read(fd, &req))
+  if(!bg_plug_request_read(fd, &req, timeout))
     {
     bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Reading request failed");
     goto fail;
@@ -517,7 +516,7 @@ static int server_handshake(int fd, int method)
   }
 
 
-static int client_handshake(int fd, int method, const char * path)
+static int client_handshake(int fd, int method, const char * path, int timeout)
   {
   int ret = 0;
   int status = 0;
@@ -538,7 +537,7 @@ static int client_handshake(int fd, int method, const char * path)
     bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Writing request failed");
     goto fail;
     }
-  if(!socket_response_read(fd, &res))
+  if(!socket_response_read(fd, &res, timeout))
     {
     bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Reading response failed");
     goto fail;
@@ -567,12 +566,13 @@ static int client_handshake(int fd, int method, const char * path)
 typedef struct
   {
   int fd;
+  int timeout;
   } socket_t;
 
 static int read_socket(void * priv, uint8_t * data, int len)
   {
   socket_t * s = priv;
-  return bg_socket_read_data(s->fd, data, len, TIMEOUT);
+  return bg_socket_read_data(s->fd, data, len, s->timeout);
   }
 
 static int write_socket(void * priv, const uint8_t * data, int len)
@@ -599,7 +599,7 @@ static gavf_io_t * io_create_socket(socket_t * s, int method)
   }
 
 static gavf_io_t * open_tcp(const char * location,
-                            int method, int * flags)
+                            int method, int * flags, int timeout)
   {
   /* Remote TCP socket */
   char * host = NULL;
@@ -634,19 +634,20 @@ static gavf_io_t * open_tcp(const char * location,
   if(!bg_host_address_set(addr, host, port, SOCK_STREAM))
     goto fail;
   
-  fd = bg_socket_connect_inet(addr, TIMEOUT);
+  fd = bg_socket_connect_inet(addr, timeout);
 
   if(fd < 0)
     goto fail;
 
   /* Handshake */
 
-  if(!client_handshake(fd, method, path))
+  if(!client_handshake(fd, method, path, timeout))
     goto fail;
   
   /* Return */
   s = calloc(1, sizeof(*s));
   s->fd = fd;
+  s->timeout = timeout;
   
   if(bg_socket_is_local(s->fd))
     *flags |= BG_PLUG_IO_IS_LOCAL;
@@ -663,7 +664,7 @@ static gavf_io_t * open_tcp(const char * location,
   return ret;
   }
 
-static gavf_io_t * open_unix(const char * addr, int method)
+static gavf_io_t * open_unix(const char * addr, int method, int timeout)
   {
   char * name = NULL;
   char * path = NULL;
@@ -691,13 +692,14 @@ static gavf_io_t * open_unix(const char * addr, int method)
 
   /* Handshake */
   
-  if(!client_handshake(fd, method, path))
+  if(!client_handshake(fd, method, path, timeout))
     goto fail;
 
   /* Return */
   s = calloc(1, sizeof(*s));
   s->fd = fd;
-
+  s->timeout = timeout;
+  
   ret = io_create_socket(s, method);
   
   fail:
@@ -709,7 +711,8 @@ static gavf_io_t * open_unix(const char * addr, int method)
   return ret;
   }
 
-static gavf_io_t * open_tcpserv(const char * addr, int method, int * flags)
+static gavf_io_t * open_tcpserv(const char * addr,
+                                int method, int * flags, int timeout)
   {
   socket_t * s;
   
@@ -756,7 +759,7 @@ static gavf_io_t * open_tcpserv(const char * addr, int method, int * flags)
     bg_log(BG_LOG_INFO, LOG_DOMAIN,
            "Got connection");
     
-    if(server_handshake(fd, method))
+    if(server_handshake(fd, method, timeout))
       break;
 
     bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Handshake failed");
@@ -770,7 +773,8 @@ static gavf_io_t * open_tcpserv(const char * addr, int method, int * flags)
   
   s = calloc(1, sizeof(*s));
   s->fd = fd;
-
+  s->timeout = timeout;
+  
   if(bg_socket_is_local(s->fd))
     *flags |= BG_PLUG_IO_IS_LOCAL;
 
@@ -784,7 +788,7 @@ static gavf_io_t * open_tcpserv(const char * addr, int method, int * flags)
   return ret;
   }
 
-static gavf_io_t * open_unixserv(const char * addr, int method)
+static gavf_io_t * open_unixserv(const char * addr, int method, int timeout)
   {
   socket_t * s;
   int server_fd, fd;
@@ -822,7 +826,7 @@ static gavf_io_t * open_unixserv(const char * addr, int method)
     bg_log(BG_LOG_INFO, LOG_DOMAIN,
            "Got connection");
     
-    if(server_handshake(fd, method))
+    if(server_handshake(fd, method, timeout))
       break;
 
     bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Handshake failed");
@@ -844,7 +848,8 @@ static gavf_io_t * open_unixserv(const char * addr, int method)
 
   s = calloc(1, sizeof(*s));
   s->fd = fd;
-
+  s->timeout = timeout;
+  
   ret = io_create_socket(s, method);
   
   return ret;
@@ -879,7 +884,7 @@ static gavf_io_t * open_file(const char * file, int wr, int * flags)
   }
 
 gavf_io_t * bg_plug_io_open_location(const char * location,
-                                     int method, int * flags)
+                                     int method, int * flags, int timeout)
   {
   *flags = 0;
 
@@ -889,21 +894,21 @@ gavf_io_t * bg_plug_io_open_location(const char * location,
   if(!strcmp(location, "-"))
     return open_dash(method, flags);
   else if(!strncmp(location, "tcp://", 6))
-    return open_tcp(location, method, flags);
+    return open_tcp(location, method, flags, timeout);
   else if(!strncmp(location, "unix://", 7))
     {
     *flags |= BG_PLUG_IO_IS_LOCAL;
     /* Local UNIX domain socket */
-    return open_unix(location, method);
+    return open_unix(location, method, timeout);
     }
   else if(!strncmp(location, "tcpserv://", 10))
     {
-    return open_tcpserv(location, method, flags);
+    return open_tcpserv(location, method, flags, timeout);
     }
   else if(!strncmp(location, "unixserv://", 11))
     {
     *flags |= BG_PLUG_IO_IS_LOCAL;
-    return open_unixserv(location, method);
+    return open_unixserv(location, method, timeout);
     }
   
   else if((location[0] == '|') ||
@@ -923,7 +928,7 @@ gavf_io_t * bg_plug_io_open_location(const char * location,
 
 
 gavf_io_t * bg_plug_io_open_socket(int fd,
-                                   int method, int * flags)
+                                   int method, int * flags, int timeout)
   {
   socket_t * s;
 
@@ -935,6 +940,7 @@ gavf_io_t * bg_plug_io_open_socket(int fd,
   /* Return */
   s = calloc(1, sizeof(*s));
   s->fd = fd;
+  s->timeout = timeout;
   
   return io_create_socket(s, method);
   }

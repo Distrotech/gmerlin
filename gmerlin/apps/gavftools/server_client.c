@@ -64,7 +64,8 @@ client_t * client_create(int fd, const gavf_program_header_t * ph,
   ret->plug = bg_plug_create_writer(plugin_reg);
   ret->status = CLIENT_STATUS_WAIT_SYNC;
   
-  if(!(io = bg_plug_io_open_socket(fd, BG_PLUG_IO_METHOD_WRITE, &flags)))
+  if(!(io = bg_plug_io_open_socket(fd, BG_PLUG_IO_METHOD_WRITE, &flags,
+                                   CLIENT_TIMEOUT)))
     {
     bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Creating client I/O module failed");
     goto fail;
@@ -122,16 +123,25 @@ void client_destroy(client_t * cl)
 
 static buffer_element_t * next_element(client_t * cl)
   {
-  int64_t seq;
-  buffer_element_t * ret;
+  buffer_element_t * ret = NULL;
+  int result;
 
-  pthread_mutex_lock(&cl->seq_mutex);
-  seq = cl->seq;
-  pthread_mutex_unlock(&cl->seq_mutex);
+  while(1)
+    {
+    pthread_mutex_lock(&cl->seq_mutex);
+    result = buffer_get_read(cl->buf, &cl->seq, &ret);
+    pthread_mutex_unlock(&cl->seq_mutex);
+
+    if(!result)
+      return NULL;
+
+    if(ret)
+      return ret;
+
+    buffer_wait(cl->buf);
+    }
   
-  ret = buffer_get_read(cl->buf, seq);
-  
-  return ret;
+  return NULL;
   }
 
 int client_iteration(client_t * cl)
@@ -160,9 +170,6 @@ int client_iteration(client_t * cl)
         break;
         }
 
-      pthread_mutex_lock(&cl->seq_mutex);
-      cl->seq++;
-      pthread_mutex_unlock(&cl->seq_mutex);
       
       }
     }
@@ -185,9 +192,6 @@ int client_iteration(client_t * cl)
           return 0;
         break;
       }
-    pthread_mutex_lock(&cl->seq_mutex);
-    cl->seq++;
-    pthread_mutex_unlock(&cl->seq_mutex);
     }
   
   return 1;
