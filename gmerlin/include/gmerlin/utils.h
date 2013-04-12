@@ -245,6 +245,21 @@ int bg_url_split(const char * url,
                  int * port,
                  char ** path);
 
+/*
+ *  \brief Split off URL variables
+ *  \param path Path component of an URL
+ *  \param vars Place to store the variables
+ *
+ *  This will split off variables
+ *  like path?var1=val1&var2=val2 and store them into the
+ *  metadata structure. 
+ *  
+ */
+ 
+void bg_url_get_vars(char * path,
+                     gavl_metadata_t * vars);
+
+
 /** \brief Get MD5 hash of a filename
  *  \param gml
  *  \param ret Returns the MD5 sum

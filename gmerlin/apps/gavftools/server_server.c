@@ -189,14 +189,18 @@ static void handle_client_connection(server_t * s, int fd)
   int method;
   int status = 0;
 
-  const char * location;
+  char * location;
+  const char * var;
+
   program_t * p;
   gavl_metadata_t req;
   gavl_metadata_t res;
+  gavl_metadata_t vars;
 
   gavl_metadata_init(&req);
   gavl_metadata_init(&res);
-
+  gavl_metadata_init(&vars);
+  
   if(!bg_plug_request_read(fd, &req, CLIENT_TIMEOUT))
     goto fail;
   
@@ -205,12 +209,15 @@ static void handle_client_connection(server_t * s, int fd)
     status = BG_PLUG_IO_STATUS_400;
     goto fail;
     }
-  if(!(location = bg_plug_request_get_location(&req)))
+  if(!(var = bg_plug_request_get_location(&req)))
     {
     status = BG_PLUG_IO_STATUS_400;
     goto fail;
     }
 
+  location = bg_strdup(NULL, var);
+  bg_url_get_vars(location, &vars);
+  
   if(!strcmp(location, "/"))
     {
     status = BG_PLUG_IO_STATUS_404;
@@ -234,7 +241,7 @@ static void handle_client_connection(server_t * s, int fd)
         bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Writing response failed");
         goto fail;
         }
-      program_attach_client(p, fd);
+      program_attach_client(p, fd, &vars);
       fd = -1;
       break;
     case BG_PLUG_IO_METHOD_WRITE:
@@ -250,7 +257,7 @@ static void handle_client_connection(server_t * s, int fd)
         goto fail;
         }
       
-      p = program_create_from_socket(location, fd);
+      p = program_create_from_socket(location, fd, &vars);
       if(!p)
         goto fail;
       append_program(s, p);
@@ -273,6 +280,10 @@ static void handle_client_connection(server_t * s, int fd)
   
   gavl_metadata_free(&req);
   gavl_metadata_free(&res);
+  gavl_metadata_free(&vars);
+
+  if(location)
+    free(location);
   
   if(fd >= 0)
     close(fd);

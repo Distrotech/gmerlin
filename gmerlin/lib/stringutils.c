@@ -387,7 +387,46 @@ int bg_url_split(const char * url,
   return 1;
   }
 
+/*
+ *  Split off vars like path?var1=val1&var2=val2
+ */
+ 
+void bg_url_get_vars(char * path,
+                     gavl_metadata_t * vars)
+  {
+  int i;
+  char ** str;
+  
+  char * pos = strrchr(path, '?');
+  if(!pos)
+    return;
 
+  *pos = '\0';
+  pos++;
+
+  str = bg_strbreak(pos, '&');
+
+  i = 0;
+
+  while(str[i])
+    {
+    char * key;
+
+    pos = strchr(str[i], '=');
+    if(!pos)
+      gavl_metadata_set_int(vars, str[i], 1);
+    else
+      {
+      key = bg_strndup(NULL, str[i], pos);
+      pos++;
+
+      gavl_metadata_set(vars, key, pos);
+      free(key);
+      }
+    i++;
+    }
+  bg_strbreak_free(str);
+  }
 
 /* Scramble and descramble password (taken from gftp) */
 

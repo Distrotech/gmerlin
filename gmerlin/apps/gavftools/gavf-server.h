@@ -70,6 +70,8 @@ int64_t buffer_get_start_seq(buffer_t *);
 
 void buffer_advance(buffer_t *);
 
+void buffer_stop(buffer_t * b);
+
 /* Client (= listener) connection */
 
 #define CLIENT_STATUS_WAIT_SYNC    0
@@ -94,7 +96,8 @@ typedef struct
   } client_t;
 
 client_t * client_create(int fd, const gavf_program_header_t * ph,
-                         buffer_t * buf);
+                         buffer_t * buf,
+                         const gavl_metadata_t * url_vars);
 
 void client_destroy(client_t * cl);
 int client_iteration(client_t * cl);
@@ -140,13 +143,17 @@ typedef struct
   
   } program_t;
 
-program_t * program_create_from_socket(const char * name, int fd);
-program_t * program_create_from_plug(const char * name, bg_plug_t * plug);
+program_t * program_create_from_socket(const char * name, int fd,
+                                       const gavl_metadata_t * url_vars);
+
+program_t * program_create_from_plug(const char * name, bg_plug_t * plug,
+                                     const gavl_metadata_t * url_vars);
 
 int program_get_status(program_t * p);
 
 void program_destroy(program_t *);
-void program_attach_client(program_t *, int fd);
+void program_attach_client(program_t *, int fd,
+                           const gavl_metadata_t * url_vars);
 
 void program_run(program_t * p);
 

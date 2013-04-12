@@ -1779,7 +1779,7 @@ static int subtitle_iteration(bg_transcoder_t * t)
          (ts->com.subtitle_start_unscaled - vs->com.time < SUBTITLE_TIME_OFFSET))
         {
 #if 1
-        fprintf(stderr, "Encode subtitle %ld %ld %ld\n",
+        fprintf(stderr, "Encode subtitle %"PRId64" %"PRId64" %"PRId64"\n",
                 ts->com.subtitle_start_unscaled,
                 vs->com.time,
                 ts->com.subtitle_start_unscaled -

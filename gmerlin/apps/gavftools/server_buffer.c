@@ -100,6 +100,14 @@ buffer_t * buffer_create(int num_elements)
 
 void buffer_destroy(buffer_t * b)
   {
+  pthread_mutex_destroy(&b->mutex);
+  pthread_cond_destroy(&b->cond);
+  
+  free(b);
+  }
+
+void buffer_stop(buffer_t * b)
+  {
   int i;
 
   pthread_mutex_lock(&b->mutex);
@@ -111,11 +119,6 @@ void buffer_destroy(buffer_t * b)
   
   pthread_cond_broadcast(&b->cond);
   pthread_mutex_unlock(&b->mutex);
-  
-  pthread_mutex_destroy(&b->mutex);
-  pthread_cond_destroy(&b->cond);
-  
-  free(b);
   }
 
 buffer_element_t * buffer_get_write(buffer_t * b)
@@ -205,8 +208,8 @@ int buffer_get_read(buffer_t * b, int64_t * seq, buffer_element_t ** el)
              "Got wrong buffer element: Wanted %"PRId64", got %"PRId64,
              *seq, b->elements[idx]->seq);
     
-    fprintf(stderr, "get_read %d %"PRId64"\n", idx,
-            b->elements[idx]->seq);
+    //    fprintf(stderr, "get_read %d %"PRId64"\n", idx,
+    //            b->elements[idx]->seq);
     *el = b->elements[idx];
     (*seq)++;
     pthread_mutex_unlock(&b->mutex);

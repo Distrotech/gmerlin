@@ -200,7 +200,8 @@ static int conn_cb_func(void * priv, int type, const void * data)
   return 1;
   }
 
-program_t * program_create_from_socket(const char * name, int fd)
+program_t * program_create_from_socket(const char * name, int fd,
+                                       const gavl_metadata_t * url_vars)
   {
   bg_plug_t * plug = NULL;
   gavf_io_t * io = NULL;
@@ -223,7 +224,7 @@ program_t * program_create_from_socket(const char * name, int fd)
   if(!bg_plug_start(plug))
     goto fail;
 
-  return program_create_from_plug(name, plug);
+  return program_create_from_plug(name, plug, url_vars);
   
   fail:
 
@@ -233,11 +234,14 @@ program_t * program_create_from_socket(const char * name, int fd)
   
   }
 
-program_t * program_create_from_plug(const char * name, bg_plug_t * plug)
+program_t * program_create_from_plug(const char * name, bg_plug_t * plug,
+                                     const gavl_metadata_t * url_vars)
   {
   gavf_io_t * io;
   program_t * ret;
   gavf_t * g;
+
+  int buf_elements = BUF_ELEMENTS;
   
   ret = calloc(1, sizeof(*ret));
 
@@ -248,7 +252,9 @@ program_t * program_create_from_plug(const char * name, bg_plug_t * plug)
   
   ret->name = bg_strdup(NULL, name);
 
-  ret->buf = buffer_create(BUF_ELEMENTS);
+  gavl_metadata_get_int(url_vars, "buf", &buf_elements);
+  
+  ret->buf = buffer_create(buf_elements);
   ret->timer = gavl_timer_create();
   ret->status = PROGRAM_STATUS_RUNNING;
   
@@ -281,12 +287,12 @@ program_t * program_create_from_plug(const char * name, bg_plug_t * plug)
 
   g = bg_plug_get_gavf(ret->conn_plug);
   bg_log(BG_LOG_INFO, LOG_DOMAIN,
-         "Created program: %s (AS: %d, VS: %d, TS: %d, OS: %d)",
+         "Created program: %s (AS: %d, VS: %d, TS: %d, OS: %d, buf: %d)",
          name,
          gavf_get_num_streams(g, GAVF_STREAM_AUDIO),
          gavf_get_num_streams(g, GAVF_STREAM_VIDEO),
          gavf_get_num_streams(g, GAVF_STREAM_TEXT),
-         gavf_get_num_streams(g, GAVF_STREAM_OVERLAY));
+         gavf_get_num_streams(g, GAVF_STREAM_OVERLAY), buf_elements);
   
   pthread_create(&ret->thread, NULL, thread_func, ret);
   
@@ -308,7 +314,7 @@ void program_destroy(program_t * p)
 
   /* Destrpy buffer: Must be done before the clients are joined */
   if(p->buf)
-    buffer_destroy(p->buf);
+    buffer_stop(p->buf);
   
   pthread_mutex_lock(&p->client_mutex);
   while(p->num_clients)
@@ -330,9 +336,10 @@ void program_destroy(program_t * p)
   free(p);
   }
 
-void program_attach_client(program_t * p, int fd)
+void program_attach_client(program_t * p, int fd,
+                           const gavl_metadata_t * url_vars)
   {
-  client_t * cl = client_create(fd, &p->ph, p->buf);
+  client_t * cl = client_create(fd, &p->ph, p->buf, url_vars);
 
   if(!cl)
     return;

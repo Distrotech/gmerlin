@@ -47,7 +47,8 @@ static void * thread_func(void * priv)
 
 
 client_t * client_create(int fd, const gavf_program_header_t * ph,
-                         buffer_t * buf)
+                         buffer_t * buf,
+                         const gavl_metadata_t * url_vars)
   {
   bg_parameter_value_t val;
   int flags = 0;
@@ -79,8 +80,9 @@ client_t * client_create(int fd, const gavf_program_header_t * ph,
 
   //  fprintf(stderr, "Client I/O flags: %08x\n", flags);
 
-  /* HACK */
   val.val_i = 1024;
+  gavl_metadata_get_int(url_vars, "shm", &val.val_i);
+
   bg_plug_set_parameter(ret->plug, "shm", &val);
   
   if(!bg_plug_set_from_ph(ret->plug, ph))
@@ -128,6 +130,9 @@ static buffer_element_t * next_element(client_t * cl)
 
   while(1)
     {
+    if(client_get_status(cl) == CLIENT_STATUS_STOP)
+      return 0;
+    
     pthread_mutex_lock(&cl->seq_mutex);
     result = buffer_get_read(cl->buf, &cl->seq, &ret);
     pthread_mutex_unlock(&cl->seq_mutex);
