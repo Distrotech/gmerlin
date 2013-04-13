@@ -402,6 +402,10 @@ void bg_url_get_vars(char * path,
     return;
 
   *pos = '\0';
+
+  if(!vars)
+    return;
+  
   pos++;
 
   str = bg_strbreak(pos, '&');

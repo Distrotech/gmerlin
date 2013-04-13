@@ -114,6 +114,7 @@ int client_get_status(client_t * cl)
 
 void client_destroy(client_t * cl)
   {
+  /* Shutdown the socket to interrupt R/W operations */
   shutdown(cl->fd, SHUT_RDWR);
   
   client_set_status(cl, CLIENT_STATUS_STOP);

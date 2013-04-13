@@ -504,6 +504,12 @@ const char * bg_iso639_b_to_t(const char * code);
 
 void bg_metadata_date_now(gavl_metadata_t * m, const char * key);
 
+/** \brief Make the current process become a daemon
+ */
+
+void bg_daemonize();
+
+
 /* @} */
 
 extern char const * const bg_language_codes[];

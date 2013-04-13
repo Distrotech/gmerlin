@@ -237,7 +237,7 @@ static char * get_out_name(bg_mediaconnector_stream_t * st)
 
 int main(int argc, char ** argv)
   {
-  int ret = 1;
+  int ret = EXIT_FAILURE;
   int i;
   bg_mediaconnector_t conn;
   bg_mediaconnector_stream_t * st;
@@ -314,7 +314,7 @@ int main(int argc, char ** argv)
       break;
     }
   
-  ret = 0;
+  ret = EXIT_SUCCESS;
   fail:
 
   bg_log(BG_LOG_INFO, LOG_DOMAIN, "Cleaning up");

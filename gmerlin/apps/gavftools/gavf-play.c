@@ -690,7 +690,7 @@ int main(int argc, char ** argv)
   gavl_time_t delay_time = GAVL_TIME_SCALE / 100; // 10 ms
   
   gavf_t * g;
-  int ret = 1;
+  int ret = EXIT_FAILURE;
   int i;
   
   bg_mediaconnector_t conn;
@@ -843,6 +843,10 @@ int main(int argc, char ** argv)
     gavl_time_delay(&delay_time);
     }
 
+  ret = EXIT_SUCCESS;
+  fail:
+
+  
   bg_log(BG_LOG_INFO, LOG_DOMAIN, "Cleaning up");
   
   /* Cleanup */
@@ -861,6 +865,5 @@ int main(int argc, char ** argv)
     bg_cfg_section_destroy(video_section);
   if(subrender_section)
     bg_cfg_section_destroy(subrender_section);  
-  ret = 0;
   return ret;
   }

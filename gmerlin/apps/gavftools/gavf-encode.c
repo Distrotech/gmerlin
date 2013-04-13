@@ -229,7 +229,7 @@ static bg_cfg_section_t * get_stream_section(bg_encoder_t * enc,
 int main(int argc, char ** argv)
   {
   int do_delete;
-  int ret = 1;
+  int ret = EXIT_FAILURE;
   int i, num;
   bg_mediaconnector_t conn;
   bg_encoder_t * enc = NULL;
@@ -524,7 +524,7 @@ int main(int argc, char ** argv)
       break;
     }
   
-  ret = 0;
+  ret = EXIT_SUCCESS;
   
   /* Cleanup */
 

@@ -667,29 +667,24 @@ static gavf_io_t * open_tcp(const char * location,
 static gavf_io_t * open_unix(const char * addr, int method, int timeout)
   {
   char * name = NULL;
-  char * path = NULL;
+  const char * path;
+  
   socket_t * s;
   int fd;
   gavf_io_t * ret = NULL;
-
-  if(!bg_url_split(addr,
-                   NULL,
-                   NULL,
-                   NULL,
-                   &name,
-                   NULL,
-                   &path))
-    {
-    bg_log(BG_LOG_ERROR, LOG_DOMAIN,
-           "Invalid UNIX domain address address %s", addr);
-    goto fail;
-    }
+  gavl_metadata_t vars;
+  gavl_metadata_init(&vars);
+  
+  name = bg_strdup(NULL, addr+7);
+  bg_url_get_vars(name, &vars);
   
   fd = bg_socket_connect_unix(name);
   
   if(fd < 0)
     goto fail;
 
+  path = gavl_metadata_get(&vars, "p");
+  
   /* Handshake */
   
   if(!client_handshake(fd, method, path, timeout))
@@ -705,8 +700,8 @@ static gavf_io_t * open_unix(const char * addr, int method, int timeout)
   fail:
   if(name)
     free(name);
-  if(path)
-    free(path);
+  
+  gavl_metadata_free(&vars);
   
   return ret;
   }

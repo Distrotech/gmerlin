@@ -50,7 +50,7 @@ const bg_cmdline_app_data_t app_data =
 
 int main(int argc, char ** argv)
   {
-  int ret = 1;
+  int ret = EXIT_FAILURE;
   bg_plug_t * in_plug;
   gavf_t * g;
   gavf_program_header_t * ph;
@@ -61,12 +61,12 @@ int main(int argc, char ** argv)
   bg_cmdline_parse(global_options, &argc, &argv, NULL);
 
   if(!bg_cmdline_check_unsupported(argc, argv))
-    return -1;
+    goto fail;
 
   in_plug = gavftools_create_in_plug();
 
   if(!bg_plug_open_location(in_plug, gavftools_in_file, NULL, NULL))
-    return ret;
+    goto fail;
 
   g = bg_plug_get_gavf(in_plug);
 
@@ -74,11 +74,13 @@ int main(int argc, char ** argv)
 
   /* Dump info */
   gavf_program_header_dump(ph);
+  ret = EXIT_SUCCESS;
+  fail:
 
-  bg_plug_destroy(in_plug);
+  if(in_plug)
+    bg_plug_destroy(in_plug);
 
   gavftools_cleanup();
 
-  ret = 0;
   return ret;
   }

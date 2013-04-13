@@ -301,7 +301,7 @@ const bg_cmdline_app_data_t app_data =
 
 int main(int argc, char ** argv)
   {
-  int ret = 1;
+  int ret = EXIT_FAILURE;
   bg_mediaconnector_t conn;
   gavl_time_t delay_time = GAVL_TIME_SCALE / 100;
 
@@ -368,7 +368,7 @@ int main(int argc, char ** argv)
   
   /* Cleanup */
   
-  ret = 0;
+  ret = EXIT_SUCCESS;
   the_end:
   bg_log(BG_LOG_INFO, LOG_DOMAIN, "Cleaning up");
 

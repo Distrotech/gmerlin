@@ -96,7 +96,7 @@ static void set_stream_actions(bg_plug_t * in_plug, gavf_stream_type_t type)
 
 int main(int argc, char ** argv)
   {
-  int ret = 1;
+  int ret = EXIT_FAILURE;
   int i;
   bg_mediaconnector_t conn;
   
@@ -180,7 +180,7 @@ int main(int argc, char ** argv)
       break;
     }
   
-  ret = 0;
+  ret = EXIT_SUCCESS;
   fail:
 
   bg_log(BG_LOG_INFO, LOG_DOMAIN, "Cleaning up");

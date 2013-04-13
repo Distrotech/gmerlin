@@ -251,10 +251,10 @@ static void kbd_loop(kbd_daemon_t * d)
 int main(int argc, char ** argv)
   {
   /* Our process ID and Session ID */
-  pid_t pid, sid;
   kbd_daemon_t * d;
   
 #if 1
+  pid_t pid, sid;
   /* Fork off the parent process */
   pid = fork();
   if(pid < 0)

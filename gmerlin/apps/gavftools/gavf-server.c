@@ -26,6 +26,8 @@
 static int num_listen_addresses = 0;
 static char ** listen_addresses;
 
+static int daemonize = 0;
+
 static void
 opt_l(void * data, int * argc, char *** _argv, int arg)
   {
@@ -42,15 +44,26 @@ opt_l(void * data, int * argc, char *** _argv, int arg)
   bg_cmdline_remove_arg(argc, _argv, arg);
   }
 
+static void
+opt_d(void * data, int * argc, char *** _argv, int arg)
+  {
+  daemonize = 1;
+  }
 
 static bg_cmdline_arg_t global_options[] =
   {
     {
       .arg =         "-l",
       .help_arg =    "<address>",
-      .help_string = "Listen address (e.g. tcp://0.0.0.0:5555 or unix://socket). Use this option more than once to specify multiple addresses.",
+      .help_string = TRS("Listen address (e.g. tcp://0.0.0.0:5555 or unix://socket). Use this option more than once to specify multiple addresses."),
       .callback =    opt_l,
     },
+    {
+      .arg =         "-d",
+      .help_string = TRS("Become a daemon"),
+      .callback =    opt_d,
+    },
+    GAVFTOOLS_LOG_OPTIONS,
     { /* End */ }
   };
 
@@ -78,9 +91,9 @@ const bg_cmdline_app_data_t app_data =
 int main(int argc, char ** argv)
   {
   gavl_time_t delay_time = GAVL_TIME_SCALE / 100;
-  int ret = 1;
+  int ret = EXIT_FAILURE;
   server_t * s = NULL;
-    
+  
   gavftools_init();
 
   gavftools_set_cmdline_parameters(global_options);
@@ -99,6 +112,9 @@ int main(int argc, char ** argv)
 
   if(!(s = server_create(listen_addresses, num_listen_addresses)))
     goto fail;
+
+  if(daemonize)
+    bg_daemonize();
   
   while(1)
     {
@@ -109,9 +125,11 @@ int main(int argc, char ** argv)
     gavl_time_delay(&delay_time);
     }
   
-  ret = 0;
+  ret = EXIT_SUCCESS;
   fail:
-
+  
+  bg_log(BG_LOG_INFO, LOG_DOMAIN, "Cleaning up");
+  
   if(s)
     server_destroy(s);
 

@@ -84,29 +84,15 @@ server_t * server_create(char ** listen_addresses,
       }
     else if(!strncmp(ret->listen_addresses[i], "unix://", 7))
       {
-      char * name = NULL;
-
-      if(!bg_url_split(ret->listen_addresses[i],
-                       NULL,
-                       NULL,
-                       NULL,
-                       &name,
-                       NULL,
-                       NULL))
-        {
-        if(name)
-          free(name);
-        bg_log(BG_LOG_ERROR, LOG_DOMAIN,
-               "Invalid UNIX domain address address %s",
-               ret->listen_addresses[i]);
-        return NULL;
-        }
-      ret->listen_sockets[i] = bg_listen_socket_create_unix(name, 10);
+      char * name = bg_strdup(NULL, ret->listen_addresses[i]+7);
+      bg_url_get_vars(name, NULL);
+      
+      ret->listen_sockets[i] =
+        bg_listen_socket_create_unix(name, 10);
       free(name);
       
       if(ret->listen_sockets[i] < 0)
         goto fail;
-
       }
     else
       {
@@ -335,15 +321,9 @@ void server_destroy(server_t * s)
     close(s->listen_sockets[i]);
     if(!strncmp(s->listen_addresses[i], "unix://", 7))
       {
-      char * name = NULL;
-
-      bg_url_split(s->listen_addresses[i],
-                   NULL,
-                   NULL,
-                   NULL,
-                   &name,
-                   NULL,
-                   NULL);
+      char * name = bg_strdup(NULL, s->listen_addresses[i]+7);
+      bg_url_get_vars(name, NULL);
+      
       unlink(name);
       free(name);
       }

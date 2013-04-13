@@ -236,7 +236,7 @@ get_stream_action(bg_stream_action_t action, bg_cfg_section_t * section,
 
 int main(int argc, char ** argv)
   {
-  int ret = 1;
+  int ret = EXIT_FAILURE;
   bg_mediaconnector_t conn;
   gavf_t * g;
   int i;
@@ -409,7 +409,7 @@ int main(int argc, char ** argv)
   
   /* Cleanup */
 
-  ret = 0;
+  ret = EXIT_SUCCESS;
   fail:
   
   destroy_stream_sections(ac_sections, num_audio_streams);

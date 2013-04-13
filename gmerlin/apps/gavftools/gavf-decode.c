@@ -159,7 +159,7 @@ static void update_metadata(void * priv, const gavl_metadata_t * m)
 
 int main(int argc, char ** argv)
   {
-  int ret = 1;
+  int ret = EXIT_FAILURE;
   bg_mediaconnector_t * conn;
 
   bg_mediaconnector_t file_conn;
@@ -263,7 +263,6 @@ int main(int argc, char ** argv)
     }
 
   
-  ret = 1;
 
   bg_mediaconnector_start(conn);
 
@@ -280,7 +279,7 @@ int main(int argc, char ** argv)
        !bg_mediaconnector_iteration(conn))
       break;
     }
-  ret = 0;
+  ret = EXIT_SUCCESS;
   fail:
 
   bg_log(BG_LOG_INFO, LOG_DOMAIN, "Cleaning up");

@@ -135,7 +135,7 @@ static bg_parameter_info_t * create_vf_parameters()
 
 int main(int argc, char ** argv)
   {
-  int ret = 1;
+  int ret = EXIT_FAILURE;
   bg_mediaconnector_t conn;
   bg_stream_action_t * audio_actions = NULL;
   bg_stream_action_t * video_actions = NULL;
@@ -357,7 +357,12 @@ int main(int argc, char ** argv)
        !bg_mediaconnector_iteration(&conn))
       break;
     }
-    
+
+
+  ret = EXIT_SUCCESS;
+  
+  fail:
+  
   /* Cleanup */
 
   bg_log(BG_LOG_INFO, LOG_DOMAIN, "Cleaning up");
@@ -393,9 +398,5 @@ int main(int argc, char ** argv)
     free(text_actions);
   if(overlay_actions)
     free(overlay_actions);
-
-  
-  ret = 0;
-  fail:
   return ret;
   }
