@@ -195,10 +195,11 @@ void * bg_player_oa_thread(void * data)
         {
         if(bg_player_audio_set_eof(p))
           {
+          /* Stop here (don't send silence) */
           if(!bg_thread_wait_for_start(s->th))
             break;
-          continue;
           }
+        continue;
         }
       }
     
