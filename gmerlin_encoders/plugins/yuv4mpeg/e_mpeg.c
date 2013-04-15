@@ -357,7 +357,7 @@ static char * get_filename(e_mpeg_t * e, const char * extension, int is_audio)
       {
       end = start + strlen(start);
       }
-    template = bg_strndup(NULL, start, end);
+    template = gavl_strndup(start, end);
     }
   else
     {
@@ -742,7 +742,7 @@ static const bg_parameter_info_t * get_parameters_mpeg(void * data)
 
 #define SET_ENUM(ret, key, v) if(!strcmp(val->val_str, key)) ret = v;
 
-#define SET_STRING(key) if(!strcmp(# key, name)) e->key = bg_strdup(e->key, val->val_str);
+#define SET_STRING(key) if(!strcmp(# key, name)) e->key = gavl_strrep(e->key, val->val_str);
 
 static void set_parameter_mpeg(void * data, const char * name,
                                const bg_parameter_value_t * val)

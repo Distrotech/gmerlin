@@ -1040,7 +1040,7 @@ static int process_block(bgav_demuxer_context_t * ctx,
       int64_t frame_size_diff = 0;
       
       //      fprintf(stderr, "MKV_LACING_EBML\n");
-      //      bgav_hexdump(ptr, 32, 16);
+      //      gavl_hexdump(ptr, 32, 16);
 
       if(m->lace_sizes_alloc < b->num_laces)
         {

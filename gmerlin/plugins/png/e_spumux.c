@@ -82,7 +82,7 @@ static int open_spumux(void * priv, const char * filename,
   if(!bg_encoder_cb_create_output_file(spumux->cb, spumux->filename))
     return 0;
   
-  spumux->filename_template = bg_strdup(spumux->filename_template, filename);
+  spumux->filename_template = gavl_strrep(spumux->filename_template, filename);
 
   pos = strrchr(spumux->filename_template, '.');
   if(pos) *pos = '\0';

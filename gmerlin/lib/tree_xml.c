@@ -106,13 +106,13 @@ static bg_album_t * load_album(xmlDocPtr xml_doc,
     tmp_string = (char*)xmlNodeListGetString(xml_doc, child->children, 1);
 
     if(!BG_XML_STRCMP(child->name, "NAME"))
-      ret->name = bg_strdup(ret->name, tmp_string);
+      ret->name = gavl_strrep(ret->name, tmp_string);
     else if(!BG_XML_STRCMP(child->name, "LOCATION"))
-      ret->xml_file = bg_strdup(ret->xml_file, tmp_string);
+      ret->xml_file = gavl_strrep(ret->xml_file, tmp_string);
     else if(!BG_XML_STRCMP(child->name, "DEVICE"))
-      ret->device = bg_strdup(ret->device, tmp_string);
+      ret->device = gavl_strrep(ret->device, tmp_string);
     else if(!BG_XML_STRCMP(child->name, "WATCH_DIR"))
-      ret->watch_dir = bg_strdup(ret->watch_dir, tmp_string);
+      ret->watch_dir = gavl_strrep(ret->watch_dir, tmp_string);
     else if(!BG_XML_STRCMP(child->name, "PLUGIN"))
       ret->plugin_info = bg_plugin_find_by_name(ret->com->plugin_reg, tmp_string);
     if(tmp_string)

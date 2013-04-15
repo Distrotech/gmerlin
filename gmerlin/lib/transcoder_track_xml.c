@@ -405,7 +405,7 @@ static void xml_2_audio(bg_transcoder_track_audio_t * s,
   tmp_string = BG_XML_GET_PROP(xml_stream, "label");
   if(tmp_string)
     {
-    s->label = bg_strdup(s->label, tmp_string);
+    s->label = gavl_strrep(s->label, tmp_string);
     xmlFree(tmp_string);
     }
   
@@ -447,7 +447,7 @@ static void xml_2_video(bg_transcoder_track_video_t * s,
   tmp_string = BG_XML_GET_PROP(xml_stream, "label");
   if(tmp_string)
     {
-    s->label = bg_strdup(s->label, tmp_string);
+    s->label = gavl_strrep(s->label, tmp_string);
     xmlFree(tmp_string);
     }
 
@@ -490,7 +490,7 @@ static void xml_2_text(bg_transcoder_track_text_t * s,
   tmp_string = BG_XML_GET_PROP(xml_stream, "label");
   if(tmp_string)
     {
-    s->label = bg_strdup(s->label, tmp_string);
+    s->label = gavl_strrep(s->label, tmp_string);
     xmlFree(tmp_string);
     }
 
@@ -542,7 +542,7 @@ static void xml_2_overlay(bg_transcoder_track_overlay_t * s,
   tmp_string = BG_XML_GET_PROP(xml_stream, "label");
   if(tmp_string)
     {
-    s->label = bg_strdup(s->label, tmp_string);
+    s->label = gavl_strrep(s->label, tmp_string);
     xmlFree(tmp_string);
     }
   tmp_string = BG_XML_GET_PROP(xml_stream, "in_index");
@@ -827,7 +827,7 @@ static int xml_2_global(bg_transcoder_track_global_t * g,
 
       if(tmp_string)
         {
-        g->pp_plugin = bg_strdup(g->pp_plugin, tmp_string);
+        g->pp_plugin = gavl_strrep(g->pp_plugin, tmp_string);
         xmlFree(tmp_string);
         }
       }

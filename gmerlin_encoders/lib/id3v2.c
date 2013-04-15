@@ -97,7 +97,7 @@ static void add_frame(bgen_id3v2_t * tag, uint32_t fourcc,
   tag->frames = realloc(tag->frames,
                         (tag->num_frames+1)*sizeof(*(tag->frames)));
   tag->frames[tag->num_frames].fourcc = fourcc;
-  tag->frames[tag->num_frames].str = bg_strdup(NULL, string);
+  tag->frames[tag->num_frames].str = gavl_strdup(string);
   tag->num_frames++;
   }
 

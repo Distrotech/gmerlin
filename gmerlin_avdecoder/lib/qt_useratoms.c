@@ -73,7 +73,7 @@ void bgav_qt_user_atoms_dump(int indent, qt_user_atoms_t * a)
     bgav_diprintf(indent, "User atom: ");
     bgav_dump_fourcc(fourcc);
     bgav_dprintf( " (size: %d)\n", size);
-    bgav_hexdump(a->atoms[i], size, 16);
+    gavl_hexdump(a->atoms[i], size, 16);
     }
 
   }

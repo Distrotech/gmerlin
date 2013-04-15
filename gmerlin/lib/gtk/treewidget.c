@@ -1093,11 +1093,11 @@ static void set_parameter_add_device(void * data, const char * name,
     }
   else if(!strcmp(name, "device"))
     {
-    s->device = bg_strdup(s->device, val->val_str);
+    s->device = gavl_strrep(s->device, val->val_str);
     }
   else if(!strcmp(name, "name"))
     {
-    s->name = bg_strdup(s->name, val->val_str);
+    s->name = gavl_strrep(s->name, val->val_str);
     }
   
   }

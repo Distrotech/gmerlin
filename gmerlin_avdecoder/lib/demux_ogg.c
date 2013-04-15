@@ -460,7 +460,6 @@ static int get_page(bgav_demuxer_context_t * ctx)
 
 static void append_extradata(bgav_stream_t * s, ogg_packet * op)
   {
-  uint8_t * ptr;
   gavl_append_xiph_header(&s->ext_data, &s->ext_size,
                           op->packet, op->bytes);
   }
@@ -1871,7 +1870,7 @@ static int next_packet_ogg(bgav_demuxer_context_t * ctx)
     while(ogg_stream_packetout(&stream_priv->os, &priv->op) == 1)
       {
       // fprintf(stderr, "got packet %d bytes\n", priv->op.bytes);
-      // bgav_hexdump(priv->op.packet, 16, 16);
+      // gavl_hexdump(priv->op.packet, 16, 16);
 
       switch(stream_priv->fourcc_priv)
         {
@@ -2136,7 +2135,7 @@ static int next_packet_ogg(bgav_demuxer_context_t * ctx)
           p->data_size = priv->op.bytes;
 
           //  fprintf(stderr, "Flac packet:\n");
-          //  bgav_hexdump(p->data, 16, 16);
+          //  gavl_hexdump(p->data, 16, 16);
           
           if(stream_priv->prev_granulepos >= 0)
             p->pts = stream_priv->prev_granulepos;

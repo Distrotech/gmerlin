@@ -54,7 +54,7 @@ static void dump_frames(vmd_frame_t * f, int num)
                  f[i].frame_offset,
                  f[i].frame_size,
                  f[i].pts);
-    bgav_hexdump(f[i].frame_record, 16, 16);
+    gavl_hexdump(f[i].frame_record, 16, 16);
     }
   }
 #endif

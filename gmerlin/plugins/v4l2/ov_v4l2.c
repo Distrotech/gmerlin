@@ -147,7 +147,7 @@ static void set_parameter_v4l2(void * priv, const char * name,
     return;
     }
   else if(!strcmp(name, "device"))
-    v4l->device = bg_strdup(v4l->device, val->val_str);
+    v4l->device = gavl_strrep(v4l->device, val->val_str);
   else if(!strcmp(name, "force_rw"))
     v4l->force_rw = val->val_i;
   else if(v4l->controls && (v4l->fd >= 0))

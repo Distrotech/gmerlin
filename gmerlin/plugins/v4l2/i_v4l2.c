@@ -515,7 +515,7 @@ static void * create_v4l()
   v4l = calloc(1, sizeof(*v4l));
   
   v4l->fd = -1;
-  //  v4l->device = bg_strdup(v4l->device, "/dev/video4");
+  //  v4l->device = gavl_strrep(v4l->device, "/dev/video4");
   return v4l;
   }
 
@@ -652,7 +652,7 @@ static void set_parameter_v4l(void * priv, const char * name,
     return;
     }
   else if(!strcmp(name, "device"))
-    v4l->device = bg_strdup(v4l->device, val->val_str);
+    v4l->device = gavl_strrep(v4l->device, val->val_str);
   else if(!strcmp(name, "force_rw"))
     v4l->force_rw = val->val_i;
   else if(!strcmp(name, "resolution"))

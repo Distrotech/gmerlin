@@ -165,7 +165,7 @@ static void set_parameter(void * data, const char * name,
     }
   else if(!strcmp(name, "name"))
     win->cl->chapters[win->edited].name =
-      bg_strdup(win->cl->chapters[win->edited].name, val->val_str);
+      gavl_strrep(win->cl->chapters[win->edited].name, val->val_str);
   else if(!strcmp(name, "time"))
     win->cl->chapters[win->edited].time =
       gavl_time_scale(win->cl->timescale, val->val_time);

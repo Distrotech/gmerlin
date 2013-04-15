@@ -1006,7 +1006,7 @@ bg_x11_window_t * bg_x11_window_create(const char * display_string)
   {
   bg_x11_window_t * ret;
   ret = calloc(1, sizeof(*ret));
-  ret->display_string_parent = bg_strdup(ret->display_string_parent, display_string);
+  ret->display_string_parent = gavl_strrep(ret->display_string_parent, display_string);
   ret->scaler = gavl_video_scaler_create();
   
   /* Set default OpenGL attributes */
@@ -1437,8 +1437,8 @@ void bg_x11_window_set_options(bg_x11_window_t * w,
     XClassHint xclasshint;
 
     /* const madness */
-    xclasshint.res_name = bg_strdup(NULL, name);
-    xclasshint.res_class = bg_strdup(NULL, klass);
+    xclasshint.res_name = gavl_strdup(name);
+    xclasshint.res_class = gavl_strdup(klass);
 
     if(w->normal.parent == w->root)
       XSetClassHint(w->dpy, w->normal.win, &xclasshint);

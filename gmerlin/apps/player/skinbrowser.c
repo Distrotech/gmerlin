@@ -92,14 +92,14 @@ static skin_info_t * scan_directory(const char * directory)
 
     /* Now, create the skin info */
     new_info = calloc(1, sizeof(*new_info));
-    new_info->directory = bg_strdup(new_info->directory, dir_filename);
+    new_info->directory = gavl_strrep(new_info->directory, dir_filename);
 
     start = strrchr(new_info->directory, '/');
     if(!start)
       continue;
     start++;
 
-    new_info->name = bg_strdup(new_info->name, start);
+    new_info->name = gavl_strrep(new_info->name, start);
     if(!ret)
       {
       ret = new_info;
@@ -260,7 +260,7 @@ static void select_row_callback(GtkTreeSelection * sel,
   if(!strcmp(skin->directory, b->g->skin_dir))
     return;
 
-  b->g->skin_dir = bg_strdup(b->g->skin_dir, skin->directory);
+  b->g->skin_dir = gavl_strrep(b->g->skin_dir, skin->directory);
   gmerlin_skin_load(&b->g->skin, b->g->skin_dir);
   gmerlin_skin_set(b->g);
  

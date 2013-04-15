@@ -52,7 +52,7 @@ void bg_parameter_value_copy(bg_parameter_value_t * dst,
     case BG_PARAMETER_MULTI_MENU:
     case BG_PARAMETER_MULTI_LIST:
     case BG_PARAMETER_MULTI_CHAIN:
-      dst->val_str = bg_strdup(dst->val_str, src->val_str);
+      dst->val_str = gavl_strrep(dst->val_str, src->val_str);
       break;
     case BG_PARAMETER_COLOR_RGB:
       memcpy(dst->val_color,
@@ -127,7 +127,7 @@ static char ** copy_string_array(char const * const * arr)
   ret = calloc(num+1, sizeof(*ret));
 
   for(i = 0; i < num; i++)
-    ret[i] = bg_strdup(ret[i], arr[i]);
+    ret[i] = gavl_strrep(ret[i], arr[i]);
   return ret;
   }
 
@@ -150,17 +150,17 @@ void bg_parameter_info_copy(bg_parameter_info_t * dst,
   {
   int num_options, i;
 
-  dst->name = bg_strdup(dst->name, src->name);
+  dst->name = gavl_strrep(dst->name, src->name);
   
-  dst->long_name = bg_strdup(dst->long_name, src->long_name);
-  dst->opt = bg_strdup(dst->opt, src->opt);
-  dst->help_string = bg_strdup(dst->help_string, src->help_string);
+  dst->long_name = gavl_strrep(dst->long_name, src->long_name);
+  dst->opt = gavl_strrep(dst->opt, src->opt);
+  dst->help_string = gavl_strrep(dst->help_string, src->help_string);
   dst->type = src->type;
   dst->flags = src->flags;
 
-  dst->gettext_domain    = bg_strdup(dst->gettext_domain,    src->gettext_domain);
-  dst->gettext_directory = bg_strdup(dst->gettext_directory, src->gettext_directory);
-  dst->preset_path       = bg_strdup(dst->preset_path,       src->preset_path);
+  dst->gettext_domain    = gavl_strrep(dst->gettext_domain,    src->gettext_domain);
+  dst->gettext_directory = gavl_strrep(dst->gettext_directory, src->gettext_directory);
+  dst->preset_path       = gavl_strrep(dst->preset_path,       src->preset_path);
   
   switch(dst->type)
     {
@@ -186,13 +186,13 @@ void bg_parameter_info_copy(bg_parameter_info_t * dst,
     case BG_PARAMETER_DEVICE:
     case BG_PARAMETER_FILE:
     case BG_PARAMETER_DIRECTORY:
-      dst->val_default.val_str = bg_strdup(dst->val_default.val_str,
+      dst->val_default.val_str = gavl_strrep(dst->val_default.val_str,
                                            src->val_default.val_str);
       break;
     case BG_PARAMETER_MULTI_MENU:
     case BG_PARAMETER_MULTI_LIST:
     case BG_PARAMETER_MULTI_CHAIN:
-      dst->val_default.val_str = bg_strdup(dst->val_default.val_str,
+      dst->val_default.val_str = gavl_strrep(dst->val_default.val_str,
                                            src->val_default.val_str);
       
       dst->multi_names_nc        = copy_string_array(src->multi_names);
@@ -225,7 +225,7 @@ void bg_parameter_info_copy(bg_parameter_info_t * dst,
         }
       break;
     case BG_PARAMETER_STRINGLIST:
-      dst->val_default.val_str = bg_strdup(dst->val_default.val_str,
+      dst->val_default.val_str = gavl_strrep(dst->val_default.val_str,
                                            src->val_default.val_str);
 
       /* Copy stringlist options */

@@ -99,7 +99,7 @@ char * kbd_modifiers_to_string(uint32_t state)
         ret = bg_strcat(ret, modifiers[i].name);
         }
       else
-        ret = bg_strdup(ret, modifiers[i].name);
+        ret = gavl_strdup(modifiers[i].name);
       }
     }
   return ret;

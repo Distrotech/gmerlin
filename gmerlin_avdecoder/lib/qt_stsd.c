@@ -865,7 +865,7 @@ void bgav_qt_stsd_dump(int indent, qt_stsd_t * s)
     {
     bgav_diprintf(indent+2, "Sample description: %d\n", i);
     bgav_diprintf(indent+2, "Raw data:           %d bytes\n", s->entries[i].data_size);
-    bgav_hexdump(s->entries[i].data, s->entries[i].data_size, 16);
+    gavl_hexdump(s->entries[i].data, s->entries[i].data_size, 16);
     
     if(s->entries[i].desc.type == BGAV_STREAM_AUDIO)
       {

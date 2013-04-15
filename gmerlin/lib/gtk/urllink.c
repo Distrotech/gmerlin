@@ -71,7 +71,7 @@ bg_gtk_urllink_t * bg_gtk_urllink_create(const char * text, const char * url)
     }
   else
     {
-    ret->url = bg_strdup(ret->url, url);
+    ret->url = gavl_strrep(ret->url, url);
     label = gtk_label_new("");
     tmp_string =
       bg_sprintf("<span foreground=\"blue\" underline=\"single\">%s</span>",

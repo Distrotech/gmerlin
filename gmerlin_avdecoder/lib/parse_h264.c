@@ -126,7 +126,7 @@ handle_sei_new(bgav_video_parser_t * parser, bgav_packet_t * p)
 
 #ifdef DUMP_SEI
     bgav_dprintf("Got SEI: %d (%d bytes)\n", sei_type, sei_size);
-    bgav_hexdump(ptr, sei_size, 16);
+    gavl_hexdump(ptr, sei_size, 16);
 #endif    
     switch(sei_type)
       {
@@ -578,7 +578,7 @@ static int parse_frame_h264(bgav_video_parser_t * parser, bgav_packet_t * p, int
         if(!(priv->flags & FLAG_HAVE_SPS))
           {
           // fprintf(stderr, "Got SPS %d bytes\n", priv->nal_len);
-          // bgav_hexdump(parser->buf.buffer + parser->pos,
+          // gavl_hexdump(parser->buf.buffer + parser->pos,
           //              priv->nal_len, 16);
 
           nal_end = get_nal_end(p, ptr);

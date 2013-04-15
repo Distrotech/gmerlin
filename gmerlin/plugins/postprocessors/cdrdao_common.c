@@ -72,9 +72,9 @@ void bg_cdrdao_set_parameter(void * data, const char * name,
   if(!strcmp(name, "cdrdao_run"))
     c->run = val->val_i;
   else if(!strcmp(name, "cdrdao_device"))
-    c->device = bg_strdup(c->device, val->val_str);
+    c->device = gavl_strrep(c->device, val->val_str);
   else if(!strcmp(name, "cdrdao_driver"))
-    c->driver = bg_strdup(c->driver, val->val_str);
+    c->driver = gavl_strrep(c->driver, val->val_str);
   else if(!strcmp(name, "cdrdao_eject"))
     c->eject = val->val_i;
   else if(!strcmp(name, "cdrdao_simulate"))

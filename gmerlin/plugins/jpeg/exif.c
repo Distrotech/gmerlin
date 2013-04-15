@@ -184,7 +184,7 @@ static void set_ascii(foreach_data_t * fd,
   
   if(e->format == EXIF_FORMAT_ASCII)
     gavl_metadata_set_nocpy(fd->m, key,
-                            bg_strndup(NULL, (char*)e->data, end));
+                            gavl_strndup((char*)e->data, end));
   }
                               
 
@@ -278,9 +278,8 @@ static void set_version(foreach_data_t * fd,
     return;
   
   gavl_metadata_set_nocpy(fd->m, key,
-                          bg_strndup(NULL,
-                                     (char*)e->data,
-                                     (char*)(e->data + e->size)));
+                          gavl_strndup((char*)e->data,
+                                       (char*)(e->data + e->size)));
   }
 
 const enum_tab_t resolution_units[] =

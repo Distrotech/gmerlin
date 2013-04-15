@@ -752,19 +752,19 @@ void bg_gtk_slider_skin_load(bg_gtk_slider_skin_t * s,
     else if(!BG_XML_STRCMP(node->name, "Y"))
       s->y = atoi(tmp_string);
     else if(!BG_XML_STRCMP(node->name, "NORMAL"))
-      s->pixmap_normal = bg_strdup(s->pixmap_normal, tmp_string);
+      s->pixmap_normal = gavl_strrep(s->pixmap_normal, tmp_string);
     else if(!BG_XML_STRCMP(node->name, "HIGHLIGHT"))
-      s->pixmap_highlight = bg_strdup(s->pixmap_highlight, tmp_string);
+      s->pixmap_highlight = gavl_strrep(s->pixmap_highlight, tmp_string);
     else if(!BG_XML_STRCMP(node->name, "PRESSED"))
-      s->pixmap_pressed = bg_strdup(s->pixmap_pressed, tmp_string);
+      s->pixmap_pressed = gavl_strrep(s->pixmap_pressed, tmp_string);
     else if(!BG_XML_STRCMP(node->name, "INACTIVE"))
-      s->pixmap_inactive = bg_strdup(s->pixmap_inactive, tmp_string);
+      s->pixmap_inactive = gavl_strrep(s->pixmap_inactive, tmp_string);
     else if(!BG_XML_STRCMP(node->name, "BACKGROUND"))
-      s->pixmap_background = bg_strdup(s->pixmap_background, tmp_string);
+      s->pixmap_background = gavl_strrep(s->pixmap_background, tmp_string);
     else if(!BG_XML_STRCMP(node->name, "BACKGROUND_L"))
-      s->pixmap_background_l = bg_strdup(s->pixmap_background_l, tmp_string);
+      s->pixmap_background_l = gavl_strrep(s->pixmap_background_l, tmp_string);
     else if(!BG_XML_STRCMP(node->name, "BACKGROUND_R"))
-      s->pixmap_background_r = bg_strdup(s->pixmap_background_r, tmp_string);
+      s->pixmap_background_r = gavl_strrep(s->pixmap_background_r, tmp_string);
     node = node->next;
     xmlFree(tmp_string);
     }

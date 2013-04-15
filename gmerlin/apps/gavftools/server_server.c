@@ -84,7 +84,7 @@ server_t * server_create(char ** listen_addresses,
       }
     else if(!strncmp(ret->listen_addresses[i], "unix://", 7))
       {
-      char * name = bg_strdup(NULL, ret->listen_addresses[i]+7);
+      char * name = gavl_strdup(ret->listen_addresses[i]+7);
       bg_url_get_vars(name, NULL);
       
       ret->listen_sockets[i] =
@@ -201,7 +201,7 @@ static void handle_client_connection(server_t * s, int fd)
     goto fail;
     }
 
-  location = bg_strdup(NULL, var);
+  location = gavl_strdup(var);
   bg_url_get_vars(location, &vars);
   
   if(!strcmp(location, "/"))
@@ -321,7 +321,7 @@ void server_destroy(server_t * s)
     close(s->listen_sockets[i]);
     if(!strncmp(s->listen_addresses[i], "unix://", 7))
       {
-      char * name = bg_strdup(NULL, s->listen_addresses[i]+7);
+      char * name = gavl_strdup(s->listen_addresses[i]+7);
       bg_url_get_vars(name, NULL);
       
       unlink(name);

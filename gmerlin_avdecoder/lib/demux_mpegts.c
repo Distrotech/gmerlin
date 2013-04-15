@@ -656,7 +656,7 @@ static int init_psi(bgav_demuxer_context_t * ctx,
   int i, j;
   
   priv = ctx->priv;
-  //  bgav_hexdump(data, packet.payload_size, 16);
+  //  gavl_hexdump(data, packet.payload_size, 16);
 
   /* We are at the beginning of the payload of a PAT packet */
   skip = 1 + priv->ptr[0];
@@ -1006,7 +1006,7 @@ static int init_raw(bgav_demuxer_context_t * ctx, int input_can_seek)
         {
         int size = priv->buffer_size - (priv->ptr - priv->buffer);
         
-        //        bgav_hexdump(priv->ptr, 16, 16);
+        //        gavl_hexdump(priv->ptr, 16, 16);
         
         s = bgav_track_add_video_stream(&ctx->tt->tracks[0], ctx->opt);
         s->index_mode = INDEX_MODE_SIMPLE;
@@ -1346,7 +1346,7 @@ static int parse_hdv_vaux(uint8_t * data, int len, hdv_vaux_t * ret)
       size = 4;
 
     fprintf(stderr, "Got VAUX data %02x, len: %d\n", tag, size);
-    bgav_hexdump(data, size, 16);
+    gavl_hexdump(data, size, 16);
     if((tag == 0x44) && (len >= 0x39))
       {
       rate_index = data[13] & 0x07;
@@ -1563,7 +1563,7 @@ static int process_packet(bgav_demuxer_context_t * ctx)
       /* Got AAUX packet */
       //      fprintf(stderr, "Got AAUX packet\n");
       // bgav_transport_packet_dump(&priv->packet);
-      // bgav_hexdump(priv->ptr, priv->packet.payload_size, 16);
+      // gavl_hexdump(priv->ptr, priv->packet.payload_size, 16);
 
       parse_hdv_aaux(priv->ptr, priv->packet.payload_size, &aaux);
 
@@ -1584,7 +1584,7 @@ static int process_packet(bgav_demuxer_context_t * ctx)
         /* Got VAUX packet */
         fprintf(stderr, "Got VAUX packet\n");
         bgav_transport_packet_dump(&priv->packet);
-        bgav_hexdump(priv->ptr, priv->packet.payload_size, 16);
+        gavl_hexdump(priv->ptr, priv->packet.payload_size, 16);
         parse_hdv_vaux(priv->ptr, priv->packet.payload_size, &vaux);
 #ifdef DUMP_HDV_AUX
         dump_vaux(&vaux);
@@ -1615,7 +1615,7 @@ static int process_packet(bgav_demuxer_context_t * ctx)
     if(!s)
       {
       // fprintf(stderr, "No stream for PID %04x\n", priv->packet.pid);      
-      //      bgav_hexdump(priv->packet_start, 188, 16);
+      //      gavl_hexdump(priv->packet_start, 188, 16);
       
       next_packet(priv);
       position += priv->packet_size;

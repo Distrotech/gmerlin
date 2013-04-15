@@ -45,7 +45,7 @@ void bg_edl_append_track_info(gavl_edl_t * e, const bg_track_info_t * info,
   t = gavl_edl_add_track(e);
 
   if(name)
-    real_name = bg_strdup(NULL, name);
+    real_name = gavl_strdup(name);
   else
     real_name = bg_get_track_name_default(url, index, total_tracks);
   
@@ -70,7 +70,7 @@ void bg_edl_append_track_info(gavl_edl_t * e, const bg_track_info_t * info,
       }
     seg->speed_num = 1;
     seg->speed_den = 1;
-    seg->url = bg_strdup(NULL, url);
+    seg->url = gavl_strdup(url);
     seg->track = index;
     seg->stream = i;
     }
@@ -92,7 +92,7 @@ void bg_edl_append_track_info(gavl_edl_t * e, const bg_track_info_t * info,
       }
     seg->speed_num = 1;
     seg->speed_den = 1;
-    seg->url = bg_strdup(NULL, url);
+    seg->url = gavl_strdup(url);
     seg->track = index;
     seg->stream = i;
     }
@@ -116,7 +116,7 @@ void bg_edl_append_track_info(gavl_edl_t * e, const bg_track_info_t * info,
       }
     seg->speed_num = 1;
     seg->speed_den = 1;
-    seg->url = bg_strdup(NULL, url);
+    seg->url = gavl_strdup(url);
     seg->track = index;
     seg->stream = i;
     }
@@ -140,7 +140,7 @@ void bg_edl_append_track_info(gavl_edl_t * e, const bg_track_info_t * info,
       }
     seg->speed_num = 1;
     seg->speed_den = 1;
-    seg->url = bg_strdup(NULL, url);
+    seg->url = gavl_strdup(url);
     seg->track = index;
     seg->stream = i;
     }

@@ -106,7 +106,7 @@ int bgav_cavs_picture_header_read(const bgav_options_t * opt,
   memset(ret, 0, sizeof(*ret));
 
   //  fprintf(stderr, "Read picture header\n");
-  //  bgav_hexdump(buffer, 16, 16);
+  //  gavl_hexdump(buffer, 16, 16);
   
   bgav_bitstream_init(&b, buffer + 4, len - 4);
 

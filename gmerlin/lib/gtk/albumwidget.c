@@ -432,7 +432,7 @@ static void set_parameter(void * data,
 
   if(!strcmp(name, "open_path"))
     {
-    w->open_path = bg_strdup(w->open_path, val->val_str);
+    w->open_path = gavl_strrep(w->open_path, val->val_str);
     }
   else if(!strcmp(name, "show_toolbar"))
     {
@@ -451,7 +451,7 @@ static int get_parameter(void * data, const char * name,
 
   if(!strcmp(name, "open_path"))
     {
-    val->val_str = bg_strdup(val->val_str, w->open_path);
+    val->val_str = gavl_strrep(val->val_str, w->open_path);
     return 1;
     }
   else if(!strcmp(name, "show_toolbar"))
@@ -1040,8 +1040,9 @@ static void add_file_callback(char ** files, const char * plugin,
 
   gtk_widget_set_sensitive(widget->treeview, 1);
   
-  widget->open_path = bg_strdup(widget->open_path,
-                                bg_gtk_filesel_get_directory(widget->add_files_filesel));
+  widget->open_path =
+    gavl_strrep(widget->open_path,
+              bg_gtk_filesel_get_directory(widget->add_files_filesel));
   }
 
 static void add_urls_callback(char ** urls, const char * plugin,

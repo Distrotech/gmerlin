@@ -184,8 +184,8 @@ static int append_param(bg_parameter_info_t ** ret, int * num,
 
   info = &(*ret)[*num];
 
-  info->name = bg_strdup(info->name, (char*)ctrl->name);
-  info->long_name = bg_strdup(info->long_name, (char*)ctrl->name);
+  info->name = gavl_strrep(info->name, (char*)ctrl->name);
+  info->long_name = gavl_strrep(info->long_name, (char*)ctrl->name);
   info->flags = BG_PARAMETER_SYNC;
   
   switch(ctrl->type)
@@ -292,10 +292,10 @@ void bgv4l2_create_device_selector(bg_parameter_info_t * info,
     info->multi_parameters_nc = realloc(info->multi_parameters_nc, (num_cards + 2)*
                                      sizeof(*info->multi_parameters));
     
-    info->multi_names_nc[num_cards] = bg_strdup(NULL, tmp_string);
+    info->multi_names_nc[num_cards] = gavl_strdup(tmp_string);
     info->multi_names_nc[num_cards+1] = NULL;
 
-    info->multi_labels_nc[num_cards] = bg_strdup(NULL, (char*)cap.card);
+    info->multi_labels_nc[num_cards] = gavl_strdup((char*)cap.card);
     info->multi_labels_nc[num_cards+1] = NULL;
 
     info->multi_parameters_nc[num_cards] = create_card_parameters(fd);

@@ -332,7 +332,7 @@ static int read_sector(bgav_input_context_t * ctx, uint8_t * data)
 #ifndef SECTOR_ACCESS
   priv->buffer_ptr = priv->buffer;
 #endif
-  //  bgav_hexdump(priv->buffer_ptr, 32, 16);
+  //  gavl_hexdump(priv->buffer_ptr, 32, 16);
   return 1;
   }
 

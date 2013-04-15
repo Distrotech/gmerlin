@@ -192,15 +192,15 @@ int bg_pngwriter_write_header(void * priv,
     png->text[j].compression = PNG_TEXT_COMPRESSION_NONE;
 
     if(!strcmp(metadata->tags[j].key, GAVL_META_AUTHOR))
-      png->text[j].key         = bg_strdup(png->text[j].key, "Author");
+      png->text[j].key         = gavl_strrep(png->text[j].key, "Author");
     else if(!strcmp(metadata->tags[j].key, GAVL_META_TITLE))
-      png->text[j].key         = bg_strdup(png->text[j].key, "Title");
+      png->text[j].key         = gavl_strrep(png->text[j].key, "Title");
     else if(!strcmp(metadata->tags[j].key, GAVL_META_COPYRIGHT))
-      png->text[j].key         = bg_strdup(png->text[j].key, "Copyright");
+      png->text[j].key         = gavl_strrep(png->text[j].key, "Copyright");
     else
-      png->text[j].key = bg_strdup(png->text[j].key, metadata->tags[j].key);
+      png->text[j].key = gavl_strrep(png->text[j].key, metadata->tags[j].key);
     
-    png->text[j].text = bg_strdup(png->text[j].text, metadata->tags[j].val);
+    png->text[j].text = gavl_strrep(png->text[j].text, metadata->tags[j].val);
     }
   
   png_set_text(png->png_ptr, png->info_ptr, png->text, png->num_text);

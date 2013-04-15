@@ -216,7 +216,7 @@ static void reset_section(dialog_section_t * s)
          (s->widgets[i].value.val_str) &&
          strchr(s->widgets[i].value.val_str, ':'))
         {
-        val.val_str = bg_strdup(NULL, s->widgets[i].value.val_str);
+        val.val_str = gavl_strdup(s->widgets[i].value.val_str);
         pos = strchr(val.val_str, ':');
         if(pos)
           *pos = '\0';
@@ -286,7 +286,7 @@ static void restore_section(dialog_section_t * s,
          (s->widgets[i].value.val_str) &&
          strchr(s->widgets[i].value.val_str, ':'))
         {
-        val.val_str = bg_strdup(NULL, s->widgets[i].value.val_str);
+        val.val_str = gavl_strdup(s->widgets[i].value.val_str);
         pos = strchr(val.val_str, ':');
         if(pos)
           *pos = '\0';

@@ -65,12 +65,12 @@ static void set_value(bg_gtk_widget_t * w)
   
   if(w->info->multi_names)
     {
-    w->value.val_str = bg_strdup(w->value.val_str,
+    w->value.val_str = gavl_strrep(w->value.val_str,
                                  w->info->multi_names[priv->selected]);
     }
   else
-    w->value.val_str = bg_strdup(w->value.val_str,
-                                 NULL);
+    w->value.val_str = gavl_strrep(w->value.val_str,
+                                   NULL);
     
   }
 

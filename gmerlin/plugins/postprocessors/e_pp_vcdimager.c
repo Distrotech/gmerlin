@@ -146,7 +146,7 @@ static const bg_parameter_info_t * get_parameters_vcdimager(void * data)
   return parameters;
   }
 
-#define SET_STR(key) if(!strcmp(name, # key)) { vcd->key = bg_strdup(vcd->key, v->val_str); return; }
+#define SET_STR(key) if(!strcmp(name, # key)) { vcd->key = gavl_strrep(vcd->key, v->val_str); return; }
 
 static void set_parameter_vcdimager(void * data, const char * name, const bg_parameter_value_t * v)
   {
@@ -193,7 +193,7 @@ static void add_track_vcdimager(void * data, const char * filename,
   vcdimager = data;
   vcdimager->files = realloc(vcdimager->files,
                              sizeof(*(vcdimager->files)) * (vcdimager->num_files+1));
-  vcdimager->files[vcdimager->num_files].name = bg_strdup(NULL, filename);
+  vcdimager->files[vcdimager->num_files].name = gavl_strdup(filename);
   vcdimager->files[vcdimager->num_files].pp_only = pp_only;
   vcdimager->num_files++;
   }

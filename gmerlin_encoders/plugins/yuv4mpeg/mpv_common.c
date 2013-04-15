@@ -182,9 +182,9 @@ void bg_mpv_set_parameter(void * data, const char * name, const bg_parameter_val
     com->bframes = val->val_i;
 
   else if(!strcmp(name, "user_options"))
-    com->user_options = bg_strdup(com->user_options, val->val_str);
+    com->user_options = gavl_strrep(com->user_options, val->val_str);
   else if(!strcmp(name, "quant_matrix"))
-    com->quant_matrix = bg_strdup(com->quant_matrix, val->val_str);
+    com->quant_matrix = gavl_strrep(com->quant_matrix, val->val_str);
   }
 
 #undef SET_ENUM

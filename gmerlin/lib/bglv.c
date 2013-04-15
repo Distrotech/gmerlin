@@ -249,14 +249,14 @@ static VisUIWidget * check_widget(VisUIWidget * w, const char * name,
       for(i = 0; i < num_items; i++)
         {
         visual_list_next(&VISUAL_UI_CHOICE(w)->choices.choices, &list_entry);
-        info->multi_names_nc[i] = bg_strdup(NULL, ((VisUIChoiceEntry*)(list_entry->data))->name);
+        info->multi_names_nc[i] = gavl_strdup(((VisUIChoiceEntry*)(list_entry->data))->name);
 
         /* Check if this is the current value */
         //        visual_param_entry_compare(((VisUIChoiceEntry*)(list_entry->data))->value,
         //                                       VISUAL_UI_MUTATOR(w)->param)
         if(!i)
           {
-          info->val_default.val_str = bg_strdup(NULL, info->multi_names_nc[i]);
+          info->val_default.val_str = gavl_strdup(info->multi_names_nc[i]);
           }
         }
       ret = w;
@@ -270,7 +270,7 @@ static VisUIWidget * check_widget(VisUIWidget * w, const char * name,
       break;
     }
   if(ret)
-    info->help_string = bg_strdup(info->help_string, w->tooltip);
+    info->help_string = gavl_strrep(info->help_string, w->tooltip);
   bg_parameter_info_set_const_ptrs(info);
   return ret;
   }
@@ -341,7 +341,7 @@ create_parameters(VisActor * actor, VisUIWidget *** widgets,
         case VISUAL_PARAM_ENTRY_TYPE_STRING:   /**< String parameter. */
           ret[index].type = BG_PARAMETER_STRING;
           ret[index].val_default.val_str =
-            bg_strdup(ret[index].val_default.val_str,
+            gavl_strrep(ret[index].val_default.val_str,
                       param_entry->string);
           break;
         case VISUAL_PARAM_ENTRY_TYPE_INTEGER:  /**< Integer parameter. */
@@ -380,8 +380,8 @@ create_parameters(VisActor * actor, VisUIWidget *** widgets,
     if(!supported)
       continue;
     
-    ret[index].name = bg_strdup(NULL, param_entry->name);
-    ret[index].long_name = bg_strdup(NULL, param_entry->name);
+    ret[index].name = gavl_strdup(param_entry->name);
+    ret[index].long_name = gavl_strdup(param_entry->name);
     index++;
     }
   return ret;
@@ -423,11 +423,11 @@ bg_plugin_info_t * bg_lv_get_info(const char * filename)
     
   
   ret->name        = bg_sprintf("vis_lv_%s", actor_name);
-  ret->long_name   = bg_strdup(NULL, info->name);
+  ret->long_name   = gavl_strdup(info->name);
   ret->type        = BG_PLUGIN_VISUALIZATION;
   ret->api         = BG_PLUGIN_API_LV;
   ret->description = bg_sprintf(TR("libvisual plugin"));
-  ret->module_filename = bg_strdup(NULL, filename);
+  ret->module_filename = gavl_strdup(filename);
   /* Optional info */
   if(info->author && *info->author)
     {
@@ -748,7 +748,7 @@ static void set_parameter_lv(void * data, const char * name,
   /* This would crash if multi_parameters were supported */
   index = info - priv->parameters;
 
-  tmp_string = bg_strdup(NULL, name);
+  tmp_string = gavl_strdup(name);
   param = visual_param_entry_new(tmp_string);
   free(tmp_string);
   /* Menus have to be treated specially */

@@ -711,14 +711,14 @@ int main(int argc, char ** argv)
   bg_cmdline_parse(global_options, &argc, &argv, NULL);
 
   if(!bg_cmdline_check_unsupported(argc, argv))
-    return -1;
+    goto fail;
 
   in_plug = gavftools_create_in_plug();
   
   /* Open */
 
   if(!bg_plug_open_location(in_plug, gavftools_in_file, NULL, NULL))
-    return ret;
+    goto fail;
   
   /* Select streams */
   
@@ -791,7 +791,7 @@ int main(int argc, char ** argv)
     {
     bg_log(BG_LOG_ERROR, LOG_DOMAIN,
            "Neither audio nor video can be played, exiting");
-    return ret;
+    goto fail;
     }
 
   ph = gavf_get_program_header(g);
@@ -813,8 +813,8 @@ int main(int argc, char ** argv)
   
   if(!bg_plug_start(in_plug) ||
      !bg_plug_setup_reader(in_plug, &conn))
-    return ret;
-
+    goto fail;
+    
   bg_mediaconnector_create_conn(&conn);
   
   bg_mediaconnector_create_threads(&conn, 0);

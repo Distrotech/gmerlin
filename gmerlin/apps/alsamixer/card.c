@@ -64,7 +64,7 @@ static alsa_mixer_group_t * get_group(alsa_card_t * c, const char * label)
   c->groups = realloc(c->groups, c->num_groups * sizeof(*(c->groups)));
   memset(c->groups + (c->num_groups-1), 0, sizeof(*(c->groups)));
   c->groups[c->num_groups-1].label =
-    bg_strdup(c->groups[c->num_groups-1].label, label);
+    gavl_strrep(c->groups[c->num_groups-1].label, label);
   return &c->groups[c->num_groups-1];
   }
 
@@ -135,7 +135,7 @@ alsa_card_t * alsa_card_create(int index)
     bg_log(BG_LOG_ERROR, LOG_DOMAIN, "snd_ctl_card_info failed");
     goto fail;
     }
-  card->name = bg_strdup(card->name,
+  card->name = gavl_strrep(card->name,
                          snd_ctl_card_info_get_mixername(card_info));
   
   hctl_elem = snd_hctl_first_elem(card->hctl);
@@ -228,11 +228,11 @@ alsa_card_t * alsa_card_create(int index)
       }
     else if(is_capture && (is_volume || is_switch))
       {
-      label = bg_strdup(NULL, TR("Capture"));
+      label = gavl_strdup(TR("Capture"));
       }
     else
       {
-      label = bg_strdup(NULL, TR("Unknown"));
+      label = gavl_strdup(TR("Unknown"));
       }
     
     if(elem_index > 0)

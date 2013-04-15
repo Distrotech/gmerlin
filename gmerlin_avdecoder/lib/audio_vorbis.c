@@ -250,7 +250,7 @@ static int init_vorbis(bgav_stream_t * s)
       bgav_log(s->opt, BGAV_LOG_ERROR, LOG_DOMAIN, "Vorbis decoder: Init data too small (%d bytes)", s->ext_size);
       return 0;
       }
-    //    bgav_hexdump(s->ext_data, s->ext_size, 16);
+    //    gavl_hexdump(s->ext_data, s->ext_size, 16);
 
     ptr = s->ext_data;
     header_sizes[0] = BGAV_PTR_2_32LE(ptr);ptr+=4;
@@ -425,7 +425,7 @@ static int init_vorbis(bgav_stream_t * s)
 
     op.b_o_s = 1;
 
-    bgav_hexdump(s->ext_data, 64, 16);
+    gavl_hexdump(s->ext_data, 64, 16);
     
     for(i = 0; i < 3; i++)
       {

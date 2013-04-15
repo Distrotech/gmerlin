@@ -150,7 +150,7 @@ set_parameter_audio(void * p, const char * name,
   else if(!strcmp(name, "samplerate"))
     m->out_format.samplerate = val->val_i;
   else if(!strcmp(name, "album"))
-    m->album_file = bg_strdup(m->album_file, val->val_str);
+    m->album_file = gavl_strrep(m->album_file, val->val_str);
   else if(!strcmp(name, "shuffle"))
     m->do_shuffle = val->val_i;
   
@@ -203,9 +203,9 @@ static void append_track(audiofile_t * m,
            sizeof(*m->files) * (m->files_alloc - m->num_files));
     }
   m->files[m->num_files].location =
-    bg_strdup(m->files[m->num_files].location, location);
+    gavl_strrep(m->files[m->num_files].location, location);
   m->files[m->num_files].plugin =
-    bg_strdup(m->files[m->num_files].plugin, plugin);
+    gavl_strrep(m->files[m->num_files].plugin, plugin);
   m->files[m->num_files].track = track;
   m->num_files++;
   }
@@ -512,15 +512,15 @@ bg_plugin_info_t * bg_audiofiledevice_info(bg_plugin_registry_t * reg)
   
   ret = calloc(1, sizeof(*ret));
 
-  ret->gettext_domain      = bg_strdup(ret->gettext_domain, plugin->common.gettext_domain);
+  ret->gettext_domain      = gavl_strrep(ret->gettext_domain, plugin->common.gettext_domain);
   
-  ret->gettext_directory   = bg_strdup(ret->gettext_directory,
+  ret->gettext_directory   = gavl_strrep(ret->gettext_directory,
                                        plugin->common.gettext_directory);
   
   
-  ret->name      = bg_strdup(ret->name, plugin->common.name);
-  ret->long_name = bg_strdup(ret->long_name, plugin->common.long_name);
-  ret->description = bg_strdup(ret->description, plugin->common.description);
+  ret->name      = gavl_strrep(ret->name, plugin->common.name);
+  ret->long_name = gavl_strrep(ret->long_name, plugin->common.long_name);
+  ret->description = gavl_strrep(ret->description, plugin->common.description);
   
   ret->priority  =  plugin->common.priority;
   ret->type  =  plugin->common.type;

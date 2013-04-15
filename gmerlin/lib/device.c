@@ -62,7 +62,7 @@ bg_device_info_t * bg_device_info_append(bg_device_info_t * arr,
   arr = realloc(arr, (size+1) * sizeof(*arr));
 
   arr[size-1].device = real_device;
-  arr[size-1].name = bg_strdup(NULL, name);
+  arr[size-1].name = gavl_strdup(name);
   
   /* Zero terminate */
   

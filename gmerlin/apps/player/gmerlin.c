@@ -883,7 +883,7 @@ void gmerlin_set_parameter(void * data, const char * name,
     }
   else if(!strcmp(name, "skin_dir"))
     {
-    g->skin_dir = bg_strdup(g->skin_dir, val->val_str);
+    g->skin_dir = gavl_strrep(g->skin_dir, val->val_str);
     g->skin_dir = gmerlin_skin_load(&g->skin, g->skin_dir);
     gmerlin_skin_set(g);
     }
@@ -923,7 +923,7 @@ int gmerlin_get_parameter(void * data, const char * name, bg_parameter_value_t *
     }
   else if(!strcmp(name, "skin_dir"))
     {
-    val->val_str = bg_strdup(val->val_str, g->skin_dir);
+    val->val_str = gavl_strrep(val->val_str, g->skin_dir);
     }
   
   return 0;

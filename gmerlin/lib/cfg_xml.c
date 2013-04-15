@@ -106,7 +106,7 @@ static void load_item(xmlDocPtr xml_doc, xmlNodePtr xml_item,
       sscanf(tmp_string, "%lf", &item->value.val_f);
       break;
     case BG_CFG_STRING:
-      item->value.val_str = bg_strdup(item->value.val_str,
+      item->value.val_str = gavl_strrep(item->value.val_str,
                                       tmp_string);
       break;
     case BG_CFG_STRING_HIDDEN:
@@ -156,14 +156,14 @@ void bg_cfg_xml_2_section(xmlDocPtr xml_doc,
   if(tmp_string)
     {
     cfg_section->gettext_domain =
-      bg_strdup(cfg_section->gettext_domain, tmp_string);
+      gavl_strrep(cfg_section->gettext_domain, tmp_string);
     xmlFree(tmp_string);
     }
   tmp_string = BG_XML_GET_PROP(xml_section, "gettext_directory");
   if(tmp_string)
     {
     cfg_section->gettext_directory =
-      bg_strdup(cfg_section->gettext_directory, tmp_string);
+      gavl_strrep(cfg_section->gettext_directory, tmp_string);
     xmlFree(tmp_string);
     }
   

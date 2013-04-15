@@ -107,11 +107,10 @@ create_parameters(void * dll_handle, f0r_plugin_info_t * plugin_info)
     memset(&param_info, 0, sizeof(param_info));
     get_param_info(&param_info, i);
 
-    ret[i].name = bg_strdup(NULL, param_info.name);
-    ret[i].long_name = bg_strdup(NULL, param_info.name);
+    ret[i].name = gavl_strdup(param_info.name);
+    ret[i].long_name = gavl_strdup(param_info.name);
     ret[i].flags = BG_PARAMETER_SYNC;
-    ret[i].help_string = bg_strdup(NULL,
-                                       param_info.explanation);
+    ret[i].help_string = gavl_strdup(param_info.explanation);
     switch(param_info.type)
       {
       case F0R_PARAM_BOOL:
@@ -193,7 +192,7 @@ bg_frei0r_get_info(void * dll_handle, const char * filename)
   ret->type        = BG_PLUGIN_FILTER_VIDEO;
   ret->api         = BG_PLUGIN_API_FREI0R;
   ret->flags       = BG_PLUGIN_FILTER_1;
-  ret->module_filename = bg_strdup(NULL, filename);
+  ret->module_filename = gavl_strdup(filename);
 
   // fprintf(stderr, "Loading %s\n", ret->name);
   

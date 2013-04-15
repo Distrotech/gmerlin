@@ -107,7 +107,7 @@ void bg_set_track_name_default(bg_track_info_t * info,
     return;
   
   if(bg_string_is_url(location))
-    name = bg_strdup(NULL, location);
+    name = gavl_strdup(location);
   else
     {
     start_pos = strrchr(location, '/');
@@ -118,7 +118,7 @@ void bg_set_track_name_default(bg_track_info_t * info,
     end_pos = strrchr(start_pos, '.');
     if(!end_pos)
       end_pos = &start_pos[strlen(start_pos)];
-    name = bg_strndup(NULL, start_pos, end_pos);
+    name = gavl_strndup( start_pos, end_pos);
     }
   gavl_metadata_set_nocpy(&info->metadata, GAVL_META_LABEL, name);
   }
@@ -131,7 +131,7 @@ char * bg_get_track_name_default(const char * location, int track, int num_track
   
   if(bg_string_is_url(location))
     {
-    tmp_string = bg_strdup(NULL, location);
+    tmp_string = gavl_strdup(location);
     }
   else
     {

@@ -224,7 +224,7 @@ static int init_flac(bgav_stream_t * s)
     return 0;
     }
 
-  // bgav_hexdump(s->ext_data, s->ext_size, 16); 
+  // gavl_hexdump(s->ext_data, s->ext_size, 16); 
   
   priv = calloc(1, sizeof(*priv));
   s->decoder_priv = priv;

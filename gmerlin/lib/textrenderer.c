@@ -1187,7 +1187,7 @@ void bg_text_renderer_set_parameter(void * data, const char * name,
     {
     if(!r->font || strcmp(val->val_str, r->font))
       {
-      r->font = bg_strdup(r->font, val->val_str);
+      r->font = gavl_strrep(r->font, val->val_str);
       r->font_changed = 1;
       }
     }
@@ -1196,7 +1196,7 @@ void bg_text_renderer_set_parameter(void * data, const char * name,
     {
     if(!r->font_file || strcmp(val->val_str, r->font_file))
       {
-      r->font_file = bg_strdup(r->font_file, val->val_str);
+      r->font_file = gavl_strrep(r->font_file, val->val_str);
       r->font_changed = 1;
       }
     }

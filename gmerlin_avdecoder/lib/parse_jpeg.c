@@ -67,7 +67,7 @@ static gavl_pixelformat_t get_pixelformat(bgav_packet_t * p)
         {
         int tmp, i;
         int num_components;
-        //        bgav_hexdump(ptr, 16, 16);
+        //        gavl_hexdump(ptr, 16, 16);
       
         len = BGAV_PTR_2_16BE(ptr); ptr+=2;
         //        fprintf(stderr, "Got SOF %d\n", len-2);

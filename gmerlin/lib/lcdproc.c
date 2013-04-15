@@ -983,7 +983,7 @@ void bg_lcdproc_set_parameter(void * data, const char * name,
     }
   else if(!strcmp(name, "hostname"))
     {
-    l->hostname_cfg = bg_strdup(l->hostname_cfg, val->val_str);
+    l->hostname_cfg = gavl_strrep(l->hostname_cfg, val->val_str);
     }
   else if(!strcmp(name, "port"))
     {

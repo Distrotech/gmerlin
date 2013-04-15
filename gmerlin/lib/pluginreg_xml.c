@@ -240,27 +240,27 @@ static bg_plugin_info_t * load_plugin(xmlDocPtr doc, xmlNodePtr node)
 
     if(!BG_XML_STRCMP(cur->name, name_key))
       {
-      ret->name = bg_strdup(ret->name, tmp_string);
+      ret->name = gavl_strrep(ret->name, tmp_string);
       }
     else if(!BG_XML_STRCMP(cur->name, long_name_key))
       {
-      ret->long_name = bg_strdup(ret->long_name, tmp_string);
+      ret->long_name = gavl_strrep(ret->long_name, tmp_string);
       }
     else if(!BG_XML_STRCMP(cur->name, description_key))
       {
-      ret->description = bg_strdup(ret->description, tmp_string);
+      ret->description = gavl_strrep(ret->description, tmp_string);
       }
     else if(!BG_XML_STRCMP(cur->name, mimetypes_key))
       {
-      ret->mimetypes = bg_strdup(ret->mimetypes, tmp_string);
+      ret->mimetypes = gavl_strrep(ret->mimetypes, tmp_string);
       }
     else if(!BG_XML_STRCMP(cur->name, extensions_key))
       {
-      ret->extensions = bg_strdup(ret->extensions, tmp_string);
+      ret->extensions = gavl_strrep(ret->extensions, tmp_string);
       }
     else if(!BG_XML_STRCMP(cur->name, protocols_key))
       {
-      ret->protocols = bg_strdup(ret->protocols, tmp_string);
+      ret->protocols = gavl_strrep(ret->protocols, tmp_string);
       }
     else if(!BG_XML_STRCMP(cur->name, compressions_key))
       {
@@ -285,15 +285,15 @@ static bg_plugin_info_t * load_plugin(xmlDocPtr doc, xmlNodePtr node)
       }
     else if(!BG_XML_STRCMP(cur->name, module_filename_key))
       {
-      ret->module_filename = bg_strdup(ret->module_filename, tmp_string);
+      ret->module_filename = gavl_strrep(ret->module_filename, tmp_string);
       }
     else if(!BG_XML_STRCMP(cur->name, gettext_domain_key))
       {
-      ret->gettext_domain = bg_strdup(ret->gettext_domain, tmp_string);
+      ret->gettext_domain = gavl_strrep(ret->gettext_domain, tmp_string);
       }
     else if(!BG_XML_STRCMP(cur->name, gettext_directory_key))
       {
-      ret->gettext_directory = bg_strdup(ret->gettext_directory, tmp_string);
+      ret->gettext_directory = gavl_strrep(ret->gettext_directory, tmp_string);
       }
     else if(!BG_XML_STRCMP(cur->name, module_time_key))
       {

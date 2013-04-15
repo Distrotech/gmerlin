@@ -490,7 +490,7 @@ int bg_ffmpeg_codec_set_video_pass(bg_ffmpeg_codec_context_t * ctx,
   {
   ctx->pass           = pass;
   ctx->total_passes   = total_passes;
-  ctx->stats_filename = bg_strdup(ctx->stats_filename, stats_filename);
+  ctx->stats_filename = gavl_strrep(ctx->stats_filename, stats_filename);
   return 1;
   }
 

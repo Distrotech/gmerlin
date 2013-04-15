@@ -50,7 +50,7 @@ void bgav_qt_rdrf_dump(int indent, qt_rdrf_t * r)
   else
     {
     bgav_diprintf(indent+2, "Unknown data, hexdump follows: ");
-    bgav_hexdump(r->data_ref, r->data_ref_size, 16);
+    gavl_hexdump(r->data_ref, r->data_ref_size, 16);
     }
   }
 

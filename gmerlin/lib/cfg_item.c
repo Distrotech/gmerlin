@@ -29,7 +29,7 @@
 bg_cfg_item_t * bg_cfg_item_create_empty(const char * name)
   {
   bg_cfg_item_t * ret = calloc(1, sizeof(*ret));
-  ret->name = bg_strdup(ret->name, name);
+  ret->name = gavl_strrep(ret->name, name);
   return ret;
   }
 
@@ -83,7 +83,7 @@ bg_cfg_item_t * bg_cfg_item_create(const bg_parameter_info_t * info,
   
   ret = calloc(1, sizeof(*ret));
   ret->type = type;
-  ret->name = bg_strdup(ret->name, info->name);
+  ret->name = gavl_strrep(ret->name, info->name);
     
   switch(ret->type)
     {
@@ -125,11 +125,11 @@ bg_cfg_item_t * bg_cfg_item_create(const bg_parameter_info_t * info,
     case BG_CFG_STRING_HIDDEN:
       if(value && value->val_str)
         {
-        ret->value.val_str = bg_strdup(ret->value.val_str, value->val_str);
+        ret->value.val_str = gavl_strrep(ret->value.val_str, value->val_str);
         }
       else if(info->val_default.val_str)
         {
-        ret->value.val_str = bg_strdup(ret->value.val_str,
+        ret->value.val_str = gavl_strrep(ret->value.val_str,
                                        info->val_default.val_str);
         }
       break;
@@ -207,7 +207,7 @@ bg_cfg_item_t * bg_cfg_item_copy(bg_cfg_item_t * src)
   bg_cfg_item_t * ret;
   ret = calloc(1, sizeof(*ret));
 
-  ret->name = bg_strdup(ret->name, src->name);
+  ret->name = gavl_strrep(ret->name, src->name);
   ret->type = src->type;
   bg_cfg_item_transfer(src, ret);
   return ret;

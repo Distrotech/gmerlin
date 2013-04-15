@@ -270,7 +270,7 @@ static void dump_command_header(bgav_mms_t * mms)
   bgav_dprintf("  Sequence number: %d\n", mms->command_header.seqnum);
   bgav_dprintf("  Prefix1:         %d\n", mms->command_header.prefix1);
   bgav_dprintf("  Prefix2:         %d\n", mms->command_header.prefix2);
-  bgav_hexdump(mms->cmd_data_read, mms->command_header.data_len, 16);
+  gavl_hexdump(mms->cmd_data_read, mms->command_header.data_len, 16);
   }
 #endif
 static int next_packet(bgav_mms_t * mms, int block)
@@ -352,7 +352,7 @@ static int next_packet(bgav_mms_t * mms, int block)
         }
       else if(mms->read_buffer[4] == mms->data_id)
         {
-        //      bgav_hexdump(mms->read_buffer, 8, 8);
+        //      gavl_hexdump(mms->read_buffer, 8, 8);
         ptr = mms->read_buffer;
       
         i_tmp1 = BGAV_PTR_2_32LE(ptr);ptr+=4;
@@ -375,7 +375,7 @@ static int next_packet(bgav_mms_t * mms, int block)
                  mms->read_buffer[0], mms->read_buffer[0],
                  mms->read_buffer[0], mms->read_buffer[0],
                  mms->read_buffer[0], mms->read_buffer[0]);
-        bgav_hexdump(mms->read_buffer, 8, 8);
+        gavl_hexdump(mms->read_buffer, 8, 8);
         }
       }
     break;

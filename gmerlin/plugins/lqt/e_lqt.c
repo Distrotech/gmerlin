@@ -222,56 +222,56 @@ static int open_lqt(void * data, const char * filename,
 
     /* TODO: Make the arguments in lqt const friendly */
     
-    tag = bg_strdup(NULL, gavl_metadata_get(m, GAVL_META_COPYRIGHT));
+    tag = gavl_strdup(gavl_metadata_get(m, GAVL_META_COPYRIGHT));
     if(tag)
       {
       quicktime_set_copyright(e->file, tag);
       free(tag);
       }
 
-    tag = bg_strdup(NULL, gavl_metadata_get(m, GAVL_META_TITLE));
+    tag = gavl_strdup(gavl_metadata_get(m, GAVL_META_TITLE));
     if(tag)
       {
       quicktime_set_name(e->file, tag);
       free(tag);
       }
     
-    tag = bg_strdup(NULL, gavl_metadata_get(m, GAVL_META_COMMENT));
+    tag = gavl_strdup(gavl_metadata_get(m, GAVL_META_COMMENT));
     if(tag)
       {
       lqt_set_comment(e->file, tag);
       free(tag);
       }
     
-    tag = bg_strdup(NULL, gavl_metadata_get(m, GAVL_META_ARTIST));
+    tag = gavl_strdup(gavl_metadata_get(m, GAVL_META_ARTIST));
     if(tag)
       {
       lqt_set_artist(e->file, tag);
       free(tag);
       }
     
-    tag = bg_strdup(NULL, gavl_metadata_get(m, GAVL_META_GENRE));
+    tag = gavl_strdup(gavl_metadata_get(m, GAVL_META_GENRE));
     if(tag)
       {
       lqt_set_genre(e->file, tag);
       free(tag);
       }
     
-    tag = bg_strdup(NULL, gavl_metadata_get(m, GAVL_META_TRACKNUMBER));
+    tag = gavl_strdup(gavl_metadata_get(m, GAVL_META_TRACKNUMBER));
     if(tag)
       {
       lqt_set_track(e->file, tag);
       free(tag);
       }
 
-    tag = bg_strdup(NULL, gavl_metadata_get(m, GAVL_META_ALBUM));
+    tag = gavl_strdup(gavl_metadata_get(m, GAVL_META_ALBUM));
     if(tag)
       {
       lqt_set_album(e->file, tag);
       free(tag);
       }
 
-    tag = bg_strdup(NULL, gavl_metadata_get(m, GAVL_META_AUTHOR));
+    tag = gavl_strdup(gavl_metadata_get(m, GAVL_META_AUTHOR));
     if(tag)
       {
       lqt_set_author(e->file, tag);

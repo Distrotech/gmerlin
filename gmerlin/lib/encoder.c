@@ -357,7 +357,7 @@ int bg_encoder_open(bg_encoder_t * enc, const char * filename_base,
                     const gavl_metadata_t * metadata,
                     const gavl_chapter_list_t * chapter_list)
   {
-  enc->filename_base = bg_strdup(enc->filename_base, filename_base);
+  enc->filename_base = gavl_strrep(enc->filename_base, filename_base);
 
   if(enc->filename_base && !strcmp(enc->filename_base, "-"))
     {
@@ -561,7 +561,7 @@ static bg_plugin_handle_t * get_stream_handle(bg_encoder_t * enc,
       if(strcmp(enc->filename_base, "-"))
         filename_base = bg_sprintf("%s_%s_%02d", enc->filename_base, type_string, in_index+1);
       else
-        filename_base = bg_strdup(NULL, enc->filename_base);
+        filename_base = gavl_strdup(enc->filename_base);
 
       ret = load_encoder(enc, info, section, filename_base);
       free(filename_base);
@@ -1248,7 +1248,7 @@ bg_encoder_set_video_pass(bg_encoder_t * enc,
 
   s->pass = pass;
   s->total_passes = total_passes;
-  s->stats_file = bg_strdup(s->stats_file, stats_file);
+  s->stats_file = gavl_strrep(s->stats_file, stats_file);
   
   }
 

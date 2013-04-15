@@ -300,10 +300,10 @@ static int edit_key(kbd_table_t * kbd)
   if(ret)
     {
     kbd->scancode = atoi(gtk_entry_get_text(GTK_ENTRY(dlg->scancode)));
-    kbd->modifiers = bg_strdup(kbd->modifiers,
-                               gtk_entry_get_text(GTK_ENTRY(dlg->modifiers)));
-    kbd->command = bg_strdup(kbd->command,
-                             gtk_entry_get_text(GTK_ENTRY(dlg->command)));
+    kbd->modifiers = gavl_strrep(kbd->modifiers,
+                                 gtk_entry_get_text(GTK_ENTRY(dlg->modifiers)));
+    kbd->command = gavl_strrep(kbd->command,
+                               gtk_entry_get_text(GTK_ENTRY(dlg->command)));
     }
 
   edit_dialog_destroy(dlg);

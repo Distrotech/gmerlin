@@ -90,7 +90,7 @@ static gavl_source_status_t decode_frame_faad2(bgav_stream_t * s)
     {
 #ifdef DUMP_DECODE
     bgav_dprintf("faacDecDecode %d bytes\n", priv->buf.size);
-    bgav_hexdump(priv->buf.buffer, 7, 7);
+    gavl_hexdump(priv->buf.buffer, 7, 7);
 #endif
     
     s->data.audio.frame->samples.f = faacDecDecode(priv->dec,
@@ -220,7 +220,7 @@ static int init_faad2(bgav_stream_t * s)
   if(samplerate == 2 * s->data.audio.format.samplerate)
     {
     //    fprintf(stderr, "Detected HE-AAC\n");
-    //    bgav_hexdump(s->ext_data, s->ext_size, 16);
+    //    gavl_hexdump(s->ext_data, s->ext_size, 16);
 
     if(!s->data.audio.format.samples_per_frame)
       s->data.audio.format.samples_per_frame = 2048;
@@ -235,7 +235,7 @@ static int init_faad2(bgav_stream_t * s)
     if(!s->data.audio.format.samples_per_frame)
       s->data.audio.format.samples_per_frame = 1024;
     //    fprintf(stderr, "Detected NO HE-AAC\n");
-    //    bgav_hexdump(s->ext_data, s->ext_size, 16);
+    //    gavl_hexdump(s->ext_data, s->ext_size, 16);
     }
 
   s->data.audio.preroll = s->data.audio.format.samples_per_frame;

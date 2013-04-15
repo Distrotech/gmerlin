@@ -51,7 +51,8 @@ static void set_value(bg_gtk_widget_t * w)
   stringlist_t * priv;
   
   priv = (stringlist_t*)(w->priv);
-  w->value.val_str = bg_strdup(w->value.val_str, w->info->multi_names[priv->selected]);
+  w->value.val_str =
+    gavl_strrep(w->value.val_str, w->info->multi_names[priv->selected]);
   }
 
 static void destroy(bg_gtk_widget_t * w)

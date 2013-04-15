@@ -479,7 +479,7 @@ static void add_output_file(bg_transcoder_t * t, const char * filename)
 
   memset(t->output_files + t->num_output_files, 0, 2 * sizeof(*t->output_files));
 
-  t->output_files[t->num_output_files] = bg_strdup(NULL, filename);
+  t->output_files[t->num_output_files] = gavl_strdup(filename);
   t->num_output_files++;
   }
 
@@ -547,7 +547,7 @@ void bg_transcoder_set_parameter(void * data, const char * name, const bg_parame
 
   if(!strcmp(name, "output_path"))
     {
-    w->output_path = bg_strdup(w->output_path, val->val_str);
+    w->output_path = gavl_strrep(w->output_path, val->val_str);
     }
   else if(!strcmp(name, "delete_incomplete"))
     {
@@ -1880,7 +1880,7 @@ static int subtitle_iteration(bg_transcoder_t * t)
 
 #define SP_STR(s) if(!strcmp(name, # s))   \
     { \
-    t->s = bg_strdup(t->s, val->val_str);  \
+    t->s = gavl_strrep(t->s, val->val_str);  \
     return; \
     }
 
@@ -1938,14 +1938,14 @@ set_parameter_general(void * data, const char * name,
           {
           bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Cannot create directory %s: %s, using default",
                  t->output_directory, strerror(errno));
-          t->output_directory = bg_strdup(t->output_directory, t->output_path);
+          t->output_directory = gavl_strrep(t->output_directory, t->output_path);
           }
         }
       else
         bg_log(BG_LOG_INFO, LOG_DOMAIN, "Created directory %s", t->output_directory);
       }
     else
-      t->output_directory = bg_strdup(t->output_directory, t->output_path);
+      t->output_directory = gavl_strrep(t->output_directory, t->output_path);
     
     return;
     }
@@ -3026,12 +3026,12 @@ int bg_transcoder_init(bg_transcoder_t * ret,
                        bg_metadata_set_parameter,
                        &ret->metadata);
 
-  ret->name = bg_strdup(ret->name, bg_transcoder_track_get_name(track));
+  ret->name = gavl_strrep(ret->name, bg_transcoder_track_get_name(track));
   
   /* Postprocess only: Send messages and return */
   if(ret->pp_only)
     {
-    ret->output_filename = bg_strdup(ret->output_filename, ret->location);
+    ret->output_filename = gavl_strrep(ret->output_filename, ret->location);
     
     send_init_messages(ret);
     ret->state = STREAM_STATE_FINISHED;

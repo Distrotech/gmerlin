@@ -68,7 +68,7 @@ static gavl_source_status_t decode_frame_a52(bgav_stream_t * s)
 #ifdef DUMP_PACKET
   bgav_dprintf("a52 packet: ");
   bgav_packet_dump(p);
-  bgav_hexdump((uint8_t*)p->data, 16, 16);
+  gavl_hexdump((uint8_t*)p->data, 16, 16);
 #endif
   
   if(priv->need_format)
@@ -117,7 +117,7 @@ static gavl_source_status_t decode_frame_a52(bgav_stream_t * s)
     a52_block (priv->state);
 
     //    if(!i)
-    //      bgav_hexdump((uint8_t*)priv->samples, 16, 16);
+    //      gavl_hexdump((uint8_t*)priv->samples, 16, 16);
     
     for(j = 0; j < s->data.audio.format.num_channels; j++)
       {

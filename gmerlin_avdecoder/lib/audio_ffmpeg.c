@@ -219,7 +219,7 @@ static gavl_source_status_t decode_frame_ffmpeg(bgav_stream_t * s)
 #ifdef DUMP_DECODE
     bgav_dprintf("decode_audio Size: %d\n",
                  priv->buf.size);
-    //  bgav_hexdump(priv->buf.buffer, 186, 16);
+    //  gavl_hexdump(priv->buf.buffer, 186, 16);
 #endif
 
     priv->pkt.data = priv->buf.buffer;
@@ -332,7 +332,7 @@ static int init_ffmpeg_audio(bgav_stream_t * s)
   
 #ifdef DUMP_EXTRADATA
   bgav_dprintf("Adding extradata %d bytes\n", priv->ctx->extradata_size);
-  bgav_hexdump(priv->ctx->extradata, priv->ctx->extradata_size, 16);
+  gavl_hexdump(priv->ctx->extradata, priv->ctx->extradata_size, 16);
 #endif    
   priv->ctx->channels        = s->data.audio.format.num_channels;
   priv->ctx->sample_rate     = s->data.audio.format.samplerate;

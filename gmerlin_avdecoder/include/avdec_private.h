@@ -31,6 +31,7 @@
 #include <gavl/metatags.h>
 #include <gavl/compression.h>
 #include <gavl/numptr.h>
+#include <gavl/utils.h>
 
 #define BGAV_MK_FOURCC(a, b, c, d) ((a<<24)|(b<<16)|(c<<8)|d)
 
@@ -1586,7 +1587,6 @@ int bgav_init(bgav_t * b);
 void bgav_dump_fourcc(uint32_t fourcc);
 int bgav_check_fourcc(uint32_t fourcc, const uint32_t * fourccs);
 
-void bgav_hexdump(const uint8_t * data, int len, int linebreak);
 char * bgav_sprintf(const char * format,...)   __attribute__ ((format (printf, 1, 2)));
 
 

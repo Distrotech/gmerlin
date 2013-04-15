@@ -1029,7 +1029,7 @@ static void check_eit(bgav_input_context_t* ctx)
   
   pos += 8;
   
-  //  bgav_hexdump(pos, 16, 16);
+  //  gavl_hexdump(pos, 16, 16);
 
   while(pos - start + 4 < len)
     {

@@ -81,7 +81,7 @@ char * bg_fix_path(char * path)
   else
     return path;
   }
-
+#if 0
 char * bg_strdup(char * old_string, const char * new_string)
   {
   char * ret;
@@ -132,6 +132,7 @@ char * bg_strndup(char * old_string,
   ret[new_string_end - new_string_start] = '\0';
   return ret;
   }
+#endif
 
 char * bg_sprintf(const char * format,...)
   {
@@ -198,7 +199,7 @@ char * bg_create_unique_filename(char * template)
 char * bg_strcat(char * old_string, const char * tail)
   {
   if(!old_string)
-    return bg_strdup(NULL, tail);
+    return gavl_strdup(tail);
 
   old_string = realloc(old_string, strlen(old_string) + strlen(tail) + 1);
   strcat(old_string, tail);
@@ -210,7 +211,7 @@ char * bg_strncat(char * old_string, const char * start, const char * end)
   int old_len;
   
   if(!old_string)
-    return bg_strndup(NULL, start, end);
+    return gavl_strndup( start, end);
 
   old_len = strlen(old_string);
   
@@ -240,7 +241,7 @@ char ** bg_strbreak(const char * str, char delim)
     }
   ret = calloc(num_entries+1, sizeof(char*));
 
-  ret[0] = bg_strdup(NULL, str);
+  ret[0] = gavl_strdup(str);
   pos = ret[0];
   for(i = 0; i < num_entries; i++)
     {
@@ -309,7 +310,7 @@ int bg_url_split(const char * url,
   /* Protocol */
     
   if(protocol)
-    *protocol = bg_strndup(NULL, pos1, pos2);
+    *protocol = gavl_strndup( pos1, pos2);
 
   pos2 += 3;
   pos1 = pos2;
@@ -325,10 +326,10 @@ int bg_url_split(const char * url,
      (at_pos < slash_pos))
     {
     if(user)
-      *user = bg_strndup(NULL, pos1, colon_pos);
+      *user = gavl_strndup( pos1, colon_pos);
     pos1 = colon_pos + 1;
     if(password)
-      *password = bg_strndup(NULL, pos1, at_pos);
+      *password = gavl_strndup( pos1, at_pos);
     pos1 = at_pos + 1;
     pos2 = pos1;
     }
@@ -343,7 +344,7 @@ int bg_url_split(const char * url,
       return 0;
 
     if(hostname)
-      *hostname = bg_strndup(NULL, pos1, pos2);
+      *hostname = gavl_strndup( pos1, pos2);
     pos2++;
     }
   else
@@ -351,7 +352,7 @@ int bg_url_split(const char * url,
     while((*pos2 != '\0') && (*pos2 != ':') && (*pos2 != '/'))
       pos2++;
     if(hostname)
-      *hostname = bg_strndup(NULL, pos1, pos2);
+      *hostname = gavl_strndup( pos1, pos2);
     }
   
   switch(*pos2)
@@ -380,7 +381,7 @@ int bg_url_split(const char * url,
     pos1 = pos2;
     pos2 = pos1 + strlen(pos1);
     if(pos1 != pos2)
-      *path = bg_strndup(NULL, pos1, pos2);
+      *path = gavl_strndup( pos1, pos2);
     else
       *path = NULL;
     }
@@ -421,7 +422,7 @@ void bg_url_get_vars(char * path,
       gavl_metadata_set_int(vars, str[i], 1);
     else
       {
-      key = bg_strndup(NULL, str[i], pos);
+      key = gavl_strndup( str[i], pos);
       pos++;
 
       gavl_metadata_set(vars, key, pos);
@@ -461,7 +462,7 @@ char * bg_descramble_string(const char *str)
   int error;
   
   if (*str != '$')
-    return (bg_strdup (NULL, str));
+    return (gavl_strdup(str));
   
   strpos = str + 1;
   newstr = malloc (strlen (strpos) / 2 + 1);
@@ -486,7 +487,7 @@ char * bg_descramble_string(const char *str)
   if(error)
     {
     free (newstr);
-    return (bg_strdup(NULL, str));
+    return (gavl_strdup(str));
     }
   
   *newpos = '\0';
@@ -629,7 +630,7 @@ char * bg_filename_ensure_extension(const char * filename,
 
   if((pos = strrchr(filename, '.')) &&
      (!strcasecmp(pos+1, ext)))
-    return bg_strdup(NULL, filename);
+    return gavl_strdup(filename);
   else
     return bg_sprintf("%s.%s", filename, ext);
   }

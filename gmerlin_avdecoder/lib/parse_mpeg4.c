@@ -121,7 +121,7 @@ static int extract_user_data(bgav_video_parser_t * parser,
 
 #ifdef DUMP_HEADERS
   bgav_dprintf("Got user data\n");
-  bgav_hexdump((uint8_t*)priv->user_data, priv->user_data_size, 16);
+  gavl_hexdump((uint8_t*)priv->user_data, priv->user_data_size, 16);
 #endif
 
   if(!strncasecmp(priv->user_data, "divx", 4) &&

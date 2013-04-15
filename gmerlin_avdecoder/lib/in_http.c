@@ -322,7 +322,7 @@ static int read_shoutcast_metadata(bgav_input_context_t* ctx, int block)
     if(read_data(ctx, (uint8_t*)meta_buffer, meta_bytes, 1) < meta_bytes)
       return 0;
 
-    //  bgav_hexdump((uint8_t*)meta_buffer, meta_bytes, 16);
+    //  gavl_hexdump((uint8_t*)meta_buffer, meta_bytes, 16);
     
     if(ctx->opt->metadata_change_callback && ctx->tt)
       {

@@ -42,8 +42,8 @@ create_format_parameters(const ffmpeg_format_info_t * formats)
   bg_parameter_info_t * ret;
   ret = calloc(2, sizeof(*ret));
 
-  ret[0].name = bg_strdup(ret[0].name, "format");
-  ret[0].long_name = bg_strdup(ret[0].long_name, TRS("Format"));
+  ret[0].name = gavl_strrep(ret[0].name, "format");
+  ret[0].long_name = gavl_strrep(ret[0].long_name, TRS("Format"));
   ret[0].type = BG_PARAMETER_STRINGLIST;
 
   num_formats = 0;
@@ -58,13 +58,13 @@ create_format_parameters(const ffmpeg_format_info_t * formats)
   for(i = 0; i < num_formats; i++)
     {
     ret[0].multi_names_nc[i] =
-      bg_strdup(ret[0].multi_names_nc[i], formats[i].short_name);
+      gavl_strrep(ret[0].multi_names_nc[i], formats[i].short_name);
     ret[0].multi_labels_nc[i] =
-      bg_strdup(ret[0].multi_labels_nc[i], formats[i].name);
+      gavl_strrep(ret[0].multi_labels_nc[i], formats[i].name);
     }
   bg_parameter_info_set_const_ptrs(&ret[0]);
   ret[0].val_default.val_str =
-    bg_strdup(ret[0].val_default.val_str, formats[0].short_name);
+    gavl_strrep(ret[0].val_default.val_str, formats[0].short_name);
   return ret;
   }
 

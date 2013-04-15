@@ -67,10 +67,10 @@ void bg_lqt_create_codec_info(bg_parameter_info_t * info,
     if(!info->gettext_domain)
       {
       info->gettext_domain =
-        bg_strdup(info->gettext_domain,
+        gavl_strrep(info->gettext_domain,
                   codec_info[i]->gettext_domain);
       info->gettext_directory =
-        bg_strdup(info->gettext_directory,
+        gavl_strrep(info->gettext_directory,
                   codec_info[i]->gettext_directory);
       }
 
@@ -83,11 +83,10 @@ void bg_lqt_create_codec_info(bg_parameter_info_t * info,
       codec_info[i]->num_decoding_parameters;
     
     if(!info->val_default.val_str)
-      info->val_default.val_str = bg_strdup(NULL,
-                                            codec_info[i]->name);
+      info->val_default.val_str = gavl_strdup(codec_info[i]->name);
     
-    info->multi_names_nc[index] = bg_strdup(NULL, codec_info[i]->name);
-    info->multi_labels_nc[index] = bg_strdup(NULL, codec_info[i]->long_name);
+    info->multi_names_nc[index] = gavl_strdup(codec_info[i]->name);
+    info->multi_labels_nc[index] = gavl_strdup(codec_info[i]->long_name);
 
     if(encode)
       {
@@ -118,28 +117,28 @@ void bg_lqt_create_codec_info(bg_parameter_info_t * info,
       if(!j)
         {
         info->multi_parameters_nc[index][j].gettext_domain =
-          bg_strdup(info->multi_parameters_nc[index][j].gettext_domain,
+          gavl_strrep(info->multi_parameters_nc[index][j].gettext_domain,
                     codec_info[i]->gettext_domain);
         info->multi_parameters_nc[index][j].gettext_directory =
-          bg_strdup(info->multi_parameters_nc[index][j].gettext_directory,
+          gavl_strrep(info->multi_parameters_nc[index][j].gettext_directory,
                     codec_info[i]->gettext_directory);
         }
       
       //      if(encode)
         info->multi_parameters_nc[index][j].name =
-          bg_strdup(info->multi_parameters_nc[index][j].name,
+          gavl_strrep(info->multi_parameters_nc[index][j].name,
                     lqt_parameter_info[j].name);
         //      else
         //        info->multi_parameters[i][j].name =
         //          bg_sprintf("%s.%s", info->multi_names[i], lqt_parameter_info[j].name);
 
       info->multi_parameters_nc[index][j].long_name = 
-        bg_strdup(NULL, lqt_parameter_info[j].real_name);
+        gavl_strdup(lqt_parameter_info[j].real_name);
 
       if(lqt_parameter_info[j].help_string)
         {
         info->multi_parameters_nc[index][j].help_string = 
-          bg_strdup(NULL, lqt_parameter_info[j].help_string);
+          gavl_strdup(lqt_parameter_info[j].help_string);
         
         }
       
@@ -193,15 +192,13 @@ void bg_lqt_create_codec_info(bg_parameter_info_t * info,
         case LQT_PARAMETER_STRING:
           info->multi_parameters_nc[index][j].type = BG_PARAMETER_STRING;
           info->multi_parameters_nc[index][j].val_default.val_str =
-            bg_strdup(NULL,
-                      lqt_parameter_info[j].val_default.val_string);
+            gavl_strdup(lqt_parameter_info[j].val_default.val_string);
           
           break;
         case LQT_PARAMETER_STRINGLIST:
           info->multi_parameters_nc[index][j].type = BG_PARAMETER_STRINGLIST;
           info->multi_parameters_nc[index][j].val_default.val_str =
-            bg_strdup(NULL,
-                      lqt_parameter_info[j].val_default.val_string);
+            gavl_strdup(lqt_parameter_info[j].val_default.val_string);
 
           info->multi_parameters_nc[index][j].multi_names_nc =
             calloc(lqt_parameter_info[j].num_stringlist_options+1,
@@ -210,7 +207,7 @@ void bg_lqt_create_codec_info(bg_parameter_info_t * info,
           for(k = 0; k < lqt_parameter_info[j].num_stringlist_options; k++)
             {
             info->multi_parameters_nc[index][j].multi_names_nc[k] =
-              bg_strdup(NULL, lqt_parameter_info[j].stringlist_options[k]);
+              gavl_strdup(lqt_parameter_info[j].stringlist_options[k]);
             }
           bg_parameter_info_set_const_ptrs(&info->multi_parameters_nc[index][j]);
           break;

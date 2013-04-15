@@ -69,7 +69,7 @@ static void button_callback(GtkWidget * w, gpointer data)
     if(f->plugins)
       plugin = bg_gtk_plugin_menu_get_plugin(f->plugins);
 
-    urls[0] = bg_strdup(NULL, gtk_entry_get_text(GTK_ENTRY(f->entry)));
+    urls[0] = gavl_strdup(gtk_entry_get_text(GTK_ENTRY(f->entry)));
     urls[1] = NULL;
     
     f->add_files(urls, plugin, 0,

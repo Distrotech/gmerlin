@@ -191,8 +191,8 @@ create_parameters(const LADSPA_Descriptor * desc)
 
   if(desc->run_adding)
     {
-    ret[index].name = bg_strdup(ret[index].name, "$run_adding");
-    ret[index].long_name = bg_strdup(ret[index].long_name,
+    ret[index].name = gavl_strrep(ret[index].name, "$run_adding");
+    ret[index].long_name = gavl_strrep(ret[index].long_name,
                                      TR("Add effect to input data"));
     ret[index].type = BG_PARAMETER_CHECKBUTTON;
     ret[index].val_default.val_i = 0;
@@ -201,8 +201,8 @@ create_parameters(const LADSPA_Descriptor * desc)
     }
   if(desc->set_run_adding_gain)
     {
-    ret[index].name = bg_strdup(ret[index].name, "$run_adding_gain");
-    ret[index].long_name = bg_strdup(ret[index].long_name,
+    ret[index].name = gavl_strrep(ret[index].name, "$run_adding_gain");
+    ret[index].long_name = gavl_strrep(ret[index].long_name,
                                      TR("Add gain (dB)"));
     ret[index].type = BG_PARAMETER_SLIDER_FLOAT;
     ret[index].num_digits = 2;
@@ -210,7 +210,7 @@ create_parameters(const LADSPA_Descriptor * desc)
     ret[index].val_max.val_f =  0.0;
     ret[index].val_default.val_f = 0.0;
     ret[index].help_string =
-      bg_strdup(ret[index].help_string,
+      gavl_strrep(ret[index].help_string,
                 TR("Overall gain for this filter. This is only valid if you add the effect to the input data"));
     ret[index].flags = BG_PARAMETER_SYNC;
     index++;
@@ -257,7 +257,7 @@ static bg_plugin_info_t * get_info(const LADSPA_Descriptor * desc)
   ret = calloc(1, sizeof(*ret));
 
   ret->name        = bg_sprintf("fa_ladspa_%s", desc->Label);
-  ret->long_name   = bg_strdup(NULL, desc->Name);
+  ret->long_name   = gavl_strdup(desc->Name);
   ret->type        = BG_PLUGIN_FILTER_AUDIO;
   ret->api         = BG_PLUGIN_API_LADSPA;
   ret->flags       = BG_PLUGIN_FILTER_1;
@@ -301,7 +301,7 @@ bg_plugin_info_t * bg_ladspa_get_info(void * dll_handle, const char * filename)
     {
     new = get_info(desc);
     new->index = index;
-    new->module_filename = bg_strdup(NULL, filename);
+    new->module_filename = gavl_strdup(filename);
     if(ret)
       {
       end->next = new;

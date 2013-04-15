@@ -1010,7 +1010,7 @@ void bgav_input_skip_dump(bgav_input_context_t * ctx, int bytes)
     return;
     }
   bgav_dprintf( "Skipping %d bytes:\n", bytes);
-  bgav_hexdump(buf, bytes, 16);
+  gavl_hexdump(buf, bytes, 16);
   free(buf);
   }
 
@@ -1022,7 +1022,7 @@ void bgav_input_get_dump(bgav_input_context_t * ctx, int bytes)
   buf = malloc(bytes);
   bytes_read = bgav_input_get_data(ctx, buf, bytes);
 
-  bgav_hexdump(buf, bytes_read, 16);
+  gavl_hexdump(buf, bytes_read, 16);
   free(buf);
   }
 

@@ -548,9 +548,9 @@ static char * create_stream_label(const gavl_metadata_t * m)
   if(language && info)
     return bg_sprintf("%s [%s]", info, bg_get_language_name(language));
   else if(language)
-    return bg_strdup(NULL, bg_get_language_name(language));
+    return gavl_strdup(bg_get_language_name(language));
   else if(info)
-    return bg_strdup(NULL, info);
+    return gavl_strdup(info);
   else
     return NULL;
   }
@@ -585,17 +585,17 @@ static void set_track(bg_transcoder_track_t * track,
       {
       if(input->get_disc_name)
         track->general_parameters[i].val_default.val_str =
-          bg_strdup(track->general_parameters[i].val_default.val_str,
+          gavl_strrep(track->general_parameters[i].val_default.val_str,
                     input->get_disc_name(input_plugin->priv));
       }
     else if(!strcmp(track->general_parameters[i].name, "flags"))
       track->general_parameters[i].val_default.val_i = track_info->flags;
     else if(!strcmp(track->general_parameters[i].name, "location"))
-      track->general_parameters[i].val_default.val_str = bg_strdup(NULL, location);
+      track->general_parameters[i].val_default.val_str = gavl_strdup(location);
 
     else if(!strcmp(track->general_parameters[i].name, "plugin"))
       track->general_parameters[i].val_default.val_str =
-        bg_strdup(NULL, input_info->name);
+        gavl_strdup(input_info->name);
     else if(!strcmp(track->general_parameters[i].name, "prefer_edl"))
       {
       if(input_plugin->edl)
@@ -838,7 +838,7 @@ bg_transcoder_track_create(const char * url,
     
     if(track_info->url)
       {
-      new_track->url = bg_strdup(new_track->url, track_info->url);
+      new_track->url = gavl_strrep(new_track->url, track_info->url);
       }
     else
       {
@@ -886,7 +886,7 @@ bg_transcoder_track_create(const char * url,
 
       if(track_info->url)
         {
-        new_track->url = bg_strdup(new_track->url, track_info->url);
+        new_track->url = gavl_strrep(new_track->url, track_info->url);
         }
       else
         {
@@ -1582,7 +1582,7 @@ bg_transcoder_track_global_from_reg(bg_transcoder_track_global_t * g,
   if(bg_plugin_registry_get_encode_pp(plugin_reg))
     {
     plugin_info = bg_plugin_registry_get_default(plugin_reg, BG_PLUGIN_ENCODER_PP, BG_PLUGIN_PP);
-    g->pp_plugin = bg_strdup(NULL, plugin_info->name);
+    g->pp_plugin = gavl_strdup(plugin_info->name);
     plugin_section = bg_plugin_registry_get_section(plugin_reg, plugin_info->name);
     g->pp_section = bg_cfg_section_copy(plugin_section);
     }

@@ -40,7 +40,7 @@ void bgav_qt_glbl_dump(int indent, qt_glbl_t * f)
   {
   bgav_diprintf(indent, "glbl:\n");
   bgav_diprintf(indent+2, "Size: %d\n", f->size);
-  bgav_hexdump(f->data, f->size, 16);
+  gavl_hexdump(f->data, f->size, 16);
   }
 
 void bgav_qt_glbl_free(qt_glbl_t * r)

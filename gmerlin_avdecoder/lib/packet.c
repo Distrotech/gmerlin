@@ -114,14 +114,14 @@ void bgav_packet_dump(bgav_packet_t * p)
     bgav_dprintf(" end_pts: %"PRId64", ", p->end_pts);
   
   bgav_dprintf("\n");
-  //  bgav_hexdump(p->data, p->data_size < 16 ? p->data_size : 16, 16);
+  //  gavl_hexdump(p->data, p->data_size < 16 ? p->data_size : 16, 16);
   }
 
 void bgav_packet_dump_data(bgav_packet_t * p, int bytes)
   {
   if(bytes > p->data_size)
     bytes = p->data_size;
-  bgav_hexdump(p->data, bytes, 16);
+  gavl_hexdump(p->data, bytes, 16);
   }
 
 #define SWAP(n1, n2) \

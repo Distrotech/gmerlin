@@ -91,12 +91,12 @@ kbd_table_t * kbd_table_load(const char * filename, int * len)
         else if(!BG_XML_STRCMP(child->name, modifiers_name))
           {
           ret[*len].modifiers =
-            bg_strdup(ret[*len].modifiers, tmp_string);
+            gavl_strrep(ret[*len].modifiers, tmp_string);
           }
         else if(!BG_XML_STRCMP(child->name, command_name))
           {
           ret[*len].command =
-            bg_strdup(ret[*len].command, tmp_string);
+            gavl_strrep(ret[*len].command, tmp_string);
           }
         xmlFree(tmp_string);
         child = child->next;

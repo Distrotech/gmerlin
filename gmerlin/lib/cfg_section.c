@@ -34,7 +34,7 @@
 bg_cfg_section_t * bg_cfg_section_create(const char * name)
   {
   bg_cfg_section_t * ret = calloc(1, sizeof(*ret));
-  ret->name = bg_strdup(ret->name, name);
+  ret->name = gavl_strrep(ret->name, name);
   return ret;
   }
 
@@ -269,7 +269,7 @@ static void value_2_item(const bg_parameter_value_t * value,
       break;
     case BG_CFG_STRING:
     case BG_CFG_STRING_HIDDEN:
-      item->value.val_str = bg_strdup(item->value.val_str,
+      item->value.val_str = gavl_strrep(item->value.val_str,
                                       value->val_str);
       break;
     case BG_CFG_COLOR:
@@ -743,7 +743,7 @@ void bg_cfg_section_get_parameter(bg_cfg_section_t * section,
       break;
     case BG_CFG_STRING:
     case BG_CFG_STRING_HIDDEN:
-      value->val_str = bg_strdup(value->val_str, item->value.val_str);
+      value->val_str = gavl_strrep(value->val_str, item->value.val_str);
       break;
     case BG_CFG_COLOR:
       value->val_color[0] = item->value.val_color[0];
@@ -1021,7 +1021,7 @@ void bg_cfg_section_set_parameter_string(bg_cfg_section_t * section,
   bg_cfg_item_t * item;
   item = find_item_by_name(section, name, 1);
   item->type = BG_CFG_STRING;
-  item->value.val_str = bg_strdup(item->value.val_str, value);
+  item->value.val_str = gavl_strrep(item->value.val_str, value);
   }
 
 void bg_cfg_section_set_parameter_time(bg_cfg_section_t * section,
@@ -1169,7 +1169,7 @@ bg_cfg_section_t * bg_cfg_section_copy(const bg_cfg_section_t * src)
   bg_cfg_section_t * ret;
   
   ret = calloc(1, sizeof(*ret));
-  ret->name = bg_strdup(ret->name, src->name);
+  ret->name = gavl_strrep(ret->name, src->name);
   copy_contents(src, ret);
   copy_refs(src, ret);
   return ret;
@@ -1226,10 +1226,10 @@ char * bg_cfg_section_get_name_translated(bg_cfg_section_t * s)
   if(s->gettext_domain && s->gettext_directory)
     {
     bg_bindtextdomain(s->gettext_domain, s->gettext_directory);
-    return bg_strdup(NULL, dgettext(s->gettext_domain, s->name));
+    return gavl_strdup(dgettext(s->gettext_domain, s->name));
     }
   else
-    return bg_strdup(NULL, s->name);
+    return gavl_strdup(s->name);
   }
 
 
@@ -1237,9 +1237,9 @@ void bg_cfg_section_set_name(bg_cfg_section_t * s, const char * name,
                              const char * gettext_domain,
                              const char * gettext_directory)
   {
-  s->name = bg_strdup(s->name, name);
-  s->gettext_domain    = bg_strdup(s->gettext_domain,    gettext_domain);
-  s->gettext_directory = bg_strdup(s->gettext_directory, gettext_directory);
+  s->name = gavl_strrep(s->name, name);
+  s->gettext_domain    = gavl_strrep(s->gettext_domain,    gettext_domain);
+  s->gettext_directory = gavl_strrep(s->gettext_directory, gettext_directory);
   }
 
 bg_cfg_section_t *

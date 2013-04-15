@@ -26,6 +26,7 @@
 
 #include <gavl/gavl.h>
 #include <gavl/metadata.h>
+#include <gavl/utils.h>
 
 /** \defgroup utils Utilities
  *  \brief Utility functions
@@ -171,7 +172,7 @@ char * bg_filename_ensure_extension(const char * filename,
  *  NULL.
  */
 
-char * bg_strdup(char * old_string, const char * new_string);
+// char * bg_strdup(char * old_string, const char * new_string);
 
 /** \brief Duplicate a string from a part of a source string
  *  \param old_string (will eventually be freed)
@@ -183,9 +184,9 @@ char * bg_strdup(char * old_string, const char * new_string);
  *  NULL. If new_end is NULL, it will be obtained with strlen().
  */
 
-char * bg_strndup(char * old_string,
-                  const char * new_start,
-                  const char * new_end);
+// char * bg_strndup(char * old_string,
+//                  const char * new_start,
+//                  const char * new_end);
 
 /** \brief Concatenate two strings
  *  \param old_string Old string (will be freed)

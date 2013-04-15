@@ -168,7 +168,7 @@ static int open_lqt(void * data, const char * arg)
   lang[3] = '\0';
   
   /* We want to keep the thing const-clean */
-  filename = bg_strdup(NULL, arg);
+  filename = gavl_strdup(arg);
   e->file = quicktime_open(filename, 1, 0);
   free(filename);
 
@@ -506,15 +506,15 @@ static void set_parameter_lqt(void * data, const char * name,
 #endif
   if(!strcmp(name, "audio_codecs"))
     {
-    e->audio_codec_string = bg_strdup(e->audio_codec_string, val->val_str);
+    e->audio_codec_string = gavl_strrep(e->audio_codec_string, val->val_str);
     }
   else if(!strcmp(name, "video_codecs"))
     {
-    e->video_codec_string = bg_strdup(e->video_codec_string, val->val_str);
+    e->video_codec_string = gavl_strrep(e->video_codec_string, val->val_str);
     }
   else if(!strncmp(name, "audio_codecs.", 13))
     {
-    tmp_string = bg_strdup(NULL, name+13);
+    tmp_string = gavl_strdup(name+13);
     pos = strchr(tmp_string, '.');
     *pos = '\0';
     pos++;
@@ -525,7 +525,7 @@ static void set_parameter_lqt(void * data, const char * name,
     }
   else if(!strncmp(name, "video_codecs.", 13))
     {
-    tmp_string = bg_strdup(NULL, name+13);
+    tmp_string = gavl_strdup(name+13);
     pos = strchr(tmp_string, '.');
     *pos = '\0';
     pos++;

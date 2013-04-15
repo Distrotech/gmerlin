@@ -113,7 +113,7 @@ set_parameter_oss(void * p, const char * name, const bg_parameter_value_t * val)
     return;
   if(!strcmp(name, "device"))
     {
-    priv->device = bg_strdup(priv->device, val->val_str);
+    priv->device = gavl_strrep(priv->device, val->val_str);
     pos = strchr(priv->device, ' '); if(pos) *pos = '\0';
     }
   else if(!strcmp(name, "channel_mode"))

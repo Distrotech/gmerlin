@@ -150,7 +150,7 @@ static int get_data(bgav_stream_t*s)
   mpeg2_buffer(priv->dec, priv->p->data, priv->p->data + priv->p->data_size);
 
   //  fprintf(stderr, "mpeg2_buffer %d bytes\n", priv->p->data_size);
-  //  bgav_hexdump(priv->p->data, 32, 16);
+  //  gavl_hexdump(priv->p->data, 32, 16);
   
   bgav_pts_cache_push(&priv->pts_cache,
                       priv->p->pts, priv->p->duration,

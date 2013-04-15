@@ -407,8 +407,7 @@ void bg_cmdline_print_help(char * argv0, bg_help_format_t format)
         printf(".SH NAME\n%s\n", app_data->name);
         
       printf(".SH SYNOPSIS\n.B %s \n", app_data->name);
-      tmp_string = bg_strdup(NULL,
-                             TRD(app_data->synopsis, app_data->package));
+      tmp_string = gavl_strdup(TRD(app_data->synopsis, app_data->package));
       
       args = bg_strbreak(tmp_string, ' ');
       i = 0;
@@ -712,7 +711,7 @@ int bg_cmdline_apply_options(bg_cfg_section_t * section,
 static char * create_stream_key(int stream)
   {
   if(stream < 0)
-    return bg_strdup(NULL, "opt");
+    return gavl_strdup("opt");
   else
     return bg_sprintf("opt_%d", stream);
   }

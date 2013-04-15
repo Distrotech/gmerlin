@@ -77,7 +77,7 @@ static int parse_frame_cavs(bgav_video_parser_t * parser, bgav_packet_t * p,
     start_code = bgav_cavs_get_start_code(sc);
     ptr = sc;
     //    fprintf(stderr, "Start code: %02x\n", sc[3]);
-    //    bgav_hexdump(sc, 16, 16);
+    //    gavl_hexdump(sc, 16, 16);
     switch(start_code)
       {
       case CAVS_CODE_SEQUENCE:

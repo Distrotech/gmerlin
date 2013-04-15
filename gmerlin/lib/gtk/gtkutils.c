@@ -138,8 +138,8 @@ void bg_gtk_init(int * argc, char *** argv,
   set_default_window_icon(default_window_icon);
 
   /* Set default class hints */
-  default_window_name = bg_strdup(default_window_name, win_name);
-  default_window_class = bg_strdup(default_window_class, win_class);
+  default_window_name = gavl_strrep(default_window_name, win_name);
+  default_window_class = gavl_strrep(default_window_class, win_class);
 
   }
 
@@ -341,7 +341,7 @@ char * bg_gtk_convert_font_name_to_pango(const char * name)
   description = pango_fc_font_description_from_pattern(pattern, TRUE);
 
   tmp = pango_font_description_to_string(description);
-  ret = bg_strdup(NULL, tmp);
+  ret = gavl_strdup(tmp);
   g_free(tmp);
   FcPatternDestroy(pattern);
   pango_font_description_free(description);

@@ -320,7 +320,7 @@ void bgav_WAVEFORMAT_dump(bgav_WAVEFORMAT_t * ret)
       if(ret->f.WAVEFORMATEX.ext_size)
         {
         bgav_dprintf( "Extradata %d bytes, hexdump follows\n", ret->f.WAVEFORMATEX.ext_size);
-        bgav_hexdump(ret->f.WAVEFORMATEX.ext_data, ret->f.WAVEFORMATEX.ext_size, 16);
+        gavl_hexdump(ret->f.WAVEFORMATEX.ext_data, ret->f.WAVEFORMATEX.ext_size, 16);
         }
       break;
     case BGAV_WAVEFORMAT_WAVEFORMATEXTENSIBLE:
@@ -334,7 +334,7 @@ void bgav_WAVEFORMAT_dump(bgav_WAVEFORMAT_t * ret)
       if(ret->f.WAVEFORMATEX.ext_size)
         {
         bgav_dprintf( "Extradata %d bytes, hexdump follows\n", ret->f.WAVEFORMATEX.ext_size);
-        bgav_hexdump(ret->f.WAVEFORMATEX.ext_data, ret->f.WAVEFORMATEX.ext_size, 16);
+        gavl_hexdump(ret->f.WAVEFORMATEX.ext_data, ret->f.WAVEFORMATEX.ext_size, 16);
         }
       break;
     }
@@ -487,7 +487,7 @@ bgav_RIFFINFO_t * bgav_RIFFINFO_read_without_header(bgav_input_context_t * input
     {
     string_len = BGAV_PTR_2_32LE(ptr + 4);
 
-    //    bgav_hexdump(ptr, 8, 8);
+    //    gavl_hexdump(ptr, 8, 8);
     
     RS(IARL);
     RS(IART);

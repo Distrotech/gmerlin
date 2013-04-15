@@ -410,7 +410,7 @@ int bg_ogg_encoder_set_video_pass(void * data, int stream,
 
   s->pass = pass;
   s->total_passes = total_passes;
-  s->stats_file = bg_strdup(s->stats_file, stats_file);
+  s->stats_file = gavl_strrep(s->stats_file, stats_file);
   return 1;
   }
 
@@ -642,15 +642,16 @@ create_codec_parameters(bg_ogg_codec_t const * const * codecs)
   for(i = 0; i < num_codecs; i++)
     {
     ret[0].multi_names_nc[i]  =
-      bg_strdup(NULL, codecs[i]->name);
+      gavl_strdup(codecs[i]->name);
     ret[0].multi_labels_nc[i] =
-      bg_strdup(NULL, codecs[i]->long_name);
+      gavl_strdup(codecs[i]->long_name);
       
     if(codecs[i]->get_parameters)
       ret[0].multi_parameters_nc[i] =
         bg_parameter_info_copy_array(codecs[i]->get_parameters());
     }
-  ret[0].val_default.val_str = bg_strdup(ret[0].val_default.val_str, codecs[0]->name);
+  ret[0].val_default.val_str =
+    gavl_strrep(ret[0].val_default.val_str, codecs[0]->name);
   bg_parameter_info_set_const_ptrs(&ret[0]);
   return ret;
   }

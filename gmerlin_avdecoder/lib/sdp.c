@@ -423,7 +423,7 @@ static void dump_attributes(bgav_sdp_attr_t * attr)
       case BGAV_SDP_TYPE_DATA:
         bgav_dprintf(": binary data (%d bytes), hexdump follows\n",
                      attr[index].data_len);
-        bgav_hexdump(attr[index].val.data, attr[index].data_len, 16);
+        gavl_hexdump(attr[index].val.data, attr[index].data_len, 16);
         break;
       case BGAV_SDP_TYPE_BOOLEAN:
         bgav_dprintf("\n");

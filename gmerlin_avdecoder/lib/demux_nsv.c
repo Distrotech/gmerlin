@@ -633,7 +633,7 @@ static int next_packet_nsv(bgav_demuxer_context_t * ctx)
   
 
   //  bgav_input_get_data(ctx->input, test_data, 32);
-  //  bgav_hexdump(test_data, 32, 16);
+  //  gavl_hexdump(test_data, 32, 16);
   /* Parse payload */
   
   if(!bgav_input_read_8(ctx->input, &num_aux))

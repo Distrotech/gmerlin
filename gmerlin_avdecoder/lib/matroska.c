@@ -556,10 +556,10 @@ void bgav_mkv_chapter_atom_dump(bgav_mkv_chapter_atom_t * ca)
   bgav_dprintf("      ChapterFlagEnabled:   %d\n", ca->ChapterFlagEnabled);
   bgav_dprintf("      ChapterSegmentUIDLen: %d\n", ca->ChapterSegmentUIDLen);
   if(ca->ChapterSegmentUIDLen)
-    bgav_hexdump(ca->ChapterSegmentUID, ca->ChapterSegmentUIDLen, 16);
+    gavl_hexdump(ca->ChapterSegmentUID, ca->ChapterSegmentUIDLen, 16);
   bgav_dprintf("      ChapterSegmentEditionLen: %d\n", ca->ChapterSegmentEditionUIDLen);
   if(ca->ChapterSegmentEditionUIDLen)
-    bgav_hexdump(ca->ChapterSegmentEditionUID, ca->ChapterSegmentEditionUIDLen, 16);
+    gavl_hexdump(ca->ChapterSegmentEditionUID, ca->ChapterSegmentEditionUIDLen, 16);
 
   for(i = 0; i < ca->num_tracks; i++)
     bgav_mkv_chapter_track_dump(ca->tracks+i);
@@ -847,7 +847,7 @@ void bgav_mkv_simple_tag_dump(bgav_mkv_simple_tag_t * t)
   bgav_dprintf("    TagString:    %s\n", t->TagString);
   bgav_dprintf("    TagBinaryLen: %d\n", t->TagBinaryLen);
   if(t->TagBinaryLen)
-    bgav_hexdump(t->TagBinary, t->TagBinaryLen, 16);
+    gavl_hexdump(t->TagBinary, t->TagBinaryLen, 16);
   }
 
 void bgav_mkv_simple_tag_free(bgav_mkv_simple_tag_t * t)
@@ -1148,7 +1148,7 @@ void bgav_mkv_content_compression_dump(bgav_mkv_content_compression_t * cc)
   bgav_dprintf("      ContentCompSettingsLen: %d\n", cc->ContentCompSettingsLen);
   
   if(cc->ContentCompSettingsLen)
-    bgav_hexdump(cc->ContentCompSettings, cc->ContentCompSettingsLen, 16);
+    gavl_hexdump(cc->ContentCompSettings, cc->ContentCompSettingsLen, 16);
   }
   
 
@@ -1238,7 +1238,7 @@ void bgav_mkv_content_encryption_dump(bgav_mkv_content_encryption_t * ce)
 
   bgav_dprintf("      ContentEncKeyIDLen: %d\n", ce->ContentEncKeyIDLen);
   if(ce->ContentEncKeyIDLen)
-    bgav_hexdump(ce->ContentEncKeyID, ce->ContentEncKeyIDLen, 16);
+    gavl_hexdump(ce->ContentEncKeyID, ce->ContentEncKeyIDLen, 16);
 
   bgav_dprintf("      ContentSigAlgo: %d ", ce->ContentSigAlgo);
   switch(ce->ContentSigAlgo)
@@ -1272,11 +1272,11 @@ void bgav_mkv_content_encryption_dump(bgav_mkv_content_encryption_t * ce)
   
   bgav_dprintf("      ContentSignatureLen: %d\n", ce->ContentSignatureLen);
   if(ce->ContentSignatureLen)
-    bgav_hexdump(ce->ContentSignature, ce->ContentSignatureLen, 16);
+    gavl_hexdump(ce->ContentSignature, ce->ContentSignatureLen, 16);
 
   bgav_dprintf("      ContentSigKeyIDLen: %d\n", ce->ContentSigKeyIDLen);
   if(ce->ContentSigKeyIDLen)
-    bgav_hexdump(ce->ContentSigKeyID, ce->ContentSigKeyIDLen, 16);
+    gavl_hexdump(ce->ContentSigKeyID, ce->ContentSigKeyIDLen, 16);
 
   
   
@@ -1704,7 +1704,7 @@ void  bgav_mkv_track_dump(const bgav_mkv_track_t * t)
   bgav_dprintf("  CodecPrivate        %d bytes\n", t->CodecPrivateLen);
 
   if(t->CodecPrivateLen)
-    bgav_hexdump(t->CodecPrivate, t->CodecPrivateLen, 16);
+    gavl_hexdump(t->CodecPrivate, t->CodecPrivateLen, 16);
 
   bgav_dprintf("  CodecName:          %s\n", t->CodecName);
   bgav_dprintf("  AttachmentLink:     %"PRId64"\n", t->AttachmentLink);

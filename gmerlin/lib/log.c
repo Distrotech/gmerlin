@@ -171,7 +171,7 @@ static void logs_internal(bg_log_level_t level, const char * domain,
         if(level == BG_LOG_ERROR)
           {
           pthread_mutex_lock(&last_error_mutex);
-          last_error = bg_strdup(last_error, lines[i]);
+          last_error = gavl_strrep(last_error, lines[i]);
           pthread_mutex_unlock(&last_error_mutex);
           }
         i++;
@@ -255,7 +255,7 @@ char * bg_log_last_error()
   {
   char * ret;
   pthread_mutex_lock(&last_error_mutex);
-  ret = bg_strdup(NULL, last_error);
+  ret = gavl_strdup(last_error);
   pthread_mutex_unlock(&last_error_mutex);
   return ret;
   }

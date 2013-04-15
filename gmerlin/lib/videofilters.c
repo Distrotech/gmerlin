@@ -218,7 +218,7 @@ bg_video_filter_chain_set_parameter(void * data, const char * name,
       goto the_end;
       }
     /* Rebuild chain */
-    ch->filter_string = bg_strdup(ch->filter_string, val->val_str);
+    ch->filter_string = gavl_strrep(ch->filter_string, val->val_str);
     ch->need_rebuild = 1;
     }
   else if(!strncmp(name, "video_filters.", 14))

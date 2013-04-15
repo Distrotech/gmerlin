@@ -49,7 +49,7 @@ static int open_common(avdec_priv * avdec)
       
       str = bgav_redirector_get_url(avdec->dec, i);
 
-      avdec->track_info[i].url = bg_strdup(avdec->track_info[i].url, str);
+      avdec->track_info[i].url = gavl_strrep(avdec->track_info[i].url, str);
       
       str = bgav_redirector_get_name(avdec->dec, i);
 

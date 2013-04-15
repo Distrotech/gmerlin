@@ -476,7 +476,7 @@ char * bg_gtk_get_filename_write(const char * title,
     }
   
   tmp_string = gtk_file_chooser_get_filename(GTK_FILE_CHOOSER(f.w));
-  ret = bg_strdup(NULL, tmp_string);
+  ret = gavl_strdup(tmp_string);
   g_free(tmp_string);
   
   /* Update current directory */
@@ -484,7 +484,7 @@ char * bg_gtk_get_filename_write(const char * title,
   if(directory)
     {
     tmp_string = gtk_file_chooser_get_current_folder(GTK_FILE_CHOOSER(f.w));
-    *directory = bg_strdup(*directory, tmp_string);
+    *directory = gavl_strrep(*directory, tmp_string);
     g_free(tmp_string);
     }
   
@@ -545,7 +545,7 @@ char * bg_gtk_get_filename_read(const char * title,
     }
   
   tmp_string = gtk_file_chooser_get_filename(GTK_FILE_CHOOSER(f.w));
-  ret = bg_strdup(NULL, tmp_string);
+  ret = gavl_strdup(tmp_string);
   g_free(tmp_string);
   
   /* Update current directory */
@@ -553,7 +553,7 @@ char * bg_gtk_get_filename_read(const char * title,
   if(directory)
     {
     tmp_string = gtk_file_chooser_get_current_folder(GTK_FILE_CHOOSER(f.w));
-    *directory = bg_strdup(*directory, tmp_string);
+    *directory = gavl_strrep(*directory, tmp_string);
     g_free(tmp_string);
     }
   

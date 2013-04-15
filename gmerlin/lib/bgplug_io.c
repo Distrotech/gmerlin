@@ -278,11 +278,11 @@ int bg_plug_request_read(int fd, gavl_metadata_t * req, int timeout)
     return 0;
   
   gavl_metadata_set_nocpy(req, META_METHOD,
-                          bg_strndup(NULL, line, pos1));
+                          gavl_strndup( line, pos1));
   gavl_metadata_set_nocpy(req, META_LOCATION,
-                           bg_strndup(NULL, pos1+1, pos2));
+                           gavl_strndup( pos1+1, pos2));
   gavl_metadata_set_nocpy(req, META_PROTOCOL,
-                          bg_strdup(NULL, pos2+1));
+                          gavl_strdup(pos2+1));
   
   result = read_vars(fd, &line, &line_alloc, req, timeout);
   
@@ -365,9 +365,9 @@ static int socket_response_read(int fd, gavl_metadata_t * req, int timeout)
     return 0;
   
   gavl_metadata_set_nocpy(req, META_PROTOCOL,
-                          bg_strndup(NULL, line, pos1));
+                          gavl_strndup( line, pos1));
   gavl_metadata_set_nocpy(req, META_STATUS,
-                          bg_strndup(NULL, pos1+1, pos2));
+                          gavl_strndup( pos1+1, pos2));
   
   pos2++;
   gavl_metadata_set(req, META_STATUS_STR, pos2);
@@ -675,7 +675,7 @@ static gavf_io_t * open_unix(const char * addr, int method, int timeout)
   gavl_metadata_t vars;
   gavl_metadata_init(&vars);
   
-  name = bg_strdup(NULL, addr+7);
+  name = gavl_strdup(addr+7);
   bg_url_get_vars(name, &vars);
   
   fd = bg_socket_connect_unix(name);

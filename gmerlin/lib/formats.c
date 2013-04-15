@@ -30,7 +30,7 @@
 static char * get_dB(float val)
   {
   if(val == 0.0)
-    return bg_strdup(NULL, TR("Zero"));
+    return gavl_strdup(TR("Zero"));
   else
     return bg_sprintf("%02f dB", val);
   }

@@ -487,7 +487,7 @@ static void set_preset_path(bg_parameter_info_t * info, const char * prefix)
   
   if(info->type == BG_PARAMETER_SECTION)
     info->flags |= BG_PARAMETER_GLOBAL_PRESET;
-  info->preset_path = bg_strdup(info->preset_path, prefix);
+  info->preset_path = gavl_strrep(info->preset_path, prefix);
   }
 
 bg_plugin_info_t * bg_plugin_info_create(const bg_plugin_common_t * plugin)
@@ -495,17 +495,17 @@ bg_plugin_info_t * bg_plugin_info_create(const bg_plugin_common_t * plugin)
   bg_plugin_info_t * new_info;
   new_info = calloc(1, sizeof(*new_info));
 
-  new_info->name = bg_strdup(new_info->name, plugin->name); 	 
+  new_info->name = gavl_strrep(new_info->name, plugin->name); 	 
 	  	 
-  new_info->long_name =  bg_strdup(new_info->long_name, 	 
+  new_info->long_name =  gavl_strrep(new_info->long_name, 	 
                                    plugin->long_name); 	 
 	  	 
-  new_info->description = bg_strdup(new_info->description, 	 
+  new_info->description = gavl_strrep(new_info->description, 	 
                                     plugin->description);
   
-  new_info->gettext_domain = bg_strdup(new_info->gettext_domain, 	 
+  new_info->gettext_domain = gavl_strrep(new_info->gettext_domain, 	 
                                        plugin->gettext_domain); 	 
-  new_info->gettext_directory = bg_strdup(new_info->gettext_directory, 	 
+  new_info->gettext_directory = gavl_strrep(new_info->gettext_directory, 	 
                                           plugin->gettext_directory); 	 
   new_info->type        = plugin->type; 	 
   new_info->flags       = plugin->flags; 	 
@@ -538,7 +538,7 @@ static bg_plugin_info_t * plugin_info_create(const bg_plugin_common_t * plugin,
   
   new_info = bg_plugin_info_create(plugin);
 
-  new_info->module_filename = bg_strdup(new_info->module_filename, 	 
+  new_info->module_filename = gavl_strrep(new_info->module_filename, 	 
                                         module_filename);
   
   if(plugin->get_parameters)
@@ -616,30 +616,30 @@ static bg_plugin_info_t * plugin_info_create(const bg_plugin_common_t * plugin,
     input = (bg_input_plugin_t*)plugin;
 
     if(input->get_mimetypes)
-      new_info->mimetypes =  bg_strdup(new_info->mimetypes,
+      new_info->mimetypes =  gavl_strrep(new_info->mimetypes,
                                        input->get_mimetypes(plugin_priv));
 
     if(input->get_extensions)
-      new_info->extensions = bg_strdup(new_info->extensions,
+      new_info->extensions = gavl_strrep(new_info->extensions,
                                        input->get_extensions(plugin_priv));
     
 
     if(input->get_protocols)
-      new_info->protocols = bg_strdup(new_info->protocols,
+      new_info->protocols = gavl_strrep(new_info->protocols,
                                       input->get_protocols(plugin_priv));
     }
   if(plugin->type & BG_PLUGIN_IMAGE_READER)
     {
     bg_image_reader_plugin_t  * ir;
     ir = (bg_image_reader_plugin_t*)plugin;
-    new_info->extensions = bg_strdup(new_info->extensions,
+    new_info->extensions = gavl_strrep(new_info->extensions,
                                      ir->extensions);
     }
   if(plugin->type & BG_PLUGIN_IMAGE_WRITER)
     {
     bg_image_writer_plugin_t  * iw;
     iw = (bg_image_writer_plugin_t*)plugin;
-    new_info->extensions = bg_strdup(new_info->extensions,
+    new_info->extensions = gavl_strrep(new_info->extensions,
                                      iw->extensions);
     }
   if(plugin->type & BG_PLUGIN_CODEC)
@@ -902,7 +902,7 @@ scan_directory(const char * directory, bg_plugin_info_t ** _file_info,
   
   while(file_info)
     {
-    tmp_string = bg_strdup(NULL, file_info->module_filename);
+    tmp_string = gavl_strdup(file_info->module_filename);
     pos = strrchr(tmp_string, '/');
     if(pos) *pos = '\0';
     
@@ -1264,7 +1264,7 @@ void bg_plugin_registry_set_extensions(bg_plugin_registry_t * reg,
     return;
   if(!(info->flags & BG_PLUGIN_FILE))
     return;
-  info->extensions = bg_strdup(info->extensions, extensions);
+  info->extensions = gavl_strrep(info->extensions, extensions);
   
   bg_plugin_registry_save(reg->entries);
   
@@ -1280,7 +1280,7 @@ void bg_plugin_registry_set_protocols(bg_plugin_registry_t * reg,
     return;
   if(!(info->flags & BG_PLUGIN_URL))
     return;
-  info->protocols = bg_strdup(info->protocols, protocols);
+  info->protocols = gavl_strrep(info->protocols, protocols);
   bg_plugin_registry_save(reg->entries);
 
   }
@@ -1791,7 +1791,7 @@ void bg_plugin_registry_set_device_name(bg_plugin_registry_t * reg,
     {
     if(!strcmp(info->devices[i].device, device))
       {
-      info->devices[i].name = bg_strdup(info->devices[i].name, name);
+      info->devices[i].name = gavl_strrep(info->devices[i].name, name);
       bg_plugin_registry_save(reg->entries);
       return;
       }
@@ -1877,7 +1877,7 @@ char ** bg_plugin_registry_get_plugins(bg_plugin_registry_t*reg,
   for(i = 0; i < num_plugins; i++)
     {
     info = bg_plugin_find_by_index(reg, i, type_mask, flag_mask);
-    ret[i] = bg_strdup(NULL, info->name);
+    ret[i] = gavl_strdup(info->name);
     }
   return ret;
   
@@ -1996,7 +1996,7 @@ static int input_plugin_load(bg_plugin_registry_t * reg,
       {
       if(protocol) free(protocol);
       if(path)     free(path);
-      (*ret)->location = bg_strdup((*ret)->location, real_location);
+      (*ret)->location = gavl_strrep((*ret)->location, real_location);
       return 1;
       }
     }
@@ -2031,7 +2031,7 @@ static int input_plugin_load(bg_plugin_registry_t * reg,
       }
     else
       {
-      (*ret)->location = bg_strdup((*ret)->location, real_location);
+      (*ret)->location = gavl_strrep((*ret)->location, real_location);
       return 1;
       }
     }
@@ -2294,7 +2294,7 @@ create_encoder_parameters(const bg_plugin_info_t * info, int stream_params)
     char * tmp_string;
     ret->flags |= BG_PARAMETER_GLOBAL_PRESET;
     tmp_string = bg_sprintf("plugins/%s", info->name);
-    ret->preset_path = bg_strdup(ret->preset_path, tmp_string);
+    ret->preset_path = gavl_strrep(ret->preset_path, tmp_string);
     free(tmp_string);
     }
 
@@ -2338,20 +2338,20 @@ static void set_parameter_info(bg_plugin_registry_t * reg,
     {
     info = bg_plugin_find_by_index(reg, i,
                                    type_mask, flag_mask);
-    ret->multi_names_nc[start_entries+i] = bg_strdup(NULL, info->name);
+    ret->multi_names_nc[start_entries+i] = gavl_strdup(info->name);
 
     /* First plugin is the default one */
     if((ret->type != BG_PARAMETER_MULTI_CHAIN) && !ret->val_default.val_str)
       {
-      ret->val_default.val_str = bg_strdup(NULL, info->name);
+      ret->val_default.val_str = gavl_strdup(info->name);
       }
     
     bg_bindtextdomain(info->gettext_domain, info->gettext_directory);
-    ret->multi_descriptions_nc[start_entries+i] = bg_strdup(NULL, TRD(info->description,
+    ret->multi_descriptions_nc[start_entries+i] = gavl_strdup(TRD(info->description,
                                                      info->gettext_domain));
     
     ret->multi_labels_nc[start_entries+i] =
-      bg_strdup(NULL, TRD(info->long_name,
+      gavl_strdup(TRD(info->long_name,
                           info->gettext_domain));
     
     if(info->type & (BG_PLUGIN_ENCODER_AUDIO |
@@ -2444,19 +2444,19 @@ void bg_plugin_registry_set_parameter_info_input(bg_plugin_registry_t * reg,
     {
     info = bg_plugin_find_by_index(reg, i,
                                    type_mask, flag_mask);
-    ret->multi_names_nc[i] = bg_strdup(NULL, info->name);
+    ret->multi_names_nc[i] = gavl_strdup(info->name);
 
     /* First plugin is the default one */
     if(!i && (ret->type != BG_PARAMETER_MULTI_CHAIN)) 
       {
-      ret->val_default.val_str = bg_strdup(NULL, info->name);
+      ret->val_default.val_str = gavl_strdup(info->name);
       }
     
     bg_bindtextdomain(info->gettext_domain, info->gettext_directory);
-    ret->multi_descriptions_nc[i] = bg_strdup(NULL, TRD(info->description,
+    ret->multi_descriptions_nc[i] = gavl_strdup(TRD(info->description,
                                                         info->gettext_domain));
     
-    ret->multi_labels_nc[i] = bg_strdup(NULL, TRD(info->long_name,
+    ret->multi_labels_nc[i] = gavl_strdup(TRD(info->long_name,
                                                info->gettext_domain));
 
     /* Create parameters: Extensions and protocols are added to the array
@@ -2527,7 +2527,7 @@ void bg_plugin_registry_set_parameter_info_input(bg_plugin_registry_t * reg,
       bg_parameter_info_copy(&ret->multi_parameters_nc[i][index],
                              &extensions_parameter);
       ret->multi_parameters_nc[i][index].val_default.val_str =
-        bg_strdup(NULL, info->extensions);
+        gavl_strdup(info->extensions);
       index++;
       }
     if(info->flags & BG_PLUGIN_URL)
@@ -2535,7 +2535,7 @@ void bg_plugin_registry_set_parameter_info_input(bg_plugin_registry_t * reg,
       bg_parameter_info_copy(&ret->multi_parameters_nc[i][index],
                              &protocols_parameter);
       ret->multi_parameters_nc[i][index].val_default.val_str =
-        bg_strdup(NULL, info->protocols);
+        gavl_strdup(info->protocols);
       index++;
       }
 
@@ -2569,7 +2569,7 @@ static int find_parameter_input(bg_plugin_registry_t * plugin_reg,
   if(!pos2)
     return 0;
 
-  plugin_name = bg_strndup(NULL, pos1, pos2);
+  plugin_name = gavl_strndup( pos1, pos2);
   pos2++;
 
   *parameter_name = pos2;
@@ -2655,9 +2655,9 @@ int bg_plugin_registry_get_parameter_input(void * data, const char * name,
     //    fprintf(stderr, "get priority: %d\n", val->val_i);
     }
   else if(!strcmp(parameter_name, "$extensions"))
-    val->val_str = bg_strdup(val->val_str, plugin_info->extensions);
+    val->val_str = gavl_strrep(val->val_str, plugin_info->extensions);
   else if(!strcmp(parameter_name, "$protocols"))
-    val->val_str = bg_strdup(val->val_str, plugin_info->protocols);
+    val->val_str = gavl_strrep(val->val_str, plugin_info->protocols);
   else
     bg_cfg_section_get_parameter(cfg_section, parameter_info, val);
   return 1;
@@ -2813,7 +2813,7 @@ bg_plugin_registry_create_encoder_parameters(bg_plugin_registry_t * reg,
 
   /* Set preset path */
   
-  ret[0].preset_path = bg_strdup(NULL, "encoders");
+  ret[0].preset_path = gavl_strdup("encoders");
   
   return ret;
   }

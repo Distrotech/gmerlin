@@ -158,7 +158,7 @@ static gboolean idle_callback(gpointer data)
       case BG_LOG_ERROR:
         tag = w->error_tag;
         if(w->show_error) do_log = 1;
-        w->last_error = bg_strdup(w->last_error, message);
+        w->last_error = gavl_strrep(w->last_error, message);
         break;
       case BG_LOG_INFO:
         tag = w->info_tag;

@@ -464,7 +464,7 @@ static void opt_host(void * data, int * argc, char *** argv, int arg)
     bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Option -host requires an argument");
     exit(-1);
     }
-  host = bg_strdup(host, (*argv)[arg]);
+  host = gavl_strrep(host, (*argv)[arg]);
   bg_cmdline_remove_arg(argc, argv, arg);
   }
 
@@ -567,7 +567,7 @@ int main(int argc, char ** argv)
   remote = bg_remote_client_create(PLAYER_REMOTE_ID, 0);
 
   if(!host)
-    host = bg_strdup(host, "localhost");
+    host = gavl_strrep(host, "localhost");
 
   if(!bg_remote_client_init(remote, host, port, 1000))
     {

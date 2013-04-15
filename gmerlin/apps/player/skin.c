@@ -46,7 +46,7 @@ char * gmerlin_skin_load(gmerlin_skin_t * s, char * directory)
     {
     free(filename);
 
-    directory = bg_strdup(directory, default_skin_directory);
+    directory = gavl_strrep(directory, default_skin_directory);
         
     filename = bg_sprintf("%s/skin.xml", directory);
     doc = xmlParseFile(filename);
@@ -57,7 +57,7 @@ char * gmerlin_skin_load(gmerlin_skin_t * s, char * directory)
     goto fail;
     }
     
-  s->directory = bg_strdup(s->directory, directory);
+  s->directory = gavl_strrep(s->directory, directory);
   
   node = doc->children;
   

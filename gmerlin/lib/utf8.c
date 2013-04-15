@@ -111,7 +111,7 @@ char * bg_system_to_utf8(const char * str, int len)
 
   system_charset = nl_langinfo(CODESET);
   //  if(!strcmp(system_charset, "UTF-8"))
-  //    return bg_strndup(NULL, str, str+len);
+  //    return gavl_strndup(str, str+len);
 
   
   tmp_string = malloc(len+1);
@@ -173,7 +173,7 @@ char * bg_utf8_to_system(const char * str, int len)
 
   system_charset = nl_langinfo(CODESET);
   if(!strcmp(system_charset, "UTF-8"))
-    return bg_strndup(NULL, str, str+len);
+    return gavl_strndup(str, str+len);
     
   tmp_string = malloc(len+1);
   memcpy(tmp_string, str, len);

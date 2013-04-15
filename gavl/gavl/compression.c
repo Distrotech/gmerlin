@@ -249,7 +249,7 @@ void gavl_compression_info_dumpi(const gavl_compression_info_t * info, int inden
   if(info->global_header_len)
     {
     fprintf(stderr, " (hexdump follows)\n");
-    gavl_hexdump(info->global_header,
+    gavl_hexdumpi(info->global_header,
                  info->global_header_len, 16, indent+2);
     }
   else
@@ -374,7 +374,7 @@ void gavl_packet_dump(const gavl_packet_t * p)
     fprintf(stderr, " dst: %d %d", p->dst_x, p->dst_y);
 
   fprintf(stderr, "\n");
-  gavl_hexdump(p->data, p->data_len < 16 ? p->data_len : 16, 16, 0);
+  gavl_hexdump(p->data, p->data_len < 16 ? p->data_len : 16, 16);
   
   }
 

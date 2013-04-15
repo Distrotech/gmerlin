@@ -218,7 +218,7 @@ set_parameter_textlogo(void * priv, const char * name,
     vp->need_overlay = 1;
     }
   else if(!strcmp(name, "text"))
-    vp->textlogo = bg_strdup(vp->textlogo, val->val_str);
+    vp->textlogo = gavl_strrep(vp->textlogo, val->val_str);
   else
     bg_text_renderer_set_parameter(vp->renderer,
                                    name, val);

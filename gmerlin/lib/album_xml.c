@@ -90,7 +90,7 @@ static bg_album_entry_t * load_entry(bg_album_t * album,
     
     if(!BG_XML_STRCMP(node->name, "NAME"))
       {
-      ret->name = bg_strdup(ret->name, tmp_string);
+      ret->name = gavl_strrep(ret->name, tmp_string);
       }
     else if(!BG_XML_STRCMP(node->name, "LOCATION"))
       {
@@ -98,7 +98,7 @@ static bg_album_entry_t * load_entry(bg_album_t * album,
       }
     else if(!BG_XML_STRCMP(node->name, "USER"))
       {
-      ret->username = bg_strdup(ret->username, tmp_string);
+      ret->username = gavl_strrep(ret->username, tmp_string);
       }
     else if(!BG_XML_STRCMP(node->name, "PASS"))
       {
@@ -106,7 +106,7 @@ static bg_album_entry_t * load_entry(bg_album_t * album,
       }
     else if(!BG_XML_STRCMP(node->name, "PLUGIN"))
       {
-      ret->plugin = (void*)bg_strdup(ret->plugin, tmp_string);
+      ret->plugin = (void*)gavl_strrep(ret->plugin, tmp_string);
       }
     else if(!BG_XML_STRCMP(node->name, "DURATION"))
       {

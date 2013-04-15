@@ -1498,7 +1498,7 @@ static int process_mp4v_es(bgav_stream_t * s,
       bgav_packet_alloc(s->packet, s->packet->data_size + len);
       memcpy(s->packet->data + s->packet->data_size, data, len);
       s->packet->data_size += len;
-      //      bgav_hexdump(s->packet->data, 16, 16);
+      //      gavl_hexdump(s->packet->data, 16, 16);
       bgav_stream_done_packet_write(s, s->packet);
       s->packet = NULL;
       }
@@ -1508,7 +1508,7 @@ static int process_mp4v_es(bgav_stream_t * s,
       p = bgav_stream_get_packet_write(s);
       bgav_packet_alloc(p, len);
       memcpy(p->data, data, len);
-      //      bgav_hexdump(p->data, 16, 16);
+      //      gavl_hexdump(p->data, 16, 16);
       p->data_size = len;
       bgav_stream_done_packet_write(s, p);
       }
@@ -1518,7 +1518,7 @@ static int process_mp4v_es(bgav_stream_t * s,
   p = bgav_stream_get_packet_write(s);
   bgav_packet_alloc(p, len);
   memcpy(p->data, data, len);
-  //  bgav_hexdump(p->data, 16, 16);
+  //  gavl_hexdump(p->data, 16, 16);
   p->data_size = len;
   p->pts = h->timestamp;
   bgav_stream_done_packet_write(s, p);
@@ -1597,7 +1597,7 @@ static int process_h263_1998(bgav_stream_t * s,
     bgav_packet_alloc(s->packet, s->packet->data_size + len);
   
   memcpy(s->packet->data + s->packet->data_size, data, len);
-  //  bgav_hexdump(p->data, 16, 16);
+  //  gavl_hexdump(p->data, 16, 16);
   s->packet->data_size += len;
   
   if(h->marker)
@@ -1784,7 +1784,7 @@ static int extract_extradata_ogg(bgav_stream_t * s, uint8_t * data, int siz)
   
   for(i = 0; i < 3; i++)
     {
-    //    bgav_hexdump(data, 16, 16);
+    //    gavl_hexdump(data, 16, 16);
     memset(&op, 0, sizeof(op));
     if(!i)
       op.b_o_s = 1;
@@ -1822,7 +1822,7 @@ static int init_ogg(bgav_stream_t * s)
                                      config_buffer,
                                      config_len_base64);
 
-  //  bgav_hexdump(config_buffer, config_len_raw, 16);
+  //  gavl_hexdump(config_buffer, config_len_raw, 16);
   
   if(!extract_extradata_ogg(s, config_buffer, config_len_raw))
     {

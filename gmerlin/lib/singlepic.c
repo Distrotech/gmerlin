@@ -348,7 +348,7 @@ static int open_stills_input(void * priv, const char * filename)
 
   bg_set_track_name_default(&inp->track_info, filename);
 
-  inp->filename_buffer = bg_strdup(inp->filename_buffer, filename);
+  inp->filename_buffer = gavl_strrep(inp->filename_buffer, filename);
 
   if(!inp->image_reader->read_header(inp->handle->priv,
                                      inp->filename_buffer,
@@ -917,7 +917,7 @@ static void create_mask(encoder_t * e, const char * ext)
   {
   char * tmp_string;
   int filename_len;
-  e->mask = bg_strdup(e->mask, e->filename_base);
+  e->mask = gavl_strrep(e->mask, e->filename_base);
   
   tmp_string = bg_sprintf("-%%0%d"PRId64".%s", e->frame_digits, ext);
   e->mask = bg_strcat(e->mask, tmp_string);
@@ -934,7 +934,7 @@ static int open_encoder(void * data, const char * filename,
   encoder_t * e = data;
   
   e->frame_counter = e->frame_offset;
-  e->filename_base = bg_strdup(e->filename_base, filename);
+  e->filename_base = gavl_strrep(e->filename_base, filename);
   
   if(metadata)
     gavl_metadata_copy(&e->metadata, metadata);

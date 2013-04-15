@@ -251,7 +251,7 @@ char * bg_find_url_launcher()
     {
     if(bg_search_file_exec(webbrowsers[i].command, NULL))
       {
-      return bg_strdup(NULL, webbrowsers[i].template);
+      return gavl_strdup(webbrowsers[i].template);
       }
     }
   return NULL;

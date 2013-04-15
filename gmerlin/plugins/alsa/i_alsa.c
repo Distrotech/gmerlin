@@ -165,11 +165,11 @@ set_parameter_alsa(void * p, const char * name,
     }
   else if(!strcmp(name, "card"))
     {
-    priv->card = bg_strdup(priv->card, val->val_str);
+    priv->card = gavl_strrep(priv->card, val->val_str);
     }
   else if(!strcmp(name, "user_device"))
     {
-    priv->user_device = bg_strdup(priv->user_device, val->val_str);
+    priv->user_device = gavl_strrep(priv->user_device, val->val_str);
     }
   }
 

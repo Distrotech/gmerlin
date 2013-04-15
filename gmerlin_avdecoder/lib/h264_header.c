@@ -382,7 +382,7 @@ int bgav_h264_sps_parse(const bgav_options_t * opt,
   bgav_bitstream_t b;
   int dummy;
   //  fprintf(stderr, "Parsing SPS %d bytes\n", len);
-  // bgav_hexdump(buffer, len, 16);
+  // gavl_hexdump(buffer, len, 16);
 
   bgav_bitstream_init(&b, buffer, len);
 

@@ -107,7 +107,7 @@ static int parse_frame_dirac(bgav_video_parser_t * parser,
 #if 0
   fprintf(stderr, "parse_frame_dirac %lld %lld\n",
           p->position, p->data_size);
-  bgav_hexdump(start, 16, 16);
+  gavl_hexdump(start, 16, 16);
 #endif
   while(start < end)
     {

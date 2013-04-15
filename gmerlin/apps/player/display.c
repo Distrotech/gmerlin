@@ -748,7 +748,7 @@ void display_set_state(display_t * d, int state,
       d->buffer_percentage = *((float*)arg);
       break;
     case BG_PLAYER_STATE_ERROR:
-      d->error_msg = bg_strdup(d->error_msg, (char*)arg);
+      d->error_msg = gavl_strrep(d->error_msg, (char*)arg);
       break;
     default: /* BG_PLAYER_STATE_PLAYING */
       break;
@@ -846,7 +846,7 @@ void display_get_coords(display_t * d, int * x, int * y)
 
 void display_set_track_name(display_t * d, const char * name)
   {
-  d->track_name = bg_strdup(d->track_name, name);
+  d->track_name = gavl_strrep(d->track_name, name);
   d->error_active = 0;
   
   bg_gtk_scrolltext_set_text(d->scrolltext,

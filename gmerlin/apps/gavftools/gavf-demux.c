@@ -211,7 +211,7 @@ static char * get_out_name(bg_mediaconnector_stream_t * st)
     }
   if(*num_outfiles > *files_added)
     {
-    ret = bg_strdup(NULL, outfiles[*files_added]);
+    ret = gavl_strdup(outfiles[*files_added]);
     (*files_added)++;
     }
   else if(prefix)

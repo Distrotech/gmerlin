@@ -186,7 +186,7 @@ static void set_ov_parameter(void * data, const char * name,
     }
   else if(name && !strcmp(name, "window"))
     {
-    window_id = bg_strdup(window_id, val->val_str);
+    window_id = gavl_strrep(window_id, val->val_str);
     }
 #if 0
   else
@@ -201,7 +201,7 @@ static void set_i_parameter(void * data, const char * name,
                             const bg_parameter_value_t * val)
   {
   if(name && !strcmp(name, "plugin"))
-    input_plugin_name = bg_strdup(input_plugin_name,
+    input_plugin_name = gavl_strrep(input_plugin_name,
                                   val->val_str);
   }
 
@@ -347,7 +347,7 @@ static void opt_tracks(void * data, int * argc, char *** _argv, int arg)
     fprintf(stderr, "Option -tracks requires an argument\n");
     exit(-1);
     }
-  track_spec = bg_strdup(track_spec, (*_argv)[arg]);
+  track_spec = gavl_strrep(track_spec, (*_argv)[arg]);
   track_spec_ptr = track_spec;
   bg_cmdline_remove_arg(argc, _argv, arg);
   }
@@ -596,8 +596,8 @@ static int play_track(bg_player_t * player, const char * gml,
     
   if(track_info->url)
     {
-    redir_url    = bg_strdup(NULL, track_info->url);
-    redir_plugin = bg_strdup(NULL, input_handle->info->name);
+    redir_url    = gavl_strdup(track_info->url);
+    redir_plugin = gavl_strdup(input_handle->info->name);
 
     bg_log(BG_LOG_DEBUG, LOG_DOMAIN, "Got redirector %s (%d/%d)",
             redir_url, current_track+1, num_tracks);

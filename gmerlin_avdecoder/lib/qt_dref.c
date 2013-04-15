@@ -128,7 +128,7 @@ void bgav_qt_dref_dump(int indent, qt_dref_t * c)
     if(c->table[i].size > 12)
       {
       bgav_diprintf(indent+4, "data_reference:\n");
-      bgav_hexdump(c->table[i].data_reference,
+      gavl_hexdump(c->table[i].data_reference,
                    c->table[i].size-12, 16);
       }
     }

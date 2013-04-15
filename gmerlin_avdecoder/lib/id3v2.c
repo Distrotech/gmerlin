@@ -133,7 +133,7 @@ static void dump_frame(bgav_id3v2_frame_t * frame)
   if(frame->data)
     {
     bgav_dprintf( "Raw data:\n");
-    bgav_hexdump(frame->data, frame->header.size, 16);
+    gavl_hexdump(frame->data, frame->header.size, 16);
     }
   else if(frame->strings)
     {

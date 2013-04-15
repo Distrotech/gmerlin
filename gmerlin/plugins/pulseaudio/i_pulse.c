@@ -156,11 +156,11 @@ set_parameter_pulse(void * p, const char * name,
     }
   else if(!strcmp(name, "dev"))
     {
-    priv->dev = bg_strdup(priv->dev, val->val_str);
+    priv->dev = gavl_strrep(priv->dev, val->val_str);
     }
   else if(!strcmp(name, "server"))
     {
-    priv->server = bg_strdup(priv->server, val->val_str);
+    priv->server = gavl_strrep(priv->server, val->val_str);
     }
   }
 

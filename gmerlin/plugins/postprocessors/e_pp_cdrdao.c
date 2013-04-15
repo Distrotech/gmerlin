@@ -135,7 +135,7 @@ static void set_parameter_cdrdao(void * data, const char * name,
   else if(!strcmp(name, "pre_gap"))
     cdrdao->pregap = v->val_i;
   else if(!strcmp(name, "toc_file"))
-    cdrdao->toc_file = bg_strdup(cdrdao->toc_file, v->val_str);
+    cdrdao->toc_file = gavl_strrep(cdrdao->toc_file, v->val_str);
   else
     bg_cdrdao_set_parameter(cdrdao->cdr, name, v);
   }
@@ -252,7 +252,7 @@ static void add_track_cdrdao(void * data, const char * filename,
 
   gavl_metadata_copy(&cdrdao->tracks[cdrdao->num_tracks].metadata,
                    metadata);
-  cdrdao->tracks[cdrdao->num_tracks].filename = bg_strdup(NULL, filename);
+  cdrdao->tracks[cdrdao->num_tracks].filename = gavl_strdup(filename);
   cdrdao->tracks[cdrdao->num_tracks].pp_only = pp_only;
   
   if(cdrdao->pregap > 0)

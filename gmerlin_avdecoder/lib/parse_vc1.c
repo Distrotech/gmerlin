@@ -297,7 +297,7 @@ static int parse_frame_vc1(bgav_video_parser_t * parser, bgav_packet_t * p,
 #if 0
           fprintf(stderr, "Setting extradata %ld bytes\n",
                   chunk_end - sh_start);
-          bgav_hexdump(sh_start, chunk_end - sh_start + 4, 16);
+          gavl_hexdump(sh_start, chunk_end - sh_start + 4, 16);
 #endif
           }
         break;

@@ -143,7 +143,7 @@ static const bg_parameter_info_t parameters_common[] =
 #define SP_STR(s, gavl_name)                \
   if(!strcmp(ret[i].name, s))               \
     ret[i].val_default.val_str =            \
-      bg_strdup(ret[i].val_default.val_str, \
+      gavl_strrep(ret[i].val_default.val_str, \
                 gavl_metadata_get(m, gavl_name))
 
 #define SP_INT(s, gavl_name)                        \

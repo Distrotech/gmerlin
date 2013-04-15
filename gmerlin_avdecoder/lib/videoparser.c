@@ -166,7 +166,7 @@ void bgav_video_parser_add_packet(bgav_video_parser_t * parser,
 #ifdef DUMP_INPUT
   bgav_dprintf("Add packet ");
   bgav_packet_dump(p);
-  bgav_hexdump(p->data, 16, 16);
+  gavl_hexdump(p->data, 16, 16);
 #endif
   /* Update cache */
 
@@ -487,7 +487,7 @@ parse_full(void * parser1, int force, bgav_packet_t ** ret)
 #ifdef DUMP_OUTPUT
   bgav_dprintf("Get packet ");
   bgav_packet_dump(*ret);
-  bgav_hexdump((*ret)->data, 16, 16);
+  gavl_hexdump((*ret)->data, 16, 16);
   //  bgav_dprintf("recovery_point %d\n", c->recovery_point);
 #endif
  
@@ -557,7 +557,7 @@ static int parse_frame(bgav_video_parser_t * parser,
 #ifdef DUMP_INPUT
   bgav_dprintf("Parse frame input  [%p] ", p);
   bgav_packet_dump(p);
-  bgav_hexdump(p->data, 16, 16);
+  gavl_hexdump(p->data, 16, 16);
 #endif
   
   ret = parser->parse_frame(parser, p, p->pts);
@@ -565,7 +565,7 @@ static int parse_frame(bgav_video_parser_t * parser,
 #ifdef DUMP_OUTPUT
   bgav_dprintf("Parse frame output [%p] ", p);
   bgav_packet_dump(p);
-  bgav_hexdump(p->data, 16, 16);
+  gavl_hexdump(p->data, 16, 16);
 #endif
 
   if(ret)

@@ -187,7 +187,7 @@ static void ape_header_dump(ape_header_t * h)
   bgav_dprintf("  audiodatalength_high  %d\n", h->audiodatalength_high);
   bgav_dprintf("  wavtaillength         %d\n", h->wavtaillength);
   bgav_dprintf("  MD5:                  ");
-  bgav_hexdump(h->md5, 16, 16);
+  gavl_hexdump(h->md5, 16, 16);
   
   /* Header */
 

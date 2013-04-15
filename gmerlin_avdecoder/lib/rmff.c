@@ -227,7 +227,7 @@ void bgav_rmff_logical_stream_dump(bgav_rmff_logical_stream_t * l)
     bgav_dprintf( "    name:  %s\n", l->properties[i].name);
     bgav_dprintf( "    type:  %d\n", l->properties[i].type);
     bgav_dprintf( "    value, %d bytes\n", l->properties[i].value_length);
-    bgav_hexdump(l->properties[i].value_data, l->properties[i].value_length, 16);
+    gavl_hexdump(l->properties[i].value_data, l->properties[i].value_length, 16);
     }
   }
 
@@ -277,7 +277,7 @@ void bgav_rmff_mdpr_dump(bgav_rmff_mdpr_t * m)
   else
     {
     bgav_dprintf( "\n  type_specific_data:\n");
-    bgav_hexdump(m->type_specific_data, m->type_specific_len, 16);
+    gavl_hexdump(m->type_specific_data, m->type_specific_len, 16);
     }
   }
 

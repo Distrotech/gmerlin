@@ -139,7 +139,7 @@ void bgav_qt_mvhd_dump(int indent, qt_mvhd_t * c)
   bgav_diprintf(indent+2, "preferred_rate:     %f\n", c->preferred_rate);
   bgav_diprintf(indent+2, "preferred_volume:   %f\n", c->preferred_volume);
   bgav_diprintf(indent+2, "reserved:           ");
-  bgav_hexdump(c->reserved, 10, 10);
+  gavl_hexdump(c->reserved, 10, 10);
   bgav_dprintf("\n");
   bgav_diprintf(indent+2, "Matrix:\n");
 

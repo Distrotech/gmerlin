@@ -169,8 +169,8 @@ int bg_gtk_get_userpass(const char * resource,
   gtk_main();
   if(win->ok_clicked)
     {
-    *user = bg_strdup(*user, gtk_entry_get_text(GTK_ENTRY(win->user)));
-    *pass = bg_strdup(*pass, gtk_entry_get_text(GTK_ENTRY(win->pass)));
+    *user = gavl_strrep(*user, gtk_entry_get_text(GTK_ENTRY(win->user)));
+    *pass = gavl_strrep(*pass, gtk_entry_get_text(GTK_ENTRY(win->pass)));
     *save_password =
       gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(win->save_auth));
     ret = 1;

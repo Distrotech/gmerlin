@@ -134,7 +134,7 @@ bg_transcoder_pp_set_parameter(void * data, const char * name,
 
   if(!strcmp(name, "output_path"))
     {
-    w->output_directory = bg_strdup(w->output_directory, val->val_str);
+    w->output_directory = gavl_strrep(w->output_directory, val->val_str);
     }
 #if 0
   else if(!strcmp(name, "send_finished"))

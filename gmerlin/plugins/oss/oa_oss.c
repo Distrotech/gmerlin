@@ -564,7 +564,7 @@ set_parameter_oss(void * p, const char * name,
     }
   else if(!strcmp(name, "device"))
     {
-    priv->device_front = bg_strdup(priv->device_front, val->val_str);
+    priv->device_front = gavl_strrep(priv->device_front, val->val_str);
 
     pos = strchr(priv->device_front, ' '); if(pos) *pos = '\0';
 
@@ -575,7 +575,7 @@ set_parameter_oss(void * p, const char * name,
     }
   else if(!strcmp(name, "rear_device"))
     {
-    priv->device_rear = bg_strdup(priv->device_rear, val->val_str);
+    priv->device_rear = gavl_strrep(priv->device_rear, val->val_str);
     pos = strchr(priv->device_rear, ' '); if(pos) *pos = '\0';
     }
   else if(!strcmp(name, "use_center_lfe_device"))
@@ -585,7 +585,7 @@ set_parameter_oss(void * p, const char * name,
   else if(!strcmp(name, "center_lfe_device"))
     {
     priv->device_center_lfe =
-      bg_strdup(priv->device_center_lfe, val->val_str);
+      gavl_strrep(priv->device_center_lfe, val->val_str);
     pos = strchr(priv->device_center_lfe, ' '); if(pos) *pos = '\0';
     }
   }

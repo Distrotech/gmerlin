@@ -81,7 +81,7 @@ static void set_name_parameter(void * data, const char * name,
     return;
 
   if(!strcmp(name, "name"))
-    menu->preset_name = bg_strdup(menu->preset_name, val->val_str);
+    menu->preset_name = gavl_strrep(menu->preset_name, val->val_str);
   }
 
 static void do_update_menu(preset_menu_t * menu, bg_preset_t * presets, void * callback_data)
@@ -311,7 +311,7 @@ bg_gtk_preset_menu_create(const char * preset_path,
   ret->save_cb = save_cb;
   ret->cb_data = cb_data;
   
-  ret->path = bg_strdup(ret->path, preset_path);
+  ret->path = gavl_strrep(ret->path, preset_path);
   ret->presets = bg_presets_load(ret->path);
   ret->section = s;
   ret->menu = gtk_menu_new();

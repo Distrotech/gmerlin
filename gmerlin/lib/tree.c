@@ -280,13 +280,13 @@ static int get_user_pass(void * data, const char * resource,
                                com->userpass_callback_data))
       return 0;
     /* Store user and password in the common area so we can use it later on */
-    com->username = bg_strdup(com->username, *user);
-    com->password = bg_strdup(com->password, *pass);
+    com->username = gavl_strrep(com->username, *user);
+    com->password = gavl_strrep(com->password, *pass);
     }
   else
     {
-    *user = bg_strdup(*user, com->username);
-    *pass = bg_strdup(*pass, com->password);
+    *user = gavl_strrep(*user, com->username);
+    *pass = gavl_strrep(*pass, com->password);
     }
   return 1;
   }
@@ -348,7 +348,7 @@ static void add_device_plugins(bg_media_tree_t * ret,
       ret->children = append_album(ret->children, plugin_album);
       }
     
-    plugin_album->name  = bg_strdup(plugin_album->name,
+    plugin_album->name  = gavl_strrep(plugin_album->name,
                                     TRD(info->long_name, info->gettext_domain));
 
     
@@ -365,16 +365,16 @@ static void add_device_plugins(bg_media_tree_t * ret,
                             info->devices[j].device)))
           {
           device_album = bg_album_create(&ret->com, type, plugin_album);
-          device_album->device = bg_strdup(device_album->device,
+          device_album->device = gavl_strrep(device_album->device,
                                            info->devices[j].device);
           if(info->devices[j].name)
             {
-            device_album->name = bg_strdup(device_album->name,
+            device_album->name = gavl_strrep(device_album->name,
                                            info->devices[j].name);
             }
           else
             {
-            device_album->name = bg_strdup(device_album->name,
+            device_album->name = gavl_strrep(device_album->name,
                                            info->devices[j].device);
             }
           device_album->plugin_info = info;
@@ -414,10 +414,10 @@ bg_media_tree_create(const char * filename,
   ret->com.inotify_fd = inotify_init();
 #endif
   
-  ret->filename = bg_strdup(ret->filename, filename);
+  ret->filename = gavl_strrep(ret->filename, filename);
   pos1 = strrchr(ret->filename, '/');
   
-  ret->com.directory = bg_strndup(ret->com.directory, ret->filename, pos1);
+  ret->com.directory = gavl_strnrep(ret->com.directory, ret->filename, pos1);
 
   return ret;
   }
@@ -435,16 +435,16 @@ void bg_media_tree_init(bg_media_tree_t * ret)
   if(!ret->incoming)
     {
     ret->incoming = bg_album_create(&ret->com, BG_ALBUM_TYPE_INCOMING, NULL);
-    ret->incoming->name  = bg_strdup(ret->incoming->name, TR("Incoming"));
-    ret->incoming->xml_file  = bg_strdup(ret->incoming->xml_file,
+    ret->incoming->name  = gavl_strrep(ret->incoming->name, TR("Incoming"));
+    ret->incoming->xml_file  = gavl_strrep(ret->incoming->xml_file,
                                          "incoming.xml");
     ret->children = append_album(ret->children, ret->incoming);
     }
   if(!ret->com.favourites)
     {
     ret->com.favourites = bg_album_create(&ret->com, BG_ALBUM_TYPE_FAVOURITES, NULL);
-    ret->com.favourites->name  = bg_strdup(ret->com.favourites->name, TR("Favourites"));
-    ret->com.favourites->xml_file  = bg_strdup(ret->com.favourites->xml_file, "favourites.xml");
+    ret->com.favourites->name  = gavl_strrep(ret->com.favourites->name, TR("Favourites"));
+    ret->com.favourites->xml_file  = gavl_strrep(ret->com.favourites->xml_file, "favourites.xml");
     ret->children = append_album(ret->children, ret->com.favourites);
     }
   
@@ -1237,7 +1237,7 @@ bg_media_tree_get_parameter(void * priv, const char * name,
   if(!strcmp(name, "add_directory_path"))
     {
     val->val_str =
-      bg_strdup(val->val_str, tree->add_directory_path);
+      gavl_strrep(val->val_str, tree->add_directory_path);
     return 1;
     }
   return 9;
@@ -1256,15 +1256,15 @@ void bg_media_tree_set_parameter(void * priv, const char * name,
     }
   else if(!strcmp(name, "metadata_format"))
     {
-    tree->com.metadata_format = bg_strdup(tree->com.metadata_format, val->val_str);
+    tree->com.metadata_format = gavl_strrep(tree->com.metadata_format, val->val_str);
     }
   else if(!strcmp(name, "blacklist"))
     {
-    tree->com.blacklist = bg_strdup(tree->com.blacklist, val->val_str);
+    tree->com.blacklist = gavl_strrep(tree->com.blacklist, val->val_str);
     }
   else if(!strcmp(name, "blacklist_files"))
     {
-    tree->com.blacklist_files = bg_strdup(tree->com.blacklist_files, val->val_str);
+    tree->com.blacklist_files = gavl_strrep(tree->com.blacklist_files, val->val_str);
     }
   else if(!strcmp(name, "purge_directory"))
     {
@@ -1273,7 +1273,7 @@ void bg_media_tree_set_parameter(void * priv, const char * name,
   else if(!strcmp(name, "add_directory_path"))
     {
     tree->add_directory_path = 
-      bg_strdup(tree->add_directory_path, val->val_str);
+      gavl_strrep(tree->add_directory_path, val->val_str);
     }
   }
 
@@ -1424,7 +1424,7 @@ void bg_media_tree_add_directory(bg_media_tree_t * t, bg_album_t * parent,
   add_directory(t, parent, directory, recursive, subdirs_to_subalbums,
                 watch,
                 plugin, prefer_edl, 0);
-  t->add_directory_path = bg_strdup(t->add_directory_path, directory);
+  t->add_directory_path = gavl_strrep(t->add_directory_path, directory);
 
   pos = strrchr(t->add_directory_path, '/');
 
@@ -1514,8 +1514,8 @@ void bg_album_common_prepare_callbacks(bg_album_common_t * com, bg_album_entry_t
     }
   else
     {
-    com->username = bg_strdup(com->username, entry->username);
-    com->password = bg_strdup(com->password, entry->password);
+    com->username = gavl_strrep(com->username, entry->username);
+    com->password = gavl_strrep(com->password, entry->password);
     com->save_auth = !!(entry->flags & BG_ALBUM_ENTRY_SAVE_AUTH);
     }
   
@@ -1527,8 +1527,8 @@ void bg_album_common_set_auth_info(bg_album_common_t * com, bg_album_entry_t * e
   if(!com->username || !com->password)
     return;
 
-  entry->username = bg_strdup(entry->username, com->username);
-  entry->password = bg_strdup(entry->password, com->password);
+  entry->username = gavl_strrep(entry->username, com->username);
+  entry->password = gavl_strrep(entry->password, com->password);
 
   if(com->save_auth)
     entry->flags |= BG_ALBUM_ENTRY_SAVE_AUTH;

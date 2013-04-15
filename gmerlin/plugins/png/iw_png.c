@@ -70,7 +70,7 @@ static int write_header_png(void * priv, const char * filename,
   png_t * png = priv;
   
   if(png->writer.dont_force_extension)
-    real_filename = bg_strdup(NULL, filename);
+    real_filename = gavl_strdup(filename);
   else
     real_filename = bg_filename_ensure_extension(filename, "png");
   

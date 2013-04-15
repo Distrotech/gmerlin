@@ -90,7 +90,7 @@ static char * new_filename(bg_album_t * album)
   pos = strrchr(path, '/');
 
   pos++;
-  ret = bg_strdup(NULL, pos);
+  ret = gavl_strdup(pos);
   free(path);
     
   fail:
@@ -164,7 +164,7 @@ static void entry_from_track_info(bg_album_common_t * com,
 
       if((name = gavl_metadata_get(&track_info->metadata, GAVL_META_STATION)) ||
          (name = gavl_metadata_get(&track_info->metadata, GAVL_META_LABEL)))
-        entry->name = bg_strdup(entry->name, name);
+        entry->name = gavl_strrep(entry->name, name);
       /* Take filename minus extension */
       else
         {
@@ -182,7 +182,7 @@ static void entry_from_track_info(bg_album_common_t * com,
   
   if(track_info->url)
     {
-    entry->location = bg_strdup(entry->location, track_info->url);
+    entry->location = gavl_strrep(entry->location, track_info->url);
     entry->index = 0;
     entry->total_tracks = 1;
     entry->flags = BG_ALBUM_ENTRY_REDIRECTOR;
@@ -206,7 +206,7 @@ bg_album_entry_create_from_track_info(bg_track_info_t * track_info,
   {
   bg_album_entry_t * ret;
   ret = bg_album_entry_create();
-  ret->location = bg_strdup(ret->location, url);
+  ret->location = gavl_strrep(ret->location, url);
   entry_from_track_info(NULL, ret, track_info, 1);
   return ret;
   }
@@ -492,7 +492,7 @@ static char * get_playlist_location(const char * orig,
   if(prefix)
     return bg_sprintf("%s%s", prefix, orig);
   else
-    return bg_strdup(NULL, orig);
+    return gavl_strdup(orig);
   }
 
 int bg_album_entries_save_extm3u(bg_album_entry_t * e, const char * name,
@@ -612,10 +612,10 @@ static int open_device(bg_album_t * a)
 
   if(plugin->get_disc_name)
     {
-    a->disc_name = bg_strdup(a->disc_name,
+    a->disc_name = gavl_strrep(a->disc_name,
                              plugin->get_disc_name(a->handle->priv));
     if(!a->disc_name || (*a->disc_name == '\0'))
-      a->disc_name = bg_strdup(a->disc_name, TR("Unnamed disc"));
+      a->disc_name = gavl_strrep(a->disc_name, TR("Unnamed disc"));
     }
   
   if(plugin->eject_disc)
@@ -633,10 +633,10 @@ static int open_device(bg_album_t * a)
 
     new_entry->index = i;
     new_entry->total_tracks = num_tracks;
-    new_entry->name   = bg_strdup(NULL, gavl_metadata_get(&track_info->metadata, GAVL_META_LABEL));
-    new_entry->plugin = bg_strdup(NULL, a->handle->info->name);
+    new_entry->name   = gavl_strdup(gavl_metadata_get(&track_info->metadata, GAVL_META_LABEL));
+    new_entry->plugin = gavl_strdup(a->handle->info->name);
     
-    new_entry->location = bg_strdup(new_entry->location,
+    new_entry->location = gavl_strrep(new_entry->location,
                                       a->device);
     new_entry->num_audio_streams = track_info->num_audio_streams;
 
@@ -1677,7 +1677,7 @@ void bg_album_rename_track(bg_album_t * album,
       break;
     entry = entry->next;
     }
-  entry->name = bg_strdup(entry->name, name);
+  entry->name = gavl_strrep(entry->name, name);
   
   if(entry->name_w)
     {
@@ -1691,7 +1691,7 @@ void bg_album_rename_track(bg_album_t * album,
 
 void bg_album_rename(bg_album_t * a, const char * name)
   {
-  a->name = bg_strdup(a->name, name);
+  a->name = gavl_strrep(a->name, name);
 
   if(((a->type == BG_ALBUM_TYPE_REMOVABLE) ||
       (a->type == BG_ALBUM_TYPE_TUNER)) &&
@@ -2017,15 +2017,15 @@ static void add_device(bg_album_t * album,
   
   device_album = bg_album_create(album->com, type, album);
  
-  device_album->device = bg_strdup(device_album->device, device);
+  device_album->device = gavl_strrep(device_album->device, device);
   if(name)
     {
-    device_album->name = bg_strdup(device_album->name,
+    device_album->name = gavl_strrep(device_album->name,
                                    name);
     }
   else
     {
-    device_album->name = bg_strdup(device_album->name,
+    device_album->name = gavl_strrep(device_album->name,
                                    device);
     }
 
@@ -2166,11 +2166,11 @@ static bg_album_entry_t * remove_redirectors(bg_album_t * album,
         while(end_entry->next)
           {
           /* Set plugin so we don't have to set it next time */
-          end_entry->plugin = bg_strdup(end_entry->plugin, album->com->load_handle->info->name);
+          end_entry->plugin = gavl_strrep(end_entry->plugin, album->com->load_handle->info->name);
           end_entry = end_entry->next;
           }
         /* Set plugin so we don't have to set it next time */
-        end_entry->plugin = bg_strdup(end_entry->plugin, album->com->load_handle->info->name);
+        end_entry->plugin = gavl_strrep(end_entry->plugin, album->com->load_handle->info->name);
         end_entry->next = e->next;
         bg_album_entry_destroy(e);
         e = new_entry;
@@ -2297,7 +2297,7 @@ bg_album_entry_t * bg_album_load_url(bg_album_t * album,
     
     new_entry = bg_album_entry_create();
     //    new_entry->location = bg_system_to_utf8(url, strlen(url));
-    new_entry->location = bg_strdup(new_entry->location, url);
+    new_entry->location = gavl_strrep(new_entry->location, url);
     new_entry->index = i;
     new_entry->total_tracks = num_entries;
 
@@ -2310,7 +2310,7 @@ bg_album_entry_t * bg_album_load_url(bg_album_t * album,
     bg_album_common_set_auth_info(album->com, new_entry);
     bg_album_update_entry(album, new_entry, track_info, 0, 1);
 
-    new_entry->plugin = bg_strdup(new_entry->plugin, plugin_name);
+    new_entry->plugin = gavl_strrep(new_entry->plugin, plugin_name);
     
     if(ret)
       {
@@ -2676,7 +2676,7 @@ void bg_album_seek_data_set_string(bg_album_seek_data_t * d, const char * str)
   {
   if(d->str && !strcmp(d->str, str))
     return;
-  d->str = bg_strdup(d->str, str);
+  d->str = gavl_strrep(d->str, str);
   d->changed = 1;
   }
 
@@ -2905,9 +2905,9 @@ bg_album_entry_t * bg_album_entry_copy(bg_album_t * a, bg_album_entry_t * e)
   /* Also sets unique ID */
   ret = bg_album_entry_create();
 
-  ret->name = bg_strdup(ret->name, e->name);
-  ret->location = bg_strdup(ret->location, e->location);
-  ret->plugin = bg_strdup(ret->plugin, e->plugin);
+  ret->name = gavl_strrep(ret->name, e->name);
+  ret->location = gavl_strrep(ret->location, e->location);
+  ret->plugin = gavl_strrep(ret->plugin, e->plugin);
   ret->duration = e->duration;
 
   ret->num_audio_streams = e->num_audio_streams;
@@ -2924,8 +2924,8 @@ bg_album_entry_t * bg_album_entry_copy(bg_album_t * a, bg_album_entry_t * e)
                           
   /* Authentication data */
 
-  ret->username = bg_strdup(ret->username, e->username);
-  ret->password = bg_strdup(ret->password, e->password);
+  ret->username = gavl_strrep(ret->username, e->username);
+  ret->password = gavl_strrep(ret->password, e->password);
   
   ret->flags = e->flags;
   /* Clear selected bit */
@@ -2940,7 +2940,7 @@ void bg_album_set_watch_dir(bg_album_t * a,
                             const char * dir)
   {
   char * pos;
-  a->watch_dir = bg_strdup(a->watch_dir, dir);
+  a->watch_dir = gavl_strrep(a->watch_dir, dir);
   pos = a->watch_dir + strlen(a->watch_dir) - 1;
   if(*pos == '\n')
     *pos = '\0';

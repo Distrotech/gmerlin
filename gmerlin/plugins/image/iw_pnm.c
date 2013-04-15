@@ -231,7 +231,7 @@ static void set_parameter_pnm(void * p, const char * name,
       pnm->binary = 0;
     }
   else if(!strcmp(name, "comment"))
-    pnm->comment = bg_strdup(pnm->comment, val->val_str);
+    pnm->comment = gavl_strrep(pnm->comment, val->val_str);
   }
 
 const bg_image_writer_plugin_t the_plugin =

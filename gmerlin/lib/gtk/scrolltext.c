@@ -366,7 +366,7 @@ void bg_gtk_scrolltext_set_text(bg_gtk_scrolltext_t * d, const char * text,
                                 const float * foreground_color,
                                 const float * background_color)
   {
-  d->text = bg_strdup(d->text, text);
+  d->text = gavl_strrep(d->text, text);
 
   memcpy(d->foreground_color, foreground_color, 3 * sizeof(float));
   memcpy(d->background_color, background_color, 3 * sizeof(float));

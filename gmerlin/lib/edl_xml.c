@@ -89,7 +89,7 @@ static void load_segments(xmlDocPtr doc,
         if(!BG_XML_STRCMP(child_node->name, url_key))
           {
           tmp_string = (char*)xmlNodeListGetString(doc, child_node->children, 1);
-          seg->url = bg_strdup(seg->url, tmp_string);
+          seg->url = gavl_strrep(seg->url, tmp_string);
           xmlFree(tmp_string);
           }
         if(!BG_XML_STRCMP(child_node->name, stream_index_key))
@@ -250,7 +250,7 @@ gavl_edl_t * bg_edl_load(const char * filename)
     if(!BG_XML_STRCMP(node->name, url_key))
       {
       tmp_string = (char*)xmlNodeListGetString(xml_doc, node->children, 1);
-      ret->url = bg_strdup(ret->url, tmp_string);
+      ret->url = gavl_strrep(ret->url, tmp_string);
       xmlFree(tmp_string);
       }
     else if(!BG_XML_STRCMP(node->name, tracks_key))

@@ -769,7 +769,7 @@ static void set_callbacks_x11(void * data, bg_ov_callbacks_t * callbacks)
 static void set_window_x11(void * data, const char * window_id)
   {
   x11_t * priv = data;
-  priv->window_id = bg_strdup(priv->window_id, window_id);
+  priv->window_id = gavl_strrep(priv->window_id, window_id);
   }
 
 static const char * get_window_x11(void * data)

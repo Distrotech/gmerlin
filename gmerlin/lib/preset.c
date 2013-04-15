@@ -99,10 +99,10 @@ load_presets(const char * directory, bg_preset_t * ret, int private)
     if(pos)
       {
       pos++;
-      name = bg_strdup(NULL, pos);
+      name = gavl_strdup(pos);
       }
     else
-      name = bg_strdup(NULL, filename);
+      name = gavl_strdup(filename);
 
     /* Check, if a preset with that name aready exists */
     
@@ -309,7 +309,7 @@ bg_preset_t * bg_preset_add(bg_preset_t * presets,
       return presets;
       }
     p = calloc(1, sizeof(*p));
-    p->name = bg_strdup(p->name, name);
+    p->name = gavl_strrep(p->name, name);
     p->file = bg_sprintf("%s/%s", dir, name);
     p->next = presets;
     presets = p;

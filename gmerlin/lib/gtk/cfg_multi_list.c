@@ -82,8 +82,7 @@ static void translate_labels(bg_gtk_widget_t * w)
   while(w->info->multi_labels[i])
     {
     priv->multi_labels[i] =
-      bg_strdup(NULL,
-                TRD(w->info->multi_labels[i], priv->translation_domain));
+      gavl_strdup(TRD(w->info->multi_labels[i], priv->translation_domain));
     i++;
     }
   
@@ -852,7 +851,7 @@ static void button_callback(GtkWidget * wid, gpointer data)
     params[0].name               = w->info->name;
     params[0].long_name          = w->info->long_name;
     params[0].type               = BG_PARAMETER_MULTI_MENU;
-    params[0].gettext_domain     = bg_strdup(params[0].gettext_domain,
+    params[0].gettext_domain     = gavl_strrep(params[0].gettext_domain,
                                              priv->translation_domain);
     params[0].multi_names        = w->info->multi_names;
     params[0].multi_labels       = w->info->multi_labels;

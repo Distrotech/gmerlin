@@ -62,7 +62,7 @@ void bgav_qt_esds_dump(int indent, qt_esds_t * e)
   bgav_diprintf(indent+2, "avgBitrate:       %d\n", e->avgBitrate);
   bgav_diprintf(indent+2, "decoderConfigLen: %d\n", e->decoderConfigLen);
   bgav_diprintf(indent+2, "decoderConfig:\n");
-  bgav_hexdump(e->decoderConfig, e->decoderConfigLen, 16);
+  gavl_hexdump(e->decoderConfig, e->decoderConfigLen, 16);
   }
 
 static int read_mp4_descr_length(bgav_input_context_t * input)

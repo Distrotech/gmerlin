@@ -915,7 +915,7 @@ static int read_sector_dvd(bgav_input_context_t * ctx, uint8_t * data)
         bgav_log(ctx->opt, BGAV_LOG_ERROR, LOG_DOMAIN, "Reading blocks at %d failed", d->pack);
         return 0;
         }
-      //      bgav_hexdump(data, 32, 16);
+      //      gavl_hexdump(data, 32, 16);
 
       d->blocks -= l;
       

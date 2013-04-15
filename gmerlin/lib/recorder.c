@@ -320,7 +320,7 @@ void bg_recorder_record(bg_recorder_t * rec, int record)
 
 void bg_recorder_set_display_string(bg_recorder_t * rec, const char * str)
   {
-  rec->display_string = bg_strdup(rec->display_string, str);
+  rec->display_string = gavl_strrep(rec->display_string, str);
   }
 
 /* Message stuff */
@@ -545,16 +545,16 @@ bg_recorder_set_output_parameter(void * data,
   rec = data;
   
   if(!strcmp(name, "output_directory"))
-    rec->output_directory = bg_strdup(rec->output_directory, val->val_str);
+    rec->output_directory = gavl_strrep(rec->output_directory, val->val_str);
   else if(!strcmp(name, "output_filename_mask"))
     rec->output_filename_mask =
-      bg_strdup(rec->output_filename_mask, val->val_str);
+      gavl_strrep(rec->output_filename_mask, val->val_str);
   else if(!strcmp(name, "snapshot_directory"))
     rec->snapshot_directory =
-      bg_strdup(rec->snapshot_directory, val->val_str);
+      gavl_strrep(rec->snapshot_directory, val->val_str);
   else if(!strcmp(name, "snapshot_filename_mask"))
     rec->snapshot_filename_mask =
-      bg_strdup(rec->snapshot_filename_mask, val->val_str);
+      gavl_strrep(rec->snapshot_filename_mask, val->val_str);
   }
 
 static const bg_parameter_info_t common_metadata_parameters[] =
@@ -669,7 +669,7 @@ static const char * remote_command =
 #define CHECK_STRING(key, val) \
   len = strlen(key); \
   if(!strncmp(key, line, len)) \
-    val = bg_strdup(val, line + len)
+    val = gavl_strrep(val, line + len)
 
 
 static void update_metadata(bg_recorder_t * rec)
@@ -702,7 +702,7 @@ static void update_metadata(bg_recorder_t * rec)
     if(!pos)
       continue;
 
-    key = bg_strndup(NULL, line, pos);
+    key = gavl_strndup( line, pos);
     pos++;
     while(isspace(*pos))
       pos++;

@@ -84,7 +84,7 @@ struct bg_ocr_s
 static int create_output_file(void * priv, const char * name)
   {
   bg_ocr_t * ocr = priv;
-  ocr->image_file = bg_strdup(ocr->image_file, name);
+  ocr->image_file = gavl_strrep(ocr->image_file, name);
   bg_log(BG_LOG_DEBUG, LOG_DOMAIN, "Writing image file %s", name);
   return 1;
   }
@@ -184,7 +184,7 @@ int bg_ocr_set_parameter(void * data, const char * name,
     }
   else if(!strcmp(name, "tmpdir"))
     {
-    ocr->tmpdir = bg_strdup(ocr->tmpdir, val->val_str);
+    ocr->tmpdir = gavl_strrep(ocr->tmpdir, val->val_str);
     return 1;
     }
   
@@ -334,7 +334,7 @@ static int run_tesseract(bg_ocr_t * ocr, const gavl_video_format_t * format,
     return 0;
 
   
-  base = bg_strdup(NULL, tiff_file);
+  base = gavl_strdup(tiff_file);
   pos = strrchr(base, '.');
   if(!pos)
     return 0;

@@ -518,8 +518,7 @@ static void init_array(widget_array_t * ret, alsa_mixer_control_t * c,
 
         ret->popdown_strings =
           g_list_append(ret->popdown_strings,
-                        bg_strdup(NULL,
-                                  snd_ctl_elem_info_get_item_name(info)));
+                        gavl_strdup(snd_ctl_elem_info_get_item_name(info)));
         }
 #endif
       for(i = 0; i < ret->num; i++)
@@ -860,7 +859,7 @@ static void init_tone(control_widget_t * w, alsa_mixer_group_t * c)
 
   row = 0;
   
-  w->label = bg_strdup(w->label, TR("Tone"));
+  w->label = gavl_strrep(w->label, TR("Tone"));
   label = gtk_label_new(w->label);
   gtk_widget_show(label);
   gtk_table_attach(GTK_TABLE(w->w), label, 0, num_cols, row, row+1,
@@ -998,7 +997,7 @@ static void init_volume(control_widget_t * w, alsa_mixer_group_t * c)
   
   w->w = gtk_table_new(4, capture_width + playback_width, 0);
 
-  w->label = bg_strdup(w->label, c->label);
+  w->label = gavl_strrep(w->label, c->label);
   label = gtk_label_new(w->label);
   gtk_widget_show(label);
   gtk_table_attach(GTK_TABLE(w->w), label, 0,
@@ -1175,7 +1174,7 @@ static void init_integer(control_widget_t * w, alsa_mixer_group_t * c,
   w->w = gtk_table_new(2, w->priv.integer.sliders.num,
                        0);
 
-  w->label = bg_strdup(w->label, c->label);
+  w->label = gavl_strrep(w->label, c->label);
   label = gtk_label_new(w->label);
   
   gtk_widget_show(label);
@@ -1205,7 +1204,7 @@ static void init_bool(control_widget_t * w, alsa_mixer_group_t * c,
   w->w = gtk_table_new(w->priv.bool.buttons.num + 1,
                        1, 0);
 
-  w->label = bg_strdup(w->label, c->label);
+  w->label = gavl_strrep(w->label, c->label);
   label = gtk_label_new(w->label);
   gtk_widget_show(label);
   gtk_table_attach(GTK_TABLE(w->w), label, 0, 1, 0, 1,
@@ -1235,7 +1234,7 @@ static void init_enumerated(control_widget_t * w, alsa_mixer_group_t * c,
   w->w = gtk_table_new(w->priv.enumerated.combos.num + 1,
                        1, 0);
 
-  w->label = bg_strdup(w->label, c->label);
+  w->label = gavl_strrep(w->label, c->label);
   label = gtk_label_new(w->label);
   gtk_widget_show(label);
   gtk_table_attach(GTK_TABLE(w->w), label, 0, 1, 0, 1,

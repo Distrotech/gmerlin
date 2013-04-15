@@ -1515,7 +1515,7 @@ void bgav_mxf_descriptor_dump(int indent, mxf_descriptor_t * d)
   bgav_diprintf(indent+2, "Avg BPS:                %d\n", d->avg_bps);
   bgav_diprintf(indent+2, "Extradata:              %d bytes\n", d->ext_size);
   if(d->ext_size)
-    bgav_hexdump(d->ext_data, d->ext_size, 16);
+    gavl_hexdump(d->ext_data, d->ext_size, 16);
   
   bgav_diprintf(indent+2, "Subdescriptor refs:     %d\n", d->num_subdescriptor_refs);
 

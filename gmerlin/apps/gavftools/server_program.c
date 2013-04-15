@@ -251,7 +251,7 @@ program_t * program_create_from_plug(const char * name, bg_plug_t * plug,
   pthread_mutex_init(&ret->client_mutex, NULL);
   pthread_mutex_init(&ret->status_mutex, NULL);
   
-  ret->name = bg_strdup(NULL, name);
+  ret->name = gavl_strdup(name);
 
   gavl_metadata_get_int(url_vars, "buf", &buf_elements);
   

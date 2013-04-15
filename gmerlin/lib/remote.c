@@ -81,7 +81,7 @@ bg_remote_server_t * bg_remote_server_create(int listen_port,
   bg_remote_server_t * ret;
   ret = calloc(1, sizeof(*ret));
   ret->listen_port = listen_port;
-  ret->protocol_id = bg_strdup(ret->protocol_id, protocol_id);
+  ret->protocol_id = gavl_strrep(ret->protocol_id, protocol_id);
   ret->fd = -1;
   ret->msg = bg_msg_create();
   return ret;
@@ -394,7 +394,7 @@ bg_remote_client_t * bg_remote_client_create(const char * protocol_id,
   {
   bg_remote_client_t * ret;
   ret = calloc(1, sizeof(*ret));
-  ret->protocol_id = bg_strdup(ret->protocol_id, protocol_id);
+  ret->protocol_id = gavl_strrep(ret->protocol_id, protocol_id);
   ret->read_messages = read_messages;
   ret->msg = bg_msg_create();
   return ret;

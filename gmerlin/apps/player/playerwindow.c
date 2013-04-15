@@ -925,13 +925,13 @@ void player_window_skin_load(player_window_skin_t * s,
     else if(!BG_XML_STRCMP(child->name, "BACKGROUND"))
       {
       tmp_string = (char*)xmlNodeListGetString(doc, child->children, 1);
-      s->background = bg_strdup(s->background, tmp_string);
+      s->background = gavl_strrep(s->background, tmp_string);
       xmlFree(tmp_string);
       }
     else if(!BG_XML_STRCMP(child->name, "BACKGROUND_HIGHLIGHT"))
       {
       tmp_string = (char*)xmlNodeListGetString(doc, child->children, 1);
-      s->background_highlight = bg_strdup(s->background_highlight, tmp_string);
+      s->background_highlight = gavl_strrep(s->background_highlight, tmp_string);
       xmlFree(tmp_string);
       }
 

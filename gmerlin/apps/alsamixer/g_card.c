@@ -124,7 +124,7 @@ card_widget_t * card_widget_create(alsa_card_t * c, bg_cfg_section_t * section)
   ret = calloc(1, sizeof(*ret));
   ret->controls = calloc(c->num_groups, sizeof(*(ret->controls)));
   ret->hctl = c->hctl;
-  ret->label = bg_strdup(NULL, c->name);
+  ret->label = gavl_strdup(c->name);
   /* Create controls and count them */
     
   for(i = 0; i < c->num_groups; i++)

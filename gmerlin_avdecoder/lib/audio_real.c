@@ -145,7 +145,7 @@ static void dump_init_data(ra_init_t * i)
   bgav_dprintf("bits_per_frame: %d\n", i->bits_per_frame);
   bgav_dprintf("packetsize:     %d\n", i->packetsize);
   bgav_dprintf("extradata_len:  %d\n", i->extradata_len);
-  bgav_hexdump(i->extradata, i->extradata_len, 16);
+  gavl_hexdump(i->extradata, i->extradata_len, 16);
   bgav_dprintf("*** END INIT DATA **\n");
   }
 #endif
@@ -284,7 +284,7 @@ static int init_real(bgav_stream_t * s)
 
 #ifdef DUMP_EXTRADATA  
   bgav_dprintf("Extradata: %d bytes\n", s->ext_size);
-  bgav_hexdump(s->ext_data, s->ext_size, 16);
+  gavl_hexdump(s->ext_data, s->ext_size, 16);
 #endif
   
   //  dump_init_data(&init_data);

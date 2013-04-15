@@ -66,7 +66,7 @@ static int open_mpv(void * data, const char * filename,
   {
   e_mpv_t * e = data;
 
-  e->filename_base = bg_strdup(e->filename_base, filename);
+  e->filename_base = gavl_strrep(e->filename_base, filename);
   
   return 1;
   }

@@ -289,7 +289,7 @@ get_data(bgav_stream_t * s, bgav_packet_t ** ret_p)
 #ifdef DUMP_PACKET
   fprintf(stderr, "Got packet ");
   bgav_packet_dump(ret);
-  bgav_hexdump(ret->data, 16, 16);
+  gavl_hexdump(ret->data, 16, 16);
 #endif
   
   if((priv->flags & SWAP_FIELDS_IN) && (ret->field2_offset))
@@ -502,7 +502,7 @@ static gavl_source_status_t decode_picture(bgav_stream_t * s)
     bgav_dprintf("Decode: out_time: %" PRId64 " len: %d\n", s->out_time,
                  priv->pkt.size);
     if(priv->pkt.data)
-      bgav_hexdump(priv->pkt.data, 16, 16);
+      gavl_hexdump(priv->pkt.data, 16, 16);
 #endif
     
     //    dump_frame(frame_buffer, frame_buffer_len);
@@ -551,7 +551,7 @@ static gavl_source_status_t decode_picture(bgav_stream_t * s)
       bgav_dprintf("Decode (f2): out_time: %" PRId64 " len: %d\n", s->out_time,
                    priv->pkt.size);
       if(priv->pkt.data)
-        bgav_hexdump(priv->pkt.data, 16, 16);
+        gavl_hexdump(priv->pkt.data, 16, 16);
 #endif
 
       bytes_used = avcodec_decode_video2(priv->ctx,
@@ -904,7 +904,7 @@ static int init_ffmpeg(bgav_stream_t * s)
 #ifdef DUMP_EXTRADATA
     bgav_dprintf("video_ffmpeg: Adding extradata %d bytes\n",
                  priv->ctx->extradata_size);
-    bgav_hexdump(priv->ctx->extradata, priv->ctx->extradata_size, 16);
+    gavl_hexdump(priv->ctx->extradata, priv->ctx->extradata_size, 16);
 #endif
     }
   
@@ -925,7 +925,7 @@ static int init_ffmpeg(bgav_stream_t * s)
   /* Threads */
   priv->ctx->thread_count = s->opt->threads;
   
-  //  bgav_hexdump(s->ext_data, s->ext_size, 16);
+  //  gavl_hexdump(s->ext_data, s->ext_size, 16);
   
   priv->frame = avcodec_alloc_frame();
   priv->gavl_frame = gavl_video_frame_create(NULL);

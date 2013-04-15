@@ -70,7 +70,7 @@ bg_cfg_section_t * bg_cfg_registry_find_section(bg_cfg_registry_t * r,
     if(path[i] == ':')
       depth++;
     }
-  tmp_path = bg_strdup(NULL, path);
+  tmp_path = gavl_strdup(path);
   
   tmp_sections = malloc(depth * sizeof(char*));
 

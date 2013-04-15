@@ -183,7 +183,7 @@ get_data(bgav_stream_t * s, SchroBuffer ** ret_p)
 
   //  fprintf(stderr, "Got packet\n");
   //  bgav_packet_dump(priv->p);
-  //  bgav_hexdump(priv->p->data, 16, 16);
+  //  gavl_hexdump(priv->p->data, 16, 16);
   size = next_startcode(priv->buffer_ptr, priv->buffer_size);
   
   if(SCHRO_PARSE_CODE_IS_PICTURE(priv->buffer_ptr[4]))

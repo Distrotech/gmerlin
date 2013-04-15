@@ -377,8 +377,8 @@ void bg_alsa_create_card_parameters(bg_parameter_info_t * ret,
 
   stream = record ? SND_PCM_STREAM_CAPTURE : SND_PCM_STREAM_PLAYBACK;
   
-  ret->name      = bg_strdup(NULL, "card");
-  ret->long_name = bg_strdup(NULL, TRS("Card"));
+  ret->name      = gavl_strdup("card");
+  ret->long_name = gavl_strdup(TRS("Card"));
   ret->type = BG_PARAMETER_STRINGLIST;
 
   snd_ctl_card_info_malloc(&info);
@@ -391,9 +391,9 @@ void bg_alsa_create_card_parameters(bg_parameter_info_t * ret,
     }
   
   /* Default is always supported */
-  ret->val_default.val_str = bg_strdup(NULL, "default");
-  append_card(ret, bg_strdup(NULL, "default"),
-              bg_strdup(NULL, TRS("Default")));
+  ret->val_default.val_str = gavl_strdup("default");
+  append_card(ret, gavl_strdup("default"),
+              gavl_strdup(TRS("Default")));
   
   while (card >= 0)
     {
@@ -444,7 +444,7 @@ void bg_alsa_create_card_parameters(bg_parameter_info_t * ret,
         continue;
         }
       name = bg_sprintf("hw:%d,%d", card, dev);
-      label = bg_strdup(NULL, snd_pcm_info_get_name(pcminfo));
+      label = gavl_strdup(snd_pcm_info_get_name(pcminfo));
       append_card(ret, name, label);
       snd_pcm_info_free(pcminfo);
       }

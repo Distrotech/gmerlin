@@ -247,11 +247,11 @@ set_transcoder_window_parameter(void * data, const char * name,
 
   if(!strcmp(name, "task_path"))
     {
-    win->task_path = bg_strdup(win->task_path, val->val_str);
+    win->task_path = gavl_strrep(win->task_path, val->val_str);
     }
   else if(!strcmp(name, "profile_path"))
     {
-    win->profile_path = bg_strdup(win->profile_path, val->val_str);
+    win->profile_path = gavl_strrep(win->profile_path, val->val_str);
     }
   else if(!strcmp(name, "display_foreground"))
     {
@@ -290,12 +290,12 @@ get_transcoder_window_parameter(void * data, const char * name,
 
   if(!strcmp(name, "task_path"))
     {
-    val->val_str = bg_strdup(val->val_str, win->task_path);
+    val->val_str = gavl_strrep(val->val_str, win->task_path);
     return 1;
     }
   else if(!strcmp(name, "profile_path"))
     {
-    val->val_str = bg_strdup(val->val_str, win->profile_path);
+    val->val_str = gavl_strrep(val->val_str, win->profile_path);
     return 1;
     }
   else if(!strcmp(name, "show_logwindow"))
@@ -518,8 +518,7 @@ static void filesel_button_callback(GtkWidget * w, gpointer * data)
 
   if(w == filesel->ok_button)
     {
-    win->filesel_file = bg_strdup(NULL,
-                                   gtk_file_selection_get_filename(filesel));
+    win->filesel_file = gavl_strdup(gtk_file_selection_get_filename(filesel));
     gtk_widget_hide(win->filesel);
 
     end_pos = strrchr(win->filesel_file, '/');

@@ -749,7 +749,7 @@ static void add_file_callback(char ** files, const char * plugin,
 
   /* Remember open path */
   if(l->filesel)
-    l->open_path = bg_strdup(l->open_path,
+    l->open_path = gavl_strrep(l->open_path,
                              bg_gtk_filesel_get_directory(l->filesel));
   }
 
@@ -887,7 +887,7 @@ static void mass_tag(track_list_t * l)
                                  &val);
     bg_parameter_value_free(&val, params[i].type);
 
-    params[i].help_string = bg_strdup(params[i].help_string,
+    params[i].help_string = gavl_strrep(params[i].help_string,
                                       TRS("Use \"-\" to clear this field for all tracks. Empty string means to leave it unchanged for all tracks"));
     
     i++;
@@ -977,7 +977,7 @@ static void set_auto_rename_parameter(void * data, const char * name,
   if(!name)
     return;
   if(!strcmp(name, "rename_mask"))
-    d->rename_mask = bg_strdup(d->rename_mask,
+    d->rename_mask = gavl_strrep(d->rename_mask,
                                val->val_str);
   }
 
@@ -993,7 +993,7 @@ static void auto_rename(track_list_t * l)
     bg_parameter_info_copy_array(auto_rename_parameters);
 
   auto_rename_params[0].val_default.val_str =
-    bg_strdup(NULL, l->rename_mask);
+    gavl_strdup(l->rename_mask);
 
   memset(&d, 0, sizeof(d));
   
@@ -1031,7 +1031,7 @@ static void auto_rename(track_list_t * l)
       t = t->next;
       }
     /* Save for later use */
-    l->rename_mask = bg_strdup(l->rename_mask, d.rename_mask);
+    l->rename_mask = gavl_strrep(l->rename_mask, d.rename_mask);
     free(d.rename_mask);
     track_list_update(l);
     }
@@ -1919,9 +1919,9 @@ track_list_set_parameter(void * data, const char * name,
   t = (track_list_t *)data;
   
   if(!strcmp(name, "open_path"))
-    t->open_path = bg_strdup(t->open_path, val->val_str);
+    t->open_path = gavl_strrep(t->open_path, val->val_str);
   if(!strcmp(name, "rename_mask"))
-    t->rename_mask = bg_strdup(t->rename_mask, val->val_str);
+    t->rename_mask = gavl_strrep(t->rename_mask, val->val_str);
   }
 
 int track_list_get_parameter(void * data, const char * name, bg_parameter_value_t * val)
@@ -1934,12 +1934,12 @@ int track_list_get_parameter(void * data, const char * name, bg_parameter_value_
   
   if(!strcmp(name, "open_path"))
     {
-    val->val_str = bg_strdup(val->val_str, t->open_path);
+    val->val_str = gavl_strrep(val->val_str, t->open_path);
     return 1;
     }
   else if(!strcmp(name, "rename_mask"))
     {
-    val->val_str = bg_strdup(val->val_str, t->rename_mask);
+    val->val_str = gavl_strrep(val->val_str, t->rename_mask);
     return 1;
     }
   return 0;

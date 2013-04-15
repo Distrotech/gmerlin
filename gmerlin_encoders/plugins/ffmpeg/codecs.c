@@ -789,17 +789,17 @@ static void create_codec_parameter(bg_parameter_info_t * parameter_info,
   for(i = 0; i < num_infos; i++)
     {
     parameter_info[0].multi_names_nc[i]  =
-      bg_strdup(parameter_info[0].multi_names_nc[i], infos[i]->name);
+      gavl_strrep(parameter_info[0].multi_names_nc[i], infos[i]->name);
 
     parameter_info[0].multi_labels_nc[i] =
-      bg_strdup(parameter_info[0].multi_labels_nc[i], infos[i]->long_name);
+      gavl_strrep(parameter_info[0].multi_labels_nc[i], infos[i]->long_name);
 
     if(infos[i]->parameters)
       parameter_info[0].multi_parameters_nc[i] =
         bg_parameter_info_copy_array(infos[i]->parameters);
     }
   parameter_info[0].val_default.val_str =
-    bg_strdup(parameter_info[0].val_default.val_str, infos[0]->name);
+    gavl_strrep(parameter_info[0].val_default.val_str, infos[0]->name);
   bg_parameter_info_set_const_ptrs(&parameter_info[0]);
   }
 

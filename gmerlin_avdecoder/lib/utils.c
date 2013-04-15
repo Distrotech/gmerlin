@@ -75,32 +75,6 @@ int bgav_check_fourcc(uint32_t fourcc, const uint32_t * fourccs)
   return 0;
   }
 
-
-void bgav_hexdump(const uint8_t * data, int len, int linebreak)
-  {
-  int i;
-  int bytes_written = 0;
-  int imax;
-  
-  while(bytes_written < len)
-    {
-    imax = (bytes_written + linebreak > len) ? len - bytes_written : linebreak;
-    for(i = 0; i < imax; i++)
-      bgav_dprintf( "%02x ", data[bytes_written + i]);
-    for(i = imax; i < linebreak; i++)
-      bgav_dprintf( "   ");
-    for(i = 0; i < imax; i++)
-      {
-      if((data[bytes_written + i] < 0x7f) && (data[bytes_written + i] >= 32))
-        bgav_dprintf( "%c", data[bytes_written + i]);
-      else
-        bgav_dprintf( ".");
-      }
-    bytes_written += imax;
-    bgav_dprintf( "\n");
-    }
-  }
-
 char * bgav_sprintf(const char * format,...)
   {
   va_list argp; /* arg ptr */

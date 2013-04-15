@@ -205,7 +205,7 @@ bg_parameter_info_t * bg_xml_2_parameters(xmlDocPtr xml_doc,
       free(tmp_string);
 
       tmp_string = BG_XML_GET_PROP(cur, name_key);
-      ret[index].name = bg_strdup(ret[index].name, tmp_string);
+      ret[index].name = gavl_strrep(ret[index].name, tmp_string);
       free(tmp_string);
       
       child = cur->children;
@@ -221,7 +221,7 @@ bg_parameter_info_t * bg_xml_2_parameters(xmlDocPtr xml_doc,
         if(!BG_XML_STRCMP(child->name, long_name_key))
           {
           tmp_string = (char*)xmlNodeListGetString(xml_doc, child->children, 1);
-          ret[index].long_name = bg_strdup(ret[index].long_name, tmp_string);
+          ret[index].long_name = gavl_strrep(ret[index].long_name, tmp_string);
           free(tmp_string);
           }
         else if(!BG_XML_STRCMP(child->name, flags_key))
@@ -233,31 +233,31 @@ bg_parameter_info_t * bg_xml_2_parameters(xmlDocPtr xml_doc,
         else if(!BG_XML_STRCMP(child->name, opt_key))
           {
           tmp_string = (char*)xmlNodeListGetString(xml_doc, child->children, 1);
-          ret[index].opt = bg_strdup(ret[index].opt, tmp_string);
+          ret[index].opt = gavl_strrep(ret[index].opt, tmp_string);
           free(tmp_string);
           }
         else if(!BG_XML_STRCMP(child->name, help_string_key))
           {
           tmp_string = (char*)xmlNodeListGetString(xml_doc, child->children, 1);
-          ret[index].help_string = bg_strdup(ret[index].help_string, tmp_string);
+          ret[index].help_string = gavl_strrep(ret[index].help_string, tmp_string);
           free(tmp_string);
           }
         else if(!BG_XML_STRCMP(child->name, gettext_domain_key))
           {
           tmp_string = (char*)xmlNodeListGetString(xml_doc, child->children, 1);
-          ret[index].gettext_domain = bg_strdup(ret[index].gettext_domain, tmp_string);
+          ret[index].gettext_domain = gavl_strrep(ret[index].gettext_domain, tmp_string);
           free(tmp_string);
           }
         else if(!BG_XML_STRCMP(child->name, gettext_directory_key))
           {
           tmp_string = (char*)xmlNodeListGetString(xml_doc, child->children, 1);
-          ret[index].gettext_directory = bg_strdup(ret[index].gettext_directory, tmp_string);
+          ret[index].gettext_directory = gavl_strrep(ret[index].gettext_directory, tmp_string);
           free(tmp_string);
           }
         else if(!BG_XML_STRCMP(child->name, preset_path_key))
           {
           tmp_string = (char*)xmlNodeListGetString(xml_doc, child->children, 1);
-          ret[index].preset_path = bg_strdup(ret[index].preset_path, tmp_string);
+          ret[index].preset_path = gavl_strrep(ret[index].preset_path, tmp_string);
           free(tmp_string);
           }
         else if(!BG_XML_STRCMP(child->name, multi_names_key))
@@ -282,7 +282,7 @@ bg_parameter_info_t * bg_xml_2_parameters(xmlDocPtr xml_doc,
               {
               tmp_string = (char*)xmlNodeListGetString(xml_doc, grandchild->children, 1);
               ret[index].multi_names_nc[multi_index] =
-                bg_strdup(ret[index].multi_names_nc[multi_index], tmp_string);
+                gavl_strrep(ret[index].multi_names_nc[multi_index], tmp_string);
               free(tmp_string);
               multi_index++;
               }
@@ -311,7 +311,7 @@ bg_parameter_info_t * bg_xml_2_parameters(xmlDocPtr xml_doc,
               {
               tmp_string = (char*)xmlNodeListGetString(xml_doc, grandchild->children, 1);
               ret[index].multi_descriptions_nc[multi_index] =
-                bg_strdup(ret[index].multi_descriptions_nc[multi_index], tmp_string);
+                gavl_strrep(ret[index].multi_descriptions_nc[multi_index], tmp_string);
               free(tmp_string);
               multi_index++;
               }
@@ -341,7 +341,7 @@ bg_parameter_info_t * bg_xml_2_parameters(xmlDocPtr xml_doc,
               {
               tmp_string = (char*)xmlNodeListGetString(xml_doc, grandchild->children, 1);
               ret[index].multi_labels_nc[multi_index] =
-                bg_strdup(ret[index].multi_labels_nc[multi_index], tmp_string);
+                gavl_strrep(ret[index].multi_labels_nc[multi_index], tmp_string);
               free(tmp_string);
               multi_index++;
               }
@@ -403,7 +403,7 @@ bg_parameter_info_t * bg_xml_2_parameters(xmlDocPtr xml_doc,
             case BG_PARAMETER_MULTI_MENU:
             case BG_PARAMETER_MULTI_LIST:
             case BG_PARAMETER_MULTI_CHAIN:
-              ret[index].val_default.val_str = bg_strdup(ret[index].val_default.val_str,
+              ret[index].val_default.val_str = gavl_strrep(ret[index].val_default.val_str,
                                                          tmp_string);
               break;
             case BG_PARAMETER_COLOR_RGB:
