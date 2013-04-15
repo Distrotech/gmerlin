@@ -233,18 +233,18 @@ int bg_nmj_song_get_info(sqlite3 * db,
   song->title = bg_nmj_escape_string(gavl_metadata_get(&ti->metadata, GAVL_META_TITLE));
   song->search_title = bg_nmj_make_search_string(song->title);
   
-  song->path = bg_strdup(song->path, file->path);
+  song->path = gavl_strrep(song->path, file->path);
   song->scan_dirs_id = dir->id;
   song->runtime = bg_sprintf("%d", (int)(bg_track_info_get_duration(ti) / GAVL_TIME_SCALE));
 
-  song->format  = bg_strdup(song->format,
+  song->format  = gavl_strrep(song->format,
                             gavl_metadata_get(&ti->metadata, GAVL_META_FORMAT));
   song->size    = file->size;
   
   if(gavl_metadata_get_int(&ti->audio_streams[0].m, GAVL_META_BITRATE, &tag_i))
     song->bit_rate = bg_sprintf("%d", (int)(tag_i / 1000));
   else
-    song->bit_rate = bg_strdup(song->bit_rate, "VBR");
+    song->bit_rate = gavl_strrep(song->bit_rate, "VBR");
 
   if(gavl_metadata_get_int(&ti->metadata, GAVL_META_TRACKNUMBER, &tag_i))
     song->track_position = tag_i;
@@ -253,7 +253,7 @@ int bg_nmj_song_get_info(sqlite3 * db,
   if(year)
     song->release_date = bg_sprintf("%d-01-01", year);
   else
-    song->release_date = bg_strdup(NULL, "9999-01-01");
+    song->release_date = gavl_strdup("9999-01-01");
   song->create_time = malloc(BG_NMJ_TIME_STRING_LEN);
   bg_nmj_time_to_string(file->time, song->create_time);
 
@@ -411,7 +411,7 @@ char * bg_nmj_song_get_cover(bg_nmj_song_t * song)
   {
   char * pos;
   char * ret;
-  char * directory = bg_strdup(NULL, song->path);
+  char * directory = gavl_strdup(song->path);
   pos = strrchr(directory, '/');
   if(!pos)
     {

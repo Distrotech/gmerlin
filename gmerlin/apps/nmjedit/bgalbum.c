@@ -78,9 +78,9 @@ int bg_nmj_add_album(sqlite3 * db, const char * album)
   /* Get the playlist name */
   pos = strrchr(album, '/');
   if(!pos)
-    name = bg_strdup(NULL, album);
+    name = gavl_strdup(album);
   else
-    name = bg_strdup(NULL, pos+1);
+    name = gavl_strdup(pos+1);
   
   pos = strrchr(name, '.');
   if(pos)

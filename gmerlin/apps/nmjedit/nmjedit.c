@@ -285,7 +285,7 @@ char * bg_nmj_make_search_string(const char * str)
       }
     i++;
     }
-  return bg_strdup(NULL, pos);
+  return gavl_strdup(pos);
   }
 
 
@@ -561,7 +561,7 @@ int bg_nmj_add_directory(bg_plugin_registry_t * plugin_reg,
   /* Check if the directory already exists */
   bg_nmj_dir_t dir;
   bg_nmj_dir_init(&dir);
-  dir.directory = bg_strdup(NULL, directory);
+  dir.directory = gavl_strdup(directory);
 
   if(bg_nmj_dir_query(db, &dir))
     {
@@ -591,7 +591,7 @@ int bg_nmj_remove_directory(sqlite3 * db, const char * directory)
   
   bg_nmj_dir_init(&dir);
   memset(&tab, 0, sizeof(tab));
-  dir.directory = bg_strdup(NULL, directory);
+  dir.directory = gavl_strdup(directory);
 
   if(!bg_nmj_dir_query(db, &dir))
     {

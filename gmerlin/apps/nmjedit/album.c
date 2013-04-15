@@ -119,10 +119,10 @@ int bg_nmj_album_add(bg_plugin_registry_t * plugin_reg,
     char * artist;
     is_new = 1;
     a->id = bg_nmj_get_next_id(db, "SONG_ALBUMS");
-    a->title = bg_strdup(a->title, song->album);
+    a->title = gavl_strrep(a->title, song->album);
     a->search_title = bg_nmj_make_search_string(a->title);
     a->total_item = bg_sprintf("%d", 1);
-    a->release_date = bg_strdup(a->release_date, song->release_date);
+    a->release_date = gavl_strrep(a->release_date, song->release_date);
     a->update_state = bg_sprintf("%d", 3);
     a->genre_id = song->genre_id;
     a->artist_id = song->albumartist_id;
@@ -216,7 +216,7 @@ int bg_nmj_album_add(bg_plugin_registry_t * plugin_reg,
     if(strcmp(a->release_date, "9999-01-01") &&
        strcmp(a->release_date, song->release_date))
       {
-      a->release_date = bg_strdup(a->release_date, "9999-01-01");
+      a->release_date = gavl_strrep(a->release_date, "9999-01-01");
 
       sql = sqlite3_mprintf("UPDATE SONG_ALBUMS SET RELEASE_DATE = %Q WHERE ID = %"PRId64";",
                             a->release_date, a->id);

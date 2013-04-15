@@ -41,7 +41,7 @@
 
 #define SET_QUERY_STRING(col, val)   \
   if(!strcasecmp(azColName[i], col)) \
-    ret->val = bg_strdup(ret->val, argv[i]);
+    ret->val = gavl_strrep(ret->val, argv[i]);
 
 #define SET_QUERY_INT(col, val)      \
   if(!strcasecmp(azColName[i], col) && argv[i]) \

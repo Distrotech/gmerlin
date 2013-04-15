@@ -56,7 +56,7 @@ static void opt_add(void * data, int * argc, char *** _argv, int arg)
     }
   
   add_dirs = realloc(add_dirs, (num_add_dirs+1)*sizeof(*add_dirs));
-  add_dirs[num_add_dirs] = bg_strdup(NULL, (*_argv)[arg]);
+  add_dirs[num_add_dirs] = gavl_strdup((*_argv)[arg]);
   num_add_dirs++;
   bg_cmdline_remove_arg(argc, _argv, arg);
   }
@@ -70,7 +70,7 @@ static void opt_add_album(void * data, int * argc, char *** _argv, int arg)
     }
   
   add_albums = realloc(add_albums, (num_add_albums+1)*sizeof(*add_albums));
-  add_albums[num_add_albums] = bg_strdup(NULL, (*_argv)[arg]);
+  add_albums[num_add_albums] = gavl_strdup((*_argv)[arg]);
   num_add_albums++;
   bg_cmdline_remove_arg(argc, _argv, arg);
   }
@@ -85,7 +85,7 @@ static void opt_del(void * data, int * argc, char *** _argv, int arg)
     }
   
   del_dirs = realloc(del_dirs, (num_del_dirs+1)*sizeof(*del_dirs));
-  del_dirs[num_del_dirs] = bg_strdup(NULL, (*_argv)[arg]);
+  del_dirs[num_del_dirs] = gavl_strdup((*_argv)[arg]);
   num_del_dirs++;
   bg_cmdline_remove_arg(argc, _argv, arg);
   }
