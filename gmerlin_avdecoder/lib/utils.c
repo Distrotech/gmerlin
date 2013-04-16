@@ -117,8 +117,7 @@ void bgav_diprintf(int indent, const char * format, ...)
   va_end(argp);
   }
 
-
-
+#if 0
 char * bgav_strndup(const char * start, const char * end)
   {
   char * ret;
@@ -138,6 +137,7 @@ char * bgav_strdup(const char * str)
   {
   return (bgav_strndup(str, NULL));
   }
+#endif
 
 char * bgav_strncat(char * old, const char * start, const char * end)
   {
@@ -218,7 +218,7 @@ int bgav_url_split(const char * url,
   /* Protocol */
     
   if(protocol)
-    *protocol = bgav_strndup(pos1, pos2);
+    *protocol = gavl_strndup(pos1, pos2);
 
   pos2 += 3;
   pos1 = pos2;
@@ -234,10 +234,10 @@ int bgav_url_split(const char * url,
      (at_pos < slash_pos))
     {
     if(user)
-      *user = bgav_strndup(pos1, colon_pos);
+      *user = gavl_strndup(pos1, colon_pos);
     pos1 = colon_pos + 1;
     if(password)
-      *password = bgav_strndup(pos1, at_pos);
+      *password = gavl_strndup(pos1, at_pos);
     pos1 = at_pos + 1;
     pos2 = pos1;
     }
@@ -248,7 +248,7 @@ int bgav_url_split(const char * url,
     pos2++;
 
   if(hostname)
-    *hostname = bgav_strndup(pos1, pos2);
+    *hostname = gavl_strndup(pos1, pos2);
 
   switch(*pos2)
     {
@@ -276,7 +276,7 @@ int bgav_url_split(const char * url,
     pos1 = pos2;
     pos2 = pos1 + strlen(pos1);
     if(pos1 != pos2)
-      *path = bgav_strndup(pos1, pos2);
+      *path = gavl_strndup(pos1, pos2);
     else
       *path = NULL;
     }
@@ -417,7 +417,7 @@ char ** bgav_stringbreak(const char * str, char sep)
   ret = calloc(num+1, sizeof(char*));
 
   index = 1;
-  ret[0] = bgav_strdup(str);
+  ret[0] = gavl_strdup(str);
   
   for(i = 0; i < len; i++)
     {

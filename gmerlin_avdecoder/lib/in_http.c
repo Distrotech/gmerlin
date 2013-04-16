@@ -138,9 +138,9 @@ static int open_http(bgav_input_context_t * ctx, const char * url, char ** r)
   
   var = bgav_http_header_get_var(header, "Content-Type");
   if(var)
-    ctx->mimetype = bgav_strdup(var);
+    ctx->mimetype = gavl_strdup(var);
   else if(bgav_http_header_get_var(header, "icy-notice1"))
-    ctx->mimetype = bgav_strdup("audio/mpeg");
+    ctx->mimetype = gavl_strdup("audio/mpeg");
   
   var = bgav_http_header_get_var(header, "icy-metaint");
   if(var)
@@ -174,7 +174,7 @@ static int open_http(bgav_input_context_t * ctx, const char * url, char ** r)
   else
     ctx->do_buffer = 1;
 
-  ctx->url = bgav_strdup(url);
+  ctx->url = gavl_strdup(url);
   return 1;
   }
 

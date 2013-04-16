@@ -134,7 +134,7 @@ static int open_p2xml(bgav_demuxer_context_t * ctx, bgav_yml_node_t * yml)
   if(!ctx->input || !ctx->input->filename)
     goto fail;
 
-  directory_parent = bgav_strdup(ctx->input->filename);
+  directory_parent = gavl_strdup(ctx->input->filename);
   
   yml = bgav_yml_find_by_name(yml, "P2Main");
   

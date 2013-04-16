@@ -114,7 +114,7 @@ static int user_pass_func(void * data, const char * resource, char ** user, char
     *pos = '\0';
   if(buf[0] == '\0')
     return 0;
-  *user = bgav_strndup(buf, NULL);
+  *user = gavl_strndup(buf, NULL);
     
   fprintf(stderr, "Password: ");
   echo_off();
@@ -127,7 +127,7 @@ static int user_pass_func(void * data, const char * resource, char ** user, char
     *pos = '\0';
   if(buf[0] == '\0')
     return 0;
-  *pass = bgav_strndup(buf, NULL);
+  *pass = gavl_strndup(buf, NULL);
   return 1;
   }
 #endif

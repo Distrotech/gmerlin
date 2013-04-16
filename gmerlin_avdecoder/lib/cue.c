@@ -79,7 +79,7 @@ get_cue_file(bgav_input_context_t * audio_file)
   if(strcmp(audio_file->input->name, "file"))
     return NULL;
   
-  tmp_string = bgav_strdup(audio_file->filename);
+  tmp_string = gavl_strdup(audio_file->filename);
   
   pos = strrchr(tmp_string, '.');
   if(!pos)
@@ -136,13 +136,13 @@ static char * get_string(const char * pos)
     pos++;
     end = strrchr(pos, '"');
     if(end - pos > 1)
-      return bgav_strndup(pos, end);
+      return gavl_strndup(pos, end);
     else
       return NULL;
     }
   else
     {
-    return bgav_strdup(pos);
+    return gavl_strdup(pos);
     }
   }
 
@@ -199,7 +199,7 @@ bgav_cue_read(bgav_input_context_t * audio_file)
 
       /* Mode */
       if(pos)
-        cur->mode = bgav_strdup(pos);
+        cur->mode = gavl_strdup(pos);
       }
     /* Comment */
     else if(!strncasecmp(pos, "REM ", 4))
@@ -214,7 +214,7 @@ bgav_cue_read(bgav_input_context_t * audio_file)
                   (ret->num_comments+1) *
                   sizeof(*ret->comments));
         ret->comments[ret->num_comments] =
-          bgav_strdup(pos);
+          gavl_strdup(pos);
         ret->num_comments++;
         }
       }
@@ -408,7 +408,7 @@ void bgav_demuxer_init_cue(bgav_demuxer_context_t * ctx)
     ctx->edl =
       bgav_cue_get_edl(cue, ctx->tt->cur->audio_streams[0].duration);
     bgav_cue_destroy(cue);
-    ctx->edl->url = bgav_strdup(ctx->input->filename);
+    ctx->edl->url = gavl_strdup(ctx->input->filename);
     }
   }
 

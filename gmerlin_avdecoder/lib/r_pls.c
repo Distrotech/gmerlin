@@ -95,7 +95,7 @@ static int parse_pls(bgav_redirector_context_t * r)
       if(pos)
         {
         pos++;
-        r->urls[index-1].name = bgav_strdup(pos);
+        r->urls[index-1].name = gavl_strdup(pos);
         }
       }
     else if(!strncasecmp(buffer, "File", 4))
@@ -114,7 +114,7 @@ static int parse_pls(bgav_redirector_context_t * r)
       if(pos)
         {
         pos++;
-        r->urls[index-1].url = bgav_strdup(pos);
+        r->urls[index-1].url = gavl_strdup(pos);
         }
       }
     }

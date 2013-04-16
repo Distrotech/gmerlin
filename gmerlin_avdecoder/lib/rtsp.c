@@ -125,7 +125,7 @@ static int rtsp_send_request(bgav_rtsp_t * rtsp,
     {
     free(rtsp->url);
     rtsp->url =
-      bgav_strdup(bgav_http_header_get_var(rtsp->answers,"Location"));
+      gavl_strdup(bgav_http_header_get_var(rtsp->answers,"Location"));
     if(got_redirected)
       *got_redirected = 1;
 #if 1
@@ -155,7 +155,7 @@ static int rtsp_send_request(bgav_rtsp_t * rtsp,
     }
   var = bgav_http_header_get_var(rtsp->answers, "Session");
   if(var && !(rtsp->session)) 
-    rtsp->session = bgav_strdup(var);
+    rtsp->session = gavl_strdup(var);
   return 1;
   
   fail:
@@ -307,7 +307,7 @@ int bgav_rtsp_open(bgav_rtsp_t * rtsp, const char * url,
                    int * got_redirected)
   {
   if(url)
-    rtsp->url = bgav_strdup(url);
+    rtsp->url = gavl_strdup(url);
   return do_connect(rtsp, got_redirected, 1);
   }
 

@@ -92,7 +92,7 @@ static gavl_edl_segment_t * copy_segments(const gavl_edl_segment_t * src, int le
   for(i = 0; i < len; i++)
     {
     /* Copy pointers */
-    ret[i].url = bgav_strdup(src[i].url);
+    ret[i].url = gavl_strdup(src[i].url);
     }
   return ret;
   }
@@ -127,7 +127,7 @@ static gavl_edl_track_t * copy_tracks(const gavl_edl_track_t * src, int len)
   for(i = 0; i < len; i++)
     {
     if(src[i].name)
-      ret[i].name = bgav_strdup(src[i].name);
+      ret[i].name = gavl_strdup(src[i].name);
     /* Copy pointers */
     if(src[i].metadata)
       {

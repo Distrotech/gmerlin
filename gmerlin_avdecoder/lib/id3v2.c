@@ -310,7 +310,7 @@ static char ** read_string_list(const bgav_options_t * opt,
                                    NULL);
       }
     else
-      ret[i] = bgav_strndup(pos, end_pos);
+      ret[i] = gavl_strndup(pos, end_pos);
     pos = end_pos;
     pos += bytes_per_char;
     }
@@ -667,7 +667,7 @@ static char * get_comment(const bgav_options_t * opt,
                               (char*)pos, frame->header.size - (int)(pos - frame->data),
                               NULL);
   else
-    ret = bgav_strdup((char*)pos);
+    ret = gavl_strdup((char*)pos);
 
   if(cnv)
     bgav_charset_converter_destroy(cnv);

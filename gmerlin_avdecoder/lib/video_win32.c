@@ -411,7 +411,7 @@ static int init_std(bgav_win32_thread_t * thread)
     }
   priv->frame = gavl_video_frame_create(&s->data.video.format);
 
-  s->description = bgav_strdup(info->format_name);
+  s->description = gavl_strdup(info->format_name);
 
 
   if(gavl_pixelformat_is_rgb(s->data.video.format.pixelformat))
@@ -543,7 +543,7 @@ static int init_ds(bgav_win32_thread_t*t)
     }
   DS_VideoDecoder_StartInternal(priv->ds_dec);
   priv->frame = gavl_video_frame_create(&s->data.video.format);
-  s->description = bgav_strdup(info->format_name);
+  s->description = gavl_strdup(info->format_name);
 
   return 1;
   }
@@ -644,7 +644,7 @@ static int init_dmo(bgav_win32_thread_t*t)
     }
   DMO_VideoDecoder_StartInternal(priv->dmo_dec);
   priv->frame = gavl_video_frame_create(&s->data.video.format);
-  s->description = bgav_strdup(info->format_name);
+  s->description = gavl_strdup(info->format_name);
   return 1;
   }
 

@@ -64,14 +64,14 @@ static int parse_rtsptext(bgav_redirector_context_t * r)
   if(*pos != '\0')
     {
     add_url(r);
-    r->urls[r->num_urls-1].url = bgav_strdup(pos);
+    r->urls[r->num_urls-1].url = gavl_strdup(pos);
     }
   else
     {
     if(!bgav_input_read_line(r->input, &buffer, &buffer_alloc, 0, NULL))
       return 0;
     add_url(r);
-    r->urls[r->num_urls-1].url = bgav_strdup(buffer);
+    r->urls[r->num_urls-1].url = gavl_strdup(buffer);
     
     }
   

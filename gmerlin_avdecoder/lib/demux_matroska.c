@@ -582,7 +582,7 @@ static gavl_chapter_list_t * create_chapter_list(bgav_mkv_chapters_t * chap)
     /* Take first language */
     if(chap->editions[0].atoms[i].num_displays)
       ret->chapters[i].name =
-        bgav_strdup(chap->editions[0].atoms[i].displays[0].ChapString);
+        gavl_strdup(chap->editions[0].atoms[i].displays[0].ChapString);
     }
   
   return ret;

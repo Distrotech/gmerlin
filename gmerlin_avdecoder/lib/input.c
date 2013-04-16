@@ -748,7 +748,7 @@ static int input_open(bgav_input_context_t * ctx,
   char * protocol = NULL;
   char * tmp_url;
   
-  tmp_url = bgav_strdup(url);
+  tmp_url = gavl_strdup(url);
   
   if(bgav_url_split(tmp_url,
                     &protocol,
@@ -852,7 +852,7 @@ static int do_open(bgav_input_context_t * ctx,
   char * r = NULL;
   int i;
   char * tmp_url;
-  tmp_url = bgav_strdup(url);
+  tmp_url = gavl_strdup(url);
   for(i = 0; i < MAX_REDIRECTIONS; i++)
     {
     if(input_open(ctx, tmp_url, &r))

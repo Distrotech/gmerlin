@@ -142,7 +142,7 @@ static bgav_albw_t * bgav_albw_read(bgav_input_context_t * input)
     while(isspace(*rest))
       rest--;
     rest++;
-    ret->tracks[i].filename = bgav_strndup(pos, rest);
+    ret->tracks[i].filename = gavl_strndup(pos, rest);
     }
 
   diff = input->position - ret->tracks[0].start_pos;
@@ -432,7 +432,7 @@ static bgav_track_table_t * albw_2_track(bgav_demuxer_context_t* ctx,
     end_pos = strrchr(albw->tracks[i].filename, '.');
     if(end_pos)
       gavl_metadata_set_nocpy(&ret->tracks[i].metadata, GAVL_META_LABEL,
-                              bgav_strndup(albw->tracks[i].filename, end_pos));
+                              gavl_strndup(albw->tracks[i].filename, end_pos));
     
     gavl_metadata_free(&track_metadata);
     

@@ -1485,9 +1485,9 @@ static int handle_rmra(bgav_demuxer_context_t * ctx)
 
   /* Some urls are relative urls */
   if(ctx->input->url)
-    basename = bgav_strdup(ctx->input->url);
+    basename = gavl_strdup(ctx->input->url);
   else if(ctx->input->filename)
-    basename = bgav_strdup(ctx->input->filename);
+    basename = gavl_strdup(ctx->input->filename);
   
   if(!basename)
     return 0;
@@ -1510,13 +1510,13 @@ static int handle_rmra(bgav_demuxer_context_t * ctx)
       if(strstr((char*)priv->moov.rmra.rmda[i].rdrf.data_ref, "://"))
         {
         ctx->redirector->urls[index].url =
-          bgav_strdup((char*)priv->moov.rmra.rmda[i].rdrf.data_ref);
+          gavl_strdup((char*)priv->moov.rmra.rmda[i].rdrf.data_ref);
         
         }
       /* Relative url */
       else
         {
-        ctx->redirector->urls[index].url = bgav_strdup(basename);
+        ctx->redirector->urls[index].url = gavl_strdup(basename);
         ctx->redirector->urls[index].url =
           bgav_strncat(ctx->redirector->urls[index].url,
                        (char*)priv->moov.rmra.rmda[i].rdrf.data_ref,
@@ -1584,7 +1584,7 @@ static void build_edl(bgav_demuxer_context_t * ctx)
   
   ctx->edl = gavl_edl_create();
 
-  ctx->edl->url = bgav_strdup(ctx->input->filename);
+  ctx->edl->url = gavl_strdup(ctx->input->filename);
 
   t = gavl_edl_add_track(ctx->edl);
   

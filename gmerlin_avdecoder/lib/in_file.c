@@ -68,7 +68,7 @@ static int open_file(bgav_input_context_t * ctx, const char * url, char ** r)
     
   BGAV_FSEEK((FILE*)(ctx->priv), 0, SEEK_SET);
   
-  ctx->filename = bgav_strdup(url);
+  ctx->filename = gavl_strdup(url);
   
   bgav_md5_buffer(ctx->filename, strlen(ctx->filename),
                 md5sum);

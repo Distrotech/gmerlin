@@ -143,7 +143,7 @@ static char * parse_tag_name(parser_t * p)
   pos = find_chars(p, "> /?");
   if(!pos)
     return NULL;
-  ret = bgav_strndup(p->buffer, pos);
+  ret = gavl_strndup(p->buffer, pos);
   advance(p, pos - p->buffer);
   return ret;
   }
@@ -155,7 +155,7 @@ static char * parse_attribute_name(parser_t * p)
   pos = find_chars(p, "= ");
   if(!pos)
     return NULL;
-  ret = bgav_strndup(p->buffer, pos);
+  ret = gavl_strndup(p->buffer, pos);
   advance(p, pos - p->buffer);
   return ret;
   }
@@ -200,7 +200,7 @@ static char * parse_attribute_value(parser_t * p)
 
   if(!end)
     return NULL;
-  ret = bgav_strndup(p->buffer, end);
+  ret = gavl_strndup(p->buffer, end);
   
   advance(p, (int)(end - p->buffer) + strlen(close_seq));
   return ret;
@@ -212,7 +212,7 @@ static int parse_text_node(parser_t * p, bgav_yml_node_t * ret)
   pos = find_chars(p, "<");
   if(!pos)
     return 0;
-  ret->str = bgav_strndup(p->buffer, pos);
+  ret->str = gavl_strndup(p->buffer, pos);
   advance(p, (int)(pos - p->buffer));
   return 1;
   }

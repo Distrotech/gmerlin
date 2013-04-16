@@ -107,7 +107,7 @@ static int open_mms(bgav_input_context_t * ctx, const char * url, char ** r)
 
   ctx->demuxer->flags &= ~BGAV_DEMUXER_CAN_SEEK;
   
-  ctx->url = bgav_strdup(url);
+  ctx->url = gavl_strdup(url);
   
   return 1;
   

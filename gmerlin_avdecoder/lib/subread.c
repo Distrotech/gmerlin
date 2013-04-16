@@ -730,7 +730,7 @@ find_subtitle_reader(const char * filename,
     }
 
   if(ret && input->charset)
-    *charset = bgav_strdup(input->charset);
+    *charset = gavl_strdup(input->charset);
   else
     *charset = NULL;
   
@@ -771,7 +771,7 @@ bgav_subtitle_reader_open(bgav_input_context_t * input_ctx)
     return NULL;
     }
 
-  pattern = bgav_strdup(input_ctx->filename);
+  pattern = gavl_strdup(input_ctx->filename);
   pos = strrchr(pattern, '.');
   if(!pos)
     {
@@ -813,7 +813,7 @@ bgav_subtitle_reader_open(bgav_input_context_t * input_ctx)
       continue;
     
     new = calloc(1, sizeof(*new));
-    new->filename = bgav_strdup(glob_buf.gl_pathv[i]);
+    new->filename = gavl_strdup(glob_buf.gl_pathv[i]);
     new->input    = bgav_input_create(input_ctx->opt);
     new->reader   = r;
     new->charset  = charset;
@@ -826,7 +826,7 @@ bgav_subtitle_reader_open(bgav_input_context_t * input_ctx)
     if(*name != '\0')
       {
       pos = strrchr(name, '.');
-      new->info = bgav_strndup(name, pos);
+      new->info = gavl_strndup(name, pos);
       }
     
     /* Apped to list */
@@ -890,7 +890,7 @@ int bgav_subtitle_reader_start(bgav_stream_t * s)
     if(s->data.subtitle.charset)
       free(s->data.subtitle.charset);
     
-    s->data.subtitle.charset = bgav_strdup(BGAV_UTF8);
+    s->data.subtitle.charset = gavl_strdup(BGAV_UTF8);
     }
 #endif
   if(ctx->reader->init && !ctx->reader->init(s))

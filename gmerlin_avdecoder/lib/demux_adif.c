@@ -160,7 +160,7 @@ static int open_adif(bgav_demuxer_context_t * ctx)
 #if 0 // Name is moved to metadata 
   if(!ctx->tt->tracks[0].name &&
      (title = gavl_metadata_get(&ctx->input->metadata, GAVL_META_TITLE)))
-    ctx->tt->tracks[0].name =  bgav_strdup(title);
+    ctx->tt->tracks[0].name =  gavl_strdup(title);
 #endif
   //  ctx->stream_description = bgav_sprintf("AAC");
   return 1;

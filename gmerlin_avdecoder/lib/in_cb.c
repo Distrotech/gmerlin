@@ -95,8 +95,8 @@ bgav_input_open_callbacks(int (*read_callback)(void * priv, uint8_t * data, int 
     ret->input = &bgav_input_callbacks_noseek;
     }
   ret->priv = c;
-  ret->filename = bgav_strdup(filename);
-  ret->mimetype = bgav_strdup(mimetype);
+  ret->filename = gavl_strdup(filename);
+  ret->mimetype = gavl_strdup(mimetype);
   ret->total_bytes = total_bytes;
   
   if(ret->filename)

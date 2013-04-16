@@ -206,7 +206,7 @@ int bgav_open(bgav_t * ret, const char * location)
   if(!bgav_init(ret))
     goto fail;
 
-  ret->location = bgav_strdup(location);
+  ret->location = gavl_strdup(location);
   
   /* Check for file index */
   if((ret->opt.sample_accurate == 1) ||

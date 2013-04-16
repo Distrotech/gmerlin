@@ -56,7 +56,7 @@ static int parse_qtl(bgav_redirector_context_t * r)
      !strstr(url, "://") &&
      (r->input->filename[0] != '/'))
     {
-    filename_base = bgav_strdup(r->input->filename);
+    filename_base = gavl_strdup(r->input->filename);
     pos = strrchr(filename_base, '/');
     if(pos)
       {
@@ -67,7 +67,7 @@ static int parse_qtl(bgav_redirector_context_t * r)
       }
     }
   
-  r->urls[r->num_urls-1].url = bgav_strdup(url);
+  r->urls[r->num_urls-1].url = gavl_strdup(url);
   return 1;
   }
 

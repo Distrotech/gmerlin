@@ -83,7 +83,7 @@ static uint8_t * parse_metadata(uint8_t * buf,
   end = strchr(start, '=');
   if(!end)
     return NULL;
-  *name = bgav_strndup(start, end);
+  *name = gavl_strndup(start, end);
   start = end;
   start++; /* Start now points to the delimiter */
   delim = *start;
@@ -91,7 +91,7 @@ static uint8_t * parse_metadata(uint8_t * buf,
   end = strchr(start, delim);
   if(!end)
     return NULL;
-  *value = bgav_strndup(start, end);
+  *value = gavl_strndup(start, end);
   end++;
   start = end;
   start++;

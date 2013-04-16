@@ -135,7 +135,7 @@ static int read_toc(vcd_priv * priv, char ** iso_label)
     else
       iso.iso_label[j+1] = '\0';
     
-    *iso_label = bgav_strdup(iso.iso_label);
+    *iso_label = gavl_strdup(iso.iso_label);
     
     priv->tracks[first_track - 1].mode = TRACK_OTHER;
     }

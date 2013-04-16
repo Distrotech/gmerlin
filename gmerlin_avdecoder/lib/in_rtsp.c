@@ -327,7 +327,7 @@ static int open_and_describe(bgav_input_context_t * ctx,
   var = bgav_rtsp_get_answer(priv->r, "RealChallenge1");
   if(var)
     {
-    priv->challenge1 = bgav_strdup(var);
+    priv->challenge1 = gavl_strdup(var);
     priv->type = SERVER_TYPE_REAL;
     bgav_log(ctx->opt, BGAV_LOG_DEBUG, LOG_DOMAIN,
              "Real Server, challenge %s", var);
@@ -549,7 +549,7 @@ static int handle_stream_transport(bgav_stream_t * s,
   
     if((var = get_answer_var(transport, "source=", &var_len)))
       {
-      char * ip = bgav_strndup(var, var + var_len);
+      char * ip = gavl_strndup(var, var + var_len);
       addr = bgav_hostbyname(s->opt, ip, server_ports[0], SOCK_DGRAM, 0);
       if(!addr)
         {
@@ -649,7 +649,7 @@ static int init_stream_generic(bgav_input_context_t * ctx,
     {
     var = bgav_rtsp_get_answer(priv->r, "Session");
     if(var)
-      *session_id = bgav_strdup(var);
+      *session_id = gavl_strdup(var);
     }
   
   var = bgav_rtsp_get_answer(priv->r, "Transport");
@@ -843,7 +843,7 @@ static int open_rtsp(bgav_input_context_t * ctx, const char * url, char ** r)
   priv->r = bgav_rtsp_create(ctx->opt);
 
   ctx->priv = priv;
-  ctx->url = bgav_strdup(url);
+  ctx->url = gavl_strdup(url);
   
   while(num_redirections < 5)
     {
@@ -880,7 +880,7 @@ static int open_rtsp(bgav_input_context_t * ctx, const char * url, char ** r)
       goto fail;
       }
     else
-      session_id=bgav_strdup(var);
+      session_id=gavl_strdup(var);
     }
   
   sdp = bgav_rtsp_get_sdp(priv->r);

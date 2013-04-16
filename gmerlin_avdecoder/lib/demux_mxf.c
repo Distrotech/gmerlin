@@ -967,7 +967,7 @@ static void build_edl_mxf(bgav_demuxer_context_t * ctx)
     return;
     
   ctx->edl = gavl_edl_create();
-  ctx->edl->url = bgav_strdup(ctx->input->filename);
+  ctx->edl->url = gavl_strdup(ctx->input->filename);
   
   
   /* We simply open the Material packages */

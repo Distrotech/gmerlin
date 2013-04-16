@@ -55,7 +55,7 @@ static char * get_string(bgav_charset_converter_t * cnv, char * ptr, int max_siz
   end++;
 
   return bgav_convert_string(cnv, ptr, end - ptr, NULL);
-  //  return bgav_strndup(ptr, end);
+  //  return gavl_strndup(ptr, end);
   }
 
 bgav_id3v1_tag_t * bgav_id3v1_read(bgav_input_context_t * input)

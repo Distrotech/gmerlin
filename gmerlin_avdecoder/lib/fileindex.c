@@ -699,7 +699,7 @@ static void purge_cache(const char * filename,
   struct dirent * res;
   struct stat st;
   int i;
-  directory = bgav_strdup(filename);
+  directory = gavl_strdup(filename);
   pos = strrchr(directory, '/');
   if(!pos)
     {

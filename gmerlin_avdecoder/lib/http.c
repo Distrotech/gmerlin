@@ -401,7 +401,7 @@ bgav_http_t * bgav_http_open(const char * url, const bgav_options_t * opt,
     location = bgav_http_header_get_var(ret->header, "Location");
 
     if(location)
-      *redirect_url = bgav_strdup(location);
+      *redirect_url = gavl_strdup(location);
     else
       {
       bgav_log(opt, BGAV_LOG_ERROR, LOG_DOMAIN,

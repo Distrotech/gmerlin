@@ -48,7 +48,7 @@ bgav_charset_converter_create(const bgav_options_t * opt,
   if(!strcmp(in_charset, "bgav_unicode"))
     {
     ret->utf_8_16 = 1;
-    ret->out_charset = bgav_strdup(out_charset);
+    ret->out_charset = gavl_strdup(out_charset);
     }
   else  
     ret->cd = iconv_open(out_charset, in_charset);
@@ -294,13 +294,13 @@ void bgav_input_detect_charset(bgav_input_context_t * ctx)
 
   if((first_bytes[0] == 0xff) && (first_bytes[1] == 0xfe))
     {
-    ctx->charset = bgav_strdup("UTF-16LE");
+    ctx->charset = gavl_strdup("UTF-16LE");
     bgav_input_seek(ctx, old_position, SEEK_SET);
     return;
     }
   else if((first_bytes[0] == 0xfe) && (first_bytes[1] == 0xff))
     {
-    ctx->charset = bgav_strdup("UTF-16BE");
+    ctx->charset = gavl_strdup("UTF-16BE");
     bgav_input_seek(ctx, old_position, SEEK_SET);
     return;
     }
@@ -315,7 +315,7 @@ void bgav_input_detect_charset(bgav_input_context_t * ctx)
         return;
         }
       }
-    ctx->charset = bgav_strdup(BGAV_UTF8);
+    ctx->charset = gavl_strdup(BGAV_UTF8);
     bgav_input_seek(ctx, old_position, SEEK_SET);
     if(line) free(line);
     return;

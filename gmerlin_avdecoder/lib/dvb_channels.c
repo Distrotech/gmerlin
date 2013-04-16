@@ -130,7 +130,7 @@ bgav_dvb_channels_seek(const bgav_options_t * opt,
 
   if(opt->dvb_channels_file)
     {
-    filename = bgav_strdup(opt->dvb_channels_file);
+    filename = gavl_strdup(opt->dvb_channels_file);
 
     if(!bgav_check_file_read(filename))
       {
@@ -269,7 +269,7 @@ bgav_dvb_channels_load(const bgav_options_t * opt,
     memset(channel, 0, sizeof(*channel));
     
     // Channel name is always first
-    channel->name = bgav_strdup(entries[i++]);
+    channel->name = gavl_strdup(entries[i++]);
     // Frequency is second
     freq = strtoul(entries[i++], NULL, 0);
     

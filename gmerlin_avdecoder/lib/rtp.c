@@ -425,7 +425,7 @@ init_stream(bgav_demuxer_context_t * ctx,
                     NULL))
     {
     if(tmp_string) /* Complete URL */
-      sp->control_url = bgav_strdup(control);
+      sp->control_url = gavl_strdup(control);
     }
   if(!sp->control_url)
     sp->control_url = bgav_sprintf("%s/%s", ctx->input->url, control);

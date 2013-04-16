@@ -248,13 +248,13 @@ static int vivo_header_read(vivo_header_t * ret, bgav_input_context_t * input)
     else if(check_key(buffer, "Preroll", &pos))
       ret->preroll = strtoul(pos, NULL, 10);
     else if(check_key(buffer, "Title", &pos))
-      ret->title = bgav_strdup(pos);
+      ret->title = gavl_strdup(pos);
     else if(check_key(buffer, "Author", &pos))
-      ret->author = bgav_strdup(pos);
+      ret->author = gavl_strdup(pos);
     else if(check_key(buffer, "Copyright", &pos))
-      ret->copyright = bgav_strdup(pos);
+      ret->copyright = gavl_strdup(pos);
     else if(check_key(buffer, "Producer", &pos))
-      ret->producer = bgav_strdup(pos);
+      ret->producer = gavl_strdup(pos);
     else if(check_key(buffer, "Width", &pos))
       ret->width = strtoul(pos, NULL, 10);
     else if(check_key(buffer, "Height", &pos))

@@ -747,7 +747,7 @@ static int open_dvb(bgav_input_context_t * ctx, const char * url, char ** redire
   priv = calloc(1, sizeof(*priv));
   ctx->priv = priv;
 
-  priv->device_directory  = bgav_strdup(url);
+  priv->device_directory  = gavl_strdup(url);
   priv->filter_filename   = bgav_sprintf("%s/demux0", url);
   priv->dvr_filename      = bgav_sprintf("%s/dvr0", url);
   priv->frontend_filename = bgav_sprintf("%s/frontend0", url);
@@ -1507,7 +1507,7 @@ int bgav_check_device_dvb(const char * device, char ** name)
     close(fd);
     return 0;
     }
-  *name = bgav_strdup(fe_info.name);
+  *name = gavl_strdup(fe_info.name);
   close(fd);
   return 1;
   }

@@ -49,8 +49,8 @@ bgav_device_info_t * bgav_device_info_append(bgav_device_info_t * arr,
 
   arr = realloc(arr, (size+1) * sizeof(*arr));
   
-  arr[size-1].device = bgav_strdup(device);
-  arr[size-1].name = bgav_strdup(name);
+  arr[size-1].device = gavl_strdup(device);
+  arr[size-1].name = gavl_strdup(name);
 
   /* Zero terminate */
   

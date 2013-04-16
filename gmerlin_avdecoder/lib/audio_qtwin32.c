@@ -255,16 +255,16 @@ static int init_qtaudio(bgav_stream_t * s)
   switch(s->fourcc)
     {
     case BGAV_MK_FOURCC('Q','D','M','C'):
-      s->description = bgav_strdup("QDMC");
+      s->description = gavl_strdup("QDMC");
       break;
     case BGAV_MK_FOURCC('Q','D','M','2'):
-      s->description = bgav_strdup("QDM2");
+      s->description = gavl_strdup("QDM2");
       break;
     case BGAV_MK_FOURCC('Q','c','l','p'):
-      s->description = bgav_strdup("Qclp");
+      s->description = gavl_strdup("Qclp");
       break;
     case BGAV_MK_FOURCC('M','A','C','6'):
-      s->description = bgav_strdup("MACE 6");
+      s->description = gavl_strdup("MACE 6");
       break;
     }
 

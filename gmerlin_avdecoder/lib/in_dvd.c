@@ -712,7 +712,7 @@ static int open_dvd(bgav_input_context_t * ctx, const char * url, char ** r)
   if(!DVDUDFVolumeInfo(priv->dvd_reader, volid, 32,
                       volsetid, 128))
     {
-    ctx->disc_name = bgav_strdup(volid);
+    ctx->disc_name = gavl_strdup(volid);
     }
     
   /* Open Video Manager */
