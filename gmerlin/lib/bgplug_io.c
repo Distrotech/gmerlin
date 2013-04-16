@@ -45,6 +45,7 @@
 
 // #define TIMEOUT 5000
 
+// #define DUMP_HEADERS
 
 /* stdin / stdout */
 
@@ -192,6 +193,10 @@ status_codes[] =
     { BG_PLUG_IO_STATUS_400, "Bad Request" },
     { BG_PLUG_IO_STATUS_404, "Not Found" },
     { BG_PLUG_IO_STATUS_405, "Method Not Allowed" },
+
+    { BG_PLUG_IO_STATUS_406, "Not Acceptable" },
+    { BG_PLUG_IO_STATUS_415, "Unsupported Media Type" },
+    { BG_PLUG_IO_STATUS_417, "Expectation Failed" },
     { BG_PLUG_IO_STATUS_423, "Locked" },
     { BG_PLUG_IO_STATUS_505, "Protocol Version Not Supported" },
     { BG_PLUG_IO_STATUS_503, "Service Unavailable" },
@@ -207,6 +212,8 @@ status_codes[] =
 // #define PROTOCOL "bgplug/"VERSION
 
 #define PROTOCOL "HTTP/1.1"
+
+#define BGPLUG_MIMETYPE "application/bgplug-"VERSION
 
 static int read_vars(int fd, char ** line, int * line_alloc,
                      gavl_metadata_t * m, int timeout)
@@ -293,8 +300,10 @@ int bg_plug_request_read(int fd, gavl_metadata_t * req, int timeout)
   if(!result)
     return result;
 
-  //  fprintf(stderr, "Got request:\n");
-  //  gavl_metadata_dump(req, 0);
+#ifdef DUMP_HEADERS
+  gavl_dprintf("Got request:\n");
+  gavl_metadata_dump(req, 0);
+#endif
   
   /* We check the protocol version right here */
   val = gavl_metadata_get(req, META_PROTOCOL);
@@ -405,7 +414,9 @@ int bg_plug_response_write(int fd, gavl_metadata_t * res)
 
   line = write_vars(line, res);
 
-  //  fprintf(stderr, "Writing response:\n%s", line);
+#ifdef DUMP_HEADERS
+  gavl_dprintf("Writing response:\n%s", line);
+#endif
   
   result = bg_socket_write_data(fd, (const uint8_t*)line, strlen(line));
   free(line);
@@ -462,7 +473,8 @@ static int server_handshake(int fd, int method, int timeout)
   gavl_metadata_t req;
   gavl_metadata_t res;
   int request_method;
-  const char * location;
+  const char * var;
+  int write_response_now = 0;
   
   gavl_metadata_init(&req);
   gavl_metadata_init(&res);
@@ -477,43 +489,100 @@ static int server_handshake(int fd, int method, int timeout)
     {
     // 400 Bad Request
     status = BG_PLUG_IO_STATUS_400;
+    goto fail;
     }
 
   else if(method == request_method)
-    status = BG_PLUG_IO_STATUS_405;
-
-  else
     {
-    location = bg_plug_request_get_location(&req);
-
-    /* We support no locations in our simple servers */
-    if(strcmp(location, "/"))
-      status = BG_PLUG_IO_STATUS_404;
+    status = BG_PLUG_IO_STATUS_405;
+    goto fail;
     }
   
   if(!status)
     {
-    status = BG_PLUG_IO_STATUS_200;
-    ret = 1;
-    }
+    switch(request_method)
+      {
+      case BG_PLUG_IO_METHOD_WRITE:  // PUT
+        var = gavl_metadata_get(&req, "Expect");
+        if(var)
+          {
+          if(!strcmp(var, "100-continue"))
+            write_response_now = 1;
+          else
+            {
+            status = BG_PLUG_IO_STATUS_417;
+            goto fail;
+            }
+          }
 
-  bg_plug_response_set_status(&res, status);
-  
+        /* We support no locations in our simple servers */
+        var = bg_plug_request_get_location(&req);
+        if(strcmp(var, "/"))
+          {
+          status = BG_PLUG_IO_STATUS_404;
+          goto fail;
+          }
+        
+        var = gavl_metadata_get(&req, "Content-Type");
+        if(!var)
+          {
+          status = BG_PLUG_IO_STATUS_400;
+          goto fail;
+          }
+        if(strcmp(var, BGPLUG_MIMETYPE))
+          {
+          status = BG_PLUG_IO_STATUS_415;
+          goto fail;
+          }
+        if(write_response_now)
+          {
+          status = BG_PLUG_IO_STATUS_100;
+          ret = 1;
+          }
+        else
+          {
+          status = BG_PLUG_IO_STATUS_200;
+          ret = 1;
+          }
+        break;
+      case BG_PLUG_IO_METHOD_READ: // GET
 
-  //  fprintf(stderr, "Sending response:\n");
-  //  gavl_metadata_dump(&res, 0);
-  
-  if(!bg_plug_response_write(fd, &res))
-    {
-    bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Writing response failed");
-    goto fail;
+        /* We support no locations in our simple servers */
+        var = bg_plug_request_get_location(&req);
+        if(strcmp(var, "/"))
+          {
+          status = BG_PLUG_IO_STATUS_404;
+          goto fail;
+          }
+        
+        status = BG_PLUG_IO_STATUS_200;
+        write_response_now = 1;
+        gavl_metadata_set(&res, "Content-Type", BGPLUG_MIMETYPE);
+        ret = 1;
+        break;
+      default:
+        status = BG_PLUG_IO_STATUS_405;
+      }
     }
 
   fail:
+  bg_plug_response_set_status(&res, status);
+  
+  if(write_response_now)
+    {
+    fprintf(stderr, "Sending response:\n");
+    gavl_metadata_dump(&res, 0);
+    
+    if(!bg_plug_response_write(fd, &res))
+      {
+      bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Writing response failed");
+      goto fail;
+      }
+    }
+  
   gavl_metadata_free(&req);
   gavl_metadata_free(&res);
   return ret;
-  
   }
 
 
@@ -533,9 +602,20 @@ static int client_handshake(int fd, int method, const char * path, int timeout)
   bg_plug_request_set_method(&req, method);
   gavl_metadata_set(&req, META_LOCATION, path);
   gavl_metadata_set(&req, META_PROTOCOL, PROTOCOL);
-
+  
   if(method == BG_PLUG_IO_METHOD_WRITE)
+    {
     gavl_metadata_set(&req, "Expect", "100-continue");
+    gavl_metadata_set(&req, "Content-Type", BGPLUG_MIMETYPE);
+    }
+  else if(method == BG_PLUG_IO_METHOD_READ)
+    {
+    gavl_metadata_set(&req, "Accept", BGPLUG_MIMETYPE);
+    }
+#ifdef DUMP_HEADERS
+  fprintf(stderr, "Sending request\n");
+  gavl_metadata_dump(&req, 0);
+#endif
   
   if(!socket_request_write(fd, &req))
     {
@@ -551,7 +631,8 @@ static int client_handshake(int fd, int method, const char * path, int timeout)
   if(!gavl_metadata_get_int(&res, META_STATUS, &status))
     goto fail;
   
-  if(status != BG_PLUG_IO_STATUS_200)
+  if(((method == BG_PLUG_IO_METHOD_READ) && (status != BG_PLUG_IO_STATUS_200)) ||
+     ((method == BG_PLUG_IO_METHOD_WRITE) && (status != BG_PLUG_IO_STATUS_100)))
     {
     const char * status_str;
     status_str = gavl_metadata_get(&res, META_STATUS_STR);

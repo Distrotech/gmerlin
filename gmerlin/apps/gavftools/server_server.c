@@ -182,6 +182,7 @@ static void handle_client_connection(server_t * s, int fd)
   gavl_metadata_t req;
   gavl_metadata_t res;
   gavl_metadata_t vars;
+  int write_response_now = 0;
 
   gavl_metadata_init(&req);
   gavl_metadata_init(&res);
@@ -236,12 +237,29 @@ static void handle_client_connection(server_t * s, int fd)
         status = BG_PLUG_IO_STATUS_423; // Locked
         goto fail;
         }
-      bg_plug_response_set_status(&res, BG_PLUG_IO_STATUS_200);
-      if(!bg_plug_response_write(fd, &res))
+
+      var = gavl_metadata_get(&req, "Expect");
+      if(var)
         {
-        bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Writing response failed");
-        goto fail;
+        if(!strcmp(var, "100-continue"))
+          write_response_now = 1;
+        else
+          {
+          status = BG_PLUG_IO_STATUS_417;
+          goto fail;
+          }
         }
+      if(write_response_now)
+        {
+        bg_plug_response_set_status(&res, BG_PLUG_IO_STATUS_100);
+        if(!bg_plug_response_write(fd, &res))
+          {
+          bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Writing response failed");
+          goto fail;
+          }
+        }
+      else
+        bg_plug_response_set_status(&res, BG_PLUG_IO_STATUS_200);
       
       p = program_create_from_socket(location, fd, &vars);
       if(!p)

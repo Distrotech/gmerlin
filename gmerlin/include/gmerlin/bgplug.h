@@ -181,6 +181,9 @@ bg_plug_set_compressor_config(bg_plug_t * p,
 #define BG_PLUG_IO_STATUS_400 400 // Bad Request
 #define BG_PLUG_IO_STATUS_404 404 // Not found
 #define BG_PLUG_IO_STATUS_405 405 // Method Not Allowed
+#define BG_PLUG_IO_STATUS_406 406 // Not Acceptable
+#define BG_PLUG_IO_STATUS_415 415 // Unsupported Media Type
+#define BG_PLUG_IO_STATUS_417 417 // Expectation Failed
 #define BG_PLUG_IO_STATUS_423 423 // Locked
 #define BG_PLUG_IO_STATUS_505 505 // Protocol Version Not Supported
 #define BG_PLUG_IO_STATUS_503 503 // Service Unavailable

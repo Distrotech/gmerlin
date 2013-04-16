@@ -178,6 +178,9 @@ void bg_threads_start(bg_thread_t ** th, int num)
   int i;
   /* Lock the global mutex. This will succeed after all
      threads wait for the start condition */
+
+  if(!num)
+    return;
   
   pthread_mutex_lock(&th[0]->com->start_mutex);
   pthread_cond_broadcast(&th[0]->com->start_cond);
