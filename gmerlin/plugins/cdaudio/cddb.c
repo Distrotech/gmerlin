@@ -133,7 +133,7 @@ int bg_cdaudio_get_metadata_cddb(bg_cdaudio_index_t * idx,
     }
   
   /* info for gmerlin from the first match */
-  genre = bg_strdup(NULL, cddb_disc_get_category_str(disc));
+  genre = gavl_strdup(cddb_disc_get_category_str(disc));
 
   genre[0] = toupper(genre[0]);
   

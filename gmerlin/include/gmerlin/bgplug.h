@@ -173,9 +173,10 @@ bg_plug_set_compressor_config(bg_plug_t * p,
 #define BG_PLUG_IO_IS_LOCAL   (1<<0)
 #define BG_PLUG_IO_IS_REGULAR (1<<1)
 
-#define BG_PLUG_IO_METHOD_READ  0
+#define BG_PLUG_IO_METHOD_READ 0
 #define BG_PLUG_IO_METHOD_WRITE 1
 
+#define BG_PLUG_IO_STATUS_100 100 // Continue
 #define BG_PLUG_IO_STATUS_200 200 // OK
 #define BG_PLUG_IO_STATUS_400 400 // Bad Request
 #define BG_PLUG_IO_STATUS_404 404 // Not found
@@ -184,14 +185,18 @@ bg_plug_set_compressor_config(bg_plug_t * p,
 #define BG_PLUG_IO_STATUS_505 505 // Protocol Version Not Supported
 #define BG_PLUG_IO_STATUS_503 503 // Service Unavailable
 
+#define BG_PLUG_MIMETYPE "application/x-gavf"
+
 /* Called by bg_plug_open_location */
 
 
-gavf_io_t * bg_plug_io_open_location(const char * location,
-                                     int method, int * flags, int timeout);
+gavf_io_t *
+bg_plug_io_open_location(const char * location,
+                         int method, int * flags, int timeout);
 
-gavf_io_t * bg_plug_io_open_socket(int fd,
-                                   int method, int * flags, int timeout);
+gavf_io_t *
+bg_plug_io_open_socket(int fd,
+                       int method, int * flags, int timeout);
 
 /* bgplug network protocol primitives */
 

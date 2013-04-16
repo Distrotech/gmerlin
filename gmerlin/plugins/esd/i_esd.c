@@ -81,7 +81,7 @@ static void set_parameter_esd(void * data, const char * name,
     return;
   if(!strcmp(name, "esd_host"))
     {
-    e->hostname = bg_strdup(e->hostname, val->val_str);
+    e->hostname = gavl_strrep(e->hostname, val->val_str);
     }
   else if(!strcmp(name, "input_mode"))
     {

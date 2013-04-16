@@ -802,12 +802,20 @@ int bg_recorder_video_init(bg_recorder_t * rec)
   if(vs->flags & STREAM_MONITOR)
     {
     gavl_video_format_copy(&vs->monitor_format, &vs->pipe_format);
-    vs->monitor_plugin->open(vs->monitor_handle->priv, &vs->monitor_format, 1);
-    vs->monitor_sink = vs->monitor_plugin->get_sink(vs->monitor_handle->priv);
+    if(!vs->monitor_plugin->open(vs->monitor_handle->priv,
+                                 &vs->monitor_format, 1))
+      {
+      bg_log(BG_LOG_ERROR, LOG_DOMAIN,
+             "Opening monitor plugin failed");
+      return 0;
+      }
+    vs->monitor_sink =
+      vs->monitor_plugin->get_sink(vs->monitor_handle->priv);
     
-    vs->do_convert_monitor = gavl_video_converter_init(vs->monitor_cnv,
-                                                       &vs->pipe_format,
-                                                       &vs->monitor_format);
+    vs->do_convert_monitor =
+      gavl_video_converter_init(vs->monitor_cnv,
+                                &vs->pipe_format,
+                                &vs->monitor_format);
     vs->flags |= STREAM_MONITOR_OPEN;
 
     if(vs->monitor_plugin->show_window && !rec->display_string)

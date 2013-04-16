@@ -178,7 +178,7 @@ static int open_cdaudio(void * data, const char * arg)
   /* Destroy data from previous open */
   destroy_cd_data(cd);
   
-  cd->device_name = bg_strdup(cd->device_name, arg);
+  cd->device_name = gavl_strrep(cd->device_name, arg);
 
   cd->cdio = bg_cdaudio_open(cd->device_name);
   if(!cd->cdio)
@@ -682,7 +682,7 @@ static void set_parameter_cdaudio(void * data, const char * name,
     return;
 
   if(!strcmp(name, "trackname_template"))
-    cd->trackname_template = bg_strdup(cd->trackname_template, val->val_str);
+    cd->trackname_template = gavl_strrep(cd->trackname_template, val->val_str);
 
   if(!strcmp(name, "use_cdtext"))
     cd->use_cdtext = val->val_i;
@@ -693,11 +693,11 @@ static void set_parameter_cdaudio(void * data, const char * name,
   if(!strcmp(name, "use_musicbrainz"))
     cd->use_musicbrainz = val->val_i;
   if(!strcmp(name, "musicbrainz_host"))
-    cd->musicbrainz_host = bg_strdup(cd->musicbrainz_host, val->val_str);
+    cd->musicbrainz_host = gavl_strrep(cd->musicbrainz_host, val->val_str);
   if(!strcmp(name, "musicbrainz_port"))
     cd->musicbrainz_port = val->val_i;
   if(!strcmp(name, "musicbrainz_proxy_host"))
-    cd->musicbrainz_proxy_host = bg_strdup(cd->musicbrainz_proxy_host, val->val_str);
+    cd->musicbrainz_proxy_host = gavl_strrep(cd->musicbrainz_proxy_host, val->val_str);
   if(!strcmp(name, "musicbrainz_proxy_port"))
     cd->musicbrainz_proxy_port = val->val_i;
 #endif
@@ -706,19 +706,19 @@ static void set_parameter_cdaudio(void * data, const char * name,
   if(!strcmp(name, "use_cddb"))
     cd->use_cddb = val->val_i;
   if(!strcmp(name, "cddb_host"))
-    cd->cddb_host = bg_strdup(cd->cddb_host, val->val_str);
+    cd->cddb_host = gavl_strrep(cd->cddb_host, val->val_str);
   if(!strcmp(name, "cddb_port"))
     cd->cddb_port = val->val_i;
   if(!strcmp(name, "cddb_path"))
-    cd->cddb_path = bg_strdup(cd->cddb_path, val->val_str);
+    cd->cddb_path = gavl_strrep(cd->cddb_path, val->val_str);
   if(!strcmp(name, "cddb_proxy_host"))
-    cd->cddb_proxy_host = bg_strdup(cd->cddb_proxy_host, val->val_str);
+    cd->cddb_proxy_host = gavl_strrep(cd->cddb_proxy_host, val->val_str);
   if(!strcmp(name, "cddb_proxy_port"))
     cd->cddb_proxy_port = val->val_i;
   if(!strcmp(name, "cddb_proxy_user"))
-    cd->cddb_proxy_user = bg_strdup(cd->cddb_proxy_user, val->val_str);
+    cd->cddb_proxy_user = gavl_strrep(cd->cddb_proxy_user, val->val_str);
   if(!strcmp(name, "cddb_proxy_pass"))
-    cd->cddb_proxy_pass = bg_strdup(cd->cddb_proxy_pass, val->val_str);
+    cd->cddb_proxy_pass = gavl_strrep(cd->cddb_proxy_pass, val->val_str);
   if(!strcmp(name, "cddb_timeout"))
     cd->cddb_timeout = val->val_i;
 #endif

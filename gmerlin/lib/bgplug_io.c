@@ -187,6 +187,7 @@ static const struct
   }
 status_codes[] =
   {
+    { BG_PLUG_IO_STATUS_100, "Continue"    },
     { BG_PLUG_IO_STATUS_200, "OK"          },
     { BG_PLUG_IO_STATUS_400, "Bad Request" },
     { BG_PLUG_IO_STATUS_404, "Not Found" },
@@ -203,9 +204,9 @@ status_codes[] =
 #define META_STATUS     "$STATUS"
 #define META_STATUS_STR "$STATUS_STR"
 
-#define PROTOCOL "bgplug/"VERSION
+// #define PROTOCOL "bgplug/"VERSION
 
-
+#define PROTOCOL "HTTP/1.1"
 
 static int read_vars(int fd, char ** line, int * line_alloc,
                      gavl_metadata_t * m, int timeout)
@@ -245,7 +246,7 @@ static char * write_vars(char * str, const gavl_metadata_t * m)
     {
     if(*(m->tags[i].key) != '$')
       {
-      line = bg_sprintf("%s: %s\n",
+      line = bg_sprintf("%s: %s\r\n",
                         m->tags[i].key,
                         m->tags[i].val);
 
@@ -253,7 +254,7 @@ static char * write_vars(char * str, const gavl_metadata_t * m)
       free(line);
       }
     }
-  str = bg_strcat(str, "\n");
+  str = bg_strcat(str, "\r\n");
   return str;
   }
 
@@ -299,8 +300,8 @@ int bg_plug_request_read(int fd, gavl_metadata_t * req, int timeout)
   val = gavl_metadata_get(req, META_PROTOCOL);
   if(!val)
     status = BG_PLUG_IO_STATUS_400; // 400 Bad Request
-  else if(strcmp(val, PROTOCOL))
-    status = BG_PLUG_IO_STATUS_505; // 505 Protocol Version Not Supported
+  else if(strncmp(val, "HTTP/", 5))
+    status = BG_PLUG_IO_STATUS_400; // 400 Bad Request
   
   if(status)
     {
@@ -331,7 +332,7 @@ static int socket_request_write(int fd, gavl_metadata_t * req)
   if(!method || !location)
     return 0;
   
-  line = bg_sprintf("%s %s %s\n", method, location, PROTOCOL);
+  line = bg_sprintf("%s %s %s\r\n", method, location, PROTOCOL);
 
   line = write_vars(line, req);
   //  fprintf(stderr, "Writing request:\n%s", line);
@@ -399,7 +400,7 @@ int bg_plug_response_write(int fd, gavl_metadata_t * res)
   if(!status_codes[i].status_str)
     return 0;
 
-  line = bg_sprintf("%s %d %s\n", PROTOCOL, status,
+  line = bg_sprintf("%s %d %s\r\n", PROTOCOL, status,
                     status_codes[i].status_str);
 
   line = write_vars(line, res);
@@ -415,9 +416,9 @@ void
 bg_plug_request_set_method(gavl_metadata_t * req, int method)
   {
   if(method == BG_PLUG_IO_METHOD_READ)
-    gavl_metadata_set(req, META_METHOD, "READ");
+    gavl_metadata_set(req, META_METHOD, "GET");
   else
-    gavl_metadata_set(req, META_METHOD, "WRITE");
+    gavl_metadata_set(req, META_METHOD, "PUT");
   }
 
 int 
@@ -429,12 +430,12 @@ bg_plug_request_get_method(gavl_metadata_t * req, int * method)
   if(!val)
     return 0;
   
-  if(!strcmp(val, "WRITE"))
+  if(!strcmp(val, "PUT"))
     {
     *method = BG_PLUG_IO_METHOD_WRITE;
     return 1;
     }
-  else if(!strcmp(val, "READ"))
+  else if(!strcmp(val, "GET"))
     {
     *method = BG_PLUG_IO_METHOD_READ;
     return 1;
@@ -532,6 +533,10 @@ static int client_handshake(int fd, int method, const char * path, int timeout)
   bg_plug_request_set_method(&req, method);
   gavl_metadata_set(&req, META_LOCATION, path);
   gavl_metadata_set(&req, META_PROTOCOL, PROTOCOL);
+
+  if(method == BG_PLUG_IO_METHOD_WRITE)
+    gavl_metadata_set(&req, "Expect", "100-continue");
+  
   if(!socket_request_write(fd, &req))
     {
     bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Writing request failed");

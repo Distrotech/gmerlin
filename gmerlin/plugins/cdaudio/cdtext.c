@@ -40,9 +40,9 @@
   field = cdtext_get_const(key, cdtext);                                \
   if(field)                                                             \
     {                                                                   \
-    info[idx->tracks[i].index].metadata.dst = bg_strdup(info[idx->tracks[i].index].metadata.dst, field); \
+    info[idx->tracks[i].index].metadata.dst = gavl_strrep(info[idx->tracks[i].index].metadata.dst, field); \
     if(!info[idx->tracks[i].index].metadata.dst)                        \
-      info[idx->tracks[i].index].metadata.dst = bg_strdup(info[idx->tracks[i].index].metadata.dst, dst); \
+      info[idx->tracks[i].index].metadata.dst = gavl_strrep(info[idx->tracks[i].index].metadata.dst, dst); \
     }
 
 int bg_cdaudio_get_metadata_cdtext(CdIo_t * cdio,
