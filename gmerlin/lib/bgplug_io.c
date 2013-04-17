@@ -214,6 +214,7 @@ status_codes[] =
 #define PROTOCOL "HTTP/1.1"
 
 #define BGPLUG_MIMETYPE "application/bgplug-"VERSION
+const char * bg_plug_app_id = "bgplug-"VERSION;
 
 static int read_vars(int fd, char ** line, int * line_alloc,
                      gavl_metadata_t * m, int timeout)
@@ -567,9 +568,15 @@ static int server_handshake(int fd, int method, int timeout)
 
   fail:
   bg_plug_response_set_status(&res, status);
-  
+
+
+
+  /* Write response */
   if(write_response_now)
     {
+    /* Set common fields */
+    gavl_metadata_set(&res, "Server", bg_plug_app_id);
+    
     fprintf(stderr, "Sending response:\n");
     gavl_metadata_dump(&res, 0);
     
@@ -584,7 +591,6 @@ static int server_handshake(int fd, int method, int timeout)
   gavl_metadata_free(&res);
   return ret;
   }
-
 
 static int client_handshake(int fd, int method, const char * path, int timeout)
   {
@@ -612,6 +618,10 @@ static int client_handshake(int fd, int method, const char * path, int timeout)
     {
     gavl_metadata_set(&req, "Accept", BGPLUG_MIMETYPE);
     }
+
+  /* Set common fields */
+  gavl_metadata_set(&res, "User-Agent", bg_plug_app_id);
+  
 #ifdef DUMP_HEADERS
   fprintf(stderr, "Sending request\n");
   gavl_metadata_dump(&req, 0);
