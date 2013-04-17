@@ -25,6 +25,9 @@
 
 #include <inttypes.h>
 
+#include <gavl/gavl.h>
+#include <gavl/gavf.h>
+
 #include <xing.h>
 
 /*
@@ -224,7 +227,7 @@ void bg_xing_update(bg_xing_t * xing, int bytes)
 
 static const char xing_sig[4] = "Xing";
 
-int bg_xing_write(bg_xing_t * xing, FILE * out)
+int bg_xing_write(bg_xing_t * xing, gavf_io_t * out)
   {
   uint32_t tmp;
   uint64_t tmp_64;
@@ -270,7 +273,7 @@ int bg_xing_write(bg_xing_t * xing, FILE * out)
       ptr++;
       }
     }
-  if(fwrite(xing->buffer, 1, xing->tag_bytes, out) < xing->tag_bytes)
+  if(gavf_io_write_data(out, xing->buffer, xing->tag_bytes) < xing->tag_bytes)
     return 0;
   return 1;
   

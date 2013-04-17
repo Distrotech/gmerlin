@@ -25,7 +25,7 @@ bg_xing_t * bg_xing_create(uint8_t * first_frame, int first_frame_len);
 
 void bg_xing_update(bg_xing_t * xing, int bytes);
 
-int bg_xing_write(bg_xing_t * xing, FILE * out);
+int bg_xing_write(bg_xing_t * xing, gavf_io_t * out);
 
 void bg_xing_destroy(bg_xing_t * xing);
 

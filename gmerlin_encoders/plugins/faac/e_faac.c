@@ -42,7 +42,8 @@
 
 typedef struct
   {
-  FILE * output;
+  gavf_io_t * output;
+
   char * filename;
   
   gavl_audio_format_t format;
@@ -149,48 +150,32 @@ static void set_parameter_faac(void * data, const char * name,
     faac->id3v2_charset = atoi(v->val_str);
   }
 
-static int open_faac(void * data, const char * filename,
-                     const gavl_metadata_t * metadata,
-                     const gavl_chapter_list_t * chapter_list)
+static int open_io_faac(void * data, gavf_io_t * io,
+                        const gavl_metadata_t * metadata,
+                       const gavl_chapter_list_t * chapter_list)
   {
   faac_t * faac;
   bgen_id3v2_t * id3v2;
 
   faac = data;
-  if(!strcmp(filename, "-"))
+  faac->output = io;
+
+  if(!gavf_io_can_seek(io))
     {
-    faac->output = stdout;
     if(faac->do_id3v1)
       {
-      bg_log(BG_LOG_WARNING, LOG_DOMAIN, "Disabling ID3V1 tags for output to stdout");
+      bg_log(BG_LOG_WARNING, LOG_DOMAIN, "Disabling ID3V1 tags for streaming output");
       faac->do_id3v1 = 0;
       }
     if(faac->do_id3v2)
       {
-      bg_log(BG_LOG_WARNING, LOG_DOMAIN, "Disabling ID3V2 tags for output to stdout");
+      bg_log(BG_LOG_WARNING, LOG_DOMAIN, "Disabling ID3V2 tags for streaming output");
       faac->do_id3v2 = 0;
       }
-
     }
-  else
-    {
-    faac->filename = bg_filename_ensure_extension(filename, "aac");
-
-    if(!bg_encoder_cb_create_output_file(faac->cb, faac->filename))
-      return 0;
-  
-    faac->output = fopen(faac->filename, "wb");
-    
-    if(!faac->output)
-      {
-      bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Cannot open %s: %s",
-             filename, strerror(errno));
-      return 0;
-      }
-    }
-
   if(faac->do_id3v1 && metadata)
     faac->id3v1 = bgen_id3v1_create(metadata);
+
   if(faac->do_id3v2 && metadata)
     {
     id3v2 = bgen_id3v2_create(metadata);
@@ -200,10 +185,42 @@ static int open_faac(void * data, const char * filename,
   return 1;
   }
 
+static int open_faac(void * data, const char * filename,
+                     const gavl_metadata_t * metadata,
+                     const gavl_chapter_list_t * chapter_list)
+  {
+  gavf_io_t * io;
+  faac_t * faac;
+
+  faac = data;
+  if(!strcmp(filename, "-"))
+    {
+    io = gavf_io_create_file(stdout, 1, 0, 0);
+    }
+  else
+    {
+    FILE * f;
+    faac->filename = bg_filename_ensure_extension(filename, "aac");
+
+    if(!bg_encoder_cb_create_output_file(faac->cb, faac->filename))
+      return 0;
+   
+    f = fopen(faac->filename, "wb");
+    if(!f)
+      {
+      bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Cannot open %s: %s",
+             filename, strerror(errno));
+      return 0;
+      }
+    io = gavf_io_create_file(f, 1, 1, 1);
+    }
+  return open_io_faac(data, io, metadata, chapter_list);
+  }
+
 static gavl_sink_status_t write_packet(void * data, gavl_packet_t * p)
   {
   faac_t * faac = data;
-  if(fwrite(p->data, 1, p->data_len, faac->output) < p->data_len)
+  if(gavf_io_write_data(faac->output, p->data, p->data_len) < p->data_len)
     return GAVL_SINK_ERROR;
   return GAVL_SINK_OK;
   }
@@ -261,8 +278,8 @@ static int close_faac(void * data, int do_delete)
       bgen_id3v1_destroy(faac->id3v1);
       faac->id3v1 = NULL;    
       }
-    if(faac->output != stdout)
-      fclose(faac->output);
+    if(faac->output)
+      gavf_io_destroy(faac->output);
     faac->output = NULL;
     }
 
@@ -303,7 +320,7 @@ const bg_encoder_plugin_t the_plugin =
     .set_callbacks =       set_callbacks_faac,
     
     .open =                open_faac,
-    
+    .open_io =             open_io_faac,    
     .get_audio_parameters =    get_audio_parameters_faac,
 
     .add_audio_stream =        add_audio_stream_faac,

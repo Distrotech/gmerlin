@@ -41,7 +41,12 @@ struct gavl_io_s
   int got_error;    // Got write error
   gavf_io_cb_func cb;
   void * cb_priv;
-  
+
+  /* Informational data */
+  char * filename;
+  char * mimetype;
+  int64_t total_bytes;
+
   };
 
 void gavf_io_init(gavf_io_t * ret,
@@ -51,12 +56,6 @@ void gavf_io_init(gavf_io_t * ret,
                   gavf_close_func c,
                   gavf_flush_func f,
                   void * priv);
-
-int64_t gavf_io_seek(gavf_io_t * io, int64_t pos, int whence);
-
-
-int gavf_io_read_data(gavf_io_t * io, uint8_t * buf, int len);
-int gavf_io_write_data(gavf_io_t * io, const uint8_t * buf, int len);
 
 int gavf_io_write_uint64f(gavf_io_t * io, uint64_t num);
 int gavf_io_read_uint64f(gavf_io_t * io, uint64_t * num);

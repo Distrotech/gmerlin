@@ -66,12 +66,17 @@ static int open_common(avdec_priv * avdec)
   return bg_avdec_init(avdec);
   }
 
+static int read_callback(void * priv, uint8_t * data, int len)
+  {
+  return gavf_io_read_data(priv, data, len);
+  }
 
-static int open_callbacks_avdec(void * priv,
-                                int (*read_callback)(void * priv, uint8_t * data, int len),
-                                int64_t (*seek_callback)(void * priv, uint64_t pos, int whence),
-                                void * cb_priv, const char * filename, const char * mimetype,
-                                int64_t total_bytes)
+static int seek_callback(void * priv, int64_t pos, int whence)
+  {
+  return gavf_io_seek(priv, pos, whence);
+  }
+
+static int open_io_avdec(void * priv, gavf_io_t * io)
   {
   bgav_options_t * opt;
   avdec_priv * avdec = priv;
@@ -81,8 +86,10 @@ static int open_callbacks_avdec(void * priv,
 
   bgav_options_copy(opt, avdec->opt);
   
-  if(!bgav_open_callbacks(avdec->dec, read_callback, seek_callback, cb_priv, filename, mimetype,
-                          total_bytes))
+  if(!bgav_open_callbacks(avdec->dec, read_callback, 
+                          gavf_io_can_seek(io) ? seek_callback : 0, io, 
+                          gavf_io_filename(io), gavf_io_mimetype(io),
+                          gavf_io_total_bytes(io)))
     return 0;
   return open_common(avdec);
   }
@@ -390,7 +397,7 @@ const bg_input_plugin_t the_plugin =
     .get_extensions = get_extensions,
     /* Open file/device */
     .open = open_avdec,
-    .open_callbacks = open_callbacks_avdec,
+    .open_io = open_io_avdec,
     .set_callbacks = bg_avdec_set_callbacks,
   /* For file and network plugins, this can be NULL */
     .get_num_tracks = bg_avdec_get_num_tracks,

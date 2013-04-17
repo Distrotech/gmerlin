@@ -45,7 +45,7 @@ typedef struct
   
   char * filename;
   
-  FILE * output;
+  gavf_io_t * output;
 
   int do_id3v1;
   int do_id3v2;
@@ -152,15 +152,47 @@ static void set_parameter_lame(void * data, const char * name,
     lame->id3v2_charset = atoi(v->val_str);
   }
 
+static int open_io_lame(void * data, gavf_io_t * io,
+                        const gavl_metadata_t * metadata,
+                        const gavl_chapter_list_t * chapter_list)
+  {
+  lame_priv_t * lame;
+  bgen_id3v2_t * id3v2;
+  lame = data;
+  lame->output = io;
+    
+  if(!gavf_io_can_seek(io))
+    {
+    if(lame->do_id3v1)
+      {
+      bg_log(BG_LOG_WARNING, LOG_DOMAIN, "Disabling ID3V1 tags for streaming output");
+      lame->do_id3v1 = 0;
+      }
+    if(lame->do_id3v2)
+      {
+      bg_log(BG_LOG_WARNING, LOG_DOMAIN, "Disabling ID3V2 tags for streaming output");
+      lame->do_id3v2 = 0;
+      }
+    }
+  if(lame->do_id3v1 && metadata)
+    lame->id3v1 = bgen_id3v1_create(metadata);
+
+  if(lame->do_id3v2 && metadata)
+    {
+    id3v2 = bgen_id3v2_create(metadata);
+    bgen_id3v2_write(lame->output, id3v2, lame->id3v2_charset);
+    bgen_id3v2_destroy(id3v2);
+    }
+  return 1;
+  }
+
 static int open_lame(void * data,
                      const char * filename,
                      const gavl_metadata_t * metadata,
                      const gavl_chapter_list_t * chapter_list)
   {
-  int ret = 1;
   lame_priv_t * lame;
-  bgen_id3v2_t * id3v2;
-
+  gavf_io_t * io;
   lame = data;
 
   //  bg_lame_open(&lame->com);
@@ -168,53 +200,27 @@ static int open_lame(void * data,
 
   if(!strcmp(filename, "-"))
     {
-    lame->output = stdout;
-    if(lame->do_id3v1)
-      {
-      bg_log(BG_LOG_WARNING, LOG_DOMAIN, "Disabling ID3V1 tags for output to stdout");
-      lame->do_id3v1 = 0;
-      }
-    if(lame->do_id3v2)
-      {
-      bg_log(BG_LOG_WARNING, LOG_DOMAIN, "Disabling ID3V2 tags for output to stdout");
-      lame->do_id3v2 = 0;
-      }
+    io = gavf_io_create_file(stdout, 1, 0, 0);
     }
   else
     {
+    FILE * f;
     lame->filename = bg_filename_ensure_extension(filename, "mp3");
 
     if(!bg_encoder_cb_create_output_file(lame->cb, lame->filename))
       return 0;
   
-    lame->output = fopen(lame->filename, "wb+");
-    if(!lame->output)
+    f = fopen(lame->filename, "wb+");
+    if(f)
       {
       bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Cannot open %s: %s",
              filename, strerror(errno));
       return 0;
       }
+    io = gavf_io_create_file(f, 1, 1, 1);
     }
-
-  // lame->com.write_callback = write_callback;
-  // lame->com.write_priv = lame->output;
-  
-  if(lame->do_id3v2 && metadata)
-    {
-    id3v2 = bgen_id3v2_create(metadata);
-    if(!bgen_id3v2_write(lame->output, id3v2, lame->id3v2_charset))
-      ret = 0;
-    bgen_id3v2_destroy(id3v2);
-    }
-
-  /* Create id3v1 tag. It will be appended to the file at the very end */
-
-  if(lame->do_id3v1 && metadata)
-    {
-    lame->id3v1 = bgen_id3v1_create(metadata);
-    }
-  
-  return ret;
+ 
+  return open_io_lame(data, io, metadata, chapter_list);
   }
 
 static int
@@ -226,9 +232,9 @@ writes_compressed_audio_lame(void * data, const gavl_audio_format_t * format,
   if(ci->id != GAVL_CODEC_ID_MP3)
     return 0;
   
-  if((ci->bitrate == GAVL_BITRATE_VBR) && (lame->output == stdout))
+  if((ci->bitrate == GAVL_BITRATE_VBR) && (!gavf_io_can_seek(lame->output)))
     {
-    bg_log(BG_LOG_WARNING, LOG_DOMAIN, "VBR mp3 cannot be written to stdout");
+    bg_log(BG_LOG_WARNING, LOG_DOMAIN, "VBR mp3 cannot be written to streaming output");
     return 0;
     }
   return 1;
@@ -245,7 +251,7 @@ write_audio_packet_func_lame(void * data, gavl_packet_t * p)
      !lame->xing)
     {
     lame->xing = bg_xing_create(p->data, p->data_len);
-    lame->xing_pos = ftell(lame->output);
+    lame->xing_pos = gavf_io_position(lame->output);
     
     if(!bg_xing_write(lame->xing, lame->output))
       return GAVL_SINK_ERROR;
@@ -254,7 +260,7 @@ write_audio_packet_func_lame(void * data, gavl_packet_t * p)
   if(lame->xing)
     bg_xing_update(lame->xing, p->data_len);
   
-  if(fwrite(p->data, 1, p->data_len, lame->output) < p->data_len)
+  if(gavf_io_write_data(lame->output, p->data, p->data_len) < p->data_len)
     return GAVL_SINK_ERROR;
   return GAVL_SINK_OK;
   }
@@ -314,9 +320,9 @@ static int start_lame(void * data)
                                &lame->fmt,
                                NULL);
 
-    if((lame->ci.bitrate == GAVL_BITRATE_VBR) && (lame->output == stdout))
+    if((lame->ci.bitrate == GAVL_BITRATE_VBR) && (!gavf_io_can_seek(lame->output)))
       {
-      bg_log(BG_LOG_WARNING, LOG_DOMAIN, "Won't write VBR mp3 to stdout");
+      bg_log(BG_LOG_WARNING, LOG_DOMAIN, "Won't write VBR mp3 to streaming output");
       return 0;
       }
 
@@ -337,34 +343,34 @@ static int close_lame(void * data, int do_delete)
   /* Write xing tag */  
   if(lame->xing)
     {
-    uint64_t pos = ftell(lame->output);
-    fseek(lame->output, lame->xing_pos, SEEK_SET);
+    uint64_t pos = gavf_io_position(lame->output);
+    gavf_io_seek(lame->output, lame->xing_pos, SEEK_SET);
     bg_xing_write(lame->xing, lame->output);
-    fseek(lame->output, pos, SEEK_SET);
+    gavf_io_seek(lame->output, pos, SEEK_SET);
     }
   
   /* Write ID3V1 tag */
 
-  if(lame->output && (lame->output != stdout))
+  if(lame->output)
     {
-    if(lame->output == stdout)
+    if(!gavf_io_can_seek(lame->output))
       {
-      fflush(lame->output);
+      gavf_io_flush(lame->output);
       }
     else
       {
       if(ret && lame->id3v1)
         {
-        fseek(lame->output, 0, SEEK_END);
+        gavf_io_seek(lame->output, 0, SEEK_END);
         if(!bgen_id3v1_write(lame->output, lame->id3v1))
           ret = 0;
         bgen_id3v1_destroy(lame->id3v1);
         lame->id3v1 = NULL;
         }
-    /* 4. Close output file */
-      fclose(lame->output);
-      lame->output = NULL;
       }
+    /* 4. Close output file */
+    gavf_io_destroy(lame->output);
+    lame->output = NULL;
     }
   /* Clean up */
   //  bg_lame_close(&lame->com);

@@ -28,6 +28,8 @@
 #include <gavl/metadata.h>
 #include <gavl/edl.h>
 
+#include <gavl/gavf.h>
+
 #include <gmerlin/parameter.h>
 #include <gmerlin/streaminfo.h>
 #include <gmerlin/accelerator.h>
@@ -119,6 +121,7 @@ typedef int (*bg_read_video_func_t)(void * priv, gavl_video_frame_t* frame,
 #define BG_PLUGIN_BROADCAST       (1<<16)  //!< Plugin can broadcasts (e.g. webstreams)
 #define BG_PLUGIN_DEVPARAM        (1<<17)  //!< Plugin has pluggable devices as parameters, which must be updated regurarly
 #define BG_PLUGIN_OV_STILL        (1<<18)  //!< OV plugin supports still images
+#define BG_PLUGIN_GAVF_IO         (1<<19)  //!< Plugin can read/write to/from a gavf I/O handle
 
 #define BG_PLUGIN_AUDIO_COMPRESSOR    (1<<19)  //!< Plugin compresses audio
 #define BG_PLUGIN_VIDEO_COMPRESSOR    (1<<20)  //!< Plugin compresses video
@@ -505,11 +508,7 @@ struct bg_input_plugin_s
    *  \returns 1 on success, 0 on failure
    */
 
-  int (*open_callbacks)(void * priv,
-                        int (*read_callback)(void * priv, uint8_t * data, int len),
-                        int64_t (*seek_callback)(void * priv, uint64_t pos, int whence),
-                        void * cb_priv, const char * filename, const char * mimetype,
-                        int64_t total_bytes);
+  int (*open_io)(void * priv, gavf_io_t * io);
   
   /** \brief Get the edl (optional)
    *  \param priv The handle returned by the create() method
@@ -1544,7 +1543,20 @@ struct bg_encoder_plugin_s
   int (*open)(void * data, const char * filename,
               const gavl_metadata_t * metadata,
               const gavl_chapter_list_t * chapter_list);
-  
+ 
+
+ /** \brief Open an encoder with a gavf IO handle
+   *  \param priv The handle returned by the create() method
+   *  \param io IO handle
+   *  \param metadata Metadata to be written to the file
+   *  \param chapter_list Chapter list (optional, can be NULL)
+   */
+
+  int (*open_io)(void * data, gavf_io_t * io,
+                 const gavl_metadata_t * metadata,
+                 const gavl_chapter_list_t * chapter_list);
+
+ 
   /* Return per stream parameters */
 
   /** \brief Get audio related parameters

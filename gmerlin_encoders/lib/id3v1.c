@@ -193,9 +193,9 @@ bgen_id3v1_t * bgen_id3v1_create(const gavl_metadata_t * m)
   return ret;
   }
 
-int bgen_id3v1_write(FILE * output, const bgen_id3v1_t * tag)
+int bgen_id3v1_write(gavf_io_t * output, const bgen_id3v1_t * tag)
   {
-  if(fwrite(tag->data, 1, 128, output) < 128)
+  if(gavf_io_write_data(output, (uint8_t*)tag->data, 128) < 128)
     return 0;
   return 1;
   }

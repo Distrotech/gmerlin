@@ -39,7 +39,7 @@
 
 #define MK_FOURCC(a, b, c, d) ((a<<24)|(b<<16)|(c<<8)|d)
 
-static int write_fourcc(FILE * output, uint32_t fourcc)
+static int write_fourcc(gavf_io_t * output, uint32_t fourcc)
   {
   uint8_t data[4];
 
@@ -48,7 +48,7 @@ static int write_fourcc(FILE * output, uint32_t fourcc)
   data[2] = (fourcc >> 8) & 0xff;
   data[3] = (fourcc) & 0xff;
 
-  if(fwrite(data, 1, 4, output) < 4)
+  if(gavf_io_write_data(output, data, 4) < 4)
     return 0;
   return 1;
   }
@@ -158,20 +158,20 @@ bgen_id3v2_t * bgen_id3v2_create(const gavl_metadata_t * m)
   return ret;
   }
 
-static int write_32_syncsave(FILE * output, uint32_t num)
+static int write_32_syncsave(gavf_io_t * output, uint32_t num)
   {
   uint8_t data[4];
   data[0] = (num >> 21) & 0x7f;
   data[1] = (num >> 14) & 0x7f;
   data[2] = (num >> 7) & 0x7f;
   data[3] = num & 0x7f;
-  if(fwrite(data, 1, 4, output) < 4)
+  if(gavf_io_write_data(output, data, 4) < 4)
     return 0;
   return 1;
   }
 
-static int write_frame(FILE * output, id3v2_frame_t * frame,
-                       int encoding)
+static int write_frame(gavf_io_t * output, id3v2_frame_t * frame,
+                       uint8_t encoding)
   {
   uint8_t flags[2] = { 0x00, 0x00 };
   uint8_t comm_header[3] = { 'X', 'X', 'X' };
@@ -191,18 +191,18 @@ static int write_frame(FILE * output, id3v2_frame_t * frame,
   if(!write_fourcc(output, frame->fourcc))
     return 0;
   
-  size_pos = ftell(output);
+  size_pos = gavf_io_position(output);
 
   if(!write_32_syncsave(output, 0))
     return 0;
   
   /* Frame flags are zero */
 
-  if(fwrite(flags, 1, 2, output) < 2)
+  if(gavf_io_write_data(output, flags, 2) < 2)
     return 0;
   
   /* Encoding */
-  if(fwrite(&encoding, 1, 1, output) < 1)
+  if(gavf_io_write_data(output, &encoding, 1) < 1)
     return 0;
   
   /* For COMM frames, we need to set the language as well */
@@ -210,7 +210,7 @@ static int write_frame(FILE * output, id3v2_frame_t * frame,
   if(frame->fourcc == MK_FOURCC('C','O','M','M'))  
     {
     is_comment = 1;
-    if(fwrite(comm_header, 1, 3, output) < 3)
+    if(gavf_io_write_data(output, comm_header, 3) < 3)
       return 0;
     }
 
@@ -219,13 +219,13 @@ static int write_frame(FILE * output, id3v2_frame_t * frame,
     case ID3_ENCODING_LATIN1:
       if(is_comment)
         {
-        if(fwrite(terminator, 1, 1, output) < 1)
+        if(gavf_io_write_data(output, terminator, 1) < 1)
           return 0;
         }
       cnv = bg_charset_converter_create("UTF-8", "ISO-8859-1");
       str = bg_convert_string(cnv, frame->str, -1, NULL );
       len = strlen(str)+1;
-      if(fwrite(str, 1, len, output) < len)
+      if(gavf_io_write_data(output, (uint8_t*)str, len) < len)
         return 0;
       bg_charset_converter_destroy(cnv);
       free(str);
@@ -234,19 +234,19 @@ static int write_frame(FILE * output, id3v2_frame_t * frame,
       /* Short Comment */
       if(is_comment)
         {
-        if(fwrite(bom, 1, 2, output) < 2)
+        if(gavf_io_write_data(output, bom, 2) < 2)
           return 0;
-        if(fwrite(terminator, 1, 2, output) < 2)
+        if(gavf_io_write_data(output, terminator, 2) < 2)
           return 0;
         }
       /* Long Comment */
-      if(fwrite(bom, 1, 2, output) < 2)
+      if(gavf_io_write_data(output, bom, 2) < 2)
         return 0;
       cnv = bg_charset_converter_create("UTF-8", "UTF-16LE");
       str = bg_convert_string(cnv, frame->str, -1, &len);
-      if(fwrite(str, 1, len, output) < len)
+      if(gavf_io_write_data(output, (uint8_t*)str, len) < len)
         return 0;
-      if(fwrite(terminator, 1, 2, output) < 2)
+      if(gavf_io_write_data(output, terminator, 2) < 2)
         return 0;
       bg_charset_converter_destroy(cnv);
       free(str);
@@ -255,15 +255,15 @@ static int write_frame(FILE * output, id3v2_frame_t * frame,
       if(is_comment)
         {
         /* Short Comment */
-        if(fwrite(terminator, 1, 2, output) < 2)
+        if(gavf_io_write_data(output, terminator, 2) < 2)
           return 0;
         }
       /* Long Comment */
       cnv = bg_charset_converter_create("UTF-8", "UTF-16BE");
       str = bg_convert_string(cnv, frame->str, -1, &len);
-      if(fwrite(str, 1, len, output) < len)
+      if(gavf_io_write_data(output, (uint8_t*)str, len) < len)
         return 0;
-      if(fwrite(terminator, 1, 2, output) < 2)
+      if(gavf_io_write_data(output, terminator, 2) < 2)
         return 0;
       bg_charset_converter_destroy(cnv);
       free(str);
@@ -271,29 +271,29 @@ static int write_frame(FILE * output, id3v2_frame_t * frame,
     case ID3_ENCODING_UTF8:
       if(is_comment)
         {
-        if(fwrite(terminator, 1, 1, output) < 1)
+        if(gavf_io_write_data(output, terminator, 1) < 1)
           return 0;
         }
       /* Then, write the string including terminating 0x00 character */
       len = strlen(frame->str)+1;
       
-      if(fwrite(frame->str, 1, len, output) < len)
+      if(gavf_io_write_data(output, (uint8_t*)frame->str, len) < len)
         return 0;
       break;
     }
   
 
-  end_pos = ftell(output);
+  end_pos = gavf_io_position(output);
   size = end_pos - size_pos - 6;
   
-  fseek(output, size_pos, SEEK_SET);
+  gavf_io_seek(output, size_pos, SEEK_SET);
   if(!write_32_syncsave(output, size))
     return 0;
-  fseek(output, end_pos, SEEK_SET);
+  gavf_io_seek(output, end_pos, SEEK_SET);
   return 1;
   }
 
-int bgen_id3v2_write(FILE * output, const bgen_id3v2_t * tag,
+int bgen_id3v2_write(gavf_io_t * output, const bgen_id3v2_t * tag,
                      int encoding)
   {
   int i;
@@ -309,12 +309,12 @@ int bgen_id3v2_write(FILE * output, const bgen_id3v2_t * tag,
 
   /* Write header */
 
-  if(fwrite(header, 1, 6, output) < 6)
+  if(gavf_io_write_data(output, header, 6) < 6)
     return 0;
   
   /* Write dummy size (will be filled in later) */
 
-  size_pos = ftell(output);
+  size_pos = gavf_io_position(output);
   write_32_syncsave(output, 0);
 
   /* Write all frames */
@@ -324,12 +324,12 @@ int bgen_id3v2_write(FILE * output, const bgen_id3v2_t * tag,
     write_frame(output, &tag->frames[i], encoding);
     }
 
-  end_pos = ftell(output);
+  end_pos = gavf_io_position(output);
   size = end_pos - size_pos - 4;
 
-  fseek(output, size_pos, SEEK_SET);
+  gavf_io_seek(output, size_pos, SEEK_SET);
   write_32_syncsave(output, size);
-  fseek(output, end_pos, SEEK_SET);
+  gavf_io_seek(output, end_pos, SEEK_SET);
   return 1;
   }
 

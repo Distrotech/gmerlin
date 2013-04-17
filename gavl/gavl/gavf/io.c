@@ -3,6 +3,7 @@
 #include <math.h>
 
 #include <gavfprivate.h>
+#include <gavl/utils.h>
 
 void gavf_io_init(gavf_io_t * ret,
                   gavf_read_func  r,
@@ -21,6 +22,10 @@ void gavf_io_init(gavf_io_t * ret,
   ret->priv = priv;
   }
 
+int gavf_io_can_seek(gavf_io_t * io)
+  {
+  return io->seek_func ? 1 : 0;
+  }
 
 gavf_io_t * gavf_io_create(gavf_read_func  r,
                            gavf_write_func w,
@@ -42,8 +47,37 @@ void gavf_io_destroy(gavf_io_t * io)
   {
   if(io->close_func)
     io->close_func(io->priv);
+  if(io->filename)
+    free(io->filename);
+  if(io->mimetype)
+    free(io->mimetype);
   free(io);
   }
+
+void gavf_io_set_info(gavf_io_t * io, int64_t total_bytes, const char * filename, const char * mimetype)
+  {
+  if(total_bytes > 0)
+    io->total_bytes = total_bytes;
+  io->filename = gavl_strrep(io->filename, filename);
+  io->mimetype = gavl_strrep(io->filename, mimetype);
+  }
+
+int64_t gavf_io_total_bytes(gavf_io_t * io)
+  {
+  return io->total_bytes;
+  }
+
+const char * gavf_io_filename(gavf_io_t * io)
+  {
+  return io->filename;
+  }
+
+const char * gavf_io_mimetype(gavf_io_t * io)
+  {
+  return io->mimetype;
+  }
+
+
 
 int gavf_io_flush(gavf_io_t * io)
   {
@@ -61,6 +95,11 @@ int gavf_io_flush(gavf_io_t * io)
 int gavf_io_got_error(gavf_io_t * io)
   {
   return io->got_error;
+  }
+
+int64_t gavf_io_position(gavf_io_t * io)
+  {
+  return io->position;
   }
 
 int gavf_io_read_data(gavf_io_t * io, uint8_t * buf, int len)

@@ -62,6 +62,34 @@ void gavf_io_set_cb(gavf_io_t * io, gavf_io_cb_func cb, void * cb_priv);
 GAVL_PUBLIC
 int gavf_io_got_error(gavf_io_t * io);
 
+GAVL_PUBLIC
+int gavf_io_can_seek(gavf_io_t * io);
+
+GAVL_PUBLIC
+int gavf_io_read_data(gavf_io_t * io, uint8_t * buf, int len);
+
+GAVL_PUBLIC
+int gavf_io_write_data(gavf_io_t * io, const uint8_t * buf, int len);
+
+GAVL_PUBLIC
+int64_t gavf_io_seek(gavf_io_t * io, int64_t pos, int whence);
+
+GAVL_PUBLIC
+int64_t gavf_io_total_bytes(gavf_io_t * io);
+
+GAVL_PUBLIC
+const char * gavf_io_filename(gavf_io_t * io);
+
+GAVL_PUBLIC
+const char * gavf_io_mimetype(gavf_io_t * io);
+
+GAVL_PUBLIC
+void gavf_io_set_info(gavf_io_t * io, int64_t total_bytes, const char * filename, const char * mimetype);
+
+GAVL_PUBLIC
+int64_t gavf_io_position(gavf_io_t * io);
+
+
 /* Stream information */
 
 typedef enum
