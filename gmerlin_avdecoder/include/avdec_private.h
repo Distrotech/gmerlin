@@ -1618,7 +1618,7 @@ char * bgav_search_file_read(const bgav_options_t * opt,
 
 int bgav_match_regexp(const char * str, const char * regexp);
 
-char * bgav_escape_string(char * old_string, const char * escape_chars);
+// char * bgav_escape_string(char * old_string, const char * escape_chars);
 
 uint32_t bgav_compression_id_2_fourcc(gavl_codec_id_t id);
 

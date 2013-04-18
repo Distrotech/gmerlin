@@ -623,6 +623,7 @@ const char * bgav_coding_type_to_string(int type)
   return coding_type_strings[type & GAVL_PACKET_TYPE_MASK];
   }
 
+#if 0
 char * bgav_escape_string(char * old_string, const char * escape_chars)
   {
   char escape_seq[3];
@@ -693,6 +694,7 @@ char * bgav_escape_string(char * old_string, const char * escape_chars)
     }
   return NULL; // Never get here
   }
+#endif
 
 static const struct
   {

@@ -786,7 +786,7 @@ bgav_subtitle_reader_open(bgav_input_context_t * input_ctx)
 
   //  fprintf(stderr, "Unescaped pattern: %s\n", pattern);
 
-  pattern = bgav_escape_string(pattern, "[]?");
+  pattern = gavl_escape_string(pattern, "[]?");
 
   //  fprintf(stderr, "Escaped pattern: %s\n", pattern);
   

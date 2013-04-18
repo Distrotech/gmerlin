@@ -159,4 +159,15 @@ char * gavl_strcat(char * old, const char * tail);
 GAVL_PUBLIC
 char * gavl_strncat(char * old, const char * start, const char * end);
 
+/** \brief Escape a string
+ *  \param old Old string (will be freed)
+ *  \param escape_chars Characters to escape
+ *
+ *  This returns a newly allocated string with all characters
+ *  occuring in escape_chars preceded by a backslash
+ */
+
+GAVL_PUBLIC
+char * gavl_escape_string(char * old, const char * escape_chars);
+
 /* @} */
