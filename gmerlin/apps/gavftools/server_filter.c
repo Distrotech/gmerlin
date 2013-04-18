@@ -19,10 +19,53 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  * *****************************************************************/
 
+#include <string.h>
+
 #include "gavf-server.h"
 
 #define LOG_DOMAIN "gavf-server.client"
 
+typedef struct
+  {
+  int metaint;
+  int byte_counter;
+  gavl_metadata_t m;
+  int changed;
+  } icy_metadata_t;
+
+static void icy_metadata_init(icy_metadata_t * m,
+                              const gavl_metadata_t * req,
+                              gavl_metadata_t * res)
+  {
+  int val;
+  if(gavl_metadata_get_int(req, "Icy-MetaData", &val) &&
+     (val > 0))
+    {
+    m->metaint = 16000;
+    gavl_metadata_set_int(res, "icy-metaint", m->metaint);
+    }
+  }
+
+static int icy_metadata_write(icy_metadata_t * m,
+                              uint8_t * data, int len,
+                              gavf_io_t * io)
+  {
+  if(!m->metaint)
+    return gavf_io_write_data(io, data, len);
+
+  if(len + m->byte_counter > m->metaint)
+    {
+
+    }
+
+  return len;
+  }
+
+static void icy_metadata_update(icy_metadata_t * m,
+                                const gavl_metadata_t * new_metadata)
+  {
+  
+  }
 
 /*
  *  bgplug
@@ -108,15 +151,36 @@ static void destroy_bgplug(void * priv)
  *  mp3
  */
 
+typedef struct
+  {
+  icy_metadata_t m;
+  gavf_io_t * io;
+  } mp3_t;
+
 static int supported_mp3()
   {
   return 1;
   }
 
 static int probe_mp3(const gavf_program_header_t * ph,
-                     const gavl_metadata_t * request)
+                     const gavl_metadata_t * req)
   {
-  return 0;
+  const char * var;
+  
+  /* bgplug applications will always get a gavf stream */
+  if((var = gavl_metadata_get(req, "User-Agent")) &&
+     !strcmp(var, bg_plug_app_id))
+    return 0;
+
+  if(ph->num_streams != 1)
+    return 0;
+  if(ph->streams[0].type != GAVF_STREAM_AUDIO)
+    return 0;
+  if(ph->streams[0].ci.id != GAVL_CODEC_ID_MP3)
+    return 0;
+  if(ph->streams[0].ci.bitrate == GAVL_BITRATE_VBR)
+    return 0;
+  return 1;
   }
 
 static void * create_mp3(const gavf_program_header_t * ph,
@@ -124,8 +188,8 @@ static void * create_mp3(const gavf_program_header_t * ph,
                          const gavl_metadata_t * vars,
                          gavl_metadata_t * res)
   {
-  return NULL;
-  
+  mp3_t * ret = calloc(1, sizeof(ret));
+  return ret; 
   }
 
 static int start_mp3(void * priv,
@@ -134,11 +198,14 @@ static int start_mp3(void * priv,
                      const gavl_metadata_t * vars,
                      gavf_io_t * io, int flags)
   {
-  return 0;
+  mp3_t * m = priv;
+  m->io = io;
+  return 1;
   }
 
 static int put_buffer_mp3(void * priv, buffer_element_t * el)
   {
+  mp3_t * m = priv;
   return 0;
   }
 
@@ -151,14 +218,6 @@ static void destroy_mp3(void * priv)
 
 static filter_t filters[] =
   {
-    {
-    .supported = supported_bgplug,
-    .probe = probe_bgplug,
-    .create = create_bgplug,
-    .start = start_bgplug,
-    .put_buffer = put_buffer_bgplug,
-    .destroy = destroy_bgplug,
-    },
     {
     .supported = supported_mp3,
     .probe = probe_mp3,
@@ -177,6 +236,15 @@ static filter_t filters[] =
     .destroy = destroy_aac,
     },
 #endif
+/* bgplug must come as last entry! */
+    {
+    .supported = supported_bgplug,
+    .probe = probe_bgplug,
+    .create = create_bgplug,
+    .start = start_bgplug,
+    .put_buffer = put_buffer_bgplug,
+    .destroy = destroy_bgplug,
+    },
 
     { /* End */ },
   }; 
