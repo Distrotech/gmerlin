@@ -195,8 +195,8 @@ char * bg_create_unique_filename(char * template)
     sprintf(filename, template, count);
     }
   }
-
-char * bg_strcat(char * old_string, const char * tail)
+#if 0
+char * gavl_strcat(char * old_string, const char * tail)
   {
   if(!old_string)
     return gavl_strdup(tail);
@@ -206,7 +206,7 @@ char * bg_strcat(char * old_string, const char * tail)
   return old_string;
   }
 
-char * bg_strncat(char * old_string, const char * start, const char * end)
+char * gavl_strncat(char * old_string, const char * start, const char * end)
   {
   int old_len;
   
@@ -220,6 +220,7 @@ char * bg_strncat(char * old_string, const char * start, const char * end)
   old_string[old_len + end - start] = '\0';
   return old_string;
   }
+#endif
 
 char ** bg_strbreak(const char * str, char delim)
   {

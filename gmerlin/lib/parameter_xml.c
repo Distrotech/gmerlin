@@ -136,8 +136,8 @@ static char * flags_to_string(int flags)
     {
     if(flag_names[i].flag & flags)
       {
-      if(num) ret = bg_strcat(ret, "|");
-      ret = bg_strcat(ret, flag_names[i].name);
+      if(num) ret = gavl_strcat(ret, "|");
+      ret = gavl_strcat(ret, flag_names[i].name);
       num++;
       }
     }

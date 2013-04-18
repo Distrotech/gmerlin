@@ -357,8 +357,8 @@ static int run_tesseract(bg_ocr_t * ocr, const gavl_video_format_t * format,
 
   if(ocr->lang[0] != '\0')
     {
-    commandline = bg_strcat(commandline, " -l ");
-    commandline = bg_strcat(commandline, bg_iso639_b_to_t(ocr->lang));
+    commandline = gavl_strcat(commandline, " -l ");
+    commandline = gavl_strcat(commandline, bg_iso639_b_to_t(ocr->lang));
     }
   
   if(bg_system(commandline))

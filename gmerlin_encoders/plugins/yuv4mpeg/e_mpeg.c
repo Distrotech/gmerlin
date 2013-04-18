@@ -372,17 +372,17 @@ static char * get_filename(e_mpeg_t * e, const char * extension, int is_audio)
     if(!end)
       end = start + strlen(start);
 
-    template = bg_strncat(template, start, end);
+    template = gavl_strncat(template, start, end);
     }
   if(is_audio)
     {
-    template = bg_strcat(template, "_audio_%04d.");
+    template = gavl_strcat(template, "_audio_%04d.");
     }
   else
     {
-    template = bg_strcat(template, "_video_%04d.");
+    template = gavl_strcat(template, "_video_%04d.");
     }
-  template = bg_strcat(template, extension);
+  template = gavl_strcat(template, extension);
   ret = bg_create_unique_filename(template);
   free(template);
   return ret;
@@ -571,7 +571,7 @@ static int close_mpeg(void * data, int do_delete)
     /* Options */
 
     tmp_string = bg_sprintf(" -f %d", e->format);
-    commandline = bg_strcat(commandline, tmp_string);
+    commandline = gavl_strcat(commandline, tmp_string);
     free(tmp_string);
 
     if(sync_offset)
@@ -580,45 +580,45 @@ static int close_mpeg(void * data, int do_delete)
              "Video sync offset: %"PRId64, sync_offset);
 
       tmp_string = bg_sprintf(" --sync-offset %"PRId64"mpt", sync_offset);
-      commandline = bg_strcat(commandline, tmp_string);
+      commandline = gavl_strcat(commandline, tmp_string);
       free(tmp_string);
       }
     
-    commandline = bg_strcat(commandline, " -v 0 -o \"");
+    commandline = gavl_strcat(commandline, " -v 0 -o \"");
     
-    commandline = bg_strcat(commandline, e->filename);
-    commandline = bg_strcat(commandline, "\"");
+    commandline = gavl_strcat(commandline, e->filename);
+    commandline = gavl_strcat(commandline, "\"");
     
     /* Audio and video streams */
     for(i = 0; i < e->num_video_streams; i++)
       {
       tmp_string = bg_sprintf(" \"%s\"", e->video_streams[i].filename);
-      commandline = bg_strcat(commandline, tmp_string);
+      commandline = gavl_strcat(commandline, tmp_string);
       free(tmp_string);
       }
     for(i = 0; i < e->num_audio_streams; i++)
       {
       tmp_string = bg_sprintf(" \"%s\"", e->audio_streams[i].filename);
-      commandline = bg_strcat(commandline, tmp_string);
+      commandline = gavl_strcat(commandline, tmp_string);
       free(tmp_string);
       }
     /* Other streams */
     if(e->aux_stream_1)
       {
       tmp_string = bg_sprintf(" \"%s\"", e->aux_stream_1);
-      commandline = bg_strcat(commandline, tmp_string);
+      commandline = gavl_strcat(commandline, tmp_string);
       free(tmp_string);
       }
     if(e->aux_stream_2)
       {
       tmp_string = bg_sprintf(" \"%s\"", e->aux_stream_2);
-      commandline = bg_strcat(commandline, tmp_string);
+      commandline = gavl_strcat(commandline, tmp_string);
       free(tmp_string);
       }
     if(e->aux_stream_3)
       {
       tmp_string = bg_sprintf(" \"%s\"", e->aux_stream_3);
-      commandline = bg_strcat(commandline, tmp_string);
+      commandline = gavl_strcat(commandline, tmp_string);
       free(tmp_string);
       }
     

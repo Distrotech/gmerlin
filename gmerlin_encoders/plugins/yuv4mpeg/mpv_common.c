@@ -219,7 +219,7 @@ static char * bg_mpv_make_commandline(bg_mpv_common_t * com, const char * filena
   if(com->format != FORMAT_VCD)
     {
     tmp_string = bg_sprintf(" -R %d", com->bframes);
-    ret = bg_strcat(ret, tmp_string);
+    ret = gavl_strcat(ret, tmp_string);
     free(tmp_string);
     }
 
@@ -232,27 +232,27 @@ static char * bg_mpv_make_commandline(bg_mpv_common_t * com, const char * filena
       if(com->bitrate_mode == BITRATE_VBR)
         {
         tmp_string = bg_sprintf(" -q %d", com->quantization);
-        ret = bg_strcat(ret, tmp_string);
+        ret = gavl_strcat(ret, tmp_string);
         free(tmp_string);
         }
       }
     else
       {
       if(com->bitrate_mode == BITRATE_CBR)
-        ret = bg_strcat(ret, " --cbr");
+        ret = gavl_strcat(ret, " --cbr");
       else
         {
         tmp_string = bg_sprintf(" -q %d", com->quantization);
-        ret = bg_strcat(ret, tmp_string);
+        ret = gavl_strcat(ret, tmp_string);
         free(tmp_string);
         }
 
       tmp_string = bg_sprintf(" -K %s", com->quant_matrix);
-      ret = bg_strcat(ret, tmp_string);
+      ret = gavl_strcat(ret, tmp_string);
       free(tmp_string);
       }
     tmp_string = bg_sprintf(" -b %d", com->bitrate);
-    ret = bg_strcat(ret, tmp_string);
+    ret = gavl_strcat(ret, tmp_string);
     free(tmp_string);
     }
   
@@ -261,21 +261,21 @@ static char * bg_mpv_make_commandline(bg_mpv_common_t * com, const char * filena
   /* Verbosity level: Too many messages on std[out|err] are not
      useful for GUI applications */
   
-  ret = bg_strcat(ret, " -v 0");
+  ret = gavl_strcat(ret, " -v 0");
   
   /* User options */
 
   if(com->user_options)
     {
     tmp_string = bg_sprintf(" %s", com->user_options);
-    ret = bg_strcat(ret, tmp_string);
+    ret = gavl_strcat(ret, tmp_string);
     free(tmp_string);
     }
   
   /* Output file */
 
   tmp_string = bg_sprintf(" -o \"%s\"", filename);
-  ret = bg_strcat(ret, tmp_string);
+  ret = gavl_strcat(ret, tmp_string);
   free(tmp_string);
   
   return ret;

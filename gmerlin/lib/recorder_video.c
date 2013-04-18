@@ -506,7 +506,7 @@ static char * create_snapshot_filename(bg_recorder_t * rec, int * have_count)
       }
     
     if(end - pos)
-      filename = bg_strncat(filename, pos, end);
+      filename = gavl_strncat(filename, pos, end);
     
     if(*end == '\0')
       break;
@@ -522,7 +522,7 @@ static char * create_snapshot_filename(bg_recorder_t * rec, int * have_count)
       mask[3] = 'd';
       mask[4] = '\0';
       sprintf(buf, mask, rec->vs.snapshot_counter);
-      filename = bg_strcat(filename, buf);
+      filename = gavl_strcat(filename, buf);
       pos += 3;
 
       if(have_count)
@@ -538,7 +538,7 @@ static char * create_snapshot_filename(bg_recorder_t * rec, int * have_count)
         have_time = 1;
         }
       strftime(buf, BUFFER_SIZE, "%Y-%m-%d", &time_date);
-      filename = bg_strcat(filename, buf);
+      filename = gavl_strcat(filename, buf);
       pos += 2;
       }
     /* Insert date */
@@ -551,12 +551,12 @@ static char * create_snapshot_filename(bg_recorder_t * rec, int * have_count)
         have_time = 1;
         }
       strftime(buf, BUFFER_SIZE, "%H-%M-%S", &time_date);
-      filename = bg_strcat(filename, buf);
+      filename = gavl_strcat(filename, buf);
       pos += 2;
       }
     else
       {
-      filename = bg_strcat(filename, "%");
+      filename = gavl_strcat(filename, "%");
       pos++;
       }
     }

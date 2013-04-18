@@ -433,35 +433,35 @@ bg_plugin_info_t * bg_lv_get_info(const char * filename)
     {
     tmp_string = bg_sprintf(TR("\nAuthor: %s"),
                             info->author);
-    ret->description = bg_strcat(ret->description, tmp_string);
+    ret->description = gavl_strcat(ret->description, tmp_string);
     free(tmp_string);
     }
   if(info->version && *info->version)
     {
     tmp_string = bg_sprintf(TR("\nVersion: %s"),
                             info->version);
-    ret->description = bg_strcat(ret->description, tmp_string);
+    ret->description = gavl_strcat(ret->description, tmp_string);
     free(tmp_string);
     }
   if(info->about && *info->about)
     {
     tmp_string = bg_sprintf(TR("\nAbout: %s"),
                             info->about);
-    ret->description = bg_strcat(ret->description, tmp_string);
+    ret->description = gavl_strcat(ret->description, tmp_string);
     free(tmp_string);
     }
   if(info->help && *info->help)
     {
     tmp_string = bg_sprintf(TR("\nHelp: %s"),
                             info->help);
-    ret->description = bg_strcat(ret->description, tmp_string);
+    ret->description = gavl_strcat(ret->description, tmp_string);
     free(tmp_string);
     }
   if(info->license && *info->license)
     {
     tmp_string = bg_sprintf(TR("\nLicense: %s"),
                             info->license);
-    ret->description = bg_strcat(ret->description, tmp_string);
+    ret->description = gavl_strcat(ret->description, tmp_string);
     free(tmp_string);
     }
   

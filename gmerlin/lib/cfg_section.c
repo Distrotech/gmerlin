@@ -322,12 +322,12 @@ static char * parse_string(const char * str, int * len_ret)
         {
         end_c++;
         cpy_str[0] = *end_c;
-        ret = bg_strcat(ret, cpy_str);
+        ret = gavl_strcat(ret, cpy_str);
         }
       else
         {
         cpy_str[0] = *end_c;
-        ret = bg_strcat(ret, cpy_str);
+        ret = gavl_strcat(ret, cpy_str);
         }
       }
     else if((*end_c == ':') ||
@@ -339,7 +339,7 @@ static char * parse_string(const char * str, int * len_ret)
     else
       {
       cpy_str[0] = *end_c;
-      ret = bg_strcat(ret, cpy_str);
+      ret = gavl_strcat(ret, cpy_str);
       }
     end_c++;
     }
@@ -547,8 +547,8 @@ bg_cfg_section_set_parameters_from_string(bg_cfg_section_t * sec,
             }
           str += len;
           if(item->value.val_str)
-            item->value.val_str = bg_strcat(item->value.val_str, ",");
-          item->value.val_str = bg_strcat(item->value.val_str, tmp_string);
+            item->value.val_str = gavl_strcat(item->value.val_str, ",");
+          item->value.val_str = gavl_strcat(item->value.val_str, tmp_string);
 
           /* Create subsection (regardless of we have subparameters or not) */
           subsection = bg_cfg_section_find_subsection(real_section, info->name);

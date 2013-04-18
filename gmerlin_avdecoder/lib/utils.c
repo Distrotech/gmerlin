@@ -138,7 +138,7 @@ char * bgav_strdup(const char * str)
   return (bgav_strndup(str, NULL));
   }
 #endif
-
+#if 0
 char * bgav_strncat(char * old, const char * start, const char * end)
   {
   int len, old_len;
@@ -150,7 +150,7 @@ char * bgav_strncat(char * old, const char * start, const char * end)
   old[old_len + len] = '\0';
   return old;
   }
-
+#endif
 static char * remove_spaces(char * old)
   {
   char * pos1, *pos2, *ret;
@@ -667,7 +667,7 @@ char * bgav_escape_string(char * old_string, const char * escape_chars)
 
     if(end - start)
       {
-      new_string = bgav_strncat(new_string, start, end);
+      new_string = gavl_strncat(new_string, start, end);
       start = end;
       }
 
@@ -681,7 +681,7 @@ char * bgav_escape_string(char * old_string, const char * escape_chars)
     while((pos = index(escape_chars, *start)))
       {
       escape_seq[1] = *pos;
-      new_string = bgav_strncat(new_string, escape_seq, NULL);
+      new_string = gavl_strcat(new_string, escape_seq);
       start++;
       }
     end = start;

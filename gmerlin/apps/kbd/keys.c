@@ -95,8 +95,8 @@ char * kbd_modifiers_to_string(uint32_t state)
       {
       if(ret)
         {
-        ret = bg_strcat(ret, "+");
-        ret = bg_strcat(ret, modifiers[i].name);
+        ret = gavl_strcat(ret, "+");
+        ret = gavl_strcat(ret, modifiers[i].name);
         }
       else
         ret = gavl_strdup(modifiers[i].name);

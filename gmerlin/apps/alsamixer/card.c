@@ -219,10 +219,10 @@ alsa_card_t * alsa_card_create(int index)
       label = NULL;
       for(i = 0; i < num_strings; i++)
         {
-        label = bg_strcat(label, strings[i]);
+        label = gavl_strcat(label, strings[i]);
         if(i < num_strings - 1)
           {
-          label = bg_strcat(label, " ");
+          label = gavl_strcat(label, " ");
           }
         }
       }

@@ -336,7 +336,7 @@ char * bg_create_track_name(const gavl_metadata_t * metadata,
     while((*end != '%') && (*end != '\0'))
       end++;
     if(end != f)
-      ret = bg_strncat(ret, f, end);
+      ret = gavl_strncat(ret, f, end);
 
     if(*end == '%')
       {
@@ -348,7 +348,7 @@ char * bg_create_track_name(const gavl_metadata_t * metadata,
         end++;
         tag = gavl_metadata_get(metadata, GAVL_META_ARTIST);
         if(tag)
-          ret = bg_strcat(ret, tag);
+          ret = gavl_strcat(ret, tag);
         else
           goto fail;
         }
@@ -358,7 +358,7 @@ char * bg_create_track_name(const gavl_metadata_t * metadata,
         end++;
         tag = gavl_metadata_get(metadata, GAVL_META_ALBUM);
         if(tag)
-          ret = bg_strcat(ret, tag);
+          ret = gavl_strcat(ret, tag);
         else
           goto fail;
         }
@@ -368,7 +368,7 @@ char * bg_create_track_name(const gavl_metadata_t * metadata,
         end++;
         tag = gavl_metadata_get(metadata, GAVL_META_GENRE);
         if(tag)
-          ret = bg_strcat(ret, tag);
+          ret = gavl_strcat(ret, tag);
         else
           goto fail;
         }
@@ -378,7 +378,7 @@ char * bg_create_track_name(const gavl_metadata_t * metadata,
         end++;
         tag = gavl_metadata_get(metadata, GAVL_META_TITLE);
         if(tag)
-          ret = bg_strcat(ret, tag);
+          ret = gavl_strcat(ret, tag);
         else
           goto fail;
         }
@@ -388,7 +388,7 @@ char * bg_create_track_name(const gavl_metadata_t * metadata,
         end++;
         tag = gavl_metadata_get(metadata, GAVL_META_COMMENT);
         if(tag)
-          ret = bg_strcat(ret, tag);
+          ret = gavl_strcat(ret, tag);
         else
           goto fail;
         }
@@ -400,7 +400,7 @@ char * bg_create_track_name(const gavl_metadata_t * metadata,
         if(tag_i > 0)
           {
           buf = bg_sprintf("%d", tag_i);
-          ret = bg_strcat(ret, buf);
+          ret = gavl_strcat(ret, buf);
           free(buf);
           }
         else
@@ -418,7 +418,7 @@ char * bg_create_track_name(const gavl_metadata_t * metadata,
           track_format[4] = '\0';
           
           buf = bg_sprintf(track_format, tag_i);
-          ret = bg_strcat(ret, buf);
+          ret = gavl_strcat(ret, buf);
           free(buf);
           end+=2;
           }
@@ -427,7 +427,7 @@ char * bg_create_track_name(const gavl_metadata_t * metadata,
         }
       else
         {
-        ret = bg_strcat(ret, "%");
+        ret = gavl_strcat(ret, "%");
         end++;
         }
       f = end;
@@ -440,7 +440,7 @@ char * bg_create_track_name(const gavl_metadata_t * metadata,
   return NULL;
   }
 
-#define META_STRCAT() ret = bg_strcat(ret, tmp); free(tmp)
+#define META_STRCAT() ret = gavl_strcat(ret, tmp); free(tmp)
 
 char * bg_metadata_to_string(const gavl_metadata_t * m, int use_tabs)
   {

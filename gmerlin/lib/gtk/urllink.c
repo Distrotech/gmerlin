@@ -50,7 +50,7 @@ static void button_callback(GtkWidget * w, GdkEventButton * evt,
   bg_gtk_urllink_t * u;
   u = (bg_gtk_urllink_t *)data;
   command = bg_sprintf(u->browser_command, u->url);
-  command = bg_strcat(command, " &");
+  command = gavl_strcat(command, " &");
   bg_system(command);
   }
 

@@ -1518,9 +1518,8 @@ static int handle_rmra(bgav_demuxer_context_t * ctx)
         {
         ctx->redirector->urls[index].url = gavl_strdup(basename);
         ctx->redirector->urls[index].url =
-          bgav_strncat(ctx->redirector->urls[index].url,
-                       (char*)priv->moov.rmra.rmda[i].rdrf.data_ref,
-                       NULL);
+          gavl_strcat(ctx->redirector->urls[index].url,
+                       (char*)priv->moov.rmra.rmda[i].rdrf.data_ref);
         }
       index++;
       }

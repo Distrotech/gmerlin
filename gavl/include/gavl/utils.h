@@ -140,9 +140,23 @@ GAVL_PUBLIC
 char * gavl_strndup(const char * new_string,
                     const char * new_string_end);
 
+/** \brief Concatenate two strings
+ *  \param old Old string (will be freed)
+ *  \param tail Will be appended to old_string
+ *  \returns A newly allocated string.
+ */
 
+GAVL_PUBLIC
+char * gavl_strcat(char * old, const char * tail);
 
+/** \brief Append a part of a string to another string
+ *  \param old Old string (will be freed)
+ *  \param start Start of the string to be appended
+ *  \param end Points to the first character after the end of the string to be appended
+ *  \returns A newly allocated string.
+ */
 
-  
+GAVL_PUBLIC
+char * gavl_strncat(char * old, const char * start, const char * end);
 
 /* @} */

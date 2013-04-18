@@ -194,7 +194,7 @@ char * bg_filename_ensure_extension(const char * filename,
  *  \returns A newly allocated string.
  */
 
-char * bg_strcat(char * old_string, const char * tail);
+// char * bg_strcat(char * old_string, const char * tail);
 
 /** \brief Append a part of a string to another string
  *  \param old_string Old string (will be freed)
@@ -203,7 +203,7 @@ char * bg_strcat(char * old_string, const char * tail);
  *  \returns A newly allocated string.
  */
 
-char * bg_strncat(char * old_string, const char * start, const char * end);
+// char * bg_strncat(char * old_string, const char * start, const char * end);
 
 /** \brief Convert an UTF-8 string to uppercase
  *  \param str String

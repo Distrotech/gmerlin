@@ -53,10 +53,10 @@ char * bg_audio_format_to_string(gavl_audio_format_t * f, int use_tabs)
 
   for(i = 0; i < f->num_channels; i++)
     {
-    channel_order = bg_strcat(channel_order,
+    channel_order = gavl_strcat(channel_order,
                               TRD(gavl_channel_id_to_string(f->channel_locations[i]), NULL));
     if(i < f->num_channels - 1)
-      channel_order = bg_strcat(channel_order, ", ");
+      channel_order = gavl_strcat(channel_order, ", ");
     }
   
   if(!use_tabs)
@@ -95,7 +95,7 @@ char * bg_video_format_to_string(gavl_video_format_t * format, int use_tabs)
   
   if(format->framerate_mode == GAVL_FRAMERATE_STILL)
     {
-    ret = bg_strcat(ret, TR("Still image\n"));
+    ret = gavl_strcat(ret, TR("Still image\n"));
     }
   else if(!format->frame_duration &&
           (format->framerate_mode == GAVL_FRAMERATE_VARIABLE))
@@ -106,7 +106,7 @@ char * bg_video_format_to_string(gavl_video_format_t * format, int use_tabs)
       s = TR("Framerate:\tVariable (timescale: %d)\n");
 
     str = bg_sprintf(s, format->timescale);
-    ret = bg_strcat(ret, str);
+    ret = gavl_strcat(ret, str);
     free(str);
     }
   else
@@ -123,7 +123,7 @@ char * bg_video_format_to_string(gavl_video_format_t * format, int use_tabs)
                  ((format->framerate_mode == GAVL_FRAMERATE_CONSTANT) ? TR(" (constant)") : 
                   TR(" (variable)")));
 
-    ret = bg_strcat(ret, str);
+    ret = gavl_strcat(ret, str);
     free(str);
     }
   if(!use_tabs)
@@ -134,7 +134,7 @@ char * bg_video_format_to_string(gavl_video_format_t * format, int use_tabs)
   str =
     bg_sprintf(s, TRD(gavl_interlace_mode_to_string(format->interlace_mode),
                       NULL));
-  ret = bg_strcat(ret, str);
+  ret = gavl_strcat(ret, str);
   free(str);
 
   if(format->pixelformat == GAVL_YUV_420_P)
@@ -144,7 +144,7 @@ char * bg_video_format_to_string(gavl_video_format_t * format, int use_tabs)
     else
       s = TR("\nChroma placement:\t%s");
     str = bg_sprintf(s, TRD(gavl_chroma_placement_to_string(format->chroma_placement), NULL));
-    ret = bg_strcat(ret, str);
+    ret = gavl_strcat(ret, str);
     free(str);
     }
 
@@ -155,7 +155,7 @@ char * bg_video_format_to_string(gavl_video_format_t * format, int use_tabs)
     else
       s = TR("\nTimecode rate:\t%d");
     str = bg_sprintf(s, format->timecode_format.int_framerate);
-    ret = bg_strcat(ret, str);
+    ret = gavl_strcat(ret, str);
     free(str);
 
     if(format->timecode_format.flags)
@@ -164,11 +164,11 @@ char * bg_video_format_to_string(gavl_video_format_t * format, int use_tabs)
         s = TR("\nTimecode flags: ");
       else
         s = TR("\nTimecode flags:\t");
-      ret = bg_strcat(ret, s);
+      ret = gavl_strcat(ret, s);
       
       if(format->timecode_format.flags &
          GAVL_TIMECODE_DROP_FRAME)
-        ret = bg_strcat(ret, TR("Drop "));
+        ret = gavl_strcat(ret, TR("Drop "));
       }
     }
   return ret;

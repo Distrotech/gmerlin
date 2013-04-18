@@ -113,13 +113,13 @@ static char * bg_mpa_make_commandline(bg_mpa_common_t * com,
     tmp_string = bg_sprintf(" -b %d -l %d -r %d",
                             com->bitrate, com->layer,
                             com->format.samplerate);
-  ret = bg_strcat(ret, tmp_string);
+  ret = gavl_strcat(ret, tmp_string);
   free(tmp_string);
 
   /* Output file */
   
   tmp_string = bg_sprintf(" -o \"%s\"", filename);
-  ret = bg_strcat(ret, tmp_string);
+  ret = gavl_strcat(ret, tmp_string);
   free(tmp_string);
   
   return ret;

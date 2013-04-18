@@ -204,7 +204,7 @@ char * bg_nmj_escape_string(const char * str)
       {
       if(escape_rules[i].c == *pos)
         {
-        ret = bg_strcat(ret, escape_rules[i].escaped);
+        ret = gavl_strcat(ret, escape_rules[i].escaped);
         done = 1;
         break;
         }
@@ -213,7 +213,7 @@ char * bg_nmj_escape_string(const char * str)
     if(!done)
       {
       buf[0] = *pos;
-      ret = bg_strcat(ret, buf);
+      ret = gavl_strcat(ret, buf);
       }
     pos++;
     }
@@ -349,20 +349,20 @@ static char * make_extensions(int type)
   if(type & BG_NMJ_MEDIA_TYPE_AUDIO)
     {
     if(ret)
-      ret = bg_strcat(ret, " ");
-    ret = bg_strcat(ret, audio_extensions);
+      ret = gavl_strcat(ret, " ");
+    ret = gavl_strcat(ret, audio_extensions);
     }
   if(type & BG_NMJ_MEDIA_TYPE_VIDEO)
     {
     if(ret)
-      ret = bg_strcat(ret, " ");
-    ret = bg_strcat(ret, video_extensions);
+      ret = gavl_strcat(ret, " ");
+    ret = gavl_strcat(ret, video_extensions);
     }
   if(type & BG_NMJ_MEDIA_TYPE_PHOTO)
     {
     if(ret)
-      ret = bg_strcat(ret, " ");
-    ret = bg_strcat(ret, image_extensions);
+      ret = gavl_strcat(ret, " ");
+    ret = gavl_strcat(ret, image_extensions);
     }
   return ret;
   }

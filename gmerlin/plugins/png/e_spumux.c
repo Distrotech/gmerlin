@@ -87,7 +87,7 @@ static int open_spumux(void * priv, const char * filename,
   pos = strrchr(spumux->filename_template, '.');
   if(pos) *pos = '\0';
 
-  spumux->filename_template = bg_strcat(spumux->filename_template, "_%05d.png");
+  spumux->filename_template = gavl_strcat(spumux->filename_template, "_%05d.png");
   
   spumux->xml_file = fopen(spumux->filename, "w");
 

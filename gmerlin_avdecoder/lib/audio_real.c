@@ -240,7 +240,7 @@ static int init_real(bgav_stream_t * s)
 
   path= bgav_sprintf("DT_Codecs=%s", bgav_dll_path_real);
   if(path[strlen(path)-1]!='/')
-    path = bgav_strncat(path, "/", NULL);
+    path = gavl_strcat(path, "/");
 
   /* Append one zero byte */
 

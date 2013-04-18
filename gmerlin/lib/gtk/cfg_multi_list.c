@@ -218,12 +218,12 @@ static char * get_list_string(bg_gtk_widget_t * w)
   while(1)
     {
     gtk_tree_model_get(model, &iter, COLUMN_NAME, &name, -1);
-    ret = bg_strcat(ret, name);
+    ret = gavl_strcat(ret, name);
     
     g_free(name);
     if(!gtk_tree_model_iter_next(model, &iter))
       break;
-    ret = bg_strcat(ret, ",");
+    ret = gavl_strcat(ret, ",");
     }
   return ret;
   }

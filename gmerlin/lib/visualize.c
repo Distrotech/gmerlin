@@ -244,10 +244,10 @@ static int visualizer_start(bg_visualizer_t * v)
     }
 #ifdef HAVE_LV
   if(v->vis_info->api == BG_PLUGIN_API_LV)
-    command = bg_strcat(command, v->vis_info->name);
+    command = gavl_strcat(command, v->vis_info->name);
   else
 #endif  
-    command = bg_strcat(command, v->vis_info->module_filename);
+    command = gavl_strcat(command, v->vis_info->module_filename);
   
   v->proc = bg_subprocess_create(command, 1, 1, 0);
   if(!v->proc)

@@ -435,9 +435,9 @@ char * bg_nmj_song_get_cover(bg_nmj_song_t * song)
      strcmp(old_song->member, new_song->member))        \
     { \
     if(num_cols)                                  \
-      sql = bg_strcat(sql, ","); \
+      sql = gavl_strcat(sql, ","); \
     tmp_string = sqlite3_mprintf(" " col " = %Q", new_song->member); \
-    sql = bg_strcat(sql, tmp_string);                               \
+    sql = gavl_strcat(sql, tmp_string);                               \
     sqlite3_free(tmp_string); \
     num_cols++; \
     }
@@ -446,9 +446,9 @@ char * bg_nmj_song_get_cover(bg_nmj_song_t * song)
   if(old_song->member != new_song->member)        \
     { \
     if(num_cols)                                  \
-      sql = bg_strcat(sql, ","); \
+      sql = gavl_strcat(sql, ","); \
     tmp_string = sqlite3_mprintf(" " col " = %"PRId64, new_song->member); \
-    sql = bg_strcat(sql, tmp_string);                               \
+    sql = gavl_strcat(sql, tmp_string);                               \
     sqlite3_free(tmp_string); \
     num_cols++; \
     }

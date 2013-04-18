@@ -299,13 +299,13 @@ static char * iter_to_string(bg_gtk_info_window_t * w, char * ret,
      */
 
     for(i = 0; i < depth; i++)
-      ret = bg_strcat(ret, "  ");
+      ret = gavl_strcat(ret, "  ");
 
     /* First column */
     gtk_tree_model_get(model, iter, COLUMN_1, &str, -1);
 
     if(*str)
-      ret = bg_strcat(ret, str);
+      ret = gavl_strcat(ret, str);
     else
       {
       g_free(str);
@@ -319,13 +319,13 @@ static char * iter_to_string(bg_gtk_info_window_t * w, char * ret,
 
     if(*str)
       {
-      ret = bg_strcat(ret, "\t");
-      ret = bg_strcat(ret, str);
+      ret = gavl_strcat(ret, "\t");
+      ret = gavl_strcat(ret, str);
       }
     
     g_free(str);
 
-    ret = bg_strcat(ret, "\n");
+    ret = gavl_strcat(ret, "\n");
     }
 
   if(!append_children)

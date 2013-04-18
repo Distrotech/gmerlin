@@ -167,35 +167,35 @@ static int open_mikmod(void * data, const char * arg)
     
   if(mik->output == MONO8)
     {
-    command = bg_strcat(command, " -o 8m");
+    command = gavl_strcat(command, " -o 8m");
     mik->block_align = 1;
     }
   else if(mik->output == MONO16)
     {
-    command = bg_strcat(command, " -o 16m");
+    command = gavl_strcat(command, " -o 16m");
     mik->block_align = 2;
     }
   else if(mik->output == STEREO8)
     {
-    command = bg_strcat(command, " -o 8s");
+    command = gavl_strcat(command, " -o 8s");
     mik->block_align = 2;
     }
   else if(mik->output == STEREO16)
     {
-    command = bg_strcat(command, " -o 16s");
+    command = gavl_strcat(command, " -o 16s");
     mik->block_align = 4;
     }
   if(mik->use_surround)
-    command = bg_strcat(command, " -s");
+    command = gavl_strcat(command, " -s");
   if(mik->use_interpolate)
-    command = bg_strcat(command, " -i");
+    command = gavl_strcat(command, " -i");
   if(mik->force_volume)
-    command = bg_strcat(command, " -fa");
+    command = gavl_strcat(command, " -fa");
   if(mik->hidden_patterns)
-    command = bg_strcat(command, " -c");
+    command = gavl_strcat(command, " -c");
 
-  command = bg_strcat(command, " ");
-  command = bg_strcat(command, arg);
+  command = gavl_strcat(command, " ");
+  command = gavl_strcat(command, arg);
   
   /* Test file compatibility */
   mik->proc = bg_subprocess_create(command, 0, 1, 0);

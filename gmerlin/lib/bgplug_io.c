@@ -258,11 +258,11 @@ static char * write_vars(char * str, const gavl_metadata_t * m)
                         m->tags[i].key,
                         m->tags[i].val);
 
-      str = bg_strcat(str, line);
+      str = gavl_strcat(str, line);
       free(line);
       }
     }
-  str = bg_strcat(str, "\r\n");
+  str = gavl_strcat(str, "\r\n");
   return str;
   }
 

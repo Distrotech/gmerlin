@@ -189,7 +189,7 @@ static char * create_filename(gmerlin_webcam_t * cam)
       mask[3] = 'd';
       mask[4] = '\0';
       sprintf(buf, mask, cam->capture_frame_counter);
-      filename = bg_strcat(filename, buf);
+      filename = gavl_strcat(filename, buf);
       pos += 3;
       }
     /* Insert date */
@@ -202,7 +202,7 @@ static char * create_filename(gmerlin_webcam_t * cam)
         have_time = 1;
         }
       strftime(buf, BUFFER_SIZE, "%Y-%m-%d", &time_date);
-      filename = bg_strcat(filename, buf);
+      filename = gavl_strcat(filename, buf);
       pos += 2;
       }
     /* Insert date */
@@ -215,12 +215,12 @@ static char * create_filename(gmerlin_webcam_t * cam)
         have_time = 1;
         }
       strftime(buf, BUFFER_SIZE, "%H-%M-%S", &time_date);
-      filename = bg_strcat(filename, buf);
+      filename = gavl_strcat(filename, buf);
       pos += 2;
       }
     else
       {
-      filename = bg_strcat(filename, "%");
+      filename = gavl_strcat(filename, "%");
       pos++;
       }
     }

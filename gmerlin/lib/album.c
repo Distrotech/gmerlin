@@ -2529,10 +2529,10 @@ char * bg_album_selected_to_string(bg_album_t * a)
     if(entry->flags & BG_ALBUM_ENTRY_SELECTED)
       {
       if(ret)
-        ret = bg_strcat(ret, "\n");
+        ret = gavl_strcat(ret, "\n");
       gavl_time_prettyprint(entry->duration, time_string);
       tmp_string = bg_sprintf("%d.\t%s\t%s", index, entry->name, time_string);
-      ret = bg_strcat(ret, tmp_string);
+      ret = gavl_strcat(ret, tmp_string);
       free(tmp_string);
       }
     entry = entry->next;

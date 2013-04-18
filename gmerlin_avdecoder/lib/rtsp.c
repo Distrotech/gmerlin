@@ -79,27 +79,22 @@ static int rtsp_send_request(bgav_rtsp_t * rtsp,
 
   for(i = 0; i < rtsp->request_fields->num_lines; i++)
     {
-    request = bgav_strncat(request, rtsp->request_fields->lines[i].line,
-                           NULL);
-    request = bgav_strncat(request, "\r\n",
-                           NULL);
+    request = gavl_strcat(request, rtsp->request_fields->lines[i].line);
+    request = gavl_strcat(request, "\r\n");
     }
 
   if(rtsp->session)
     {
     line = bgav_sprintf("Session: %s\r\n", rtsp->session);
-    request = bgav_strncat(request, line,
-                           NULL);
+    request = gavl_strcat(request, line);
     free(line);
     }
   
   line = bgav_sprintf("CSeq: %u\r\n", rtsp->cseq);
-  request = bgav_strncat(request, line,
-                           NULL);
+  request = gavl_strcat(request, line);
   free(line);
 
-  request = bgav_strncat(request, "\r\n",
-                           NULL);
+  request = gavl_strcat(request, "\r\n");
 
 #ifdef DUMP_REQUESTS
   bgav_dprintf("Sending request:\n%s", request);

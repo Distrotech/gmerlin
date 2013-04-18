@@ -116,44 +116,44 @@ int bg_cdrdao_run(bg_cdrdao_t * c, const char * toc_file)
     bg_log(BG_LOG_ERROR, LOG_DOMAIN, "cdrdao executable not found");
     return 0;
     }
-  commandline = bg_strcat(commandline, " write");
+  commandline = gavl_strcat(commandline, " write");
   
   /* Device */
   if(c->device)
     {
     str = bg_sprintf(" --device %s", c->device);
-    commandline = bg_strcat(commandline, str);
+    commandline = gavl_strcat(commandline, str);
     free(str);
     }
   /* Driver */
   if(c->driver)
     {
     str = bg_sprintf(" --driver %s", c->driver);
-    commandline = bg_strcat(commandline, str);
+    commandline = gavl_strcat(commandline, str);
     free(str);
     }
   /* Eject */
   if(c->eject)
-    commandline = bg_strcat(commandline, " --eject");
+    commandline = gavl_strcat(commandline, " --eject");
   /* Skip pause */
   if(c->nopause)
-    commandline = bg_strcat(commandline, " -n");
+    commandline = gavl_strcat(commandline, " -n");
 
   /* Simulate */
   if(c->simulate)
-    commandline = bg_strcat(commandline, " --simulate");
+    commandline = gavl_strcat(commandline, " --simulate");
 
   /* Speed */
   if(c->speed > 0)
     {
     str = bg_sprintf(" --speed %d", c->speed);
-    commandline = bg_strcat(commandline, str);
+    commandline = gavl_strcat(commandline, str);
     free(str);
     }
   
   /* TOC-File and stderr redirection */
   str = bg_sprintf(" \"%s\"", toc_file);
-  commandline = bg_strcat(commandline, str);
+  commandline = gavl_strcat(commandline, str);
   free(str);
   
   if(check_stop(c))

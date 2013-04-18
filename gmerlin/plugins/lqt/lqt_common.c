@@ -94,15 +94,15 @@ void bg_lqt_create_codec_info(bg_parameter_info_t * info,
                                                codec_info[i]->description);
       
       if(codec_info[i]->compatibility_flags & (LQT_FILE_QT | LQT_FILE_QT_OLD))
-        info->multi_descriptions_nc[index] = bg_strcat(info->multi_descriptions_nc[index], " QT");
+        info->multi_descriptions_nc[index] = gavl_strcat(info->multi_descriptions_nc[index], " QT");
       if(codec_info[i]->compatibility_flags & ( LQT_FILE_MP4))
-        info->multi_descriptions_nc[index] = bg_strcat(info->multi_descriptions_nc[index], " MP4");
+        info->multi_descriptions_nc[index] = gavl_strcat(info->multi_descriptions_nc[index], " MP4");
       if(codec_info[i]->compatibility_flags & ( LQT_FILE_M4A))
-        info->multi_descriptions_nc[index] = bg_strcat(info->multi_descriptions_nc[index], " M4A");
+        info->multi_descriptions_nc[index] = gavl_strcat(info->multi_descriptions_nc[index], " M4A");
       if(codec_info[i]->compatibility_flags & ( LQT_FILE_AVI))
-        info->multi_descriptions_nc[index] = bg_strcat(info->multi_descriptions_nc[index], " AVI");
+        info->multi_descriptions_nc[index] = gavl_strcat(info->multi_descriptions_nc[index], " AVI");
       if(codec_info[i]->compatibility_flags & ( LQT_FILE_3GP))
-        info->multi_descriptions_nc[index] = bg_strcat(info->multi_descriptions_nc[index], " 3GP");
+        info->multi_descriptions_nc[index] = gavl_strcat(info->multi_descriptions_nc[index], " 3GP");
       }
     else
       info->multi_descriptions_nc[index] = bg_sprintf("%s",

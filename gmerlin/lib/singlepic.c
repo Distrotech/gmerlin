@@ -60,9 +60,9 @@ static char * get_extensions(bg_plugin_registry_t * reg,
     {
     info = bg_plugin_find_by_index(reg, i,
                                    type_mask, flag_mask);
-    ret = bg_strcat(ret, info->extensions);
+    ret = gavl_strcat(ret, info->extensions);
     if(i < num-1)
-      ret = bg_strcat(ret, " ");
+      ret = gavl_strcat(ret, " ");
     }
   return ret;
   }
@@ -227,13 +227,13 @@ static int open_input(void * priv, const char * filename)
   /* Now, cut the pieces together */
 
   if(pos_start != filename)
-    inp->template = bg_strncat(inp->template, filename, pos_start);
+    inp->template = gavl_strncat(inp->template, filename, pos_start);
 
   tmp_string = bg_sprintf("%%0%dd", (int)(pos_end - pos_start));
-  inp->template = bg_strcat(inp->template, tmp_string);
+  inp->template = gavl_strcat(inp->template, tmp_string);
   free(tmp_string);
 
-  inp->template = bg_strcat(inp->template, pos_end);
+  inp->template = gavl_strcat(inp->template, pos_end);
 
   inp->frame_start = strtoll(pos_start, NULL, 10);
   inp->frame_end = inp->frame_start+1;
@@ -920,7 +920,7 @@ static void create_mask(encoder_t * e, const char * ext)
   e->mask = gavl_strrep(e->mask, e->filename_base);
   
   tmp_string = bg_sprintf("-%%0%d"PRId64".%s", e->frame_digits, ext);
-  e->mask = bg_strcat(e->mask, tmp_string);
+  e->mask = gavl_strcat(e->mask, tmp_string);
   free(tmp_string);
   
   filename_len = strlen(e->filename_base) + e->frame_digits + strlen(ext) + 16;

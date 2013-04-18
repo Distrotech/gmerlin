@@ -246,25 +246,25 @@ static void get_url(bgav_yml_node_t * n, bgav_url_info_t * ret,
 
   if(bitrate || language)
     {
-    ret->name = bgav_strncat(ret->name, " (", NULL);
+    ret->name = gavl_strcat(ret->name, " (");
     if(bitrate)
       {
       i = atoi(bitrate);
       tmp_string = bgav_sprintf("%d kbps", i / 1000);
-      ret->name = bgav_strncat(ret->name, tmp_string, NULL);
+      ret->name = gavl_strcat(ret->name, tmp_string);
       free(tmp_string);
       }
 
     if(bitrate && language)
       {
-      ret->name = bgav_strncat(ret->name, ", ", NULL);
+      ret->name = gavl_strcat(ret->name, ", ");
       }
     
     if(language)
       {
-      ret->name = bgav_strncat(ret->name, get_language(language), NULL);
+      ret->name = gavl_strcat(ret->name, get_language(language));
       }
-    ret->name = bgav_strncat(ret->name, ")", NULL);
+    ret->name = gavl_strcat(ret->name, ")");
     }
   
   (*index)++;

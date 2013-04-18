@@ -143,9 +143,9 @@ int bg_ensure_directory(const char * dir)
   while(directories[i])
     {
     if(i || absolute)
-      subpath = bg_strcat(subpath, "/");
+      subpath = gavl_strcat(subpath, "/");
 
-    subpath = bg_strcat(subpath, directories[i]);
+    subpath = gavl_strcat(subpath, directories[i]);
 
     if(access(subpath, R_OK) && (errno == ENOENT))
       {
@@ -268,7 +268,7 @@ void bg_display_html_help(const char * path)
   
   complete_path = bg_sprintf("file://%s/%s", DOC_DIR, path);
   command = bg_sprintf(url_launcher, complete_path);
-  command = bg_strcat(command, " &");
+  command = gavl_strcat(command, " &");
   bg_system(command);
   free(command);
   free(url_launcher);

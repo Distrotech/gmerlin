@@ -145,6 +145,23 @@ char * gavl_strndup(const char * new_string,
   return gavl_strnrep(NULL, new_string, new_string_end);
   }
 
+char * gavl_strncat(char * old, const char * start, const char * end)
+  {
+  int len, old_len;
+  old_len = old ? strlen(old) : 0;
+  
+  len = (end) ? (end - start) : strlen(start);
+  old = realloc(old, len + old_len + 1);
+  strncpy(old + old_len, start, len);
+  old[old_len + len] = '\0';
+  return old;
+  }
+
+char * gavl_strcat(char * old, const char * tail)
+  {
+  return gavl_strncat(old, tail, NULL);
+  }
+
 
 /* TODO */
 char *

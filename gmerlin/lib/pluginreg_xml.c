@@ -487,8 +487,8 @@ static void save_plugin(xmlNodePtr parent, const bg_plugin_info_t * info)
     while(info->compressions[index] != GAVL_CODEC_ID_NONE)
       {
       if(index)
-        tmp_string = bg_strcat(tmp_string, " ");
-      tmp_string = bg_strcat(tmp_string, gavl_compression_get_short_name(info->compressions[index]));
+        tmp_string = gavl_strcat(tmp_string, " ");
+      tmp_string = gavl_strcat(tmp_string, gavl_compression_get_short_name(info->compressions[index]));
       index++;
       }
     

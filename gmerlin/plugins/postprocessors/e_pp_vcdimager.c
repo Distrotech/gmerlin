@@ -293,20 +293,20 @@ static void run_vcdimager(void * data, const char * directory, int cleanup)
     
   str = bg_sprintf("vcdxgen -o %s -t %s --iso-application-id=%s-%s",
                    xml_file, vcdimager->vcd_version, PACKAGE, VERSION);
-  commandline = bg_strcat(commandline, str);
+  commandline = gavl_strcat(commandline, str);
   free(str);
 
   if(vcdimager->volume_label)
     {
     str = bg_sprintf(" -l \"%s\"", vcdimager->volume_label);
-    commandline = bg_strcat(commandline, str);
+    commandline = gavl_strcat(commandline, str);
     free(str);
     }
 
   for(i = 0; i < vcdimager->num_files; i++)
     {
     str = bg_sprintf(" \"%s\"", vcdimager->files[i].name);
-    commandline = bg_strcat(commandline, str);
+    commandline = gavl_strcat(commandline, str);
     free(str);
     }
   
@@ -342,7 +342,7 @@ static void run_vcdimager(void * data, const char * directory, int cleanup)
                    cue_file,
                    bin_file,
                    directory, vcdimager->xml_file);
-  commandline = bg_strcat(commandline, str);
+  commandline = gavl_strcat(commandline, str);
   free(str);
 
   proc = bg_subprocess_create(commandline, 0, 1, 0);
