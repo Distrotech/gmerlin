@@ -83,8 +83,6 @@ static int put_buffer_bgplug(void * priv, buffer_element_t * el)
   {
   bg_plug_t * p = priv;
 
-  //  fprintf(stderr, "put_buffer_bgplug\n");
-
   switch(el->type)
     {
     case BUFFER_TYPE_PACKET:

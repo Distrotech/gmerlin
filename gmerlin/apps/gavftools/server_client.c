@@ -86,6 +86,7 @@ client_t * client_create(int fd, const gavf_program_header_t * ph,
   if(!bg_plug_response_write(fd, res))
     {
     bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Writing response failed");
+    bg_plug_response_set_status(res, BG_PLUG_IO_STATUS_406);
     goto fail;
     }
   
@@ -95,6 +96,14 @@ client_t * client_create(int fd, const gavf_program_header_t * ph,
                                    CLIENT_TIMEOUT)))
     {
     bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Creating client I/O module failed");
+    bg_plug_response_set_status(res, BG_PLUG_IO_STATUS_406);
+    goto fail;
+    }
+
+  if(!ret->f->start(ret->priv, ph, req, url_vars, io, flags))
+    {
+    bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Starting filter failed");
+    bg_plug_response_set_status(res, BG_PLUG_IO_STATUS_406);
     goto fail;
     }
 
@@ -186,8 +195,10 @@ int client_iteration(client_t * cl)
       el = next_element(cl);
 
       if(!el)
+        {
+        bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Could not get data");
         return 0;
-      
+        }
       if(el->type == BUFFER_TYPE_SYNC_HEADER)
         {
         client_set_status(cl, CLIENT_STATUS_RUNNING);
@@ -201,10 +212,15 @@ int client_iteration(client_t * cl)
   while(bg_socket_can_write(cl->fd, 0))
     {
     if(!(el = next_element(cl)))
+      {
+      bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Could not get data");
       return 0;
-
-    if(cl->f->put_buffer(cl->priv, el))
+      }
+    if(!cl->f->put_buffer(cl->priv, el))
+      {
+      bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Sending data failed");
       return 0;
+      }
     }
   
   return 1;

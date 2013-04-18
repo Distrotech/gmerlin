@@ -72,7 +72,11 @@ static int program_iteration(program_t * p)
   while(i < p->num_clients)
     {
     if(client_get_status(p->clients[i]) == CLIENT_STATUS_DONE)
+      {
+      bg_log(BG_LOG_INFO, LOG_DOMAIN, 
+             "Closing client connection for program %s (client thread finished)", p->name);
       program_remove_client_nolock(p, i);
+      }
     else
       i++;
     }
@@ -86,7 +90,11 @@ static int program_iteration(program_t * p)
     
     pthread_mutex_lock(&p->client_mutex);
     while((i = element_used(p, el->seq)) >= 0)
+      {
+      bg_log(BG_LOG_INFO, LOG_DOMAIN,
+             "Closing client connection for program %s (client too slow)", p->name);
       program_remove_client_nolock(p, i);
+      }
     pthread_mutex_unlock(&p->client_mutex);
     buffer_advance(p->buf);
     }
@@ -330,8 +338,10 @@ void program_destroy(program_t * p)
   
   pthread_mutex_lock(&p->client_mutex);
   while(p->num_clients)
+    {
+    bg_log(BG_LOG_INFO, LOG_DOMAIN, "Closing client connection for program %s", p->name);
     program_remove_client_nolock(p, 0);
-  
+    }
   pthread_mutex_unlock(&p->client_mutex);
   
   
@@ -394,9 +404,6 @@ void program_attach_client(program_t * p, int fd,
 
 static void program_remove_client_nolock(program_t * p, int idx)
   {
-  bg_log(BG_LOG_INFO, LOG_DOMAIN,
-         "Closing client connection for program %s", p->name);
-  
   client_destroy(p->clients[idx]);
   if(idx < p->num_clients-1)
     {
