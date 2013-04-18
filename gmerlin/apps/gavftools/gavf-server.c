@@ -96,6 +96,8 @@ int main(int argc, char ** argv)
   
   gavftools_init();
 
+  filter_init();
+  
   gavftools_set_cmdline_parameters(global_options);
   
   bg_cmdline_init(&app_data);

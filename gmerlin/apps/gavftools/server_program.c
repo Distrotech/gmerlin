@@ -355,6 +355,8 @@ void program_destroy(program_t * p)
   }
 
 void program_attach_client(program_t * p, int fd,
+                           const gavl_metadata_t * req,
+                           gavl_metadata_t * res,
                            const gavl_metadata_t * url_vars)
   {
   client_t * cl;
@@ -362,7 +364,7 @@ void program_attach_client(program_t * p, int fd,
   bg_log(BG_LOG_INFO, LOG_DOMAIN,
          "Got new client connection for program %s", p->name);
   
-  cl = client_create(fd, &p->ph, p->buf, url_vars);
+  cl = client_create(fd, &p->ph, p->buf, req, res, url_vars);
 
   if(!cl)
     return;

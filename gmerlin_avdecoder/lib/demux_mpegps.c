@@ -530,7 +530,10 @@ static int next_packet(bgav_demuxer_context_t * ctx,
         }
       //      pack_header_dump(&priv->pack_header);
       }
-
+    else if(start_code == PROGRAM_END)
+      {
+      bgav_input_skip(input, 4); /* Skip start code */  
+      }
     else /* PES Packet */
       {
       priv->position = ctx->input->position;
@@ -900,6 +903,7 @@ static int next_packet(bgav_demuxer_context_t * ctx,
         }
       else
         {
+        //        bgav_pes_header_dump(&priv->pes_header);
         bgav_input_skip(input, priv->pes_header.payload_size);
         }
       

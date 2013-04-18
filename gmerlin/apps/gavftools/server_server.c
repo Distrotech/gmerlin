@@ -190,6 +190,9 @@ static void handle_client_connection(server_t * s, int fd)
   
   if(!bg_plug_request_read(fd, &req, CLIENT_TIMEOUT))
     goto fail;
+
+  /* Set common fields */
+  gavl_metadata_set(&res, "Server", bg_plug_app_id);
   
   if(!bg_plug_request_get_method(&req, &method))
     {
@@ -223,12 +226,7 @@ static void handle_client_connection(server_t * s, int fd)
         }
 
       bg_plug_response_set_status(&res, BG_PLUG_IO_STATUS_200);
-      if(!bg_plug_response_write(fd, &res))
-        {
-        bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Writing response failed");
-        goto fail;
-        }
-      program_attach_client(p, fd, &vars);
+      program_attach_client(p, fd, &req, &res, &vars);
       fd = -1;
       break;
     case BG_PLUG_IO_METHOD_WRITE:

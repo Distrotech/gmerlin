@@ -42,6 +42,7 @@ decode_load.c
 gavf_server_SOURCES = gavf-server.c \
 server_buffer.c \
 server_client.c \
+server_filter.c \
 server_program.c \
 server_server.c
 

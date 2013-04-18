@@ -74,16 +74,46 @@ void buffer_stop(buffer_t * b);
 
 int buffer_get_free(buffer_t * b);
 
-/* Client (= listener) connection */
-
-#define CLIENT_STATUS_WAIT_SYNC    0
-#define CLIENT_STATUS_RUNNING      1
-#define CLIENT_STATUS_DONE         2
-#define CLIENT_STATUS_STOP         3
+/* Filter: Outputs data to the client socket */
 
 typedef struct
   {
-  bg_plug_t * plug;
+  int is_supported;
+  int (*supported)();
+  
+  int (*probe)(const gavf_program_header_t * ph,
+               const gavl_metadata_t * request);
+  
+  void * (*create)(const gavf_program_header_t * ph,
+                   const gavl_metadata_t * req,
+                   const gavl_metadata_t * vars,
+                   gavl_metadata_t * res);
+
+  int (*start)(void * priv,
+               const gavf_program_header_t * ph,
+               const gavl_metadata_t * req,
+               const gavl_metadata_t * vars,
+               gavf_io_t * io, int flags);
+  
+  int (*put_buffer)(void * priv, buffer_element_t *);
+  void (*destroy)(void * priv);
+  } filter_t;
+
+void filter_init();
+
+const filter_t * filter_find(const gavf_program_header_t * ph,
+                             const gavl_metadata_t * request);
+
+/* Client (= listener) connection */
+
+#define CLIENT_STATUS_STARTING     0
+#define CLIENT_STATUS_WAIT_SYNC    1
+#define CLIENT_STATUS_RUNNING      2
+#define CLIENT_STATUS_DONE         3
+#define CLIENT_STATUS_STOP         4
+
+typedef struct
+  {
   buffer_t * buf;
 
   pthread_mutex_t status_mutex;
@@ -95,10 +125,15 @@ typedef struct
 
   pthread_t thread;
 
+  const filter_t * f;
+  void * priv;
+  
   } client_t;
 
 client_t * client_create(int fd, const gavf_program_header_t * ph,
                          buffer_t * buf,
+                         const gavl_metadata_t * req,
+                         gavl_metadata_t * res,
                          const gavl_metadata_t * url_vars);
 
 void client_destroy(client_t * cl);
@@ -155,6 +190,8 @@ int program_get_status(program_t * p);
 
 void program_destroy(program_t *);
 void program_attach_client(program_t *, int fd,
+                           const gavl_metadata_t * req,
+                           gavl_metadata_t * res,
                            const gavl_metadata_t * url_vars);
 
 void program_run(program_t * p);
