@@ -373,7 +373,9 @@ int main(int argc, char ** argv)
   bg_log(BG_LOG_INFO, LOG_DOMAIN, "Cleaning up");
 
   bg_mediaconnector_free(&conn);
-  bg_plug_destroy(out_plug);
+
+  if(out_plug)
+    bg_plug_destroy(out_plug);
 
   recorder_cleanup(&rec);
   

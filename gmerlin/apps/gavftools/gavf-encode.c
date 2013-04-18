@@ -533,7 +533,9 @@ int main(int argc, char ** argv)
   bg_log(BG_LOG_INFO, LOG_DOMAIN, "Cleaning up");
   
   bg_mediaconnector_free(&conn);
-  bg_plug_destroy(in_plug);
+
+  if(in_plug)
+    bg_plug_destroy(in_plug);
 
   if(enc)
     bg_encoder_destroy(enc, do_delete);

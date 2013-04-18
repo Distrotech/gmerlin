@@ -853,7 +853,8 @@ int main(int argc, char ** argv)
   bg_mediaconnector_threads_stop(&conn);
   bg_mediaconnector_free(&conn);
 
-  bg_plug_destroy(in_plug);
+  if(in_plug)
+    bg_plug_destroy(in_plug);
 
   player_cleanup(&player);
   

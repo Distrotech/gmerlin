@@ -417,8 +417,12 @@ int main(int argc, char ** argv)
   destroy_stream_sections(oc_sections, num_overlay_streams);
 
   bg_mediaconnector_free(&conn);
-  bg_plug_destroy(in_plug);
-  bg_plug_destroy(out_plug);
+
+  if(in_plug)
+    bg_plug_destroy(in_plug);
+
+  if(out_plug)
+    bg_plug_destroy(out_plug);
   
   gavftools_cleanup();
 

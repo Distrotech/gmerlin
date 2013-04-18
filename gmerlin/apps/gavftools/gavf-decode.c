@@ -295,7 +295,9 @@ int main(int argc, char ** argv)
     free(overlay_actions);
   
   bg_mediaconnector_free(&file_conn);
-  bg_plug_destroy(out_plug);
+
+  if(out_plug)
+    bg_plug_destroy(out_plug);
   album_free(&album);
   
   if(h)
