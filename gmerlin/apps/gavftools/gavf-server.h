@@ -87,12 +87,14 @@ typedef struct
   void * (*create)(const gavf_program_header_t * ph,
                    const gavl_metadata_t * req,
                    const gavl_metadata_t * vars,
+                   const gavl_metadata_t * inline_metadata,
                    gavl_metadata_t * res);
 
   int (*start)(void * priv,
                const gavf_program_header_t * ph,
                const gavl_metadata_t * req,
                const gavl_metadata_t * vars,
+               const gavl_metadata_t * inline_metadata,
                gavf_io_t * io, int flags);
   
   int (*put_buffer)(void * priv, buffer_element_t *);
@@ -134,7 +136,8 @@ client_t * client_create(int fd, const gavf_program_header_t * ph,
                          buffer_t * buf,
                          const gavl_metadata_t * req,
                          gavl_metadata_t * res,
-                         const gavl_metadata_t * url_vars);
+                         const gavl_metadata_t * url_vars,
+                         const gavl_metadata_t * inline_metadata);
 
 void client_destroy(client_t * cl);
 int client_iteration(client_t * cl);
@@ -155,6 +158,9 @@ typedef struct
   {
   pthread_mutex_t client_mutex;
   pthread_mutex_t status_mutex;
+  pthread_mutex_t metadata_mutex;
+  gavl_metadata_t m;
+  int have_m; // 1 if we received a metadata update yet
 
   char * name;
 

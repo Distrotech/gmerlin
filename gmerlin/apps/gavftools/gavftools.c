@@ -150,6 +150,9 @@ static int num_t_actions = 0;
 static bg_stream_action_t * o_actions = NULL;
 static int num_o_actions = 0;
 
+static char ** meta_fields = NULL;
+int num_meta_fields = 0;
+
 void gavftools_cleanup(int save_regs)
   {
   if(do_syslog)
@@ -170,6 +173,9 @@ void gavftools_cleanup(int save_regs)
   if(t_actions) free(t_actions);
   if(o_actions) free(o_actions);
 
+  if(meta_fields)
+    free(meta_fields);
+
   bg_gavl_audio_options_free(&gavltools_aopt);
   bg_gavl_video_options_free(&gavltools_vopt);
 
@@ -183,6 +189,29 @@ void gavftools_cleanup(int save_regs)
     
   xmlCleanupParser();
  
+  }
+
+void gavftools_set_output_metadata(gavl_metadata_t * m)
+  {
+  int i;
+  char * key;
+  char * pos;
+  for(i = 0; i < num_meta_fields; i++)
+    {
+    pos = strchr(meta_fields[i], '=');
+    if(!pos)
+      {
+      bg_log(BG_LOG_WARNING, LOG_DOMAIN, "Ignoring metadata string \"%s\" ('=' missing)",
+             meta_fields[i]);
+      continue;
+      }
+    key = gavl_strndup(meta_fields[i], pos);
+    pos++;
+    if(*pos == '\0')
+      pos = NULL;
+    gavl_metadata_set(m, key, pos);
+    free(key);
+    }
   }
 
 
@@ -291,6 +320,19 @@ gavftools_opt_oopt(void * data, int * argc, char *** _argv, int arg)
   bg_cmdline_remove_arg(argc, _argv, arg);
   }
 
+void
+gavftools_opt_m(void * data, int * argc, char *** _argv, int arg)
+  {
+  if(arg >= *argc)
+    {
+    fprintf(stderr, "Option -m requires an argument\n");
+    exit(-1);
+    }
+  meta_fields = realloc(meta_fields, (num_meta_fields+1) * sizeof(*meta_fields));
+  meta_fields[num_meta_fields] = (*_argv)[arg];
+  num_meta_fields++;
+  bg_cmdline_remove_arg(argc, _argv, arg);
+  }
 
 
 void
@@ -520,15 +562,21 @@ int gavftools_open_out_plug_from_in_plug(bg_plug_t * out_plug,
                                          const char * name,
                                          bg_plug_t * in_plug)
   {
+  gavl_metadata_t m;
+  gavl_metadata_init(&m);
+  gavl_metadata_copy(&m, bg_plug_get_metadata(in_plug));
+  gavftools_set_output_metadata(&m);
   if(!name)
     name = gavftools_out_file;
   if(!bg_plug_open_location(out_plug, name,
-                            bg_plug_get_metadata(in_plug),
+                            &m,
                             bg_plug_get_chapter_list(in_plug)))
+    {
+    gavl_metadata_free(&m);
     return 0;
-
+    }
   bg_plug_transfer_metadata(in_plug, out_plug);
-
+  gavl_metadata_free(&m);
   return 1;
   }
 

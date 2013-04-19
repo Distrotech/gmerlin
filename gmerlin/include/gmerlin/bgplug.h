@@ -173,8 +173,9 @@ bg_plug_set_compressor_config(bg_plug_t * p,
 #define BG_PLUG_IO_IS_LOCAL   (1<<0)
 #define BG_PLUG_IO_IS_REGULAR (1<<1)
 
-#define BG_PLUG_IO_METHOD_READ 0
+#define BG_PLUG_IO_METHOD_READ  0
 #define BG_PLUG_IO_METHOD_WRITE 1
+#define BG_PLUG_IO_METHOD_HEAD  2 // Use only in the http protocol
 
 #define BG_PLUG_IO_STATUS_100 100 // Continue
 #define BG_PLUG_IO_STATUS_200 200 // OK
@@ -212,12 +213,11 @@ void
 bg_plug_request_set_method(gavl_metadata_t * req, int metod);
 
 int 
-bg_plug_request_get_method(gavl_metadata_t * req, int * metod);
+bg_plug_request_get_method(const gavl_metadata_t * req, int * metod);
 
 void
 bg_plug_response_set_status(gavl_metadata_t * res, int status);
 
-
-const char * bg_plug_request_get_location(gavl_metadata_t * req);
+const char * bg_plug_request_get_location(const gavl_metadata_t * req);
 
 #endif // __BGPLUG_H_

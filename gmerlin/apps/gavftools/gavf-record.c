@@ -304,7 +304,7 @@ int main(int argc, char ** argv)
   int ret = EXIT_FAILURE;
   bg_mediaconnector_t conn;
   gavl_time_t delay_time = GAVL_TIME_SCALE / 100;
-
+  gavl_metadata_t m;
   gavftools_block_sigpipe();
   bg_mediaconnector_init(&conn);
   
@@ -334,12 +334,17 @@ int main(int argc, char ** argv)
     goto the_end;
     }
 
+  gavl_metadata_init(&m);
+  gavftools_set_output_metadata(&m);
+
   /* Open output plug */
   if(!bg_plug_open_location(out_plug, gavftools_out_file,
                             (const gavl_metadata_t *)0,
                             (const gavl_chapter_list_t*)0))
     goto the_end;
   
+  gavl_metadata_free(&m);
+
   /* Initialize output plug */
   if(!bg_plug_setup_writer(out_plug, &conn))
     {

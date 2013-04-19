@@ -24,6 +24,7 @@
 #include <gmerlin/bgsocket.h>
 
 #include <sys/socket.h>
+#include <unistd.h>
 
 #include <stdlib.h>
 
@@ -52,17 +53,23 @@ client_t * client_create(int fd, const gavf_program_header_t * ph,
                          buffer_t * buf,
                          const gavl_metadata_t * req,
                          gavl_metadata_t * res,
-                         const gavl_metadata_t * url_vars)
+                         const gavl_metadata_t * url_vars,
+                         const gavl_metadata_t * inline_metadata)
   {
   int flags = 0;
-  gavf_io_t * io;
+  int write_response = 0;
+  gavf_io_t * io = NULL;
+  int method = 0;
 
   client_t * ret = calloc(1, sizeof(*ret));
 
-  ret->status = CLIENT_STATUS_STARTING;
+  /* Already checked is there is a valid method */
+  bg_plug_request_get_method(req, &method);
 
   pthread_mutex_init(&ret->seq_mutex, NULL);
   pthread_mutex_init(&ret->status_mutex, NULL);
+
+  client_set_status(ret, CLIENT_STATUS_STARTING);
   
   ret->fd = fd;
   ret->buf = buf;
@@ -71,13 +78,15 @@ client_t * client_create(int fd, const gavf_program_header_t * ph,
     {
     bg_log(BG_LOG_ERROR, LOG_DOMAIN, "No filter found");
     bg_plug_response_set_status(res, BG_PLUG_IO_STATUS_406);
+    write_response = 1;
     goto fail;
     }
   
-  if(!(ret->priv = ret->f->create(ph, req, url_vars, res)))
+  if(!(ret->priv = ret->f->create(ph, req, url_vars, inline_metadata, res)))
     {
     bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Setting up filter failed");
     bg_plug_response_set_status(res, BG_PLUG_IO_STATUS_406);
+    write_response = 1;
     goto fail;
     }
   
@@ -86,37 +95,52 @@ client_t * client_create(int fd, const gavf_program_header_t * ph,
   if(!bg_plug_response_write(fd, res))
     {
     bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Writing response failed");
-    bg_plug_response_set_status(res, BG_PLUG_IO_STATUS_406);
     goto fail;
     }
   
+  if(method == BG_PLUG_IO_METHOD_HEAD)
+    goto fail;
+
   /* Start filter */
     
   if(!(io = bg_plug_io_open_socket(fd, BG_PLUG_IO_METHOD_WRITE, &flags,
                                    CLIENT_TIMEOUT)))
     {
     bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Creating client I/O module failed");
-    bg_plug_response_set_status(res, BG_PLUG_IO_STATUS_406);
+//    bg_plug_response_set_status(res, BG_PLUG_IO_STATUS_406);
     goto fail;
     }
 
-  if(!ret->f->start(ret->priv, ph, req, url_vars, io, flags))
+  fd = -1; /* Don't close */
+
+  if(!ret->f->start(ret->priv, ph, req, url_vars, inline_metadata, io, flags))
     {
     bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Starting filter failed");
-    bg_plug_response_set_status(res, BG_PLUG_IO_STATUS_406);
+ //   bg_plug_response_set_status(res, BG_PLUG_IO_STATUS_406);
     goto fail;
     }
+
+  io = NULL; // Don't destroy
 
   //  fprintf(stderr, "Client I/O flags: %08x\n", flags);
 
-  /* Start */
+  /* Start thread */
   
-  ret->status = CLIENT_STATUS_WAIT_SYNC;
+  client_set_status(ret, CLIENT_STATUS_WAIT_SYNC);
   pthread_create(&ret->thread, NULL, thread_func, ret);
-    
+  
   return ret;
   
   fail:
+
+  if(write_response)
+    bg_plug_response_write(fd, res);
+
+  if(io)
+    gavf_io_destroy(io);
+  if(fd >= 0)
+    close(fd);
+
   client_destroy(ret);
   return NULL;
   }

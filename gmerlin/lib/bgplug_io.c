@@ -434,7 +434,7 @@ bg_plug_request_set_method(gavl_metadata_t * req, int method)
   }
 
 int 
-bg_plug_request_get_method(gavl_metadata_t * req, int * method)
+bg_plug_request_get_method(const gavl_metadata_t * req, int * method)
   {
   const char * val;
 
@@ -452,11 +452,16 @@ bg_plug_request_get_method(gavl_metadata_t * req, int * method)
     *method = BG_PLUG_IO_METHOD_READ;
     return 1;
     }
+  else if(!strcmp(val, "HEAD"))
+    {
+    *method = BG_PLUG_IO_METHOD_HEAD;
+    return 1;
+    }
   else
     return 0;
   }
 
-const char * bg_plug_request_get_location(gavl_metadata_t * req)
+const char * bg_plug_request_get_location(const gavl_metadata_t * req)
   {
   return gavl_metadata_get(req, META_LOCATION);
   }
@@ -504,6 +509,11 @@ static int server_handshake(int fd, int method, int timeout)
     switch(request_method)
       {
       case BG_PLUG_IO_METHOD_WRITE:  // PUT
+        if(method == BG_PLUG_IO_METHOD_WRITE)
+          {
+          status = BG_PLUG_IO_STATUS_405;
+          goto fail;
+          }
         var = gavl_metadata_get(&req, "Expect");
         if(var)
           {
@@ -547,7 +557,7 @@ static int server_handshake(int fd, int method, int timeout)
           }
         break;
       case BG_PLUG_IO_METHOD_READ: // GET
-
+      case BG_PLUG_IO_METHOD_HEAD:
         /* We support no locations in our simple servers */
         var = bg_plug_request_get_location(&req);
         if(strcmp(var, "/"))
@@ -569,8 +579,6 @@ static int server_handshake(int fd, int method, int timeout)
   fail:
   bg_plug_response_set_status(&res, status);
 
-
-
   /* Write response */
   if(write_response_now)
     {
@@ -586,6 +594,9 @@ static int server_handshake(int fd, int method, int timeout)
       goto fail;
       }
     }
+
+  if(request_method == BG_PLUG_IO_METHOD_HEAD)
+    ret = 0;
   
   gavl_metadata_free(&req);
   gavl_metadata_free(&res);

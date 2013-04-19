@@ -171,12 +171,8 @@ const char * bgav_http_header_get_var(bgav_http_header_t * h,
 void bgav_http_header_dump(bgav_http_header_t*h)
   {
   int i;
-  bgav_dprintf( "HTTP Header\n");
   for(i = 0; i < h->num_lines; i++)
-    {
     bgav_dprintf( "  %s\n", h->lines[i].line);
-    }
-  bgav_dprintf( "End of HTTP Header\n");
   }
 
 struct bgav_http_s
@@ -201,9 +197,17 @@ do_connect(const char * host, int port, const bgav_options_t * opt,
   if(ret->fd == -1)
     goto fail;
 
+  if(opt->dump_headers)
+    {
+    bgav_dprintf("Sending header\n");
+    bgav_http_header_dump(request_header);
+    if(extra_header)
+      bgav_http_header_dump(extra_header);
+    }
+
   if(!bgav_http_header_send(ret->opt, request_header, ret->fd))
     goto fail;
-  
+
   if(extra_header)
     {
     //    bgav_http_header_dump(extra_header);
@@ -220,7 +224,8 @@ do_connect(const char * host, int port, const bgav_options_t * opt,
     bgav_log(ret->opt, BGAV_LOG_ERROR, LOG_DOMAIN, "Reading response failed");
     goto fail;
     }
-  //  bgav_http_header_dump(ret->header);
+  fprintf(stderr, "Got response\n");
+  bgav_http_header_dump(ret->header);
   
   return ret;
   
@@ -346,8 +351,6 @@ bgav_http_t * bgav_http_open(const char * url, const bgav_options_t * opt,
   /* Check status code */
   status = bgav_http_header_status_code(ret->header);
 
-  //  bgav_http_header_dump(ret->header);
-    
   if(status == 401)
     {
     /* Ok, they won't let us in, try to get a username and/or password */

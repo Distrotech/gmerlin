@@ -75,6 +75,9 @@ void
 gavftools_opt_v(void * data, int * argc, char *** _argv, int arg);
 
 void
+gavftools_opt_m(void * data, int * argc, char *** _argv, int arg);
+
+void
 gavftools_opt_syslog(void * data, int * argc, char *** _argv, int arg);
 
 extern bg_gavl_audio_options_t gavltools_aopt;
@@ -85,7 +88,7 @@ bg_plug_t * gavftools_create_out_plug();
 
 bg_stream_action_t * gavftools_get_stream_actions(int num, gavf_stream_type_t type);
 
-
+void gavftools_set_output_metadata(gavl_metadata_t * m);
 
 #define GAVFTOOLS_INPLUG_OPTIONS                \
   {                                             \
@@ -108,7 +111,14 @@ bg_stream_action_t * gavftools_get_stream_actions(int num, gavf_stream_type_t ty
     .help_string = TRS("options"),              \
     .callback =    gavftools_opt_oopt,          \
   }
-  
+
+#define GAVFTOOLS_M_OPTIONS \
+  {                                      \
+    .arg =         "-m",                 \
+    .help_arg =    "name=value",         \
+    .help_string = TRS("Set global metadata of the output (can be used multiple times). Use \"name=\" to clear a field"), \
+    .callback    = gavftools_opt_m,      \
+  }
 
 #define GAVFTOOLS_OUTPLUG_OPTIONS                \
   { \
@@ -117,8 +127,8 @@ bg_stream_action_t * gavftools_get_stream_actions(int num, gavf_stream_type_t ty
     .help_string = TRS("Output file or location"), \
     .argv    =    &gavftools_out_file, \
   }, \
+  GAVFTOOLS_M_OPTIONS, \
   GAVFTOOLS_OOPT_OPTIONS
-
 
 #define GAVFTOOLS_AUDIO_STREAM_OPTIONS \
   { \

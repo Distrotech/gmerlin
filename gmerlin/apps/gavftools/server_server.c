@@ -28,10 +28,13 @@
 
 #define LOG_DOMAIN "gavf-server.server"
 
+#define DUMP_HEADERS
+
 server_t * server_create(char ** listen_addresses,
                          int num_listen_addresses)
   {
   int i;
+
   server_t * ret = calloc(1, sizeof(*ret));
 
   pthread_mutex_init(&ret->program_mutex, NULL);
@@ -51,6 +54,7 @@ server_t * server_create(char ** listen_addresses,
       {
       bg_host_address_t * a = NULL;
       int port;
+      int result;
       char * host = NULL;
 
       if(!bg_url_split(ret->listen_addresses[i],
@@ -67,15 +71,25 @@ server_t * server_create(char ** listen_addresses,
                "Invalid TCP address %s", ret->listen_addresses[i]);
         goto fail;
         }
+      if(!host)
+        bg_log(BG_LOG_ERROR, LOG_DOMAIN,
+               "Invalid TCP address %s", ret->listen_addresses[i]);
 
+      if(port < 0)
+        {
+        bg_log(BG_LOG_ERROR, LOG_DOMAIN,
+               "Post missing in address %s", ret->listen_addresses[i]);
+        free(host);
+        }
       a = bg_host_address_create();
-      if(!bg_host_address_set(a, host,
-                              port, SOCK_STREAM))
+      result = bg_host_address_set(a, host, port, SOCK_STREAM);
+      free(host);
+
+      if(!result)
         {
         bg_host_address_destroy(a);
         goto fail;
         }
-
       ret->listen_sockets[i] = bg_listen_socket_create_inet(a, 0, 10, 0);
       bg_host_address_destroy(a);
 
@@ -190,10 +204,11 @@ static void handle_client_connection(server_t * s, int fd)
   
   if(!bg_plug_request_read(fd, &req, CLIENT_TIMEOUT))
     goto fail;
-
+#ifdef DUMP_HEADERS
   fprintf(stderr, "Got request\n");
   gavl_metadata_dump(&req, 0);
-  
+#endif  
+
   /* Set common fields */
   gavl_metadata_set(&res, "Server", bg_plug_app_id);
   
@@ -222,6 +237,7 @@ static void handle_client_connection(server_t * s, int fd)
   switch(method)
     {
     case BG_PLUG_IO_METHOD_READ:
+    case BG_PLUG_IO_METHOD_HEAD:
       if(!p)
         {
         status = BG_PLUG_IO_STATUS_404;

@@ -279,7 +279,7 @@ static int io_cb_write(void * priv, int type, const void * data)
   struct timespec timeout;
 
   clock_gettime(CLOCK_REALTIME, &timeout);
-  timeout.tv_sec += 5;
+  timeout.tv_sec += 2;
   
   /* Read confirmation */
   

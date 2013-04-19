@@ -247,7 +247,9 @@ int main(int argc, char ** argv)
     }
 
   bg_mediaconnector_create_conn(conn);
-  
+
+  gavftools_set_output_metadata(&m);
+ 
   /* Open output plug */
   if(!bg_plug_open_location(out_plug, gavftools_out_file,
                             &m, cl))

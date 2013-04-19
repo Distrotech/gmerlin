@@ -31,48 +31,24 @@ typedef struct
   {
   int metaint;
   int byte_counter;
-  gavl_metadata_t m;
-  int changed;
   bg_charset_converter_t * cnv;
+  char * buffer;
+  int buffer_alloc;
+  int buffer_len;
   } icy_t;
 
-static void icy_init(icy_t * m,
-                     const gavl_metadata_t * req,
-                     gavl_metadata_t * res)
+static void icy_update_metadata(icy_t * m, const gavl_metadata_t * met)
   {
-  int val;
-#if 1
-  if(gavl_metadata_get_int(req, "Icy-MetaData", &val) &&
-     (val > 0))
-    {
-    m->metaint = 16000;
-    gavl_metadata_set_int(res, "icy-metaint", m->metaint);
-    m->cnv = bg_charset_converter_create("UTF-8", "ISO_8859-1");
-    }
-#endif
-  }
-
-static int icy_write_metadata(icy_t * m,
-                              gavf_io_t * io)
-  {
-  int len, ret;
+  int len;
   const char * artist;
   const char * title;
   const char * label;
-  char * buffer;
-  
   char * tmp_string;
   char * stream_title;
-  if(!m->changed)
-    {
-    uint8_t len = 0;
-    m->byte_counter = 0;
-    return gavf_io_write_data(io, &len, 1) == 1;
-    }
 
-  artist = gavl_metadata_get(&m->m, GAVL_META_ARTIST);
-  title  = gavl_metadata_get(&m->m, GAVL_META_TITLE);
-  label  = gavl_metadata_get(&m->m, GAVL_META_LABEL);
+  artist = gavl_metadata_get(met, GAVL_META_ARTIST);
+  title  = gavl_metadata_get(met, GAVL_META_TITLE);
+  label  = gavl_metadata_get(met, GAVL_META_LABEL);
 
   if(artist && title)
     stream_title = bg_sprintf("%s - %s", artist, title);
@@ -93,24 +69,67 @@ static int icy_write_metadata(icy_t * m,
 
   /* Create buffer */
   len = 14 + // <len>StreamTitle='
-    strlen(stream_title) + 
+    strlen(stream_title) +
     3;       // ';\0
-  
+
   len = ((len + 15) / 16) * 16;
-  
-  buffer = calloc(len+1, 1);
-  snprintf(buffer, len+1, "%cStreamTitle='%s';", len/16, stream_title);
 
-  gavl_hexdump((uint8_t*)buffer, len+1, 16);
-  
-  ret = (gavf_io_write_data(io, (uint8_t*)buffer, len+1) == len+1);
+  m->buffer_len = len+1;
 
-  free(buffer);
+  if(m->buffer_alloc < m->buffer_len)
+    {
+    m->buffer_alloc = m->buffer_len + 32;
+    m->buffer = realloc(m->buffer, m->buffer_alloc);
+    }
+
+  memset(m->buffer, 0, m->buffer_len);
+  snprintf(m->buffer, m->buffer_len, "%cStreamTitle='%s';", len/16, stream_title);
+
+//  gavl_hexdump((uint8_t*)m->buffer, m->buffer_len, 16);
+
   free(stream_title);
+  }
+
+static void icy_init(icy_t * m,
+                     const gavf_program_header_t * ph,
+                     const gavl_metadata_t * req,
+                     const gavl_metadata_t * inline_metadata,
+                     gavl_metadata_t * res)
+  {
+  const char * val;
+  int val_i;
+
+  m->cnv = bg_charset_converter_create("UTF-8", "ISO_8859-1");
   
-  m->changed = 0;
-  m->byte_counter = 0;
-  return ret;
+  if(!gavl_metadata_get_int(req, "Icy-MetaData", &val_i))
+    return;
+
+  /* Set ICY-specific header fields */
+  gavl_metadata_set_int(res, "icy-pub", 1);
+
+  if(ph->streams[0].ci.bitrate > 0)
+    gavl_metadata_set_int(res, "icy-br", ph->streams[0].ci.bitrate / 1000);
+
+  if((val = gavl_metadata_get(&ph->m, GAVL_META_STATION)))
+    gavl_metadata_set_nocpy(res, "icy-name", bg_convert_string(m->cnv, val, -1, NULL));
+  if((val = gavl_metadata_get(&ph->m, GAVL_META_GENRE)))
+    gavl_metadata_set_nocpy(res, "icy-genre", bg_convert_string(m->cnv, val, -1, NULL));
+  if((val = gavl_metadata_get(&ph->m, GAVL_META_URL)))
+    gavl_metadata_set(res, "icy-url", val);
+  if((val = gavl_metadata_get(&ph->m, GAVL_META_COMMENT)))
+    gavl_metadata_set(res, "icy-description", bg_convert_string(m->cnv, val, -1, NULL));
+
+  if(inline_metadata && (val_i > 0))
+    {
+    m->metaint = 16000;
+    gavl_metadata_set_int(res, "icy-metaint", m->metaint);
+    icy_update_metadata(m, inline_metadata);
+    }
+  else
+    {
+    bg_charset_converter_destroy(m->cnv);
+    m->cnv = NULL;
+    }
   }
 
 static int icy_write(icy_t * m,
@@ -146,23 +165,21 @@ static int icy_write(icy_t * m,
     if(m->byte_counter == m->metaint)
       {
       /* Write metadata */
-      if(!icy_write_metadata(m, io))
+      if(gavf_io_write_data(io, (uint8_t*)m->buffer, m->buffer_len) < m->buffer_len)
         return 0;
+      /* Reset */
+      m->byte_counter = 0;
+      m->buffer[0] = 0;
+      m->buffer_len = 1;
       }
     }
   return len;
   }
 
-static void icy_update(icy_t * m,
-                       const gavl_metadata_t * new_metadata)
-  {
-  gavl_metadata_copy(&m->m, new_metadata);
-  m->changed = 1;
-  }
-
 static void icy_free(icy_t * m)
   {
-  gavl_metadata_free(&m->m);
+  if(m->buffer)
+    free(m->buffer);
   if(m->cnv)
     bg_charset_converter_destroy(m->cnv);
   }
@@ -181,6 +198,7 @@ static int probe_bgplug(const gavf_program_header_t * ph,
 static void * create_bgplug(const gavf_program_header_t * ph,
                             const gavl_metadata_t * req,
                             const gavl_metadata_t * vars,
+                            const gavl_metadata_t * inline_metadata,
                             gavl_metadata_t * res)
   {
   bg_plug_t * ret;
@@ -194,6 +212,7 @@ static int start_bgplug(void * priv,
                         const gavf_program_header_t * ph,
                         const gavl_metadata_t * req,
                         const gavl_metadata_t * vars,
+                        const gavl_metadata_t * inline_metadata,
                         gavf_io_t * io, int flags)
   {
   bg_parameter_value_t val;
@@ -215,6 +234,9 @@ static int start_bgplug(void * priv,
     bg_log(BG_LOG_ERROR, LOG_DOMAIN, "bg_plug_set_from_ph failed");
     return 0;
     }
+  if(inline_metadata)
+    gavf_update_metadata(bg_plug_get_gavf(p), inline_metadata);
+
   return 1;  
   }
 
@@ -275,13 +297,13 @@ static int probe_mp3(const gavf_program_header_t * ph,
 static void * create_mp3(const gavf_program_header_t * ph,
                          const gavl_metadata_t * req,
                          const gavl_metadata_t * vars,
+                         const gavl_metadata_t * inline_metadata,
                          gavl_metadata_t * res)
   {
   mp3_t * ret = calloc(1, sizeof(*ret));
-  icy_init(&ret->m, req, res);
+  icy_init(&ret->m, ph, req, inline_metadata, res);
 
   gavl_metadata_set(res, "Content-Type", "audio/mpeg");
-
   return ret; 
   }
 
@@ -289,6 +311,7 @@ static int start_mp3(void * priv,
                      const gavf_program_header_t * ph,
                      const gavl_metadata_t * req,
                      const gavl_metadata_t * vars,
+                     const gavl_metadata_t * inline_metadata,
                      gavf_io_t * io, int flags)
   {
   mp3_t * m = priv;
@@ -306,7 +329,7 @@ static int put_buffer_mp3(void * priv, buffer_element_t * el)
       return icy_write(&m->m, el->p.data, el->p.data_len, m->io);
       break;
     case BUFFER_TYPE_METADATA:
-      icy_update(&m->m, &el->m);
+      icy_update_metadata(&m->m, &el->m);
       return 1;
       break;
     }

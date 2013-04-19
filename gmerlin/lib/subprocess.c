@@ -24,6 +24,7 @@
 #include <errno.h>
 #include <fcntl.h>
 #include <sys/types.h>
+#include <sys/stat.h>
 #include <sys/wait.h>
 #include <sys/time.h>
 #include <inttypes.h>
@@ -36,7 +37,7 @@
 
 #include <gmerlin/subprocess.h>
 #include <gmerlin/log.h>
-
+#include <gmerlin/utils.h>
 #define READ  0
 #define WRITE 1
 

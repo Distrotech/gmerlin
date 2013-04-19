@@ -313,6 +313,7 @@ int main(int argc, char ** argv)
   bgav_options_set_read_timeout(opt,      read_timeout);
   bgav_options_set_network_bandwidth(opt, network_bandwidth);
   bgav_options_set_seek_subtitles(opt, seek_subtitles);
+  bgav_options_set_http_shoutcast_metadata(opt, 1);
 
   lev = 0;
   if(log_level > 0)

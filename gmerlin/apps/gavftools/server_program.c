@@ -178,6 +178,13 @@ static int conn_cb_func(void * priv, int type, const void * data)
       //      fprintf(stderr, "Got metadata:\n");
       //      gavl_metadata_dump(data, 0);
 
+      pthread_mutex_lock(&p->metadata_mutex);
+      gavl_metadata_free(&p->m);
+      gavl_metadata_init(&p->m);
+      gavl_metadata_copy(&p->m, data);
+      p->have_m = 1;
+      pthread_mutex_unlock(&p->metadata_mutex);
+
       el = buffer_get_write(p->buf);
       if(!el)
         return 0;
@@ -258,7 +265,8 @@ program_t * program_create_from_plug(const char * name, bg_plug_t * plug,
   
   pthread_mutex_init(&ret->client_mutex, NULL);
   pthread_mutex_init(&ret->status_mutex, NULL);
-  
+  pthread_mutex_init(&ret->metadata_mutex, NULL);
+
   ret->name = gavl_strdup(name);
 
   gavl_metadata_get_int(url_vars, "buf", &buf_elements);
@@ -357,9 +365,12 @@ void program_destroy(program_t * p)
   
   if(p->clients)
     free(p->clients);
+
+  gavl_metadata_free(&p->m);
   
   pthread_mutex_destroy(&p->client_mutex);
   pthread_mutex_destroy(&p->status_mutex);
+  pthread_mutex_destroy(&p->metadata_mutex);
 
   free(p);
   }
@@ -373,8 +384,10 @@ void program_attach_client(program_t * p, int fd,
 
   bg_log(BG_LOG_INFO, LOG_DOMAIN,
          "Got new client connection for program %s", p->name);
-  
-  cl = client_create(fd, &p->ph, p->buf, req, res, url_vars);
+
+  pthread_mutex_lock(&p->metadata_mutex); 
+  cl = client_create(fd, &p->ph, p->buf, req, res, url_vars, p->have_m ? &p->m : NULL);
+  pthread_mutex_unlock(&p->metadata_mutex);
 
   if(!cl)
     return;
