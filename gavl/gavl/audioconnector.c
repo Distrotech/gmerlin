@@ -24,7 +24,12 @@
 #include <string.h>
 
 #include <gavl/connectors.h>
+
+#include <gavl/utils.h>
+
 #include <audio.h>
+
+// #define PRINT_FAILURES
 
 typedef struct
   {
@@ -163,7 +168,12 @@ static int flush_src(sink_t * s)
     sink_st = gavl_audio_sink_put_frame(s->sink, s->sink_frame);
     s->sink_frame = NULL;
     if(sink_st != GAVL_SINK_OK)
+      {
+#ifdef PRINT_FAILURES
+      gavl_dprintf("Sink error\n");
+#endif
       return 0;
+      }
     }
   return 1;
   }
@@ -222,8 +232,17 @@ int gavl_audio_connector_process(gavl_audio_connector_t * c)
         {
         s = c->sinks + i;
         if(s->src && !flush_src(s))
+          {
+#ifdef PRINT_FAILURES
+          gavl_dprintf("Flush source error\n");
+#endif
           return 0;
+          }
         }
+#ifdef PRINT_FAILURES
+      gavl_dprintf("Source EOF\n");
+#endif
+
       return 0;
     }
 
@@ -261,14 +280,24 @@ int gavl_audio_connector_process(gavl_audio_connector_t * c)
         sink_st = gavl_audio_sink_put_frame(s->sink, s->sink_frame);
         }
       if(sink_st != GAVL_SINK_OK)
+        {
+#ifdef PRINT_FAILURES
+        gavl_dprintf("Sink error\n");
+#endif
         return 0;
+        }
       }
     else
       {
       /* Pass frame through the sink->src */
       s->in_frame = c->in_frame;
       if(!flush_src(s))
+        {
+#ifdef PRINT_FAILURES
+        gavl_dprintf("Flush source failed\n");
+#endif
         return 0;
+        }
       }
     }
   

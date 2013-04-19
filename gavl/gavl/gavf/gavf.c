@@ -192,6 +192,9 @@ write_packet(gavf_t * g, int stream, const gavl_packet_t * p)
       return GAVL_SINK_ERROR;
     gavf_buffer_reset(&g->meta_buf);
 
+    if(!gavf_io_flush(g->io))
+      return GAVL_SINK_ERROR;
+    
     if(!gavf_io_cb(g->io, GAVF_IO_CB_METADATA_END, &g->metadata))
       return GAVL_SINK_ERROR;
 
@@ -235,10 +238,11 @@ write_packet(gavf_t * g, int stream, const gavl_packet_t * p)
     gavl_packet_dump(p);
     }
   
-  if(!gavf_io_flush(g->io))
-    return GAVL_SINK_ERROR;
   
   s->packets_since_sync++;
+
+  if(!gavf_io_flush(g->io))
+    return GAVL_SINK_ERROR;
 
   if(!gavf_io_cb(g->io, GAVF_IO_CB_PACKET_END, p))
     return GAVL_SINK_ERROR;
@@ -870,9 +874,9 @@ const gavf_packet_header_t * gavf_packet_read_header(gavf_t * g)
           goto got_eof;
           }
         gavf_io_skip(g->io, len);
+        if(!gavf_io_cb(g->io, GAVF_IO_CB_METADATA_END, NULL))
+          goto got_eof;
         }
-      if(!gavf_io_cb(g->io, GAVF_IO_CB_METADATA_END, NULL))
-        goto got_eof;
       }
     else
       {

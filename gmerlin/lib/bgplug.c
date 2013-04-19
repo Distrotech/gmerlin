@@ -238,13 +238,12 @@ static int io_cb_read(void * priv, int type, const void * data)
   {
   bg_plug_t * p = priv;
   /* Write confirmation */
-
-  //  fprintf(stderr, "io_cb_read %d %d\n", type, p->packets++);
-
+  
   if((type == GAVF_IO_CB_PROGRAM_HEADER_END) && (p->mq < 0))
     create_messate_queue(p, &p->ph->m);
-#if 0  
-  if(type == GAVF_IO_CB_PACKET)
+
+#if 0
+  if(type == GAVF_IO_CB_PACKET_END)
     {
     fprintf(stderr, "Got packet\n");
     if(data)
@@ -255,6 +254,10 @@ static int io_cb_read(void * priv, int type, const void * data)
   if(p->mq < 0)
     return 1;
   
+#ifdef DUMP_CB
+  if(GAVF_IO_CB_TYPE_END(type))
+    fprintf(stderr, "io_cb_read %08x\n", type);
+#endif  
   if(GAVF_IO_CB_TYPE_END(type) && 
      mq_send(p->mq, (const char *)&type, sizeof(type), 0))
     {
@@ -276,7 +279,7 @@ static int io_cb_write(void * priv, int type, const void * data)
   struct timespec timeout;
 
   clock_gettime(CLOCK_REALTIME, &timeout);
-  timeout.tv_sec += 2;
+  timeout.tv_sec += 5;
   
   /* Read confirmation */
   
@@ -287,6 +290,9 @@ static int io_cb_write(void * priv, int type, const void * data)
 
   if(GAVF_IO_CB_TYPE_END(type))
     {
+#ifdef DUMP_CB
+    fprintf(stderr, "io_cb_write %08x\n", type);
+#endif    
     size_ret =
       mq_timedreceive(p->mq, (char *)&type_ret,
                       sizeof(type_ret), &msg_prio, &timeout);
@@ -296,11 +302,23 @@ static int io_cb_write(void * priv, int type, const void * data)
       bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Reading message failed: %s",
              strerror(errno));
       p->got_error = 1;
+      return 0;
       }
   
-    if((size_ret != sizeof(type_ret)) ||
-       (type_ret != type))
+    if(size_ret != sizeof(type_ret))
+      {
+      bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Wrong message size: %zd != %zd",
+             size_ret, sizeof(type_ret));
+      p->got_error = 1;
       return 0;
+      }
+    if(type_ret != type)
+      {
+      bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Wrong message type: %08x != %08x",
+             type_ret, type);
+      p->got_error = 1;
+      return 0;
+      }
     }
   return 1;
   }

@@ -620,7 +620,7 @@ static int client_handshake(int fd, int method, const char * path, int timeout)
     }
 
   /* Set common fields */
-  gavl_metadata_set(&res, "User-Agent", bg_plug_app_id);
+  gavl_metadata_set(&req, "User-Agent", bg_plug_app_id);
   
 #ifdef DUMP_HEADERS
   fprintf(stderr, "Sending request\n");

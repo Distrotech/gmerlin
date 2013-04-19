@@ -191,6 +191,9 @@ static void handle_client_connection(server_t * s, int fd)
   if(!bg_plug_request_read(fd, &req, CLIENT_TIMEOUT))
     goto fail;
 
+  fprintf(stderr, "Got request\n");
+  gavl_metadata_dump(&req, 0);
+  
   /* Set common fields */
   gavl_metadata_set(&res, "Server", bg_plug_app_id);
   

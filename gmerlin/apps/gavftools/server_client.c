@@ -181,7 +181,6 @@ int client_iteration(client_t * cl)
   {
   buffer_element_t * el;
   int status;
-  // fprintf(stderr, "Client iteration %d %"PRId64"\n", cl->status, cl->seq);
 
   status = client_get_status(cl);
 
@@ -192,6 +191,8 @@ int client_iteration(client_t * cl)
     {
     while(1)
       {
+      // fprintf(stderr, "Client iteration %d %"PRId64"\n", cl->status, cl->seq);
+
       el = next_element(cl);
 
       if(!el)
@@ -211,6 +212,7 @@ int client_iteration(client_t * cl)
 
   while(bg_socket_can_write(cl->fd, 0))
     {
+    //  fprintf(stderr, "Client iteration %d %"PRId64"\n", cl->status, cl->seq);
     if(!(el = next_element(cl)))
       {
       bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Could not get data");
