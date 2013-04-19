@@ -65,7 +65,7 @@ static void icy_update_metadata(icy_t * m, const gavl_metadata_t * met)
   stream_title = tmp_string;
 
   /* Escape */
-  stream_title = gavl_escape_string(stream_title, ";'");
+  //  stream_title = gavl_escape_string(stream_title, ";'");
 
   /* Create buffer */
   len = 14 + // <len>StreamTitle='

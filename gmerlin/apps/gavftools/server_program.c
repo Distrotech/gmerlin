@@ -176,7 +176,7 @@ static int conn_cb_func(void * priv, int type, const void * data)
       break;
     case GAVF_IO_CB_METADATA_START:
       //      fprintf(stderr, "Got metadata:\n");
-      //      gavl_metadata_dump(data, 0);
+      //      gavl_metadata_dump(data, 2);
 
       pthread_mutex_lock(&p->metadata_mutex);
       gavl_metadata_free(&p->m);
@@ -386,12 +386,17 @@ void program_attach_client(program_t * p, int fd,
          "Got new client connection for program %s", p->name);
 
   pthread_mutex_lock(&p->metadata_mutex); 
-  cl = client_create(fd, &p->ph, p->buf, req, res, url_vars, p->have_m ? &p->m : NULL);
+  cl = client_create(fd, &p->ph, p->buf, req, res,
+                     url_vars, p->have_m ? &p->m : NULL);
   pthread_mutex_unlock(&p->metadata_mutex);
 
   if(!cl)
+    {
+    bg_log(BG_LOG_INFO, LOG_DOMAIN,
+           "Closed connection for program %s", p->name);
+    
     return;
-
+    }
   cl->seq = buffer_get_start_seq(p->buf);
   
   pthread_mutex_lock(&p->client_mutex);

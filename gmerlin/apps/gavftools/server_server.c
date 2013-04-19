@@ -189,7 +189,7 @@ static void handle_client_connection(server_t * s, int fd)
   int method;
   int status = 0;
 
-  char * location;
+  char * location = NULL;
   const char * var;
 
   program_t * p;
@@ -204,13 +204,14 @@ static void handle_client_connection(server_t * s, int fd)
   
   if(!bg_plug_request_read(fd, &req, CLIENT_TIMEOUT))
     goto fail;
-#ifdef DUMP_HEADERS
+#ifdef DUMP_HTTP_HEADERS
   fprintf(stderr, "Got request\n");
-  gavl_metadata_dump(&req, 0);
+  gavl_metadata_dump(&req, 2);
 #endif  
 
   /* Set common fields */
   gavl_metadata_set(&res, "Server", bg_plug_app_id);
+  gavl_metadata_set(&res, "Accept-Ranges", "none");
   
   if(!bg_plug_request_get_method(&req, &method))
     {
@@ -223,6 +224,12 @@ static void handle_client_connection(server_t * s, int fd)
     goto fail;
     }
 
+  if(gavl_metadata_get(&req, "Range"))
+    {
+    status = BG_PLUG_IO_STATUS_416;
+    goto fail;
+    }
+  
   location = gavl_strdup(var);
   bg_url_get_vars(location, &vars);
   
@@ -269,6 +276,10 @@ static void handle_client_connection(server_t * s, int fd)
       if(write_response_now)
         {
         bg_plug_response_set_status(&res, BG_PLUG_IO_STATUS_100);
+#ifdef DUMP_HTTP_HEADERS
+        fprintf(stderr, "Sending response\n");
+        gavl_metadata_dump(&res, 2);
+#endif  
         if(!bg_plug_response_write(fd, &res))
           {
           bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Writing response failed");
@@ -295,6 +306,10 @@ static void handle_client_connection(server_t * s, int fd)
   if(status && (fd >= 0))
     {
     bg_plug_response_set_status(&res, status);
+#ifdef DUMP_HTTP_HEADERS
+    fprintf(stderr, "Sending response\n");
+    gavl_metadata_dump(&res, 2);
+#endif  
     if(!bg_plug_response_write(fd, &res))
       bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Writing response failed");
     }

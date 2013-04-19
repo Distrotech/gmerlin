@@ -196,6 +196,7 @@ status_codes[] =
 
     { BG_PLUG_IO_STATUS_406, "Not Acceptable" },
     { BG_PLUG_IO_STATUS_415, "Unsupported Media Type" },
+    { BG_PLUG_IO_STATUS_416, "Requested range not satisfiable" },
     { BG_PLUG_IO_STATUS_417, "Expectation Failed" },
     { BG_PLUG_IO_STATUS_423, "Locked" },
     { BG_PLUG_IO_STATUS_505, "Protocol Version Not Supported" },

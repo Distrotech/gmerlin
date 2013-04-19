@@ -21,6 +21,8 @@
 
 #include "gavftools.h"
 
+#define DUMP_HTTP_HEADERS
+
 #define CLIENT_TIMEOUT 5000
 
 /* Buffer */
