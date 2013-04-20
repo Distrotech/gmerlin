@@ -212,6 +212,8 @@ static void handle_client_connection(server_t * s, int fd)
   /* Set common fields */
   gavl_metadata_set(&res, "Server", bg_plug_app_id);
   gavl_metadata_set(&res, "Accept-Ranges", "none");
+  gavl_metadata_set(&res, "Cache-Control", "no-cache");
+  gavl_metadata_set(&res, "Pragma", "no-cache");
   
   if(!bg_plug_request_get_method(&req, &method))
     {

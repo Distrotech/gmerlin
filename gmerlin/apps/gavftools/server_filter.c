@@ -111,13 +111,16 @@ static void icy_init(icy_t * m,
     gavl_metadata_set_int(res, "icy-br", ph->streams[0].ci.bitrate / 1000);
 
   if((val = gavl_metadata_get(&ph->m, GAVL_META_STATION)))
-    gavl_metadata_set_nocpy(res, "icy-name", bg_convert_string(m->cnv, val, -1, NULL));
+    gavl_metadata_set_nocpy(res, "icy-name",
+                            bg_convert_string(m->cnv, val, -1, NULL));
   if((val = gavl_metadata_get(&ph->m, GAVL_META_GENRE)))
-    gavl_metadata_set_nocpy(res, "icy-genre", bg_convert_string(m->cnv, val, -1, NULL));
+    gavl_metadata_set_nocpy(res, "icy-genre",
+                            bg_convert_string(m->cnv, val, -1, NULL));
   if((val = gavl_metadata_get(&ph->m, GAVL_META_URL)))
     gavl_metadata_set(res, "icy-url", val);
   if((val = gavl_metadata_get(&ph->m, GAVL_META_COMMENT)))
-    gavl_metadata_set(res, "icy-description", bg_convert_string(m->cnv, val, -1, NULL));
+    gavl_metadata_set(res, "icy-description",
+                      bg_convert_string(m->cnv, val, -1, NULL));
 
   if(inline_metadata && (val_i > 0))
     {
@@ -243,6 +246,7 @@ static int start_bgplug(void * priv,
 static int put_buffer_bgplug(void * priv, buffer_element_t * el)
   {
   bg_plug_t * p = priv;
+  fprintf(stderr, "Put buffer bgplug\n");
 
   switch(el->type)
     {
@@ -322,6 +326,8 @@ static int start_mp3(void * priv,
 static int put_buffer_mp3(void * priv, buffer_element_t * el)
   {
   mp3_t * m = priv;
+
+  //  fprintf(stderr, "Put buffer mp3\n");
   
   switch(el->type)
     {

@@ -66,7 +66,7 @@ client_t * client_create(int fd, const gavf_program_header_t * ph,
   /* Already checked that there is a valid method */
   bg_plug_request_get_method(req, &method);
 
-  fprintf(stderr, "Method: %d\n", method);
+  //  fprintf(stderr, "Method: %d\n", method);
   
   pthread_mutex_init(&ret->seq_mutex, NULL);
   pthread_mutex_init(&ret->status_mutex, NULL);
@@ -106,10 +106,8 @@ client_t * client_create(int fd, const gavf_program_header_t * ph,
     }
   
   if(method == BG_PLUG_IO_METHOD_HEAD)
-    {
-    fprintf(stderr, "Got head\n");
     goto fail;
-    }
+  
   /* Start filter */
     
   if(!(io = bg_plug_io_open_socket(fd, BG_PLUG_IO_METHOD_WRITE, &flags,
