@@ -98,4 +98,7 @@ int bg_socket_is_local(int fd);
 int bg_socket_can_read(int fd, int milliseconds);
 int bg_socket_can_write(int fd, int milliseconds);
 
+int bg_socket_send_file(int fd, const char * filename,
+                        int64_t offset, int64_t len);
+
 #endif // __BG_SOCKET_H_

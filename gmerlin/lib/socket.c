@@ -34,6 +34,12 @@
 #include <sys/types.h>
 #endif
 
+#ifdef HAVE_SYS_SENDFILE_H
+#include <sys/sendfile.h>
+#endif
+
+#include <netinet/tcp.h> // IPPROTO_TCP, TCP_MAXSEG
+
 #include <unistd.h>
 
 #include <netdb.h> /* gethostbyname */
@@ -656,7 +662,72 @@ int bg_socket_is_local(int fd)
 int bg_socket_send_file(int fd, const char * filename,
                         int64_t offset, int64_t len)
   {
+  int ret = 0;
+  int buf_size;
+  uint8_t * buf = NULL;
+  int file_fd;
+  socklen_t size_len;
+  int64_t result;
+  int64_t bytes_written;
+  int bytes;
   
+  file_fd = open(filename, O_RDONLY);
+  if(file_fd < 0)
+    {
+    bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Cannot open local file: %s", strerror(errno));
+    return 0;
+    }
+  
+  if(len <= 0)
+    len = lseek(file_fd, 0, SEEK_END);
+  lseek(file_fd, offset, SEEK_SET);
+  
+  /* Try sendfile */
+#ifdef HAVE_SYS_SENDFILE_H
+  result = sendfile(fd, file_fd, &offset, len);
+  if(result < 0)
+    {
+    if((errno != EINVAL) && (errno != ENOSYS))
+      goto end;
+    }
+  else
+    {
+    ret = 1;
+    goto end;
+    }
+#endif
+  
+  if(getsockopt(fd, IPPROTO_TCP, TCP_MAXSEG, &buf_size, &size_len))
+    buf_size = 576 - 40;
+
+  bytes_written = 0;
+  
+  buf = malloc(buf_size);
+
+  while(bytes_written < len)
+    {
+    bytes = len - bytes_written;
+    
+    if(bytes > buf_size)
+      bytes = buf_size;
+    
+    bytes = read(file_fd, buf, bytes);
+    if(bytes < 0)
+      goto end;
+    
+    if(write(fd, buf, bytes) < bytes)
+      goto end;
+    bytes_written += bytes;
+    }
+
+  ret = 1;
+  end:
+
+  close(file_fd);
+  
+  if(buf)
+    free(buf);
+  return ret;
   }
 
 int bg_udp_socket_create(bg_host_address_t * addr)
@@ -683,6 +754,8 @@ int bg_udp_socket_create_multicast(bg_host_address_t * addr)
   int reuse = 1;
   int ret;
   int err;
+  uint8_t loop = 1;
+
   bg_host_address_t bind_addr;
   
   if((ret = create_socket(addr->addr.ss_family, SOCK_DGRAM, 0)) < 0)
@@ -711,6 +784,7 @@ int bg_udp_socket_create_multicast(bg_host_address_t * addr)
   if(err)
     {
     bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Cannot bind UDP socket: %s", strerror(errno));
+    close(ret);
     return -1;
     }
   
@@ -725,15 +799,19 @@ int bg_udp_socket_create_multicast(bg_host_address_t * addr)
       {
       bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Cannot join multicast group: %s",
              strerror(errno));
-      return 0;
+      close(ret);
+      return -1;
       }
-    return ret;
     }
   else
     {
     bg_log(BG_LOG_ERROR, LOG_DOMAIN, "IPV6 multicast not supported yet");
+    close(ret);
+    return -1;
     }
-  return -1;
+  
+  setsockopt(ret, IPPROTO_IP, IP_MULTICAST_LOOP, &loop, sizeof(loop));
+  return ret;
   }
 
 int bg_udp_socket_receive(int fd, uint8_t * data, int data_size,
