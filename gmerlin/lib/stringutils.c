@@ -390,7 +390,7 @@ int bg_url_split(const char * url,
   }
 
 /*
- *  Split off vars like path?var1=val1&var2=val2
+ *  Split off vars like path?var1=val1&var2=val2#fragment
  */
  
 void bg_url_get_vars(char * path,
@@ -399,7 +399,15 @@ void bg_url_get_vars(char * path,
   int i;
   char ** str;
   
-  char * pos = strrchr(path, '?');
+  char * pos;
+
+  /* Hack */
+  pos = strchr(path, '#');
+  if(pos)
+    *pos = '\0';
+  /* End Hack */
+
+  pos = strrchr(path, '?');
   if(!pos)
     return;
 

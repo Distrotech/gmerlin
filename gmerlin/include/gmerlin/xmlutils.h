@@ -24,6 +24,9 @@
 #include <libxml/tree.h>
 #include <libxml/parser.h>
 
+#include <gavl/gavf.h>
+
+
 /*  Macro, which calls strcmp, but casts the first argument to char*
  *  This is needed because libxml strings are uint8_t*
  */
@@ -54,6 +57,9 @@ char * bg_xml_save_to_memory(xmlDocPtr doc);
 
 xmlDocPtr bg_xml_load_FILE(FILE * f);
 void bg_xml_save_FILE(xmlDocPtr doc, FILE * f);
+
+xmlDocPtr bg_xml_load_gavf_io(gavf_io_t* io);
+void bg_xml_save_io(xmlDocPtr doc, gavf_io_t* io);
 
 xmlDocPtr bg_xml_parse_file(const char * filename, int lock);
 void bg_xml_save_file(xmlDocPtr doc, const char * filename, int lock);

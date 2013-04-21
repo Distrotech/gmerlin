@@ -225,13 +225,15 @@ static void handle_client_connection(server_t * s, int fd)
     status = BG_PLUG_IO_STATUS_400;
     goto fail;
     }
-
+#if 0
   if(gavl_metadata_get(&req, "Range"))
     {
     status = BG_PLUG_IO_STATUS_416;
     goto fail;
     }
-  
+#endif
+
+
   location = gavl_strdup(var);
   bg_url_get_vars(location, &vars);
   

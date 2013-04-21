@@ -101,6 +101,19 @@ static int FILE_read_callback(void * context, char * buffer,
   return fread(buffer, 1, len, context);
   }
 
+static int gavf_io_write_callback(void * context, const char * buffer,
+                                  int len)
+  {
+  return gavf_io_write_data(context, (uint8_t*)buffer, len);
+  }
+
+static int gavf_io_read_callback(void * context, char * buffer,
+                                 int len)
+  {
+  return gavf_io_read_data(context, (uint8_t*)buffer, len);
+  }
+
+
 xmlDocPtr bg_xml_load_FILE(FILE * f)
   {
   return xmlReadIO(FILE_read_callback, NULL, f, NULL, NULL, 0);
@@ -114,6 +127,22 @@ void bg_xml_save_FILE(xmlDocPtr doc, FILE * f)
                                NULL, f, NULL);
   xmlSaveFileTo(b, doc, NULL);
   }
+
+xmlDocPtr bg_xml_load_gavf_io(gavf_io_t* io)
+  {
+  return xmlReadIO(gavf_io_read_callback, NULL, io, NULL, NULL, 0);
+  }
+
+void bg_xml_save_io(xmlDocPtr doc, gavf_io_t* io)
+  {
+  xmlOutputBufferPtr b;
+
+  b = xmlOutputBufferCreateIO (gavf_io_write_callback,
+                               NULL, io, NULL);
+  xmlSaveFileTo(b, doc, NULL);
+  }
+
+
 
 xmlDocPtr bg_xml_parse_file(const char * filename, int lock)
   {

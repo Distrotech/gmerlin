@@ -41,6 +41,9 @@ void bg_host_address_destroy(bg_host_address_t *);
 int bg_host_address_set(bg_host_address_t *, const char * host,
                         int port, int socktype);
 
+void bg_host_address_set_port(bg_host_address_t * addr, int port);
+int bg_host_address_get_port(bg_host_address_t * addr);
+
 /*
  *  Client connection (stream oriented)
  *  timeout is in milliseconds
@@ -69,6 +72,20 @@ int bg_listen_socket_create_unix(const char * name,
 int bg_listen_socket_accept(int sock, int milliseconds);
 
 void bg_listen_socket_destroy(int);
+
+/* UDP */
+
+int bg_udp_socket_create(bg_host_address_t * addr);
+
+int bg_udp_socket_create_multicast(bg_host_address_t * addr);
+
+int bg_udp_socket_receive(int fd, uint8_t * data, int data_size,
+                          bg_host_address_t * addr);
+
+int bg_udp_socket_send(int fd, const uint8_t * data, int data_size,
+                       bg_host_address_t * addr);
+
+/* I/0 functions */
 
 int bg_socket_read_data(int fd, uint8_t * data, int len, int milliseconds);
 int bg_socket_write_data(int fd, const uint8_t * data, int len);

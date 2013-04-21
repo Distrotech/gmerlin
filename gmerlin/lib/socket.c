@@ -61,7 +61,9 @@
 
 struct bg_host_address_s 
   {
-  struct addrinfo * addr;
+  struct sockaddr_storage addr;
+  size_t len;
+  //  struct addrinfo * addr;
   };
 
 bg_host_address_t * bg_host_address_create()
@@ -73,7 +75,6 @@ bg_host_address_t * bg_host_address_create()
 
 void bg_host_address_destroy(bg_host_address_t * a)
   {
-  freeaddrinfo(a->addr);
   free(a);
   }
 
@@ -98,33 +99,53 @@ static int create_socket(int domain, int type, int protocol)
 
 /* */
 
-static void address_set_port(struct addrinfo * info, int port)
+void bg_host_address_set_port(bg_host_address_t * addr, int port)
   {
-  while(info)
+  switch(addr->addr.ss_family)
     {
-    switch(info->ai_family)
+    case AF_INET:
       {
-      case AF_INET:
-        {
-        struct sockaddr_in * addr;
-        addr = (struct sockaddr_in*)info->ai_addr;
-        addr->sin_port = htons(port);
-        }
-        break;
-      case AF_INET6:
-        {
-        struct sockaddr_in6 * addr;
-        addr = (struct sockaddr_in6*)info->ai_addr;
-        addr->sin6_port = htons(port);
-        }
-        break;
-      default:
-        break;
+      struct sockaddr_in * a;
+      a = (struct sockaddr_in*)&addr->addr;
+      a->sin_port = htons(port);
       }
-    info = info->ai_next;
+      break;
+    case AF_INET6:
+      {
+      struct sockaddr_in6 * a;
+      a = (struct sockaddr_in6*)&addr->addr;
+      a->sin6_port = htons(port);
+      }
+      break;
+    default:
+      break;
     }
   }
 
+int bg_host_address_get_port(bg_host_address_t * addr)
+  {
+  switch(addr->addr.ss_family)
+    {
+    case AF_INET:
+      {
+      struct sockaddr_in * a;
+      a = (struct sockaddr_in*)&addr->addr;
+      return ntohs(a->sin_port);
+      }
+      break;
+    case AF_INET6:
+      {
+      struct sockaddr_in6 * a;
+      a = (struct sockaddr_in6*)&addr->addr;
+      return ntohs(a->sin6_port);
+      }
+      break;
+    default:
+      break;
+    }
+  return 0;
+  }
+  
 static struct addrinfo *
 hostbyname(const char * hostname, int port, int socktype)
   {
@@ -167,7 +188,6 @@ hostbyname(const char * hostname, int port, int socktype)
   else if(ret[0].ai_addr->sa_family == AF_INET6)
     fprintf(stderr, "Got IPV6 address\n");
 #endif  
-  address_set_port(ret, port);
   
   return ret;
   }
@@ -175,13 +195,22 @@ hostbyname(const char * hostname, int port, int socktype)
 int bg_host_address_set(bg_host_address_t * a, const char * hostname,
                         int port, int socktype)
   {
-  a->addr = hostbyname(hostname, port, socktype);
+  struct addrinfo * addr;
+  
+  addr = hostbyname(hostname, port, socktype);
+  if(!addr)
+    return 0;
+  
+  memcpy(&a->addr, addr->ai_addr, addr->ai_addrlen);
+  a->len = addr->ai_addrlen;
   //  if(!hostbyname(a, hostname))
   //    return 0;
   //  a->port = port;
+
+  freeaddrinfo(addr);
+
+  bg_host_address_set_port(a, port);
   
-  if(!a->addr)
-    return 0;
   return 1;
   }
 
@@ -195,7 +224,7 @@ int bg_socket_connect_inet(bg_host_address_t * a, int milliseconds)
 
                                                                                
   /* Create the socket */
-  if((ret = create_socket(a->addr->ai_family, SOCK_STREAM, 0)) < 0)
+  if((ret = create_socket(a->addr.ss_family, SOCK_STREAM, 0)) < 0)
     {
     bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Cannot create socket");
     return -1;
@@ -209,7 +238,7 @@ int bg_socket_connect_inet(bg_host_address_t * a, int milliseconds)
     }
   
   /* Connect the thing */
-  if(connect(ret, a->addr->ai_addr, a->addr->ai_addrlen)<0)
+  if(connect(ret, (struct sockaddr*)&a->addr, a->len) < 0)
     {
     if(errno == EINPROGRESS)
       {
@@ -328,7 +357,7 @@ int bg_listen_socket_create_inet(bg_host_address_t * addr,
 
   if(addr)
     {
-    if(addr->addr->ai_family == AF_INET6)
+    if(addr->addr.ss_family == AF_INET6)
       use_ipv6 = 1;
     }
   else if(flags & BG_SOCKET_LOOPBACK)
@@ -353,7 +382,7 @@ int bg_listen_socket_create_inet(bg_host_address_t * addr,
 
   if(addr)
     {
-    err = bind(ret, addr->addr->ai_addr, addr->addr->ai_addrlen);
+    err = bind(ret, (struct sockaddr*)&addr->addr, addr->len);
     }
   else if(use_ipv6)
     {
@@ -622,3 +651,111 @@ int bg_socket_is_local(int fd)
     }
   return 0;
   }
+
+/* Send an entire file */
+int bg_socket_send_file(int fd, const char * filename,
+                        int64_t offset, int64_t len)
+  {
+  
+  }
+
+int bg_udp_socket_create(bg_host_address_t * addr)
+  {
+  int ret;
+  int err;
+  if((ret = create_socket(addr->addr.ss_family, SOCK_DGRAM, 0)) < 0)
+    {
+    bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Cannot create UDP socket: %s", strerror(errno));
+    return -1;
+    }
+  err = bind(ret, (struct sockaddr*)&addr->addr, addr->len);
+
+  if(err)
+    {
+    bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Cannot bind UDP socket: %s", strerror(errno));
+    return -1;
+    }
+  return ret;
+  }
+
+int bg_udp_socket_create_multicast(bg_host_address_t * addr)
+  {
+  int reuse = 1;
+  int ret;
+  int err;
+  bg_host_address_t bind_addr;
+  
+  if((ret = create_socket(addr->addr.ss_family, SOCK_DGRAM, 0)) < 0)
+    {
+    bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Cannot create UDP multicast socket");
+    return -1;
+    }
+  
+  if(setsockopt(ret, SOL_SOCKET, SO_REUSEADDR, (char *)&reuse, sizeof(reuse)) < 0)
+
+    {
+    close(ret);
+    bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Cannot set SO_REUSEADDR: %s", strerror(errno));
+    return -1;
+    }
+
+  /* Bind to proper port */
+  
+  memset(&bind_addr, 0, sizeof(bind_addr));
+  
+  bg_host_address_set(&bind_addr, "0.0.0.0",
+                      bg_host_address_get_port(addr), SOCK_DGRAM);
+
+  err = bind(ret, (struct sockaddr*)&addr->addr, addr->len);
+
+  if(err)
+    {
+    bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Cannot bind UDP socket: %s", strerror(errno));
+    return -1;
+    }
+  
+  if(addr->addr.ss_family == AF_INET)
+    {
+    struct ip_mreq req;
+    struct sockaddr_in * a = (struct sockaddr_in *)(&addr->addr);
+    memcpy(&req.imr_multiaddr, &a->sin_addr, sizeof(req.imr_multiaddr));
+    req.imr_interface.s_addr = INADDR_ANY;
+
+    if(setsockopt(ret, IPPROTO_IP, IP_ADD_MEMBERSHIP, &req, sizeof(req)))
+      {
+      bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Cannot join multicast group: %s",
+             strerror(errno));
+      return 0;
+      }
+    return ret;
+    }
+  else
+    {
+    bg_log(BG_LOG_ERROR, LOG_DOMAIN, "IPV6 multicast not supported yet");
+    }
+  return -1;
+  }
+
+int bg_udp_socket_receive(int fd, uint8_t * data, int data_size,
+                          bg_host_address_t * addr)
+  {
+  socklen_t len;
+  ssize_t result;
+  
+  result = recvfrom(fd, data, data_size, 0 /* int flags */,
+                    (struct sockaddr *)&addr->addr, &len);
+
+  if(result < 0)
+    bg_log(BG_LOG_ERROR, LOG_DOMAIN, "UDP Receive failed");
+  
+  addr->len = len;
+  return result;
+  }
+
+int bg_udp_socket_send(int fd, const uint8_t * data, int data_size,
+                       bg_host_address_t * addr)
+  {
+  return (sendto(fd, data, data_size, 0 /* int flags */,
+                 (struct sockaddr *)&addr->addr, addr->len) == data_size);
+  }
+

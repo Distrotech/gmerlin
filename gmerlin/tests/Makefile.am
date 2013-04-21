@@ -40,6 +40,7 @@ textrenderer \
 ladspa \
 thumbnail \
 visualization \
+ssdp \
 $(gtk_programs)
 
 bin_PROGRAMS = gmerlin_imgconvert \
@@ -66,6 +67,9 @@ album2pls_LDADD = ../lib/libgmerlin.la -ldl
 
 ocrtest_SOURCES = ocrtest.c
 ocrtest_LDADD = ../lib/libgmerlin.la -ldl
+
+ssdp_SOURCES = ssdp.c
+ssdp_LDADD = ../lib/libgmerlin.la -ldl
 
 extractchannel_SOURCES = extractchannel.c
 extractchannel_LDADD = ../lib/libgmerlin.la -ldl
