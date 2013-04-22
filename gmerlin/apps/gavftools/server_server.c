@@ -52,7 +52,7 @@ server_t * server_create(char ** listen_addresses,
     {
     if(!strncmp(ret->listen_addresses[i], "tcp://", 6))
       {
-      bg_host_address_t * a = NULL;
+      bg_socket_address_t * a = NULL;
       int port;
       int result;
       char * host = NULL;
@@ -81,17 +81,17 @@ server_t * server_create(char ** listen_addresses,
                "Post missing in address %s", ret->listen_addresses[i]);
         free(host);
         }
-      a = bg_host_address_create();
-      result = bg_host_address_set(a, host, port, SOCK_STREAM);
+      a = bg_socket_address_create();
+      result = bg_socket_address_set(a, host, port, SOCK_STREAM);
       free(host);
 
       if(!result)
         {
-        bg_host_address_destroy(a);
+        bg_socket_address_destroy(a);
         goto fail;
         }
       ret->listen_sockets[i] = bg_listen_socket_create_inet(a, 0, 10, 0);
-      bg_host_address_destroy(a);
+      bg_socket_address_destroy(a);
 
       if(ret->listen_sockets[i] < 0)
         goto fail;

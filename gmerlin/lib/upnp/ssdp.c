@@ -19,6 +19,20 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  * *****************************************************************/
 
+#include <config.h>
+#include <stdlib.h>
+#include <gavl/gavl.h>
+#include <gavl/metadata.h>
+
+#include <gmerlin/upnp/ssdp.h>
+#include <gmerlin/bgsocket.h>
+#include <gmerlin/translation.h>
+#include <gmerlin/log.h>
+#define LOG_DOMAIN "ssdp"
+
+
+
+#if 0
 typedef struct bg_ssdp_service_s
   {
   gavl_metadata_t m;
@@ -34,13 +48,31 @@ typedef struct bg_ssdp_device_s
   int num_services;
   bg_ssdp_service_t * services;
   } bg_ssdp_device_t;
+#endif
 
+struct bg_ssdp_s
+  {
+  int mcast_fd;
+  int ucast_fd;
+  gavl_timer_t * timer;
+  };
 
+bg_ssdp_t * bg_ssdp_create()
+  {
+  bg_ssdp_t * ret = calloc(1, sizeof(*ret));
+ 
+  
 
-typedef struct bg_ssdp_s bg_sssp_t;
+  return ret;
+  }
 
-bg_ssdp_t * bg_ssdp_create();
+void bg_ssdp_update(bg_ssdp_t * s)
+  {
 
-void bg_ssdp_update(bg_ssdp_t *);
-void bg_ssdp_destroy(bg_ssdp_t *);
+  }
+
+void bg_ssdp_destroy(bg_ssdp_t * s)
+  {
+
+  }
 

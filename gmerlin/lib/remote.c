@@ -418,9 +418,9 @@ int bg_remote_client_init(bg_remote_client_t * c,
   
   char * answer_message;
     
-  bg_host_address_t * addr = bg_host_address_create();
+  bg_socket_address_t * addr = bg_socket_address_create();
   c->milliseconds = milliseconds;
-  if(!bg_host_address_set(addr, host, port, SOCK_STREAM))
+  if(!bg_socket_address_set(addr, host, port, SOCK_STREAM))
     goto fail;
   c->fd = bg_socket_connect_inet(addr, c->milliseconds);
   if(c->fd < 0)
@@ -463,7 +463,7 @@ int bg_remote_client_init(bg_remote_client_t * c,
   fail:
   if(strings)
     bg_strbreak_free(strings);
-  bg_host_address_destroy(addr);
+  bg_socket_address_destroy(addr);
   return ret;
   }
 

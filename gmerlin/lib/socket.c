@@ -71,21 +71,21 @@
 
 /* Opaque address structure so we can support IPv6 */
 
-struct bg_host_address_s 
+struct bg_socket_address_s 
   {
   struct sockaddr_storage addr;
   size_t len;
   //  struct addrinfo * addr;
   };
 
-bg_host_address_t * bg_host_address_create()
+bg_socket_address_t * bg_socket_address_create()
   {
-  bg_host_address_t * ret;
+  bg_socket_address_t * ret;
   ret = calloc(1, sizeof(*ret));
   return ret;
   }
 
-void bg_host_address_destroy(bg_host_address_t * a)
+void bg_socket_address_destroy(bg_socket_address_t * a)
   {
   free(a);
   }
@@ -111,7 +111,7 @@ static int create_socket(int domain, int type, int protocol)
 
 /* */
 
-void bg_host_address_set_port(bg_host_address_t * addr, int port)
+void bg_socket_address_set_port(bg_socket_address_t * addr, int port)
   {
   switch(addr->addr.ss_family)
     {
@@ -134,7 +134,7 @@ void bg_host_address_set_port(bg_host_address_t * addr, int port)
     }
   }
 
-int bg_host_address_get_port(bg_host_address_t * addr)
+int bg_socket_address_get_port(bg_socket_address_t * addr)
   {
   switch(addr->addr.ss_family)
     {
@@ -158,7 +158,7 @@ int bg_host_address_get_port(bg_host_address_t * addr)
   return 0;
   }
 
-char * bg_host_address_to_string(bg_host_address_t * addr)
+char * bg_socket_address_to_string(bg_socket_address_t * addr)
   {
   switch(addr->addr.ss_family)
     {
@@ -236,7 +236,7 @@ hostbyname(const char * hostname, int socktype)
   return ret;
   }
 
-int bg_host_address_set(bg_host_address_t * a, const char * hostname,
+int bg_socket_address_set(bg_socket_address_t * a, const char * hostname,
                         int port, int socktype)
   {
   struct addrinfo * addr;
@@ -253,12 +253,12 @@ int bg_host_address_set(bg_host_address_t * a, const char * hostname,
 
   freeaddrinfo(addr);
 
-  bg_host_address_set_port(a, port);
+  bg_socket_address_set_port(a, port);
   
   return 1;
   }
 
-int bg_host_address_set_local(bg_host_address_t * a, int port, int socktype)
+int bg_socket_address_set_local(bg_socket_address_t * a, int port, int socktype)
   {
 #ifdef HAVE_IFADDRS_H  
   int ret = 0;
@@ -282,7 +282,7 @@ int bg_host_address_set_local(bg_host_address_t * a, int port, int socktype)
         continue;
         }
       memcpy(&a->addr, addr->ifa_addr, a->len);
-      bg_host_address_set_port(a, port);
+      bg_socket_address_set_port(a, port);
       ret = 1;
       break;
       }
@@ -294,12 +294,32 @@ int bg_host_address_set_local(bg_host_address_t * a, int port, int socktype)
 #else
   return 0;
 #endif
-  //  return bg_host_address_set(a, hostname, port, socktype);
+  //  return bg_socket_address_set(a, hostname, port, socktype);
+  }
+
+int bg_socket_get_address(int sock, bg_socket_address_t * local, bg_socket_address_t * remote)
+  {
+  socklen_t len;
+  if(local)
+    {
+    len = sizeof(local->addr); 
+    if(getsockname(sock, (struct sockaddr *)&local->addr, &len))
+      return 0;
+    local->len = len;
+    }
+  if(remote) 
+    { 
+    len = sizeof(remote->addr);
+    if(getpeername(sock, (struct sockaddr *)&remote->addr, &len))
+      return 0;
+    remote->len = len;
+    }
+  return 1;
   }
 
 /* Client connection (stream oriented) */
 
-int bg_socket_connect_inet(bg_host_address_t * a, int milliseconds)
+int bg_socket_connect_inet(bg_socket_address_t * a, int milliseconds)
   {
   int ret = -1;
   int err;
@@ -429,7 +449,7 @@ static int have_ipv6()
 
 /* Server socket (stream oriented) */
 
-int bg_listen_socket_create_inet(bg_host_address_t * addr,
+int bg_listen_socket_create_inet(bg_socket_address_t * addr,
                                  int port,
                                  int queue_size,
                                  int flags)
@@ -807,7 +827,7 @@ int bg_socket_send_file(int fd, const char * filename,
   return ret;
   }
 
-int bg_udp_socket_create(bg_host_address_t * addr)
+int bg_udp_socket_create(bg_socket_address_t * addr)
   {
   int ret;
   int err;
@@ -826,14 +846,14 @@ int bg_udp_socket_create(bg_host_address_t * addr)
   return ret;
   }
 
-int bg_udp_socket_create_multicast(bg_host_address_t * addr)
+int bg_udp_socket_create_multicast(bg_socket_address_t * addr)
   {
   int reuse = 1;
   int ret;
   int err;
   uint8_t loop = 1;
 
-  bg_host_address_t bind_addr;
+  bg_socket_address_t bind_addr;
   
   if((ret = create_socket(addr->addr.ss_family, SOCK_DGRAM, 0)) < 0)
     {
@@ -853,8 +873,8 @@ int bg_udp_socket_create_multicast(bg_host_address_t * addr)
   
   memset(&bind_addr, 0, sizeof(bind_addr));
   
-  bg_host_address_set(&bind_addr, "0.0.0.0",
-                      bg_host_address_get_port(addr), SOCK_DGRAM);
+  bg_socket_address_set(&bind_addr, "0.0.0.0",
+                      bg_socket_address_get_port(addr), SOCK_DGRAM);
 
   err = bind(ret, (struct sockaddr*)&addr->addr, addr->len);
 
@@ -892,7 +912,7 @@ int bg_udp_socket_create_multicast(bg_host_address_t * addr)
   }
 
 int bg_udp_socket_receive(int fd, uint8_t * data, int data_size,
-                          bg_host_address_t * addr)
+                          bg_socket_address_t * addr)
   {
   socklen_t len = sizeof(addr->addr);
   ssize_t result;
@@ -908,7 +928,7 @@ int bg_udp_socket_receive(int fd, uint8_t * data, int data_size,
   }
 
 int bg_udp_socket_send(int fd, const uint8_t * data, int data_size,
-                       bg_host_address_t * addr)
+                       bg_socket_address_t * addr)
   {
   return (sendto(fd, data, data_size, 0 /* int flags */,
                  (struct sockaddr *)&addr->addr, addr->len) == data_size);

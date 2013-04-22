@@ -716,7 +716,7 @@ static gavf_io_t * open_tcp(const char * location,
   int port;
   int fd;
   socket_t * s;
-  bg_host_address_t * addr = NULL;
+  bg_socket_address_t * addr = NULL;
   
   if(!bg_url_split(location,
                    NULL,
@@ -738,8 +738,8 @@ static gavf_io_t * open_tcp(const char * location,
     goto fail;
     }
 
-  addr = bg_host_address_create();
-  if(!bg_host_address_set(addr, host, port, SOCK_STREAM))
+  addr = bg_socket_address_create();
+  if(!bg_socket_address_set(addr, host, port, SOCK_STREAM))
     goto fail;
   
   fd = bg_socket_connect_inet(addr, timeout);
@@ -768,7 +768,7 @@ static gavf_io_t * open_tcp(const char * location,
   if(path)
     free(path);
   if(addr)
-    bg_host_address_destroy(addr);
+    bg_socket_address_destroy(addr);
   return ret;
   }
 
@@ -819,7 +819,7 @@ static gavf_io_t * open_tcpserv(const char * addr,
   {
   socket_t * s;
   
-  bg_host_address_t * a = NULL;
+  bg_socket_address_t * a = NULL;
   int port;
   int server_fd, fd;
 
@@ -841,8 +841,8 @@ static gavf_io_t * open_tcpserv(const char * addr,
     goto fail;
     }
 
-  a = bg_host_address_create();
-  if(!bg_host_address_set(a, host,
+  a = bg_socket_address_create();
+  if(!bg_socket_address_set(a, host,
                           port, SOCK_STREAM))
     goto fail;
 
@@ -886,7 +886,7 @@ static gavf_io_t * open_tcpserv(const char * addr,
   fail:
 
   if(a)
-    bg_host_address_destroy(a);
+    bg_socket_address_destroy(a);
   
   return ret;
   }

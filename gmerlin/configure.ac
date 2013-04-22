@@ -168,6 +168,9 @@ SQLITE3_LIBS=""
 AC_CHECK_LIB(sqlite3, sqlite3_exec, [SQLITE3_LIBS="-lsqlite3"; have_sqlite3="true"], have_sqlite3="false")
 AC_SUBST(SQLITE3_LIBS)
 
+PKG_CHECK_MODULES(UUID, uuid, have_libuuid="true", have_libuuid="false")
+AM_CONDITIONAL(HAVE_UUID, test x$have_libuuid = xtrue)
+
 MQ_LIBS=""
 AC_CHECK_LIB(rt, mq_open, MQ_LIBS="-lrt")
 AC_SUBST(MQ_LIBS)
@@ -1021,10 +1024,12 @@ tests/Makefile \
 include/Makefile \
 include/gmerlin/Makefile \
 include/gmerlin/bg_version.h \
+include/gmerlin/upnp/Makefile
 include/gui_gtk/Makefile \
 include/x11/Makefile \
 lib/Makefile \
 lib/gtk/Makefile \
+lib/upnp/Makefile \
 lib/x11/Makefile \
 osd/Makefile \
 plugins/Makefile \

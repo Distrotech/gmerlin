@@ -30,30 +30,30 @@
 
 /* Opaque address structure so we can support IPv6 in the future */
 
-typedef struct bg_host_address_s bg_host_address_t;
+typedef struct bg_socket_address_s bg_socket_address_t;
 
-bg_host_address_t * bg_host_address_create();
-void bg_host_address_destroy(bg_host_address_t *);
+bg_socket_address_t * bg_socket_address_create();
+void bg_socket_address_destroy(bg_socket_address_t *);
 
 
 /* Get address from hostname and port */
 
-int bg_host_address_set(bg_host_address_t *, const char * host,
+int bg_socket_address_set(bg_socket_address_t *, const char * host,
                         int port, int socktype);
 
-void bg_host_address_set_port(bg_host_address_t * addr, int port);
-int bg_host_address_get_port(bg_host_address_t * addr);
+void bg_socket_address_set_port(bg_socket_address_t * addr, int port);
+int bg_socket_address_get_port(bg_socket_address_t * addr);
 
-char * bg_host_address_to_string(bg_host_address_t * addr);
+char * bg_socket_address_to_string(bg_socket_address_t * addr);
 
-int bg_host_address_set_local(bg_host_address_t * a, int port, int socktype);
+int bg_socket_address_set_local(bg_socket_address_t * a, int port, int socktype);
 
 /*
  *  Client connection (stream oriented)
  *  timeout is in milliseconds
  */
 
-int bg_socket_connect_inet(bg_host_address_t*, int timeout);
+int bg_socket_connect_inet(bg_socket_address_t*, int timeout);
 int bg_socket_connect_unix(const char *);
 
 void bg_socket_disconnect(int);
@@ -63,7 +63,7 @@ void bg_socket_disconnect(int);
 // #define BG_SOCKET_IPV6     (1<<0)
 #define BG_SOCKET_LOOPBACK (1<<1)
 
-int bg_listen_socket_create_inet(bg_host_address_t * addr,
+int bg_listen_socket_create_inet(bg_socket_address_t * addr,
                                  int port,
                                  int queue_size,
                                  int flags);
@@ -77,17 +77,19 @@ int bg_listen_socket_accept(int sock, int milliseconds);
 
 void bg_listen_socket_destroy(int);
 
+int bg_socket_get_address(int sock, bg_socket_address_t * local, bg_socket_address_t * remote);
+
 /* UDP */
 
-int bg_udp_socket_create(bg_host_address_t * addr);
+int bg_udp_socket_create(bg_socket_address_t * addr);
 
-int bg_udp_socket_create_multicast(bg_host_address_t * addr);
+int bg_udp_socket_create_multicast(bg_socket_address_t * addr);
 
 int bg_udp_socket_receive(int fd, uint8_t * data, int data_size,
-                          bg_host_address_t * addr);
+                          bg_socket_address_t * addr);
 
 int bg_udp_socket_send(int fd, const uint8_t * data, int data_size,
-                       bg_host_address_t * addr);
+                       bg_socket_address_t * addr);
 
 /* I/0 functions */
 

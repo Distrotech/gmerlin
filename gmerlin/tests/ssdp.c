@@ -11,20 +11,20 @@ int main(int argc, char ** argv)
   char * addr_str;
 
   int len;
-  bg_host_address_t * addr = bg_host_address_create();
-  bg_host_address_t * mcast = bg_host_address_create();
-  bg_host_address_t * sender = bg_host_address_create();
+  bg_socket_address_t * addr = bg_socket_address_create();
+  bg_socket_address_t * mcast = bg_socket_address_create();
+  bg_socket_address_t * sender = bg_socket_address_create();
 
   uint8_t buf[BUF_LEN];
   int fd;
   
-  if(!bg_host_address_set(mcast, "239.255.255.250", 1900, SOCK_DGRAM))
+  if(!bg_socket_address_set(mcast, "239.255.255.250", 1900, SOCK_DGRAM))
     return -1;
 
-  if(!bg_host_address_set_local(addr, 0, SOCK_DGRAM))
+  if(!bg_socket_address_set_local(addr, 0, SOCK_DGRAM))
     return -1;
 
-  addr_str = bg_host_address_to_string(addr);
+  addr_str = bg_socket_address_to_string(addr);
   fprintf(stderr, "Local address %s\n", addr_str);
   free(addr_str);
   
@@ -41,7 +41,7 @@ int main(int argc, char ** argv)
 
       if(len)
         {
-        addr_str = bg_host_address_to_string(sender);
+        addr_str = bg_socket_address_to_string(sender);
         fprintf(stderr, "Got SSDP message from %s\n", addr_str);
         fwrite(buf, 1, len, stderr);
         free(addr_str);

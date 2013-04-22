@@ -1,3 +1,9 @@
+if HAVE_UUID
+upnp_subdirs = upnp
+else
+upnp_subdirs =
+endif
+
 pkginclude_HEADERS = \
 accelerator.h \
 bg_sem.h \
@@ -46,5 +52,8 @@ tree.h \
 utils.h \
 visualize.h \
 xmlutils.h
+
+SUBDIRS = \
+$(upnp_subdirs)
 
 EXTRA_DIST = bg_version.h.in

@@ -10,6 +10,14 @@ x11_subdirs =
 x11_libadd =
 endif
 
+if HAVE_UUID
+upnp_subdirs = upnp
+upnp_libadd = upnp/libupnp.la
+else
+upnp_subdirs =
+upnp_libadd =
+endif
+
 if HAVE_GTK
 gtk_subdirs = gtk
 else
@@ -32,7 +40,7 @@ else
 sem_sources = uthread_sem.c
 endif
 
-SUBDIRS = $(x11_subdirs) . $(gtk_subdirs)
+SUBDIRS = $(x11_subdirs) $(upnp_subdirs) . $(gtk_subdirs)
 
 AM_CFLAGS = \
 @FONTCONFIG_CFLAGS@ \
@@ -46,7 +54,7 @@ $(lv_cflags)
 
 libgmerlin_la_LDFLAGS = -version-info @LTVERSION_CURRENT@:@LTVERSION_REVISION@:@LTVERSION_AGE@ -export-symbols-regex ^bg_ @GMERLIN_LIB_LDFLAGS@
 
-libgmerlin_la_LIBADD = $(x11_libadd) @FONTCONFIG_LIBS@ @FREETYPE_LIBS@ @XML2_LIBS@ @ICONV_LIBS@ @MQ_LIBS@ @LIBINTL@ $(lv_libs) -ldl -lpthread
+libgmerlin_la_LIBADD = $(x11_libadd) $(upnp_libadd) @FONTCONFIG_LIBS@ @FREETYPE_LIBS@ @XML2_LIBS@ @ICONV_LIBS@ @MQ_LIBS@ @LIBINTL@ $(lv_libs) -ldl -lpthread
 
 pkgbin_PROGRAMS = gmerlin_visualizer_slave
 

@@ -207,9 +207,9 @@ static int do_connect(bg_lcdproc_t* l)
   char ** answer_args;
   char * cmd = NULL;
   
-  bg_host_address_t * addr = bg_host_address_create();
+  bg_socket_address_t * addr = bg_socket_address_create();
 
-  if(!bg_host_address_set(addr, l->hostname_cfg, l->port_cfg, SOCK_STREAM))
+  if(!bg_socket_address_set(addr, l->hostname_cfg, l->port_cfg, SOCK_STREAM))
     {
     bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Could not resolve address for: %s",
            l->hostname_cfg);
@@ -280,7 +280,7 @@ static int do_connect(bg_lcdproc_t* l)
   
   return 1;
   fail:
-  bg_host_address_destroy(addr);
+  bg_socket_address_destroy(addr);
 
   if(cmd) free(cmd);
   

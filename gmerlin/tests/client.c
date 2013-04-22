@@ -35,7 +35,7 @@ int main(int argc, char ** argv)
   {
   int  fd;
   char buffer[BUFFER_SIZE];
-  bg_host_address_t * addr;
+  bg_socket_address_t * addr;
   int result;
   
   if(argc != 2)
@@ -48,8 +48,8 @@ int main(int argc, char ** argv)
 
   if(argv[1][1] == 't') /* TCP/IP */
     {
-    addr = bg_host_address_create();
-    bg_host_address_set(addr, "localhost", INET_PORT, SOCK_STREAM);
+    addr = bg_socket_address_create();
+    bg_socket_address_set(addr, "localhost", INET_PORT, SOCK_STREAM);
     fd = bg_socket_connect_inet(addr, 500);
     if(fd == -1)
       {
