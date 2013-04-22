@@ -49,7 +49,7 @@ AC_C99_FUNC_LRINTF
 
 AC_C_BIGENDIAN(,,AC_MSG_ERROR("Cannot detect endianess"))
 
-AC_CHECK_HEADERS([sys/select.h sys/sendfile.h])
+AC_CHECK_HEADERS([sys/select.h sys/sendfile.h ifaddrs.h])
 
 AC_CHECK_DECLS([MSG_NOSIGNAL, SO_NOSIGPIPE],,,
                [#include <sys/types.h>

@@ -1,11 +1,15 @@
 #include <gmerlin/bgsocket.h>
 #include <stdio.h>
+#include <stdlib.h>
+
 #include <gavl/gavl.h>
 #include <gavl/utils.h>
 
 #define BUF_LEN 2048
 int main(int argc, char ** argv)
   {
+  char * addr_str;
+
   int len;
   bg_host_address_t * addr = bg_host_address_create();
   bg_host_address_t * mcast = bg_host_address_create();
@@ -16,6 +20,13 @@ int main(int argc, char ** argv)
   
   if(!bg_host_address_set(mcast, "239.255.255.250", 1900, SOCK_DGRAM))
     return -1;
+
+  if(!bg_host_address_set_local(addr, 0, SOCK_DGRAM))
+    return -1;
+
+  addr_str = bg_host_address_to_string(addr);
+  fprintf(stderr, "Local address %s\n", addr_str);
+  free(addr_str);
   
   fd = bg_udp_socket_create_multicast(mcast);
 
@@ -30,9 +41,11 @@ int main(int argc, char ** argv)
 
       if(len)
         {
-        fprintf(stderr, "Got SSDP message:\n");
+        addr_str = bg_host_address_to_string(sender);
+        fprintf(stderr, "Got SSDP message from %s\n", addr_str);
         fwrite(buf, 1, len, stderr);
-
+        free(addr_str);
+        
         //        gavl_hexdump(buf, len, 16);
         }
       //      }

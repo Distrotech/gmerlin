@@ -44,6 +44,10 @@ int bg_host_address_set(bg_host_address_t *, const char * host,
 void bg_host_address_set_port(bg_host_address_t * addr, int port);
 int bg_host_address_get_port(bg_host_address_t * addr);
 
+char * bg_host_address_to_string(bg_host_address_t * addr);
+
+int bg_host_address_set_local(bg_host_address_t * a, int port, int socktype);
+
 /*
  *  Client connection (stream oriented)
  *  timeout is in milliseconds

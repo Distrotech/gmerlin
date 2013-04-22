@@ -26,12 +26,18 @@
 #include <stdio.h>
 #include <string.h>
 #include <errno.h>
+#include <limits.h>
 
 #ifdef HAVE_SYS_SELECT_H
 #include <sys/select.h>
 #else
 #include <sys/time.h>
 #include <sys/types.h>
+#endif
+
+#ifdef HAVE_IFADDRS_H
+#include <ifaddrs.h>
+#include <net/if.h>
 #endif
 
 #ifdef HAVE_SYS_SENDFILE_H
@@ -63,7 +69,7 @@
 #define MSG_NOSIGNAL 0
 #endif
 
-/* Opaque address structure so we can support IPv6 in the future */
+/* Opaque address structure so we can support IPv6 */
 
 struct bg_host_address_s 
   {
@@ -151,9 +157,41 @@ int bg_host_address_get_port(bg_host_address_t * addr)
     }
   return 0;
   }
-  
+
+char * bg_host_address_to_string(bg_host_address_t * addr)
+  {
+  switch(addr->addr.ss_family)
+    {
+    case AF_INET:
+      {
+      char buf[INET_ADDRSTRLEN];
+
+      struct sockaddr_in * a;
+      a = (struct sockaddr_in*)&addr->addr;
+
+      inet_ntop(AF_INET, &a->sin_addr, buf, INET_ADDRSTRLEN);
+      return bg_sprintf("%s:%d", buf, ntohs(a->sin_port));
+      }
+      break;
+    case AF_INET6:
+      {
+      char buf[INET6_ADDRSTRLEN];
+      struct sockaddr_in6 * a;
+      
+      a = (struct sockaddr_in6*)&addr->addr;
+
+      inet_ntop(AF_INET6, &a->sin6_addr, buf, INET6_ADDRSTRLEN);
+      return bg_sprintf("[%s]:%d", buf, ntohs(a->sin6_port));
+      }
+      break;
+    default:
+      break;
+    }
+  return NULL;
+  }
+
 static struct addrinfo *
-hostbyname(const char * hostname, int port, int socktype)
+hostbyname(const char * hostname, int socktype)
   {
   int err;
   struct in_addr ipv4_addr;
@@ -203,7 +241,7 @@ int bg_host_address_set(bg_host_address_t * a, const char * hostname,
   {
   struct addrinfo * addr;
   
-  addr = hostbyname(hostname, port, socktype);
+  addr = hostbyname(hostname, socktype);
   if(!addr)
     return 0;
   
@@ -218,6 +256,45 @@ int bg_host_address_set(bg_host_address_t * a, const char * hostname,
   bg_host_address_set_port(a, port);
   
   return 1;
+  }
+
+int bg_host_address_set_local(bg_host_address_t * a, int port, int socktype)
+  {
+#ifdef HAVE_IFADDRS_H  
+  int ret = 0;
+  struct ifaddrs * ifap = NULL;
+  struct ifaddrs * addr;
+  if(getifaddrs(&ifap))
+    return 0;
+
+  addr = ifap;
+  while(addr)
+    {
+    if(!(addr->ifa_flags & IFF_LOOPBACK))
+      {
+      if(addr->ifa_addr->sa_family == AF_INET)
+        a->len = sizeof(struct sockaddr_in);
+      else if(addr->ifa_addr->sa_family == AF_INET6)
+        a->len = sizeof(struct sockaddr_in6);
+      else
+        {
+        addr = addr->ifa_next;
+        continue;
+        }
+      memcpy(&a->addr, addr->ifa_addr, a->len);
+      bg_host_address_set_port(a, port);
+      ret = 1;
+      break;
+      }
+    addr = addr->ifa_next;
+    }
+  
+  freeifaddrs(ifap);
+  return ret;
+#else
+  return 0;
+#endif
+  //  return bg_host_address_set(a, hostname, port, socktype);
   }
 
 /* Client connection (stream oriented) */
@@ -715,7 +792,7 @@ int bg_socket_send_file(int fd, const char * filename,
     if(bytes < 0)
       goto end;
     
-    if(write(fd, buf, bytes) < bytes)
+    if(bg_socket_write_data(fd, buf, bytes) < bytes)
       goto end;
     bytes_written += bytes;
     }
@@ -817,7 +894,7 @@ int bg_udp_socket_create_multicast(bg_host_address_t * addr)
 int bg_udp_socket_receive(int fd, uint8_t * data, int data_size,
                           bg_host_address_t * addr)
   {
-  socklen_t len;
+  socklen_t len = sizeof(addr->addr);
   ssize_t result;
   
   result = recvfrom(fd, data, data_size, 0 /* int flags */,
