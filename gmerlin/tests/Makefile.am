@@ -41,6 +41,7 @@ ladspa \
 thumbnail \
 visualization \
 ssdp \
+soap \
 $(gtk_programs)
 
 bin_PROGRAMS = gmerlin_imgconvert \
@@ -70,6 +71,10 @@ ocrtest_LDADD = ../lib/libgmerlin.la -ldl
 
 ssdp_SOURCES = ssdp.c
 ssdp_LDADD = ../lib/libgmerlin.la -ldl
+
+soap_SOURCES = soap.c
+soap_LDADD = ../lib/libgmerlin.la -ldl
+
 
 extractchannel_SOURCES = extractchannel.c
 extractchannel_LDADD = ../lib/libgmerlin.la -ldl

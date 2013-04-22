@@ -30,6 +30,8 @@
 
 /* Opaque address structure so we can support IPv6 in the future */
 
+#define BG_SOCKET_ADDR_STR_LEN (46+3+5+1) // INET6_ADDRSTRLEN + []: + port + \0
+
 typedef struct bg_socket_address_s bg_socket_address_t;
 
 bg_socket_address_t * bg_socket_address_create();
@@ -44,9 +46,10 @@ int bg_socket_address_set(bg_socket_address_t *, const char * host,
 void bg_socket_address_set_port(bg_socket_address_t * addr, int port);
 int bg_socket_address_get_port(bg_socket_address_t * addr);
 
-char * bg_socket_address_to_string(bg_socket_address_t * addr);
+// str must be at least BG_SOCKET_ADDR_STR_LEN bytes long
+char * bg_socket_address_to_string(bg_socket_address_t * addr, char * str);
 
-int bg_socket_address_set_local(bg_socket_address_t * a, int port, int socktype);
+int bg_socket_address_set_local(bg_socket_address_t * a, int port);
 
 /*
  *  Client connection (stream oriented)

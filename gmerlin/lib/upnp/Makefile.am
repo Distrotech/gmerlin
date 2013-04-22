@@ -12,6 +12,7 @@ noinst_LTLIBRARIES = \
 libupnp.la
 
 libupnp_la_SOURCES = \
+soap.c \
 ssdp.c
 
 libupnp_la_LIBADD =  @GMERLIN_DEP_LIBS@ @UUID_LIBS@

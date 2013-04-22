@@ -158,7 +158,7 @@ int bg_socket_address_get_port(bg_socket_address_t * addr)
   return 0;
   }
 
-char * bg_socket_address_to_string(bg_socket_address_t * addr)
+char * bg_socket_address_to_string(bg_socket_address_t * addr, char * str)
   {
   switch(addr->addr.ss_family)
     {
@@ -170,7 +170,8 @@ char * bg_socket_address_to_string(bg_socket_address_t * addr)
       a = (struct sockaddr_in*)&addr->addr;
 
       inet_ntop(AF_INET, &a->sin_addr, buf, INET_ADDRSTRLEN);
-      return bg_sprintf("%s:%d", buf, ntohs(a->sin_port));
+      snprintf(str, BG_SOCKET_ADDR_STR_LEN, "%s:%d", buf, ntohs(a->sin_port));
+      return str;
       }
       break;
     case AF_INET6:
@@ -181,7 +182,8 @@ char * bg_socket_address_to_string(bg_socket_address_t * addr)
       a = (struct sockaddr_in6*)&addr->addr;
 
       inet_ntop(AF_INET6, &a->sin6_addr, buf, INET6_ADDRSTRLEN);
-      return bg_sprintf("[%s]:%d", buf, ntohs(a->sin6_port));
+      snprintf(str, BG_SOCKET_ADDR_STR_LEN, "[%s]:%d", buf, ntohs(a->sin6_port));
+      return str;
       }
       break;
     default:
@@ -258,7 +260,7 @@ int bg_socket_address_set(bg_socket_address_t * a, const char * hostname,
   return 1;
   }
 
-int bg_socket_address_set_local(bg_socket_address_t * a, int port, int socktype)
+int bg_socket_address_set_local(bg_socket_address_t * a, int port)
   {
 #ifdef HAVE_IFADDRS_H  
   int ret = 0;
@@ -329,7 +331,7 @@ int bg_socket_connect_inet(bg_socket_address_t * a, int milliseconds)
   /* Create the socket */
   if((ret = create_socket(a->addr.ss_family, SOCK_STREAM, 0)) < 0)
     {
-    bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Cannot create socket");
+    bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Cannot create TCP socket");
     return -1;
     }
   
@@ -477,7 +479,7 @@ int bg_listen_socket_create_inet(bg_socket_address_t * addr,
   /* Create the socket. */
   if(ret < 0)
     {
-    bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Cannot create inet server socket");
+    bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Cannot create TCP server socket");
     return -1;
     }
   
@@ -831,6 +833,8 @@ int bg_udp_socket_create(bg_socket_address_t * addr)
   {
   int ret;
   int err;
+  int get_port = (bg_socket_address_get_port(addr) == 0) ? 1 : 0;
+ 
   if((ret = create_socket(addr->addr.ss_family, SOCK_DGRAM, 0)) < 0)
     {
     bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Cannot create UDP socket: %s", strerror(errno));
@@ -843,6 +847,10 @@ int bg_udp_socket_create(bg_socket_address_t * addr)
     bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Cannot bind UDP socket: %s", strerror(errno));
     return -1;
     }
+
+  if(get_port)
+    bg_socket_get_address(ret, addr, NULL);
+
   return ret;
   }
 
@@ -857,7 +865,7 @@ int bg_udp_socket_create_multicast(bg_socket_address_t * addr)
   
   if((ret = create_socket(addr->addr.ss_family, SOCK_DGRAM, 0)) < 0)
     {
-    bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Cannot create UDP multicast socket");
+    bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Cannot create UDP multicast socket: %s", strerror(errno));
     return -1;
     }
   
