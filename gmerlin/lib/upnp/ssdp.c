@@ -38,6 +38,9 @@
 
 
 // #define DUMP_UDP
+
+#define DUMP_DEVS
+
 #define UDP_BUFFER_SIZE 2048
 
 #define META_METHOD "$METHOD"
@@ -62,7 +65,37 @@ struct bg_ssdp_s
   bg_ssdp_root_device_t * remote_devs;
 
   char * server_string;
+
+#ifdef DUMP_DEVS
+  gavl_time_t last_dump_time;
+#endif
   };
+
+void
+bg_ssdp_root_device_dump(const bg_ssdp_root_device_t * d)
+  {
+  int i, j;
+  gavl_dprintf("Root device\n");
+  gavl_diprintf(2, "Location: %s\n", d->url);
+  gavl_diprintf(2, "UUID: %s\n", d->uuid);
+  gavl_diprintf(2, "Devices: %d\n", d->num_devices);
+  for(i = 0; i < d->num_devices; i++)
+    {
+    gavl_diprintf(4, "UUID: %s\n", d->devices[i].uuid);
+    gavl_diprintf(4, "Type: %s.%d\n", d->devices[i].type, d->devices[i].version);
+    gavl_diprintf(4, "Services: %d\n", d->devices[i].num_services);
+    for(j = 0; j < d->devices[i].num_services; j++)
+      {
+      gavl_diprintf(6, "Type: %s.%d\n", d->devices[i].services[j].type, d->devices[i].services[j].version);
+      }
+    }
+  gavl_diprintf(2, "Services: %d\n", d->num_services);
+  for(j = 0; j < d->num_services; j++)
+    {
+    gavl_diprintf(4, "Type: %s.%d\n", d->services[j].type, d->devices[i].version);
+    }
+
+  }
 
 void
 bg_ssdp_service_free(bg_ssdp_service_t * s)
@@ -81,6 +114,20 @@ bg_ssdp_device_free(bg_ssdp_device_t * dev)
     free(dev->services);
   if(dev->type)
     free(dev->type);
+  if(dev->uuid)
+    free(dev->uuid);
+
+  }
+
+bg_ssdp_device_t *
+bg_ssdp_device_add_device(bg_ssdp_root_device_t * dev, const char * uuid)
+  {
+  bg_ssdp_device_t * ret;
+  dev->devices = realloc(dev->devices, (dev->num_devices+1)*sizeof(*dev->devices));
+  ret = dev->devices + dev->num_devices;
+  memset(ret, 0, sizeof(*ret));
+  ret->uuid = gavl_strdup(uuid);
+  return ret;
   }
 
 void
@@ -104,7 +151,7 @@ bg_ssdp_root_device_free(bg_ssdp_root_device_t * dev)
   }
 
 static int 
-find_remote_dev_by_location(bg_ssdp_t * s, const char * loc)
+find_root_dev_by_location(bg_ssdp_t * s, const char * loc)
   {
   int i;
   for(i = 0; i < s->num_remote_devs; i++)
@@ -115,8 +162,79 @@ find_remote_dev_by_location(bg_ssdp_t * s, const char * loc)
   return -1;
   }
 
+static int 
+find_embedded_dev_by_uuid(const bg_ssdp_root_device_t * dev, const char * uuid)
+  {
+  int i;
+  for(i = 0; i < dev->num_devices; i++)
+    {
+    if(!strcmp(dev->devices[i].uuid, uuid))
+      return i;
+    }
+  return -1;
+  }
+
+static bg_ssdp_service_t * find_service(bg_ssdp_service_t * s, int num, const char * type)
+  {
+  int i;
+  int len;
+  const char * pos;
+  
+  if((pos = strchr(type, ':')))
+    len = pos - type;
+  else
+    len = strlen(type);
+
+  for(i = 0; i < num; i++)
+    {
+    if((strlen(s[i].type) == len) &&
+       !strncmp(s[i].type, type, len))
+      return &s[i];
+    }
+  return NULL;
+  }
+
+static bg_ssdp_service_t * device_find_service(bg_ssdp_device_t * dev, const char * type)
+  {
+  return find_service(dev->services, dev->num_services, type);
+  }
+
+static bg_ssdp_service_t * root_device_find_service(bg_ssdp_root_device_t * dev, const char * type)
+  {
+  return find_service(dev->services, dev->num_services, type);
+  }
+
+static bg_ssdp_service_t * add_service(bg_ssdp_service_t ** sp, int * nump)
+  {
+  bg_ssdp_service_t * ret;
+
+  bg_ssdp_service_t * s = *sp;
+  int num = *nump;
+
+  s = realloc(s, (num+1) * sizeof(*s));
+
+  ret = &s[num];
+  memset(ret, 0, sizeof(*ret));
+  num++;
+
+  *sp = s;
+  *nump = num;
+
+  return ret;  
+  }
+
+static bg_ssdp_service_t * device_add_service(bg_ssdp_device_t * dev)
+  {
+  return add_service(&dev->services, &dev->num_services);
+  }
+
+static bg_ssdp_service_t * root_device_add_service(bg_ssdp_root_device_t * dev)
+  {
+  return add_service(&dev->services, &dev->num_services);
+  }
+
 static bg_ssdp_root_device_t *
-add_remote_dev(bg_ssdp_t * s, const char * loc, const char * uuid)
+add_root_dev(bg_ssdp_t * s, const char * loc)
   {
   bg_ssdp_root_device_t * ret;
   
@@ -128,7 +246,6 @@ add_remote_dev(bg_ssdp_t * s, const char * loc, const char * uuid)
            (s->remote_devs_alloc - s->num_remote_devs) * sizeof(s->remote_devs));
     }
   ret = s->remote_devs + s->num_remote_devs;
-  ret->uuid = gavl_strdup(uuid);
   ret->url = gavl_strdup(loc);
   s->num_remote_devs++;
   return ret;
@@ -137,9 +254,12 @@ add_remote_dev(bg_ssdp_t * s, const char * loc, const char * uuid)
 static void
 del_remote_dev(bg_ssdp_t * s, int idx)
   {
-  
+  bg_ssdp_root_device_free(&s->remote_devs[idx]); 
+  if(idx < s->num_remote_devs - 1)
+    memmove(&s->remote_devs[idx], &s->remote_devs[idx+1], 
+            sizeof(s->remote_devs[idx]) * (s->num_remote_devs - 1 - idx));
+  s->num_remote_devs--;
   }
-
 
 static char * search_string =
 "M-SEARCH * HTTP/1.1\r\n"
@@ -273,63 +393,149 @@ static int parse_response(const char * buffer, gavl_metadata_t * m)
   return ret;
   }
 
+// TYPE:VERSION
+
+static char * extract_name_version(const char * str, int * version)
+  {
+  char * ret;
+  const char * pos;
+  
+  pos = strchr(str, ':');
+  if(!pos)
+    return NULL;
+
+  ret = gavl_strndup(str, pos);
+  pos++;
+  if(*pos == '\0')
+    {
+    free(ret);
+    return NULL;
+    }
+  *version = atoi(pos);
+  return ret;
+  }
+
+static char * uuid_from_usn(const char * usn)
+  {
+  const char * pos;
+  if(gavl_string_starts_with(usn, "uuid:"))
+    {
+    pos = strchr(usn+5, ':');
+    if(!pos)
+      pos = usn + 5 + strlen(usn + 5);
+    return gavl_strndup(usn+5, pos);
+    }
+  return NULL;
+  }
+
 static void update_device(bg_ssdp_t * s, const char * type,
                           gavl_metadata_t * m)
   {
   int idx;
+  int max_age = 0;
   const char * loc;
   const char * usn;
-  
+  const char * cc; 
+  const char * pos;
+  char * uuid;
+ 
   bg_ssdp_root_device_t * dev;
+  bg_ssdp_device_t * edev;
   
   loc = gavl_metadata_get_i(m, "LOCATION");
   if(!loc)
     return;
 
+  /* Get max age */
+  cc = gavl_metadata_get_i(m, "CACHE-CONTROL");
+  if(!cc || 
+     !gavl_string_starts_with(cc, "max-age") ||
+     !(pos = strchr(cc, '=')))
+    return;
+  pos++;
+  max_age = atoi(pos);
+
+  /* Get UUID */
   usn = gavl_metadata_get_i(m, "USN");
   if(!usn)
     return;
+
+  if(!(uuid = uuid_from_usn(usn)))
+    return;
   
-  idx = find_remote_dev_by_location(s, loc);
+  idx = find_root_dev_by_location(s, loc);
 
   if(idx >= 0)
-    dev = &s->remote_devices[idx];
+    dev = &s->remote_devs[idx];
   else
-    {
-    /* Extract UUID from USN */
-    char * pos, * tmp_string;
-    if(gavl_string_starts_with(usn, "uuid:"))
-      {
-      pos = strchr(usn+5, ':');
-      if(!pos)
-        pos = usn + 5 + strlen(usn + 5);
-      tmp_string = gavl_strndup(usn+5, pos);
-      dev = add_remote_dev(s, loc, tmp_string);
-      }
-    else // Unknown USN
-      return;
-    }
+    dev = add_root_dev(s, loc);
+  
+  dev->expire_time = gavl_timer_get(s->timer) + GAVL_TIME_SCALE * max_age;
 
-  /* Set expiry date */
-  
-  
   if(!strcasecmp(type, "upnp:rootdevice"))
     {
-    
+    /* Set root uuid if not known already */
+    if(!dev->uuid)
+      dev->uuid = gavl_strdup(uuid);
+    goto end;
     }
-  else if(gavl_string_starts_with_i(type, "uuid:"))
+
+  /* If we have no uuid of the root device yet, we can't do much more */
+  if(!dev->uuid)
+    goto end;
+
+  if(gavl_string_starts_with_i(type, "uuid:"))
     {
-    
+    /* Can't do much here */
+    goto end;
     }
-  else if(gavl_string_starts_with_i(type, "urn:schemas-upnp-org:device:"))
+
+  if(!strcmp(uuid, dev->uuid))
     {
-    
+    /* Message is for root device */
+    edev = NULL;
+    }
+  else
+    {
+    idx = find_embedded_dev_by_uuid(dev, uuid);
+    if(idx >= 0)
+      edev = &dev->devices[idx];
+    else
+      edev = bg_ssdp_device_add_device(dev, uuid);
+    }
+
+  if(gavl_string_starts_with_i(type, "urn:schemas-upnp-org:device:"))
+    {
+    type += 28;
+    if(edev)
+      {
+      if(!edev->type)
+        edev->type = extract_name_version(type, &edev->version);
+      }
+    else if(!dev->type)
+      dev->type = extract_name_version(type, &dev->version);
     }
   else if(gavl_string_starts_with_i(type, "urn:schemas-upnp-org:service:"))
     {
-    
+    bg_ssdp_service_t * s = NULL;
+    type += 29;
+
+    if(edev)
+      {
+      if(!device_find_service(edev, type))
+        s = device_add_service(edev);
+      }
+    else
+      {
+      if(!root_device_find_service(dev, type))
+        s = root_device_add_service(dev);
+      }    
+    if(s)
+      s->type = extract_name_version(type, &s->version);
     }
-  
+  end:
+  if(uuid)
+    free(uuid);  
   }
                           
 
@@ -391,7 +597,6 @@ static void handle_multicast(bg_ssdp_t * s, const char * buffer,
     {
     const char * nt;
     const char * nts;
-    
     /* Got notify request */
     if(!s->discover_remote)
       goto fail;
@@ -407,11 +612,27 @@ static void handle_multicast(bg_ssdp_t * s, const char * buffer,
       }
     else if(!strcmp(nts, "ssdp:byebye"))
       {
-      
-      }
+      /* We delete the entire root device */
+      char * uuid;
+      const char * usn;
+      int i;
 
+      if(!(usn = gavl_metadata_get(&m, "USN")) ||
+         !(uuid = uuid_from_usn(usn)))
+        goto fail;
+      
+      for(i = 0; i < s->num_remote_devs; i++)
+        {
+        if((s->remote_devs[i].uuid && !strcmp(s->remote_devs[i].uuid, uuid)) ||
+           (find_embedded_dev_by_uuid(&s->remote_devs[i], uuid) >= 0))
+          {
+          del_remote_dev(s, i);
+          break;
+          }
+        }
+      free(uuid);
+      }
     }
-  
   
   fail:
   gavl_metadata_free(&m);
@@ -442,9 +663,23 @@ static void handle_unicast(bg_ssdp_t * s, const char * buffer,
 void bg_ssdp_update(bg_ssdp_t * s)
   {
   int len;
+  int i;
+  gavl_time_t current_time;
 #ifdef DUMP_UDP
   char addr_str[BG_SOCKET_ADDR_STR_LEN];
 #endif
+
+  /* Delete expired devices */
+  current_time = gavl_timer_get(s->timer);
+  i = 0;  
+  while(i < s->num_remote_devs)
+    {
+    if(s->remote_devs[i].expire_time < current_time)
+      del_remote_dev(s, i);
+    else
+      i++;
+    }
+
   /* Read multicast messages */
   while(bg_socket_can_read(s->mcast_fd, 0))
     {
@@ -473,6 +708,15 @@ void bg_ssdp_update(bg_ssdp_t * s)
 #endif
     }
 
+#ifdef DUMP_DEVS
+  if(current_time - s->last_dump_time > 10 * GAVL_TIME_SCALE)
+    {
+    gavl_dprintf("Root devices: %d\n", s->num_remote_devs);
+    for(i = 0; i < s->num_remote_devs; i++)
+      bg_ssdp_root_device_dump(&s->remote_devs[i]);
+    s->last_dump_time = current_time;
+    }
+#endif
 
   }
 

@@ -28,10 +28,10 @@ typedef struct
 void
 bg_ssdp_service_free(bg_ssdp_service_t * s);
 
-
 typedef struct
   {
   char * type;
+  char * uuid;
   int version;
 
   int num_services;
@@ -45,6 +45,9 @@ typedef struct
   {
   char * uuid;
   char * url;
+
+  char * type;
+  int version;
   
   int num_devices;
   bg_ssdp_device_t * devices;
@@ -57,6 +60,12 @@ typedef struct
 
 void
 bg_ssdp_root_device_free(bg_ssdp_root_device_t*);
+
+void
+bg_ssdp_root_device_dump(const bg_ssdp_root_device_t*);
+
+bg_ssdp_device_t *
+bg_ssdp_device_add_device(bg_ssdp_root_device_t*, const char * uuid);
 
 typedef struct bg_ssdp_s bg_ssdp_t;
 
