@@ -170,4 +170,37 @@ char * gavl_strncat(char * old, const char * start, const char * end);
 GAVL_PUBLIC
 char * gavl_escape_string(char * old, const char * escape_chars);
 
+/** \brief Check if a string starts with a substring
+ *  \param str String
+ *  \param start Head to test against
+ */
+
+GAVL_PUBLIC
+int gavl_string_starts_with(const char * str, const char * start);
+
+/** \brief Check if a string starts with a substring (ignoring case)
+ *  \param str String
+ *  \param start Head to test against
+ */
+
+GAVL_PUBLIC
+int gavl_string_starts_with_i(const char * str, const char * start);
+
+/** \brief Check if a string ends with a substring
+ *  \param str String
+ *  \param end Tail to test against
+ */
+
+GAVL_PUBLIC
+int gavl_string_ends_with(const char * str, const char * end);
+
+/** \brief Check if a string ends with a substring (ignoring case)
+ *  \param str String
+ *  \param end Tail to test against
+ */
+
+GAVL_PUBLIC
+int gavl_string_ends_with_i(const char * str, const char * end);
+
+
 /* @} */

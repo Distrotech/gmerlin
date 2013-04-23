@@ -135,6 +135,16 @@ GAVL_PUBLIC
 const char * gavl_metadata_get(const gavl_metadata_t * m,
                                const char * key);
 
+/** \brief Get the value of a tag ignrong case
+ *  \arg m A metadata structure
+ *  \arg key Key
+ *  \returns Value of the tag or NULL if the tag doesn't exist
+ */
+
+GAVL_PUBLIC 
+const char * gavl_metadata_get_i(const gavl_metadata_t * m,
+                                 const char * key);
+
 /** \brief Set an integer tag
  *  \arg m A metadata structure
  *  \arg key Key
@@ -179,6 +189,29 @@ GAVL_PUBLIC
 int gavl_metadata_get_long(const gavl_metadata_t * m,
                            const char * key, int64_t * ret);
 
+/** \brief Get an integer tag ignoring case
+ *  \arg m A metadata structure
+ *  \arg key Key
+ *  \arg ret Returns the value
+ *  \returns 1 if ret contains a valid tag, 0 if the tag doesn't exist or is not numeric
+ */
+  
+GAVL_PUBLIC 
+int gavl_metadata_get_int_i(const gavl_metadata_t * m,
+                            const char * key, int * ret);
+
+/** \brief Get a long tag ignoring case
+ *  \arg m A metadata structure
+ *  \arg key Key
+ *  \arg ret Returns the value
+ *  \returns 1 if ret contains a valid tag, 0 if the tag doesn't exist or is not numeric
+ */
+  
+GAVL_PUBLIC 
+int gavl_metadata_get_long_i(const gavl_metadata_t * m,
+                             const char * key, int64_t * ret);
+
+  
   
 /** \brief Set a date tag
  *  \arg m A metadata structure

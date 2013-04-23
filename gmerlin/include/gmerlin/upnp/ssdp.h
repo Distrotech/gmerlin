@@ -19,27 +19,49 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  * *****************************************************************/
 
-typedef struct bg_ssdp_service_s
+typedef struct
   {
-  gavl_metadata_t m;
+  char * type;
+  int version;
   } bg_ssdp_service_t;
 
-typedef struct bg_ssdp_device_s
-  {
-  gavl_metadata_t m;
+void
+bg_ssdp_service_free(bg_ssdp_service_t * s);
 
-  int num_devices;
-  struct bg_ssdp_device_t * devices;
-  
+
+typedef struct
+  {
+  char * type;
+  int version;
+
   int num_services;
   bg_ssdp_service_t * services;
   } bg_ssdp_device_t;
 
+void
+bg_ssdp_device_free(bg_ssdp_device_t * dev);
 
+typedef struct
+  {
+  char * uuid;
+  char * url;
+  
+  int num_devices;
+  bg_ssdp_device_t * devices;
+
+  int num_services;
+  bg_ssdp_service_t * services;
+
+  gavl_time_t expire_time;
+  } bg_ssdp_root_device_t;
+
+void
+bg_ssdp_root_device_free(bg_ssdp_root_device_t*);
 
 typedef struct bg_ssdp_s bg_ssdp_t;
 
-bg_ssdp_t * bg_ssdp_create();
+bg_ssdp_t *
+bg_ssdp_create(bg_ssdp_root_device_t * local_dev, int discover_remote);
 
 void bg_ssdp_update(bg_ssdp_t *);
 void bg_ssdp_destroy(bg_ssdp_t *);

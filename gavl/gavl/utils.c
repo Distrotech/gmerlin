@@ -233,6 +233,36 @@ char * gavl_escape_string(char * old_string, const char * escape_chars)
   return NULL; // Never get here
   }
 
+int gavl_string_starts_with(const char * str, const char * start)
+  {
+  return !strncmp(str, start, strlen(start)) ? 1 : 0;
+  }
+
+int gavl_string_starts_with_i(const char * str, const char * start)
+  {
+  return !strncasecmp(str, start, strlen(start)) ? 1 : 0;
+  }
+
+int gavl_string_ends_with(const char * str, const char * end)
+  {
+  int slen = strlen(str);
+  int elen = strlen(end);
+
+  if(slen < elen)
+    return 0;
+  return !strcmp(str + slen - elen, end) ? 1 : 0;
+  }
+
+int gavl_string_ends_with_i(const char * str, const char * end)
+  {
+  int slen = strlen(str);
+  int elen = strlen(end);
+
+  if(slen < elen)
+    return 0;
+  return !strcasecmp(str + slen - elen, end) ? 1 : 0;
+  }
+
 
 /* TODO */
 char *

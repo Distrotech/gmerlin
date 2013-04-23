@@ -1,7 +1,11 @@
 #include <gmerlin/upnp/soap.h>
 #include <gmerlin/utils.h>
 
-xmlDocPtr soap_create(const char * function, const char * service, int version, int response)
+#include <string.h>
+
+
+static xmlDocPtr soap_create(const char * function, const char * service,
+                             int version, int response)
   {
   char * tmp_string;
   xmlDocPtr  xml_doc;
@@ -15,7 +19,10 @@ xmlDocPtr soap_create(const char * function, const char * service, int version, 
   xml_doc = xmlNewDoc((xmlChar*)"1.0");
   xml_env = xmlNewDocRawNode(xml_doc, NULL, (xmlChar*)"Envelope", NULL);
   xmlDocSetRootElement(xml_doc, xml_env);
-  soap_ns = xmlNewNs(xml_env, (xmlChar*)"http://schemas.xmlsoap.org/soap/envelope/",  (xmlChar*)"s");
+  soap_ns =
+    xmlNewNs(xml_env,
+             (xmlChar*)"http://schemas.xmlsoap.org/soap/envelope/",
+             (xmlChar*)"s");
   xmlSetNs(xml_env, soap_ns);
 
   xmlSetNsProp(xml_env, soap_ns, (xmlChar*)"encodingStyle", 
@@ -32,7 +39,9 @@ xmlDocPtr soap_create(const char * function, const char * service, int version, 
   else
     xml_action = xmlNewChild(xml_body, NULL, (xmlChar*)function, NULL);
 
-  tmp_string = bg_sprintf("urn:schemas-upnp-org:service:%s:%d", service, version);
+  tmp_string = bg_sprintf("urn:schemas-upnp-org:service:%s:%d",
+                          service, version);
+
   upnp_ns = xmlNewNs(xml_action, (xmlChar*)tmp_string,  (xmlChar*)"u");  
   free(tmp_string);
 
@@ -41,12 +50,14 @@ xmlDocPtr soap_create(const char * function, const char * service, int version, 
   return xml_doc;
   }
 
-xmlDocPtr bg_soap_create_request(const char * function, const char * service, int version)
+xmlDocPtr bg_soap_create_request(const char * function,
+                                 const char * service, int version)
   {
   return soap_create(function, service, version, 0);
   }
 
-xmlDocPtr bg_soap_create_response(const char * function, const char * service, int version)
+xmlDocPtr bg_soap_create_response(const char * function,
+                                  const char * service, int version)
   {
   return soap_create(function, service, version, 1);
   }

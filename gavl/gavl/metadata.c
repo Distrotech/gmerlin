@@ -83,6 +83,17 @@ static int find_tag(const gavl_metadata_t * m, const char * key)
   return -1;
   }
 
+static int find_tag_i(const gavl_metadata_t * m, const char * key)
+  {
+  int i;
+  for(i = 0; i < m->num_tags; i++)
+    {
+    if(!strcasecmp(m->tags[i].key, key))
+      return i;
+    }
+  return -1;
+  }
+
 void
 gavl_metadata_set(gavl_metadata_t * m,
                   const char * key,
@@ -174,6 +185,15 @@ const char * gavl_metadata_get(const gavl_metadata_t * m,
   return m->tags[idx].val;
   }
 
+const char * gavl_metadata_get_i(const gavl_metadata_t * m,
+                                 const char * key)
+  {
+  int idx = find_tag_i(m, key);
+  if(idx < 0)
+    return NULL;
+  return m->tags[idx].val;
+  }
+
 
 int gavl_metadata_get_int(const gavl_metadata_t * m,
                           const char * key, int * ret)
@@ -188,11 +208,37 @@ int gavl_metadata_get_int(const gavl_metadata_t * m,
   return 1;
   }
 
+int gavl_metadata_get_int_i(const gavl_metadata_t * m,
+                            const char * key, int * ret)
+  {
+  char * rest;
+  const char * val_str = gavl_metadata_get_i(m, key);
+  if(!val_str)
+    return 0;
+  *ret = strtol(val_str, &rest, 10);
+  if(*rest != '\0')
+    return 0;
+  return 1;
+  }
+
 int gavl_metadata_get_long(const gavl_metadata_t * m,
                            const char * key, int64_t * ret)
   {
   char * rest;
   const char * val_str = gavl_metadata_get(m, key);
+  if(!val_str)
+    return 0;
+  *ret = strtoll(val_str, &rest, 10);
+  if(*rest != '\0')
+    return 0;
+  return 1;
+  }
+
+int gavl_metadata_get_long_i(const gavl_metadata_t * m,
+                             const char * key, int64_t * ret)
+  {
+  char * rest;
+  const char * val_str = gavl_metadata_get_i(m, key);
   if(!val_str)
     return 0;
   *ret = strtoll(val_str, &rest, 10);
