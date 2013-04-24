@@ -22,6 +22,26 @@
 #include <time.h>
 #include <gmerlin/pluginregistry.h>
 
+/*
+ *   object.item.imageItem.photo
+ *   object.item.audioItem.musicTrack
+ *   object.item.audioItem.audioBroadcast
+ *   object.item.audioItem.audioBook
+ *   object.item.videoItem.movie
+ *   object.item.videoItem.videoBroadcast
+ *   object.item.videoItem.musicVideoClip
+ *   object.item.playlistItem
+ *   object.item.textItem
+ *   object.container
+ *   object.container.person
+ *   object.container.person.musicArtist
+ *   object.container.playlistContainer
+ *   object.container.album.musicAlbum
+ *   object.container.album.photoAlbum
+ *   object.container.genre.musicGenre
+ *   object.container.genre.movieGenre
+ */
+
 typedef struct bg_db_s bg_db_t;
 
 typedef enum
@@ -51,7 +71,12 @@ typedef struct
   {
   int64_t id;
   char * path;   // Relative to db file
-  int scan_type; // ORed flags if BG_DB_* types
+  int scan_flags; // ORed flags if BG_DB_* types
+  int update_id;
+
+  int64_t parent_id;
+  int64_t scan_dir_id;
+  int64_t size;
 
   int found; // Used by sqlite
   } bg_db_dir_t;
@@ -59,28 +84,42 @@ typedef struct
 void bg_db_dir_init(bg_db_dir_t * dir);
 void bg_db_dir_free(bg_db_dir_t * dir);
 int  bg_db_dir_query(bg_db_t * db, bg_db_dir_t * dir);
-void bg_db_dir_add(bg_db_t * db, bg_db_dir_t * dir);
+int bg_db_dir_add(bg_db_t * db, bg_db_dir_t * dir);
+int bg_db_dir_del(bg_db_t * db, bg_db_dir_t * dir);
 
 /* File in the file system */
 typedef struct
   {
   int64_t id;  // Global id, will be used for upnp also
 
-  char * path;  // Relative to db file if it's a file
-  time_t mtime;
+  char * path;  // Relative to db file
   int64_t size;
+  time_t mtime;
 
-  int64_t object_id;
-  int64_t dir_id;
   char * mimetype;
+  int64_t mimetype_id;
+  int type;
+
+  int64_t parent_id;
+  int64_t scan_dir_id;
 
   int found; // Used by sqlite
   } bg_db_file_t;
 
-/* Audio track */
+void bg_db_file_init(bg_db_file_t * f);
+void bg_db_file_free(bg_db_file_t * f);
+
+int bg_db_file_add(bg_db_t * db, bg_db_file_t * f);
+int bg_db_file_query(bg_db_t * db, bg_db_file_t * f);
+int bg_db_file_del(bg_db_t * db, bg_db_file_t * f);
+
+/* 
+ * Audio file 
+ */
+
 typedef struct
   {
-  int64_t id;
+  int64_t id; // Same as in bg_db_file_t
 
   int64_t album_id;
   int64_t file_id;
@@ -100,7 +139,23 @@ typedef struct
   char * albumartist;
 
   int found; // Used by sqlite
-  } bg_db_audio_track_t;
+  } bg_db_audio_file_t;
+
+/* Housekeeping */
+void bg_db_audio_file_init(bg_db_audio_file_t * t);
+void bg_db_audio_file_free(bg_db_audio_file_t * t);
+
+/* Get info, don't touch db */
+void bg_db_audio_file_get_info(bg_db_audio_file_t * f, bg_db_file_t * file, bg_track_info_t * t);
+
+/* Add to db (including secondary objects, album, genre) */
+int bg_db_audio_file_add(bg_db_t * db, bg_db_audio_file_t * t);
+
+/* Get from db */
+int bg_db_audio_file_query(bg_db_t * db, bg_db_audio_file_t * t);
+
+/* Delete from dB */
+int bg_db_audio_file_del(bg_db_t * db, bg_db_audio_file_t * t);
 
 /* Video */
 typedef struct

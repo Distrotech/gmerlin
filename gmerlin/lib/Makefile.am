@@ -86,8 +86,10 @@ charset.c \
 cmdline.c \
 converters.c \
 db.c \
+db_audio.c \
 db_dir.c \
 db_file.c \
+db_scan.c \
 device.c \
 edl.c \
 edldec.c \

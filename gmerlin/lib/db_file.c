@@ -36,87 +36,155 @@
 
 #define LOG_DOMAIN "db.file"
 
-static bg_db_file_t * file_scan_internal(const char * directory,
-                                         bg_db_file_t * files,
-                                         int * num_p, int * alloc_p)
+
+/* Open the file, load metadata and so on */
+static void create_file(bg_db_t * db, bg_db_file_t * file, int64_t parent_id, int64_t scan_id)
   {
-  char * filename;
-  DIR * d;
-  struct dirent * e;
-  struct stat st;
-  bg_db_file_t * file;
-  int num = *num_p;
-  int alloc = *alloc_p;
+  bg_track_info_t * ti;
+  bg_plugin_handle_t * h = NULL;
+  bg_input_plugin_t * plugin = NULL;
+
+  /* Load all infos */  
+  if(!bg_input_plugin_load(db->plugin_reg, file->path, NULL, &h, NULL, 0))
+    goto fail;
+  plugin = (bg_input_plugin_t *)h->plugin;
   
-  d = opendir(directory);
-  if(!d)
+  /* Only one track supported */
+  if(plugin->get_num_tracks && (plugin->get_num_tracks(h->priv) < 1))
+    goto fail;
+
+  ti = plugin->get_track_info(h->priv, 0);
+
+  /* Detect file type */
+  if((ti->num_audio_streams == 1) && !ti->num_video_streams)
+    file->type = BG_DB_AUDIO;
+  else if(ti->num_video_streams == 1)
     {
-    bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Opening directory %s failed: %s",
-           directory, strerror(errno));
-    return files;
+    if(!ti->num_audio_streams && (ti->num_video_streams == 1) &&
+       (ti->video_streams[0].format.framerate_mode = GAVL_FRAMERATE_STILL))
+      file->type = BG_DB_PHOTO;
+    else
+      file->type = BG_DB_VIDEO;
     }
 
-  while((e = readdir(d)))
+  /* Create derived type */
+  switch(file->type)
     {
-    /* Skip hidden files and "." and ".." */
-    if(e->d_name[0] == '.')
-      continue;
-    
-    filename = bg_sprintf("%s/%s", directory, e->d_name);
-    if(!stat(filename, &st))
+    case BG_DB_AUDIO:
       {
-      /* Check for directory */
-      if(S_ISDIR(st.st_mode))
-        {
-        files = file_scan_internal(filename,
-                                   files, &num, &alloc);
-        }
-      else if(S_ISREG(st.st_mode))
-        {
-        /* Add file to list */
-        if(num + 2 > alloc)
-          {
-          alloc += 256;
-          files = realloc(files, alloc * sizeof(*files));
-          memset(files + num, 0,
-                 (alloc - num) * sizeof(*files));
-          }
-        file = files + num;
-
-        file->path = filename;
-        filename = NULL;
-        file->size = st.st_size;
-        file->mtime = st.st_mtime;
-        num += 1;
-        }
+      bg_db_audio_file_t song;
+      bg_db_audio_file_init(&song);
+      bg_db_audio_file_get_info(&song, file, ti);
+      bg_db_audio_file_add(db, &song);
+      bg_db_audio_file_free(&song);
       }
-    if(filename)
-      free(filename);
+      break;
+    case BG_DB_VIDEO:
+    case BG_DB_PHOTO:
+     break;
     }
+  /* Insert into database */
+
+
+  fail:
+
+  if(plugin)
+    plugin->close(h->priv);
   
-  closedir(d);
-  *num_p = num;
-  *alloc_p = alloc;
-  return files;
+  if(h)
+    bg_plugin_unref(h);
+
+
   }
 
-bg_db_file_t * bg_db_file_scan_directory(const char * directory,
-                                         int * num)
+void bg_db_file_init(bg_db_file_t * file)
   {
-  bg_db_file_t * ret = NULL;
-  int num_ret = 0;
-  int ret_alloc = 0;
-  ret = file_scan_internal(directory, ret, &num_ret, &ret_alloc);
-  *num = num_ret;
-  return ret;
+  memset(file, 0, sizeof(*file));
+  file->id = -1;
   }
 
-void bg_db_add_files(bg_db_t * db, bg_db_file_t * file, int num, bg_db_dir_t * dir)
+void bg_db_file_free(bg_db_file_t * file)
+  {
+  if(file->path)
+    free(file->path);
+  }
+
+int bg_db_file_add(bg_db_t * db, bg_db_file_t * f)
+  {
+  char * sql;
+  int result;
+  char mtime_str[BG_DB_TIME_STRING_LEN];
+  f->id = bg_sqlite_get_next_id(db->db, "FILES");
+
+  /* Mimetype */
+  if(f->mimetype)
+    {
+    f->mimetype_id = 
+      bg_sqlite_string_to_id_add(db->db, "MIMETYPES",
+                                 "ID", "NAME", f->mimetype);
+    }
+  /* Mtime */
+  bg_db_time_to_string(f->mtime, mtime_str);
+
+#if 1
+  sql = sqlite3_mprintf("INSERT INTO FILES ( ID, PATH, SIZE, MTIME, MIMETYPE, TYPE, PARENT_ID, SCAN_DIR_ID ) VALUES ( %"PRId64", %Q, %"PRId64", %Q, %"PRId64", %"PRId64", %"PRId64", %"PRId64" );",
+                        f->id, bg_db_filename_to_rel(db, f->path), f->size, mtime_str, f->mimetype_id, f->type, f->parent_id, f->scan_dir_id);
+
+  result = bg_sqlite_exec(db->db, sql, NULL, NULL);
+  sqlite3_free(sql);
+#endif
+  return result;
+
+  }
+
+int bg_db_file_query(bg_db_t * db, bg_db_file_t * f)
   {
   
   }
 
-void bg_db_update_files(bg_db_t * db, bg_db_file_t * file, int num, bg_db_dir_t * dir)
+int bg_db_file_del(bg_db_t * db, bg_db_file_t * f)
+  {
+  
+  }
+
+
+void bg_db_add_files(bg_db_t * db, bg_db_scan_item_t * files, int num, int scan_flags)
+  {
+  int i;
+
+  for(i = 0; i < num; i++)
+    {
+    switch(files[i].type)
+      {
+      case BG_SCAN_TYPE_DIRECTORY:
+        {
+        bg_db_dir_t dir;
+        bg_db_dir_init(&dir);
+        dir.scan_flags = scan_flags;
+        dir.path = files[i].path;
+        files[i].path = NULL;
+        bg_db_dir_add(db, &dir);
+        files[i].id = dir.id;
+        bg_db_dir_free(&dir);
+        }
+        break;
+      case BG_SCAN_TYPE_FILE:
+        {
+        bg_db_file_t file;
+        bg_db_file_init(&file);
+        file.path = files[i].path;
+        files[i].path = NULL;
+        create_file(db, &file, files[files[i].parent_index].id, files[0].id);
+        
+        bg_db_file_add(db, &file);
+        bg_db_file_free(&file);
+        }
+        break;
+      }
+    }
+  }
+
+void bg_db_update_files(bg_db_t * db, bg_db_scan_item_t * files, int num, int scan_flags)
   {
   
   }

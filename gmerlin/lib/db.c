@@ -19,6 +19,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  * *****************************************************************/
 
+#define _XOPEN_SOURCE
 #include <config.h>
 #include <unistd.h>
 
@@ -34,7 +35,11 @@ static const char * create_commands[] =
     "CREATE TABLE DIRECTORIES ("
     "ID INTEGER PRIMARY KEY, "
     "PATH TEXT, "
-    "TYPE INTEGER"
+    "SIZE INTEGER, "
+    "SCAN_FLAGS INTEGER, "
+    "UPDATE_ID INTEGER, "
+    "PARENT_ID INTEGER, "
+    "SCAN_DIR_ID INTEGER"
     ");",
 
     "CREATE TABLE FILES ("
@@ -42,10 +47,17 @@ static const char * create_commands[] =
     "PATH TEXT, "
     "SIZE INTEGER, "
     "MTIME TEXT, "
-    "MIMETYPE TEXT, "
+    "MIMETYPE INTEGER, "
     "TYPE INTEGER, "
-    "DIR INTEGER "
+    "PARENT_ID INTEGER, "
+    "SCAN_DIR_ID INTEGER" 
     ");",
+
+    "CREATE TABLE MIMETYPES("
+    "ID INTEGER PRIMARY KEY, "
+    "NAME TEXT"
+    ");",
+
     
     "CREATE TABLE MUSIC_GENRES("
     "ID INTEGER PRIMARY KEY, "
@@ -135,7 +147,7 @@ bg_db_t * bg_db_create(const char * file,
 
   ret = calloc(1, sizeof(*ret));
   ret->db = db;
-  
+  ret->plugin_reg = plugin_reg; 
   if(!exists)
     build_database(ret);
   
@@ -160,6 +172,26 @@ const char * bg_db_filename_to_rel(bg_db_t * db, const char * filename)
   return filename + db->base_len;
   }
 
+// YYYY-MM-DD HH:MM:SS
+#define TIME_FORMAT "%Y-%m-%d %H:%M:%S"
+
+time_t bg_db_string_to_time(const char * str)
+  {
+  struct tm tm;
+  memset(&tm, 0, sizeof(tm));
+  strptime(str, TIME_FORMAT, &tm); 
+  return timegm(&tm);
+  }
+
+void bg_db_time_to_string(time_t time, char * str)
+  {
+  struct tm tm;
+  memset(&tm, 0, sizeof(tm));
+  gmtime_r(&time, &tm);
+  strftime(str, BG_DB_TIME_STRING_LEN, TIME_FORMAT, &tm);
+  }
+
+
 void bg_db_destroy(bg_db_t * db)
   {
   sqlite3_close(db->db);
@@ -168,35 +200,35 @@ void bg_db_destroy(bg_db_t * db)
   }
 
 /* Edit functions */
-void bg_db_add_directory(bg_db_t * db, const char * d, int scan_type)
+void bg_db_add_directory(bg_db_t * db, const char * d, int scan_flags)
   {
-  bg_db_file_t * files;
+  bg_db_scan_item_t * files;
   int num_files = 0;
-  char * real_dir = bg_canonical_filename(d);
 
   bg_db_dir_t dir;
   bg_db_dir_init(&dir);
+
+  dir.path = bg_canonical_filename(d);
   
-  if(strncmp(real_dir, db->base_dir, db->base_len))
+  if(strncmp(dir.path, db->base_dir, db->base_len))
     {
     bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Cannot add directory %s: No child of %s",
-           real_dir, db->base_dir);
-    free(real_dir);
+           dir.path, db->base_dir);
+    bg_db_dir_free(&dir);
     return;
     }
 
-  files = bg_db_file_scan_directory(real_dir, &num_files);
+  files = bg_db_scan_directory(dir.path, &num_files);
 
-  /* TODO: Check if a directory is already present */
-  if(bg_sqlite_string_to_id(db->db, "DIRECTORIES", "ID", "PATH",
-                            bg_db_filename_to_rel(db, real_dir)) > 0)
+  if(bg_db_dir_query(db, &dir))
     {
-    bg_db_update_files(db, files, num_files, &dir);
-    bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Directory %s already in database, updating",
-           real_dir);
+    bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Directory %s already in database, updating", dir.path);
+    bg_db_update_files(db, files, num_files, dir.scan_flags);
     }
   else
-    bg_db_add_files(db, files, num_files, &dir);
+    {
+    bg_db_add_files(db, files, num_files, scan_flags);
+    }
   bg_db_dir_free(&dir);
   }
 

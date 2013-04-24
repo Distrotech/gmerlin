@@ -35,6 +35,13 @@ int64_t bg_sqlite_string_to_id(sqlite3 * db,
                                const char * string_row,
                                const char * str);
 
+int64_t bg_sqlite_string_to_id_add(sqlite3 * db,
+                                   const char * table,
+                                   const char * id_row,
+                                   const char * string_row,
+                                   const char * str);
+
+
 char * bg_sqlite_id_to_string(sqlite3 * db,
                               const char * table,
                               const char * string_row,

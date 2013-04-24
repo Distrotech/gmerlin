@@ -65,11 +65,28 @@ static int string_callback(void * data, int argc, char **argv, char **azColName)
   return 0;
   }
 
+static int64_t get_max_int(sqlite3 * db, const char * table, const char * row)
+  {
+  int result;
+  char * sql;
+  int64_t ret = 0;
+
+  sql = sqlite3_mprintf("select max(%s) from %s;", row, table);
+  result = bg_sqlite_exec(db, sql, id_callback, &ret);
+  sqlite3_free(sql);
+  if(!result)
+    return -1;
+
+  if(ret < 0)
+    return -1;
+  return ret;
+  }
+
 int64_t bg_sqlite_string_to_id(sqlite3 * db,
-                            const char * table,
-                            const char * id_row,
-                            const char * string_row,
-                            const char * str)
+                               const char * table,
+                               const char * id_row,
+                               const char * string_row,
+                               const char * str)
   {
   char * buf;
   int64_t ret = -1;
@@ -80,6 +97,37 @@ int64_t bg_sqlite_string_to_id(sqlite3 * db,
   sqlite3_free(buf);
   return result ? ret : -1 ;
   }
+
+int64_t bg_sqlite_string_to_id_add(sqlite3 * db,
+                                   const char * table,
+                                   const char * id_row,
+                                   const char * string_row,
+                                   const char * str)
+  {
+  char * sql;
+  int result;
+
+  int64_t ret;
+  ret = bg_sqlite_string_to_id(db, table, id_row, string_row, str);
+  if(ret >= 0)
+    return ret;
+  ret = get_max_int(db, table, "id_row");
+  if(ret < 0)
+    return ret;
+
+  /* Insert into table */
+  sql = sqlite3_mprintf("INSERT INTO %s "
+                          "( %s, %s ) VALUES "
+                          "( %"PRId64", %Q );",
+                          table, id_row, string_row, ret, str);
+
+  result = bg_sqlite_exec(db, sql, NULL, NULL);
+  sqlite3_free(sql);
+  if(!result)
+    return -1;
+  return ret;
+  }
+        
 
 char * bg_sqlite_id_to_string(sqlite3 * db,
                            const char * table,
@@ -113,18 +161,8 @@ int64_t bg_sqlite_id_to_id(sqlite3 * db,
 
 int64_t bg_sqlite_get_next_id(sqlite3 * db, const char * table)
   {
-  int result;
-  char * sql;
-  int64_t ret = 0;
-
-  sql = sqlite3_mprintf("select max(id) from %s;", table);
-  result = bg_sqlite_exec(db, sql, id_callback, &ret);
-  sqlite3_free(sql);
-  if(!result)
-    return -1;
-
+  int64_t ret = get_max_int(db, table, "ID");
   if(ret < 0)
     return -1;
-
   return ret + 1;
   }

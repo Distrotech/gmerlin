@@ -29,14 +29,49 @@ struct bg_db_s
   sqlite3 * db;
   char * base_dir;
   int base_len;
+  bg_plugin_registry_t * plugin_reg;
   };
+
+/* File scanning */
+
+typedef enum
+  {
+  BG_SCAN_TYPE_FILE,
+  BG_SCAN_TYPE_DIRECTORY,
+  } bg_db_scan_type_t;
+
+typedef struct
+  {
+  bg_db_scan_type_t type;
+  char * path;
+  int parent_index;
+  int64_t id;
+
+  int64_t size;
+  time_t mtime;
+  } bg_db_scan_item_t;
+
+bg_db_scan_item_t * bg_db_scan_directory(const char * directory, int * num);
 
 /* Utility functions we might want */
 
 char * bg_db_filename_to_abs(bg_db_t * db, const char * filename);
 const char * bg_db_filename_to_rel(bg_db_t * db, const char * filename);
 
-bg_db_file_t * bg_db_file_scan_directory(const char * directory, int * num);
+void bg_db_add_files(bg_db_t * db, bg_db_scan_item_t * files, int num, int scan_flags);
+void bg_db_update_files(bg_db_t * db, bg_db_scan_item_t * files, int num, int scan_flags);
 
-void bg_db_add_files(bg_db_t * db, bg_db_file_t * file, int num, bg_db_dir_t * dir);
-void bg_db_update_files(bg_db_t * db, bg_db_file_t * file, int num, bg_db_dir_t * dir);
+#define BG_DB_TIME_STRING_LEN 20
+time_t bg_db_string_to_time(const char * str);
+void bg_db_time_to_string(time_t time, char * str);
+
+/* For querying multiple columns of a table */
+
+#define BG_DB_SET_QUERY_STRING(col, val)   \
+  if(!strcasecmp(azColName[i], col)) \
+    ret->val = gavl_strrep(ret->val, argv[i]);
+
+#define BG_DB_SET_QUERY_INT(col, val)      \
+  if(!strcasecmp(azColName[i], col) && argv[i]) \
+    ret->val = strtoll(argv[i], NULL, 10);
+
