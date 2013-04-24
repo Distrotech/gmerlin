@@ -168,12 +168,15 @@ void bg_db_destroy(bg_db_t * db)
   }
 
 /* Edit functions */
-void bg_db_add_directory(bg_db_t * db, const char * dir, int scan_type)
+void bg_db_add_directory(bg_db_t * db, const char * d, int scan_type)
   {
   bg_db_file_t * files;
   int num_files = 0;
-  char * real_dir = bg_canonical_filename(dir);
+  char * real_dir = bg_canonical_filename(d);
 
+  bg_db_dir_t dir;
+  bg_db_dir_init(&dir);
+  
   if(strncmp(real_dir, db->base_dir, db->base_len))
     {
     bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Cannot add directory %s: No child of %s",
@@ -188,12 +191,13 @@ void bg_db_add_directory(bg_db_t * db, const char * dir, int scan_type)
   if(bg_sqlite_string_to_id(db->db, "DIRECTORIES", "ID", "PATH",
                             bg_db_filename_to_rel(db, real_dir)) > 0)
     {
-    bg_db_update_files(db, files, num_files);
+    bg_db_update_files(db, files, num_files, &dir);
     bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Directory %s already in database, updating",
            real_dir);
     }
   else
-    bg_db_add_files(db, files, num_files);
+    bg_db_add_files(db, files, num_files, &dir);
+  bg_db_dir_free(&dir);
   }
 
 void bg_db_del_directory(bg_db_t * db, const char * dir)
