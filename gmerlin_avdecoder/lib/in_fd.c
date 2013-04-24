@@ -61,6 +61,8 @@ bgav_input_context_t * bgav_input_open_fd(int fd, int64_t total_bytes, const cha
 
   priv->fd     = fd;
   ret->total_bytes = total_bytes;
-  ret->mimetype = gavl_strdup(mimetype);
+
+  if(mimetype)
+    gavl_metadata_set(&ret->metadata, GAVL_META_MIMETYPE, mimetype);
   return ret;
   }

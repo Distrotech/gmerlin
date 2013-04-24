@@ -785,7 +785,8 @@ static int init_psi(bgav_demuxer_context_t * ctx,
       {
       gavl_metadata_set(&ctx->tt->tracks[program].metadata, 
                         GAVL_META_FORMAT, "MPEGTS");
-
+      gavl_metadata_set(&ctx->tt->tracks[program].metadata,
+                        GAVL_META_MIMETYPE, "video/MP2T");
       priv->programs[program].pcr_pid = priv->programs[program].pmts.pcr_pid;
       priv->programs[program].initialized = 1;
       init_streams_priv(&priv->programs[program],

@@ -57,14 +57,14 @@ static int probe_adts(bgav_input_context_t * input)
   int ret;
   uint8_t * buffer;
   uint8_t header[7];
-  
+  const char * mimetype; 
   bgav_adts_header_t h1, h2;
   
   /* Support aac live streams */
 
-  if(input->mimetype &&
-     (!strcmp(input->mimetype, "audio/aacp") ||
-      !strcmp(input->mimetype, "audio/aac")))
+  if((mimetype = gavl_metadata_get(&input->metadata, GAVL_META_MIMETYPE)) &&
+     (!strcmp(mimetype, "audio/aacp") ||
+      !strcmp(mimetype, "audio/aac")))
     return 1;
   
   if(bgav_input_get_data(input, header, 7) < 7)
@@ -281,7 +281,16 @@ static int open_adts(bgav_demuxer_context_t * ctx)
   if(!check_he_aac(ctx, s))
     goto fail;
 #endif
-  
+
+  gavl_metadata_set(&ctx->tt->cur->metadata,
+                    GAVL_META_FORMAT, "ADTS");
+  if(priv->block_samples == 2048)
+    gavl_metadata_set(&ctx->tt->cur->metadata,
+                    GAVL_META_MIMETYPE, "audio/aacp");
+  else
+    gavl_metadata_set(&ctx->tt->cur->metadata,
+                    GAVL_META_MIMETYPE, "audio/aac");
+ 
   //  ctx->stream_description = bgav_sprintf("AAC");
   return 1;
   

@@ -198,6 +198,8 @@ static int open_flac(bgav_demuxer_context_t * ctx)
   
   gavl_metadata_set(&ctx->tt->cur->metadata, 
                     GAVL_META_FORMAT, "FLAC");
+  gavl_metadata_set(&ctx->tt->cur->metadata,
+                    GAVL_META_MIMETYPE, "audio/flac");
 
   ctx->index_mode = INDEX_MODE_SIMPLE;
   

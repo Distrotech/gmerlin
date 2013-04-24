@@ -141,7 +141,7 @@ static int open_mmsh(bgav_input_context_t * ctx, const char * url, char ** r)
 
   var = bgav_http_header_get_var(header, "Content-Type");
   if(var)
-    ctx->mimetype = gavl_strdup(var);
+    gavl_metadata_set(&ctx->metadata, GAVL_META_MIMETYPE, var);
   ctx->url = gavl_strdup(url);
 
   ctx->demuxer = bgav_demuxer_create(ctx->opt, &bgav_demuxer_asf, ctx);

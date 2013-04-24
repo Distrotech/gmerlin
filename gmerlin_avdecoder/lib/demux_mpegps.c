@@ -1216,7 +1216,11 @@ static int open_mpegps(bgav_demuxer_context_t * ctx)
                           GAVL_META_FORMAT,
                           bgav_sprintf("MPEG-%d",
                                        priv->pack_header.version));
-  
+  if(priv->pack_header.version == 1)
+    gavl_metadata_set(&ctx->tt->cur->metadata, GAVL_META_MIMETYPE, "video/mpeg");
+  else
+    gavl_metadata_set(&ctx->tt->cur->metadata, GAVL_META_MIMETYPE, "video/MP2P"); 
+ 
   if(((ctx->input->input->seek_byte) && priv->have_pts) ||
      (ctx->input->input->seek_sector) ||
      (ctx->input->input->seek_time))

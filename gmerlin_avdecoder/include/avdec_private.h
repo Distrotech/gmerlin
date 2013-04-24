@@ -978,7 +978,7 @@ struct bgav_input_context_s
   
   char * filename;
   char * url;
-  char * mimetype;
+//  char * mimetype; // Is in metadata now
   char * disc_name;
   
   /* For reading textfiles */

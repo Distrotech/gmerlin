@@ -32,16 +32,17 @@ static int probe_m3u(bgav_input_context_t * input)
   {
   char probe_buffer[PROBE_BYTES];
   char * pos;
+  const char * mimetype;
   /* Most likely, we get this via http, so we can check the mimetype */
-  if(input->mimetype)
+  if((mimetype = gavl_metadata_get(&input->metadata, GAVL_META_MIMETYPE)))
     {
-    if(!strcmp(input->mimetype, "audio/x-pn-realaudio-plugin") ||
-       !strcmp(input->mimetype, "video/x-pn-realvideo-plugin") ||
-       !strcmp(input->mimetype, "audio/x-pn-realaudio") ||
-       !strcmp(input->mimetype, "video/x-pn-realvideo") ||
-       !strcmp(input->mimetype, "audio/x-mpegurl") ||
-       !strcmp(input->mimetype, "audio/mpegurl") ||
-       !strcmp(input->mimetype, "audio/m3u"))
+    if(!strcmp(mimetype, "audio/x-pn-realaudio-plugin") ||
+       !strcmp(mimetype, "video/x-pn-realvideo-plugin") ||
+       !strcmp(mimetype, "audio/x-pn-realaudio") ||
+       !strcmp(mimetype, "video/x-pn-realvideo") ||
+       !strcmp(mimetype, "audio/x-mpegurl") ||
+       !strcmp(mimetype, "audio/mpegurl") ||
+       !strcmp(mimetype, "audio/m3u"))
       {
       if(bgav_input_get_data(input, (uint8_t*)probe_buffer,
                              PROBE_BYTES) < PROBE_BYTES)

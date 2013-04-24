@@ -297,12 +297,12 @@ static int probe_nsv(bgav_input_context_t * input)
   {
   uint32_t fourcc;
   char * pos;
-  
+  const char * mimetype; 
   /* Check for video/nsv */
 
-  if(input->mimetype && !strcmp(input->mimetype, "video/nsv"))
+  if((mimetype = gavl_metadata_get(&input->metadata, GAVL_META_MIMETYPE)) && 
+     !strcmp(mimetype, "video/nsv"))
     return 1;
-
 
   /* Probing a stream without any usable headers at the
      beginning isn't save enough so we check for the extension */
@@ -522,6 +522,8 @@ static int open_nsv(bgav_demuxer_context_t * ctx)
   
   gavl_metadata_set(&ctx->tt->cur->metadata, 
                     GAVL_META_FORMAT, "NSV");
+  gavl_metadata_set(&ctx->tt->cur->metadata,
+                    GAVL_META_MIMETYPE, "video/nsv");
 
   if(p->need_pcm_format)
     {

@@ -1391,6 +1391,26 @@ static void get_metadata(bgav_track_t * track)
     stream_priv = track->video_streams[i].priv;
     gavl_metadata_merge2(&track->metadata, &stream_priv->metadata);
     }
+  /* Get mime type. */
+  if(!track->num_video_streams && (track->num_audio_streams == 1))
+    {
+    switch(track->audio_streams[0].fourcc)
+      {
+      case FOURCC_VORBIS:
+        gavl_metadata_set(&track->metadata, GAVL_META_MIMETYPE, "audio/ogg");
+        break;
+      case FOURCC_OPUS:
+        gavl_metadata_set(&track->metadata, GAVL_META_MIMETYPE, "audio/opus");
+        break;
+      case FOURCC_SPEEX:
+        gavl_metadata_set(&track->metadata, GAVL_META_MIMETYPE, "audio/x-speex");
+        break;
+      }   
+    }
+  else if(track->num_video_streams > 0)
+      gavl_metadata_set(&track->metadata, GAVL_META_MIMETYPE, "video/ogg");
+
+
   gavl_metadata_set(&track->metadata, GAVL_META_FORMAT, "Ogg");
   }
 

@@ -913,8 +913,6 @@ void bgav_input_close(bgav_input_context_t * ctx)
     }
   if(ctx->buffer)
     free(ctx->buffer);
-  if(ctx->mimetype)
-    free(ctx->mimetype);
   if(ctx->filename)
     free(ctx->filename);
   if(ctx->index_file)

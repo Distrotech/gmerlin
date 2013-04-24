@@ -527,9 +527,12 @@ static int open_mpegaudio(bgav_demuxer_context_t * ctx)
   /* Set the format for each track */
 
   for(i = 0; i < ctx->tt->num_tracks; i++)
+    {
     gavl_metadata_set(&ctx->tt->tracks[i].metadata, 
                       GAVL_META_FORMAT, "MPEG Audio");
-  
+    gavl_metadata_set(&ctx->tt->tracks[i].metadata,
+                      GAVL_META_MIMETYPE, "audio/mpeg");   
+    }
   ctx->index_mode = INDEX_MODE_SIMPLE;
   return 1;
   }

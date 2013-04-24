@@ -138,9 +138,9 @@ static int open_http(bgav_input_context_t * ctx, const char * url, char ** r)
   
   var = bgav_http_header_get_var(header, "Content-Type");
   if(var)
-    ctx->mimetype = gavl_strdup(var);
+    gavl_metadata_set(&ctx->metadata, GAVL_META_MIMETYPE, var);
   else if(bgav_http_header_get_var(header, "icy-notice1"))
-    ctx->mimetype = gavl_strdup("audio/mpeg");
+    gavl_metadata_set(&ctx->metadata, GAVL_META_MIMETYPE, "audio/mpeg");
   
   var = bgav_http_header_get_var(header, "icy-metaint");
   if(var)
