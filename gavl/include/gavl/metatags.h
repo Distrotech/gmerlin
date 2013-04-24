@@ -180,6 +180,10 @@
 
 #define GAVL_META_APPROX_DURATION  "ApproxDuration"
 
+/** \brief MimeType associated with an item
+ */
+#define GAVL_META_MIMETYPE         "MimeType"
+
 /**
  * @}
  */
