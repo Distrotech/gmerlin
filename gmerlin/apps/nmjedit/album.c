@@ -90,14 +90,14 @@ int bg_nmj_album_query(sqlite3 * db, bg_nmj_album_t * a)
     return 0;
 
   /* Get Genre */
-  a->genre_id = bg_nmj_id_to_id(db,
+  a->genre_id = bg_sqlite_id_to_id(db,
                                 "SONG_GENRES_SONG_ALBUMS",
                                 "GENRES_ID",
                                 "ALBUMS_ID",
                                 a->id);
 
   /* Get Artist */
-  a->artist_id = bg_nmj_id_to_id(db,
+  a->artist_id = bg_sqlite_id_to_id(db,
                                  "SONG_PERSONS_SONG_ALBUMS",
                                  "PERSONS_ID",
                                  "ALBUMS_ID",
@@ -118,7 +118,7 @@ int bg_nmj_album_add(bg_plugin_registry_t * plugin_reg,
     {
     char * artist;
     is_new = 1;
-    a->id = bg_nmj_get_next_id(db, "SONG_ALBUMS");
+    a->id = bg_sqlite_get_next_id(db, "SONG_ALBUMS");
     a->title = gavl_strrep(a->title, song->album);
     a->search_title = bg_nmj_make_search_string(a->title);
     a->total_item = bg_sprintf("%d", 1);
@@ -146,7 +146,7 @@ int bg_nmj_album_add(bg_plugin_registry_t * plugin_reg,
     /* Set Genre */
     if(song->genre_id >= 0)
       {
-      id = bg_nmj_get_next_id(db, "SONG_GENRES_SONG_ALBUMS");
+      id = bg_sqlite_get_next_id(db, "SONG_GENRES_SONG_ALBUMS");
       sql = sqlite3_mprintf("INSERT INTO SONG_GENRES_SONG_ALBUMS "
                            "( ID, ALBUMS_ID, GENRES_ID ) VALUES "
                            "( %"PRId64", %"PRId64", %"PRId64" );",
@@ -160,7 +160,7 @@ int bg_nmj_album_add(bg_plugin_registry_t * plugin_reg,
     /* Get group */
 
     group_id = -1;
-    artist = bg_nmj_id_to_string(db, "SONG_PERSONS", "NAME", "ID", a->artist_id);
+    artist = bg_sqlite_id_to_string(db, "SONG_PERSONS", "NAME", "ID", a->artist_id);
     
     if(artist)
       {
@@ -170,7 +170,7 @@ int bg_nmj_album_add(bg_plugin_registry_t * plugin_reg,
     
     if(group_id >= 0)
       {
-      id = bg_nmj_get_next_id(db, "SONG_GROUPS_SONG_ALBUMS");
+      id = bg_sqlite_get_next_id(db, "SONG_GROUPS_SONG_ALBUMS");
       sql = sqlite3_mprintf("INSERT INTO SONG_GROUPS_SONG_ALBUMS "
                             "( ID, GROUPS_ID, ALBUMS_ID ) VALUES "
                             "( %"PRId64", %"PRId64", %"PRId64" );",
@@ -182,7 +182,7 @@ int bg_nmj_album_add(bg_plugin_registry_t * plugin_reg,
       }
 
     /* Set Artist (must be set after the group ID is known) */
-    id = bg_nmj_get_next_id(db, "SONG_PERSONS_SONG_ALBUMS");
+    id = bg_sqlite_get_next_id(db, "SONG_PERSONS_SONG_ALBUMS");
     sql = sqlite3_mprintf("INSERT INTO SONG_PERSONS_SONG_ALBUMS "
                          "( ID, PERSONS_ID, ALBUMS_ID, PERSON_TYPE, CUSTOM1 ) VALUES "
                          "( %"PRId64", %"PRId64", %"PRId64", %Q, '%"PRId64"' );",
@@ -228,7 +228,7 @@ int bg_nmj_album_add(bg_plugin_registry_t * plugin_reg,
     }
   
   /* Add this song */
-  id = bg_nmj_get_next_id(db, "SONG_ALBUMS_SONGS");
+  id = bg_sqlite_get_next_id(db, "SONG_ALBUMS_SONGS");
 
   sql = sqlite3_mprintf("INSERT INTO SONG_ALBUMS_SONGS "
                        "( ID, ALBUMS_ID, SONGS_ID, SEQUENCE ) VALUES "
@@ -252,14 +252,14 @@ static void delete_thumbnails(sqlite3 * db, int64_t album_id)
   char * sql;
   int result;
   
-  image  = bg_nmj_id_to_string(db, "SONG_ALBUM_POSTERS", "THUMBNAIL", "ID", album_id);
+  image  = bg_sqlite_id_to_string(db, "SONG_ALBUM_POSTERS", "THUMBNAIL", "ID", album_id);
   if(image)
     {
     bg_log(BG_LOG_INFO, LOG_DOMAIN, "Removing thumbnail %s", image);
     remove(image);
     free(image);
     }
-  image  = bg_nmj_id_to_string(db, "SONG_ALBUM_POSTERS", "POSTER", "ID", album_id);
+  image  = bg_sqlite_id_to_string(db, "SONG_ALBUM_POSTERS", "POSTER", "ID", album_id);
   if(image)
     {
     bg_log(BG_LOG_INFO, LOG_DOMAIN, "Removing poster %s", image);
@@ -277,7 +277,7 @@ static int remove_album(sqlite3 * db, int64_t album_id)
   char * sql;
   int result;
 
-  tmp_string = bg_nmj_id_to_string(db,
+  tmp_string = bg_sqlite_id_to_string(db,
                                    "SONG_ALBUMS",
                                    "TITLE",
                                    "ID",
@@ -338,7 +338,7 @@ int bg_nmj_album_delete(sqlite3 * db, int64_t album_id, bg_nmj_song_t * song)
     return 0;
   
   /* Decretment total count */
-  total_item = bg_nmj_id_to_string(db, "SONG_ALBUMS", "TOTAL_ITEM", "ID", album_id);
+  total_item = bg_sqlite_id_to_string(db, "SONG_ALBUMS", "TOTAL_ITEM", "ID", album_id);
 
   if(!total_item)
     return 1;
@@ -426,7 +426,7 @@ void bg_nmj_album_update_cover(bg_plugin_registry_t * plugin_reg,
   
   /* Get cover file from db */
   
-  create_time_db = bg_nmj_id_to_string(db,
+  create_time_db = bg_sqlite_id_to_string(db,
                                        "SONG_ALBUM_POSTERS",
                                        "CREATE_TIME",
                                        "ID",

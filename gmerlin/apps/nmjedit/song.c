@@ -152,22 +152,22 @@ int bg_nmj_song_query(sqlite3 * db, bg_nmj_song_t * song)
     }
 
   /* Get secondary stuff */
-  song->genre_id = bg_nmj_id_to_id(db, "SONG_GENRES_SONGS",
+  song->genre_id = bg_sqlite_id_to_id(db, "SONG_GENRES_SONGS",
                                    "GENRES_ID", "SONGS_ID", song->id);
   if(song->genre_id >= 0)
-    song->genre = bg_nmj_id_to_string(db, "SONG_GENRES",
+    song->genre = bg_sqlite_id_to_string(db, "SONG_GENRES",
                                       "NAME", "ID", song->genre_id);
   
-  song->album_id = bg_nmj_id_to_id(db, "SONG_ALBUMS_SONGS",
+  song->album_id = bg_sqlite_id_to_id(db, "SONG_ALBUMS_SONGS",
                                    "ALBUMS_ID", "SONGS_ID", song->id);
   if(song->album_id >= 0)
-    song->album = bg_nmj_id_to_string(db, "SONG_ALBUMS",
+    song->album = bg_sqlite_id_to_string(db, "SONG_ALBUMS",
                                       "TITLE", "ID", song->album_id);
 
-  song->artist_id = bg_nmj_id_to_id(db, "SONG_PERSONS_SONGS",
+  song->artist_id = bg_sqlite_id_to_id(db, "SONG_PERSONS_SONGS",
                                     "PERSONS_ID", "SONGS_ID", song->id);
   if(song->artist_id >= 0)
-    song->artist = bg_nmj_id_to_string(db, "SONG_PERSONS",
+    song->artist = bg_sqlite_id_to_string(db, "SONG_PERSONS",
                                        "NAME", "ID", song->artist_id);
   return 1;
   }
@@ -271,14 +271,14 @@ int bg_nmj_song_get_info(sqlite3 * db,
   
   /* Get IDs */
   if(song->genre)
-    song->genre_id     = bg_nmj_string_to_id(db, "SONG_GENRES", "ID",
+    song->genre_id     = bg_sqlite_string_to_id(db, "SONG_GENRES", "ID",
                                              "NAME", song->genre);
   
   if(song->albumartist)
-    song->albumartist_id    = bg_nmj_string_to_id(db, "SONG_PERSONS", "ID",
+    song->albumartist_id    = bg_sqlite_string_to_id(db, "SONG_PERSONS", "ID",
                                                   "NAME", song->albumartist);
   if(song->artist)
-    song->artist_id    = bg_nmj_string_to_id(db, "SONG_PERSONS", "ID",
+    song->artist_id    = bg_sqlite_string_to_id(db, "SONG_PERSONS", "ID",
                                              "NAME", song->artist);
   
   /* Lookup album (title AND albumartist MUST match) */
@@ -306,7 +306,7 @@ int bg_nmj_song_add(bg_plugin_registry_t * plugin_reg,
   bg_log(BG_LOG_INFO, LOG_DOMAIN, "Adding song %s", song->title);
   
   /* Get ID */
-  song->id = bg_nmj_get_next_id(db, "SONGS");
+  song->id = bg_sqlite_get_next_id(db, "SONGS");
   
   /* Add Song */
   sql = sqlite3_mprintf("INSERT INTO SONGS "
@@ -330,7 +330,7 @@ int bg_nmj_song_add(bg_plugin_registry_t * plugin_reg,
     /* Add new genre */
     if(song->genre_id < 0)
       {
-      song->genre_id = bg_nmj_get_next_id(db, "SONG_GENRES");
+      song->genre_id = bg_sqlite_get_next_id(db, "SONG_GENRES");
       sql = sqlite3_mprintf("INSERT INTO SONG_GENRES ( ID, NAME ) VALUES ( %"PRId64", %Q );",
                             song->genre_id, song->genre);
       result = bg_sqlite_exec(db, sql, NULL, NULL);
@@ -339,7 +339,7 @@ int bg_nmj_song_add(bg_plugin_registry_t * plugin_reg,
         return result;
       }
     /* Set Genre */
-    id = bg_nmj_get_next_id(db, "SONG_GENRES_SONGS");
+    id = bg_sqlite_get_next_id(db, "SONG_GENRES_SONGS");
     sql = sqlite3_mprintf("INSERT INTO SONG_GENRES_SONGS ( ID, SONGS_ID, GENRES_ID ) VALUES "
                           "( %"PRId64", %"PRId64", %"PRId64" );",
                           id, song->id, song->genre_id);
@@ -354,7 +354,7 @@ int bg_nmj_song_add(bg_plugin_registry_t * plugin_reg,
     /* Add new artist */
     if(song->artist_id < 0)
       {
-      song->artist_id = bg_nmj_get_next_id(db, "SONG_PERSONS");
+      song->artist_id = bg_sqlite_get_next_id(db, "SONG_PERSONS");
       sql = sqlite3_mprintf("INSERT INTO SONG_PERSONS ( ID, NAME ) VALUES ( %"PRId64", %Q );",
                             song->artist_id, song->artist);
       result = bg_sqlite_exec(db, sql, NULL, NULL);
@@ -364,7 +364,7 @@ int bg_nmj_song_add(bg_plugin_registry_t * plugin_reg,
       }
 
     /* Set artist */
-    id = bg_nmj_get_next_id(db, "SONG_PERSONS_SONGS");
+    id = bg_sqlite_get_next_id(db, "SONG_PERSONS_SONGS");
     sql = sqlite3_mprintf("INSERT INTO SONG_PERSONS_SONGS ( ID, PERSONS_ID, SONGS_ID, PERSON_TYPE ) VALUES "
                           "( %"PRId64", %"PRId64", %"PRId64", %Q );",
                           id, song->artist_id, song->id, "ARTIST");
@@ -382,7 +382,7 @@ int bg_nmj_song_add(bg_plugin_registry_t * plugin_reg,
     /* Add new album artist */
     if(song->albumartist_id < 0)
       {
-      song->albumartist_id = bg_nmj_get_next_id(db, "SONG_PERSONS");
+      song->albumartist_id = bg_sqlite_get_next_id(db, "SONG_PERSONS");
       sql =
         sqlite3_mprintf("INSERT INTO SONG_PERSONS ( ID, NAME ) VALUES ( %"PRId64", %Q );",
                             song->albumartist_id, song->albumartist);

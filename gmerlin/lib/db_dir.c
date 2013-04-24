@@ -19,15 +19,34 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  * *****************************************************************/
 
-#include <gmerlin/upnp/soap.h>
+#include <config.h>
+#include <unistd.h>
 
-int main(int argc, char ** argv)
+#include <mediadb_private.h>
+#include <gmerlin/log.h>
+#include <gmerlin/utils.h>
+#include <stdlib.h>
+#include <string.h>
+
+
+void bg_db_dir_init(bg_db_dir_t * dir)
   {
-  xmlDocPtr doc = bg_soap_create_request("myfunction", "myservice", 1);
-
-  bg_soap_request_add_argument(doc, "myarg1");
-
-  bg_xml_save_FILE(doc, stdout);
-  xmlFreeDoc(doc);
+  memset(dir, 0, sizeof(*dir));
+  dir->id = -1;
   }
 
+void bg_db_dir_free(bg_db_dir_t * dir)
+  {
+  if(dir->path)
+    free(dir->path);
+  }
+
+int bg_db_dir_query(bg_db_t * db, bg_db_dir_t * dir)
+  {
+  
+  }
+
+void bg_db_dir_add(bg_db_t * db, bg_db_dir_t * dir)
+  {
+  
+  }

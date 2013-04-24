@@ -86,7 +86,7 @@ int bg_nmj_add_album(sqlite3 * db, const char * album)
   if(pos)
     *pos = '\0';
 
-  pls_id = bg_nmj_string_to_id(db, "SONG_PLS", "ID", "NAME", name);
+  pls_id = bg_sqlite_string_to_id(db, "SONG_PLS", "ID", "NAME", name);
   if(pls_id >= 0)
     {
     /* Playlist already exists: Clear everything inside */
@@ -106,7 +106,7 @@ int bg_nmj_add_album(sqlite3 * db, const char * album)
     bg_nmj_time_to_string(time(NULL), time_str);
     
     /* Playlist doesn't exist: Create a new one */
-    pls_id = bg_nmj_get_next_id(db, "SONG_PLS");
+    pls_id = bg_sqlite_get_next_id(db, "SONG_PLS");
 
     sql = sqlite3_mprintf("INSERT INTO SONG_PLS "
                          "( ID, NAME, PATH, TOTAL_ITEM, "
@@ -128,11 +128,11 @@ int bg_nmj_add_album(sqlite3 * db, const char * album)
   while(e)
     {
     pos = ((char*)e->location) + skip_chars;
-    song_id = bg_nmj_string_to_id(db, "SONGS", "ID", "PATH", pos);
+    song_id = bg_sqlite_string_to_id(db, "SONGS", "ID", "PATH", pos);
 
     if(song_id >= 0)
       {
-      item_id = bg_nmj_get_next_id(db, "SONG_PLS_ITEM");
+      item_id = bg_sqlite_get_next_id(db, "SONG_PLS_ITEM");
       
       sql = sqlite3_mprintf("INSERT INTO SONG_PLS_ITEM "
                             "( ID, PLS_ID, SONGS_ID, SEQUENCE) "

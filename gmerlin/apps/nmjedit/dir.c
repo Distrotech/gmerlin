@@ -122,7 +122,7 @@ int bg_nmj_dir_add(sqlite3* db, bg_nmj_dir_t * dir)
   int result;
   char * sql;
 
-  dir->id = bg_nmj_get_next_id(db, "SCAN_DIRS");
+  dir->id = bg_sqlite_get_next_id(db, "SCAN_DIRS");
   if(!dir->name)
     dir->name = gavl_strrep(dir->name, dir->directory);
  

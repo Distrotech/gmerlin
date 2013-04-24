@@ -54,7 +54,7 @@ $(lv_cflags)
 
 libgmerlin_la_LDFLAGS = -version-info @LTVERSION_CURRENT@:@LTVERSION_REVISION@:@LTVERSION_AGE@ -export-symbols-regex ^bg_ @GMERLIN_LIB_LDFLAGS@
 
-libgmerlin_la_LIBADD = $(x11_libadd) $(upnp_libadd) @FONTCONFIG_LIBS@ @FREETYPE_LIBS@ @XML2_LIBS@ @ICONV_LIBS@ @MQ_LIBS@ @LIBINTL@ $(lv_libs) -ldl -lpthread
+libgmerlin_la_LIBADD = $(x11_libadd) $(upnp_libadd) @SQLITE3_LIBS@ @FONTCONFIG_LIBS@ @FREETYPE_LIBS@ @XML2_LIBS@ @ICONV_LIBS@ @MQ_LIBS@ @LIBINTL@ $(lv_libs) -ldl -lpthread
 
 pkgbin_PROGRAMS = gmerlin_visualizer_slave
 
@@ -85,6 +85,9 @@ chapterlist_xml.c \
 charset.c \
 cmdline.c \
 converters.c \
+db.c \
+db_dir.c \
+db_file.c \
 device.c \
 edl.c \
 edldec.c \
@@ -134,6 +137,7 @@ searchpath.c \
 serialize.c \
 singlepic.c \
 socket.c \
+sqlite.c \
 streaminfo.c \
 stringutils.c \
 subprocess.c \

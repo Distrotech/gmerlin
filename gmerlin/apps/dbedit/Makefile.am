@@ -10,9 +10,7 @@ AM_LDFLAGS = @GMERLIN_EXE_LDFLAGS@
 
 INCLUDES = -I$(top_srcdir)/include
 
-bin_PROGRAMS = gmerlin_play
-dist_man_MANS = gmerlin_play.1
+bin_PROGRAMS = gmerlin-dbedit
+# dist_man_MANS = gmerlin-dbedit.1
 
 gmerlin_dbedit_LDADD = $(top_builddir)/lib/libgmerlin.la -ldl
-
-

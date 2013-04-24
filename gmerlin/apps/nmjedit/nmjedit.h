@@ -27,6 +27,7 @@
 #include <inttypes.h>
 
 #include <gmerlin/pluginregistry.h>
+#include <bgsqlite.h>
 
 #define DATABASE_FILE "nmj_database/media.db"
 #define DATABASE_VERSION "2.0.0"
@@ -56,14 +57,6 @@ typedef struct
 
 int bg_nmj_append_int_callback(void * data, int argc, char **argv, char **azColName);
 
-
-int
-bg_sqlite_exec(sqlite3 * db,                              /* An open database */
-               const char *sql,                           /* SQL to be evaluated */
-               int (*callback)(void*,int,char**,char**),  /* Callback function */
-               void * data);                              /* 1st argument to callback */
-
-
 #define BG_NMJ_TIME_STRING_LEN 20
 time_t bg_nmj_string_to_time(const char * str);
 void bg_nmj_time_to_string(time_t time, char * str);
@@ -89,15 +82,6 @@ int64_t bg_nmj_count_id(sqlite3 * db,
                         const char * table,
                         const char * id_row,
                         int64_t id);
-
-
-int64_t bg_nmj_id_to_id(sqlite3 * db,
-                        const char * table,
-                        const char * dst_row,
-                        const char * src_row,
-                        int64_t id);
-
-int64_t bg_nmj_get_next_id(sqlite3 * db, const char * table);
 
 int bg_nmj_make_thumbnail(bg_plugin_registry_t * plugin_reg,
                           const char * in_file,

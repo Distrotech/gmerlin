@@ -187,7 +187,7 @@ void bg_nmj_create_new()
   i = 0;
   while(bg_nmj_album_groups[i])
     {
-    id = bg_nmj_get_next_id(db, "SONG_GROUPS");
+    id = bg_sqlite_get_next_id(db, "SONG_GROUPS");
     sql = sqlite3_mprintf("INSERT INTO SONG_GROUPS "
                           "( ID, NAME, LANGUAGE ) VALUES "
                           "( %"PRId64", %Q, 'EN' );",

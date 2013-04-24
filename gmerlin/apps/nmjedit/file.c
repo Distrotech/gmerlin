@@ -36,8 +36,6 @@
 #include <gmerlin/log.h>
 #define LOG_DOMAIN "nmjedit.file"
 
-
-
 static bg_nmj_file_t * file_scan_internal(const char * directory,
                                           const char * extensions,
                                           bg_nmj_file_t * files,

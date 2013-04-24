@@ -165,7 +165,7 @@ AC_CHECK_LIB(iconv, libiconv_close, ICONV_LIBS="-liconv")
 AC_SUBST(ICONV_LIBS)
 
 SQLITE3_LIBS=""
-AC_CHECK_LIB(sqlite3, sqlite3_exec, [SQLITE3_LIBS="-lsqlite3"; have_sqlite3="true"], have_sqlite3="false")
+AC_CHECK_LIB(sqlite3, sqlite3_exec, [SQLITE3_LIBS="-lsqlite3"], AC_MSG_ERROR("sqlite not found"))
 AC_SUBST(SQLITE3_LIBS)
 
 PKG_CHECK_MODULES(UUID, uuid, have_libuuid="true", have_libuuid="false")
@@ -937,10 +937,6 @@ AC_ARG_ENABLE(nmjedit,
                esac],
 	       have_nmjedit=false)
 
-if test "x$have_sqlite3" = "xfalse"; then
-have_nmjedit="false"
-fi
-
 AM_CONDITIONAL(HAVE_NMJEDIT, test "x$have_nmjedit" = "xtrue")
 
 dnl
@@ -1015,6 +1011,7 @@ apps/visualizer/Makefile \
 apps/kbd/Makefile \
 apps/thumbnailer/Makefile \
 apps/nmjedit/Makefile \
+apps/dbedit/Makefile \
 doc/Makefile \
 doc/Doxyfile \
 icons/Makefile \

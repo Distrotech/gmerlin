@@ -78,6 +78,8 @@ bg_ssdp_root_device_dump(const bg_ssdp_root_device_t * d)
   gavl_dprintf("Root device\n");
   gavl_diprintf(2, "Location: %s\n", d->url);
   gavl_diprintf(2, "UUID: %s\n", d->uuid);
+  if(d->type)
+    gavl_diprintf(2, "Type: %s.%d\n", d->type, d->version);
   gavl_diprintf(2, "Devices: %d\n", d->num_devices);
   for(i = 0; i < d->num_devices; i++)
     {
@@ -92,7 +94,8 @@ bg_ssdp_root_device_dump(const bg_ssdp_root_device_t * d)
   gavl_diprintf(2, "Services: %d\n", d->num_services);
   for(j = 0; j < d->num_services; j++)
     {
-    gavl_diprintf(4, "Type: %s.%d\n", d->services[j].type, d->devices[i].version);
+    gavl_diprintf(4, "Type: %s.%d\n", d->services[j].type,
+                  d->services[j].version);
     }
 
   }
@@ -148,6 +151,8 @@ bg_ssdp_root_device_free(bg_ssdp_root_device_t * dev)
     free(dev->uuid);
   if(dev->url)
     free(dev->url);
+  if(dev->type)
+    free(dev->type);
   }
 
 static int 
@@ -241,9 +246,10 @@ add_root_dev(bg_ssdp_t * s, const char * loc)
   if(s->num_remote_devs + 1 > s->remote_devs_alloc)
     {
     s->remote_devs_alloc += 16;
-    s->remote_devs = realloc(s->remote_devs, s->remote_devs_alloc * sizeof(s->remote_devs));
+    s->remote_devs = realloc(s->remote_devs,
+                             s->remote_devs_alloc * sizeof(*s->remote_devs));
     memset(s->remote_devs + s->num_remote_devs, 0,
-           (s->remote_devs_alloc - s->num_remote_devs) * sizeof(s->remote_devs));
+           (s->remote_devs_alloc - s->num_remote_devs) * sizeof(*s->remote_devs));
     }
   ret = s->remote_devs + s->num_remote_devs;
   ret->url = gavl_strdup(loc);
@@ -548,8 +554,8 @@ static void handle_multicast(bg_ssdp_t * s, const char * buffer,
   if(!parse_request(buffer, &m))
     goto fail;
 
-  fprintf(stderr, "handle_multicast\n"); 
-  gavl_metadata_dump(&m, 2);
+  //  fprintf(stderr, "handle_multicast\n"); 
+  //  gavl_metadata_dump(&m, 2);
 
   var = gavl_metadata_get_i(&m, META_METHOD);
   
@@ -647,8 +653,8 @@ static void handle_unicast(bg_ssdp_t * s, const char * buffer,
   if(!parse_response(buffer, &m))
     goto fail;
 
-  fprintf(stderr, "handle_unicast\n"); 
-  gavl_metadata_dump(&m, 2);
+  //  fprintf(stderr, "handle_unicast\n"); 
+  //  gavl_metadata_dump(&m, 2);
 
   if(!(st = gavl_metadata_get_i(&m, "ST")))
     goto fail;

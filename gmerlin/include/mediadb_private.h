@@ -19,15 +19,24 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  * *****************************************************************/
 
-#include <gmerlin/upnp/soap.h>
+#include <gavl/gavl.h>
+#include <gmerlin/mediadb.h>
 
-int main(int argc, char ** argv)
+#include <bgsqlite.h>
+
+struct bg_db_s
   {
-  xmlDocPtr doc = bg_soap_create_request("myfunction", "myservice", 1);
+  sqlite3 * db;
+  char * base_dir;
+  int base_len;
+  };
 
-  bg_soap_request_add_argument(doc, "myarg1");
+/* Utility functions we might want */
 
-  bg_xml_save_FILE(doc, stdout);
-  xmlFreeDoc(doc);
-  }
+char * bg_db_filename_to_abs(bg_db_t * db, const char * filename);
+const char * bg_db_filename_to_rel(bg_db_t * db, const char * filename);
 
+bg_db_file_t * bg_db_file_scan_directory(const char * directory, int * num);
+
+void bg_db_add_files(bg_db_t * db, bg_db_file_t * file, int num, bg_db_dir_t * dir);
+void bg_db_update_files(bg_db_t * db, bg_db_file_t * file, int num, bg_db_dir_t * dir);

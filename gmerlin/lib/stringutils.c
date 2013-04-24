@@ -666,15 +666,8 @@ char * bg_get_stream_label(int index, const gavl_metadata_t * m)
 
 char * bg_canonical_filename(const char * name)
   {
-#ifdef HAVE_CANONICALIZE_FILE_NAME
-  return canonicalize_file_name(name);
-#else
-  char * ret = malloc(PATH_MAX);
-  realpath(name, ret);
-  return ret;
-#endif
+  return realpath(name, NULL);
   }
-
 
 static const struct
   {
