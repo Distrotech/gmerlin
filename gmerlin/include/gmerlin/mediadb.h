@@ -59,6 +59,18 @@ typedef enum
   // BG_DB_ACCESS_ONDEMAND ?
   } bg_db_access_t;
 
+#define BG_DB_UNIQUE_ID_CONTAINER 0x8000
+#define BG_DB_UNIQUE_ID_REFERENCE 0x4000
+
+
+int64_t bg_db_get_unique_id(bg_db_type_t type, bg_db_access_t access, int64_t id, int64_t ref_id);
+
+void bg_db_parse_unique_id(int64_t unique_id, 
+                           bg_db_type_t * type,
+                           bg_db_access_t * access,
+                           int64_t * id,
+                           int64_t * ref_id);
+
 typedef struct
   {
   int day;   // 1 - 31 (0 = unknown)
@@ -134,6 +146,7 @@ int bg_db_file_del(bg_db_t * db, bg_db_file_t * f);
 typedef struct
   {
   int64_t id;        // ID Same as in bg_db_file_t
+  int64_t ref_id;    // If 0, it's the original
   char * title;      // TITLE
   
   char * artist;     
@@ -176,6 +189,8 @@ int bg_db_audio_file_query(bg_db_t * db, bg_db_audio_file_t * t, int full);
 /* Delete from dB */
 int bg_db_audio_file_del(bg_db_t * db, bg_db_audio_file_t * t);
 
+int64_t bg_db_audio_file_get_unique_id(bg_db_audio_file_t * t);
+
 /* Audio Album */
 typedef struct
   {
@@ -189,6 +204,7 @@ typedef struct
   int64_t genre_id;
 
   bg_db_date_t date;
+  gavl_time_t duration;
   
   int found; // Used by sqlite
   } bg_db_audio_album_t;

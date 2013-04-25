@@ -217,12 +217,13 @@ int bg_db_file_query(bg_db_t * db, bg_db_file_t * f, int full)
   else
     {
     bg_log(BG_LOG_ERROR, LOG_DOMAIN,
-           "Either ID or path must be set in path");
+           "Either ID or path must be set for querying a file");
     }
   f->path = bg_db_filename_to_abs(db, f->path);
 
   if(full)
     f->mimetype = bg_sqlite_id_to_string(db->db, "MIMETYPES", "NAME", "ID", f->mimetype_id);
+  return 1;
   }
 
 int bg_db_file_del(bg_db_t * db, bg_db_file_t * f)
@@ -261,6 +262,9 @@ void bg_db_add_files(bg_db_t * db, bg_db_scan_item_t * files, int num, int scan_
 
   for(i = 0; i < num; i++)
     {
+    if(files[i].done)
+      continue;
+
     switch(files[i].type)
       {
       case BG_SCAN_TYPE_DIRECTORY:
@@ -296,12 +300,13 @@ void bg_db_add_files(bg_db_t * db, bg_db_scan_item_t * files, int num, int scan_
     }
   }
 
-static bg_db_scan_item_t * find_by_path(bg_db_scan_item_t * files, int num, char * path)
+static bg_db_scan_item_t * find_by_path(bg_db_scan_item_t * files, int num, 
+                                        char * path, bg_db_scan_type_t type)
   {
   int i;
   for(i = 0; i < num; i++)
     {
-    if(!strcmp(files[i].path, path))
+    if((files[i].type == type) && !strcmp(files[i].path, path))
       return &files[i];
     }
   return NULL;
@@ -313,13 +318,45 @@ void bg_db_update_files(bg_db_t * db, bg_db_scan_item_t * files, int num, int sc
   char * sql;
   int result;
   bg_db_file_t file;
+  bg_db_dir_t dir;
   int i;
   bg_db_scan_item_t * si;
   
   bg_sqlite_id_tab_t tab;
   bg_sqlite_id_tab_init(&tab);
+  
+  bg_log(BG_LOG_INFO, LOG_DOMAIN, "Getting directories from database");
+  sql =
+    sqlite3_mprintf("select ID from DIRECTORIES where SCAN_DIR_ID = %"PRId64";", scan_dir_id);
+  result = bg_sqlite_exec(db->db, sql, bg_sqlite_append_id_callback, &tab);
+  sqlite3_free(sql);
 
-  bg_log(BG_LOG_INFO, LOG_DOMAIN, "Getting songs from database");
+  bg_log(BG_LOG_INFO, LOG_DOMAIN, "Found %d directories in database", tab.num_val);
+
+  for(i = 0; i < tab.num_val; i++)
+    {
+    bg_db_dir_init(&dir);
+    dir.id = tab.val[i];
+
+    if(bg_db_dir_query(db, &dir, 0)) /* Directory can already be gone */
+      {
+      si = find_by_path(files, num, dir.path, BG_SCAN_TYPE_DIRECTORY);
+      if(!si)
+        {
+        bg_log(BG_LOG_INFO, LOG_DOMAIN, "Directory %s disappeared, removing from database", dir.path);
+        bg_db_dir_del(db, &dir);
+        }
+      else
+        {
+        si->done = 1;
+        si->id = dir.id; // Need this later when adding files
+        }
+      }
+    bg_db_dir_free(&dir);
+    }
+
+  bg_sqlite_id_tab_reset(&tab);
+  bg_log(BG_LOG_INFO, LOG_DOMAIN, "Getting files from database");
   
   sql =
     sqlite3_mprintf("select ID from FILES where SCAN_DIR_ID = %"PRId64";", scan_dir_id);
@@ -339,12 +376,24 @@ void bg_db_update_files(bg_db_t * db, bg_db_scan_item_t * files, int num, int sc
     if(!bg_db_file_query(db, &file, 1))
       goto fail;
 
-    si = find_by_path(files, num, file.path);
-
-    if(!si || (si->mtime != file.mtime))
+    si = find_by_path(files, num, file.path, BG_SCAN_TYPE_FILE);
+    if(!si)
+      {
+      bg_log(BG_LOG_INFO, LOG_DOMAIN, "File %s disappeared, removing from database", file.path);
       bg_db_file_del(db, &file);
+      }
+    else if(si->mtime != file.mtime)
+      {
+      bg_log(BG_LOG_INFO, LOG_DOMAIN, 
+             "File %s changed on disk, removing from database for re-adding later", file.path);
+      bg_db_file_del(db, &file);
+      }
+    else
+      si->done = 1;
     }
-  
+
+  bg_db_add_files(db, files, num, scan_flags);
+
   fail:
   bg_sqlite_id_tab_free(&tab);
   

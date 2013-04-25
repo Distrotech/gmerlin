@@ -50,6 +50,8 @@ typedef struct
 
   int64_t size;
   time_t mtime;
+
+  int done;
   } bg_db_scan_item_t;
 
 bg_db_scan_item_t * bg_db_scan_directory(const char * directory, int * num);

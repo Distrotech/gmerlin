@@ -83,25 +83,25 @@ static const char * create_commands[] =
     "BITRATE TEXT"
     ");",
 
+    "CREATE TABLE AUDIO_FILES_REFS("
+    "ID INTEGER PRIMARY KEY, "
+    "REF_ID INTEGER, "
+    "TITLE TEXT, "
+    "ARTIST INTEGER, "
+    "GENRE INTEGER, "
+    "DATE TEXT, "
+    "ALBUM INTEGER, "
+    "TRACK INTEGER "
+    ");",
+
     "CREATE TABLE AUDIO_ALBUMS("
     "ID INTEGER PRIMARY KEY, "
     "ARTIST INTEGER, "
     "TITLE TEXT, "
+    "DURATION INTEGER, "
     "TRACKS INTEGER, "
     "GENRE INTEGER, "
     "DATE TEXT"
-    ");",
-
-    "CREATE TABLE MUSIC_ALBUMS_GENRES("
-    "ID INTEGER PRIMARY KEY, "
-    "GENRE INTEGER"
-    ");",
-    
-    "CREATE TABLE MUSIC_ALBUMS_SONGS("
-    "ID INTEGER PRIMARY KEY, "
-    "ALBUM INTEGER, "
-    "FILE INTEGER, "
-    "TRACK INTEGER"
     ");",
     
     NULL,
@@ -233,7 +233,7 @@ void bg_db_add_directory(bg_db_t * db, const char * d, int scan_flags)
 
   if(bg_db_dir_query(db, &dir, 0))
     {
-    bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Directory %s already in database, updating", dir.path);
+    bg_log(BG_LOG_INFO, LOG_DOMAIN, "Directory %s already in database, updating", dir.path);
     bg_db_update_files(db, files, num_files, dir.scan_flags, dir.id);
     }
   else
@@ -243,9 +243,18 @@ void bg_db_add_directory(bg_db_t * db, const char * d, int scan_flags)
   bg_db_dir_free(&dir);
   }
 
-void bg_db_del_directory(bg_db_t * db, const char * dir)
+void bg_db_del_directory(bg_db_t * db, const char * d)
   {
-  
+  bg_db_dir_t dir;
+  bg_db_dir_init(&dir);
+  dir.path = bg_canonical_filename(d);
+  if(!bg_db_dir_query(db, &dir, 0))
+    bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Directory %s not in database", dir.path);
+  else if(dir.parent_id > 0)
+    bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Directory %s not a root scan directory", dir.path);
+  else
+    bg_db_dir_del(db, &dir);
+  bg_db_dir_free(&dir);
   }
 
 int bg_db_date_equal(const bg_db_date_t * d1,

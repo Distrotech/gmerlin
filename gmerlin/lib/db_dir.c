@@ -123,3 +123,54 @@ int bg_db_dir_update(bg_db_t * db, bg_db_dir_t * dir)
   sqlite3_free(sql);
   return result;
   }
+
+int bg_db_dir_del(bg_db_t * db, bg_db_dir_t * dir)
+  {
+  char * sql;
+  int result;
+  int i;
+  bg_db_dir_t child;
+  bg_db_file_t file;
+  bg_sqlite_id_tab_t tab;
+  bg_sqlite_id_tab_init(&tab);
+
+  /* Get and delete child directories */
+  sql =
+    sqlite3_mprintf("select ID from DIRECORIES where PARENT_ID = %"PRId64";", dir->id);
+  result = bg_sqlite_exec(db->db, sql, bg_sqlite_append_id_callback, &tab);
+  sqlite3_free(sql);
+
+  for(i = 0; i < tab.num_val; i++)
+    {
+    bg_db_dir_init(&child);
+    child.id = tab.val[i];
+    bg_db_dir_del(db, &child);
+    bg_db_dir_free(&child);
+    }
+  /* Delete files */
+  bg_sqlite_id_tab_reset(&tab);
+
+  sql =
+    sqlite3_mprintf("select ID from FILES where PARENT_ID = %"PRId64";", dir->id);
+  result = bg_sqlite_exec(db->db, sql, bg_sqlite_append_id_callback, &tab);
+  sqlite3_free(sql);
+
+  for(i = 0; i < tab.num_val; i++)
+    {
+    bg_db_file_init(&file);
+    file.id = tab.val[i];
+    bg_db_file_query(db, &file, 0);
+    bg_db_file_del(db, &file);
+    bg_db_file_free(&file);
+    }
+
+  /* Delete from directory table */
+  sql =
+    sqlite3_mprintf("delete from DIRECTORIES where ID = %"PRId64";", dir->id);
+  result = bg_sqlite_exec(db->db, sql, NULL, NULL);
+  sqlite3_free(sql);
+  
+  bg_sqlite_id_tab_free(&tab);
+
+  }
+
