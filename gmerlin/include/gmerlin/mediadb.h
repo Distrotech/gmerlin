@@ -59,9 +59,19 @@ typedef enum
   // BG_DB_ACCESS_ONDEMAND ?
   } bg_db_access_t;
 
-#define BG_DB_UNIQUE_ID_CONTAINER 0x8000
-#define BG_DB_UNIQUE_ID_REFERENCE 0x4000
+#define BG_DB_FLAG_CONTAINER 0x8000
+// #define BG_DB_UNIQUE_ID_REFERENCE 0x4000
 
+typedef enum
+  {
+  BG_DB_OBJECT_AUDIO_FILE = 1,
+  BG_DB_OBJECT_VIDEO_FILE = 2,
+  BG_DB_OBJECT_PHOTO_FILE = 3,
+  BG_DB_OBJECT_CONTAINER   =  1 | BG_DB_FLAG_CONTAINER,
+  BG_DB_OBJECT_DIRECTORY   =  2 | BG_DB_FLAG_CONTAINER,
+  BG_DB_OBJECT_PLAYLIST    =  3 | BG_DB_FLAG_CONTAINER,
+  BG_DB_OBJECT_AUDIO_ALBUM =  4 | BG_DB_FLAG_CONTAINER,
+  } bg_db_object_type_t;
 
 int64_t bg_db_get_unique_id(bg_db_type_t type, bg_db_access_t access, int64_t id, int64_t ref_id);
 
