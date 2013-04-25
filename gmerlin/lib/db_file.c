@@ -170,14 +170,88 @@ void bg_db_file_free(bg_db_file_t * file)
     free(file->path);
   }
 
-int bg_db_file_query(bg_db_t * db, bg_db_file_t * f)
+static int file_query_callback(void * data, int argc, char **argv, char **azColName)
   {
+  int i;
+  bg_db_file_t * ret = data;
   
+  for(i = 0; i < argc; i++)
+    {
+    BG_DB_SET_QUERY_INT("ID",          id);
+    BG_DB_SET_QUERY_STRING("PATH",     path);
+    BG_DB_SET_QUERY_INT("SIZE",        size);
+    BG_DB_SET_QUERY_MTIME("MTIME",     mtime);
+    BG_DB_SET_QUERY_INT("MIMETYPE",    mimetype_id);
+    BG_DB_SET_QUERY_INT("TYPE",        type);
+    BG_DB_SET_QUERY_INT("PARENT_ID",   parent_id);
+    BG_DB_SET_QUERY_INT("SCAN_DIR_ID", scan_dir_id);
+    }
+  ret->found = 1;
+  return 0;
+  }
+
+
+int bg_db_file_query(bg_db_t * db, bg_db_file_t * f, int full)
+  {
+  char * sql;
+  int result;
+  f->found = 0;
+  if(f->id >= 0)
+    {
+    sql = sqlite3_mprintf("select * from FILES where ID = %"PRId64";",
+                          f->id);
+    result = bg_sqlite_exec(db->db, sql, file_query_callback, f);
+    sqlite3_free(sql);
+    if(!result || !f->found)
+      return 0;
+    }
+  else if(f->path)
+    {
+    sql = sqlite3_mprintf("select * from FILES where PATH = %Q;",
+                          f->path);
+    result = bg_sqlite_exec(db->db, sql, file_query_callback, f);
+    sqlite3_free(sql);
+    if(!result || !f->found)
+      return 0;
+    }   
+  else
+    {
+    bg_log(BG_LOG_ERROR, LOG_DOMAIN,
+           "Either ID or path must be set in path");
+    }
+  f->path = bg_db_filename_to_abs(db, f->path);
+
+  if(full)
+    f->mimetype = bg_sqlite_id_to_string(db->db, "MIMETYPES", "NAME", "ID", f->mimetype_id);
   }
 
 int bg_db_file_del(bg_db_t * db, bg_db_file_t * f)
   {
-  
+  char * sql;
+  int result;
+
+  switch(f->type)
+    {
+    case BG_DB_AUDIO:
+      {
+      bg_db_audio_file_t song;
+      bg_db_audio_file_init(&song);
+      song.id = f->id;
+      if(bg_db_audio_file_query(db, &song, 0))
+        bg_db_audio_file_del(db, &song);
+      bg_db_audio_file_free(&song);
+      }
+      break;
+    case BG_DB_VIDEO:
+    case BG_DB_PHOTO:
+     break;
+    }
+  sql = sqlite3_mprintf("DELETE FROM FILES WHERE ID = %"PRId64";", f->id);
+  result = bg_sqlite_exec(db->db, sql, NULL, NULL);
+  sqlite3_free(sql);
+  if(!result)
+    return 0;
+  return 1;
   }
 
 
@@ -260,14 +334,15 @@ void bg_db_update_files(bg_db_t * db, bg_db_scan_item_t * files, int num, int sc
   for(i = 0; i < tab.num_val; i++)
     {
     bg_db_file_init(&file);
+    file.id = tab.val[i];
 
-    if(!bg_db_file_query(db, &file))
+    if(!bg_db_file_query(db, &file, 1))
       goto fail;
 
     si = find_by_path(files, num, file.path);
 
     if(!si || (si->mtime != file.mtime))
-      bg_db_file_del(db, file);
+      bg_db_file_del(db, &file);
     }
   
   fail:

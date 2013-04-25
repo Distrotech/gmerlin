@@ -61,7 +61,7 @@ static int dir_query_callback(void * data, int argc, char **argv, char **azColNa
   return 0;
   }
 
-int bg_db_dir_query(bg_db_t * db, bg_db_dir_t * dir)
+int bg_db_dir_query(bg_db_t * db, bg_db_dir_t * dir, int full)
   {
   char * sql;
   int result;
@@ -89,6 +89,8 @@ int bg_db_dir_query(bg_db_t * db, bg_db_dir_t * dir)
            "Either ID or path must be set in directory");
     return 0;
     }
+  dir->path = bg_db_filename_to_abs(db, dir->path);
+  return 1;
   }
 
 int bg_db_dir_add(bg_db_t * db, bg_db_dir_t * dir)

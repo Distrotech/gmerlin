@@ -247,7 +247,8 @@ static int read_header_png(void * priv, const char * filename,
       }
     }
   gavl_metadata_set(&png->metadata, GAVL_META_FORMAT, "PNG");
-  
+  gavl_metadata_set(&png->metadata, GAVL_META_MIMETYPE; "image/png");
+
   gavl_video_format_copy(&png->format, format);
   return 1;
   fail:

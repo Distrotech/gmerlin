@@ -155,7 +155,7 @@ static int audio_query_callback(void * data, int argc, char **argv, char **azCol
   }
 
 
-int bg_db_audio_file_query(bg_db_t * db, bg_db_audio_file_t * f)
+int bg_db_audio_file_query(bg_db_t * db, bg_db_audio_file_t * f, int full)
   {
   char * sql;
   int result;
@@ -166,6 +166,8 @@ int bg_db_audio_file_query(bg_db_t * db, bg_db_audio_file_t * f)
   sqlite3_free(sql);
   if(!result || f->found)
     return 0;
+  if(!full)
+    return 1;
 
   f->artist = bg_sqlite_id_to_string(db->db, "AUDIO_ARTISTS", "NAME", "ID", f->artist_id);
   f->genre  = bg_sqlite_id_to_string(db->db, "AUDIO_GENRES",  "NAME", "ID", f->genre_id);
@@ -175,6 +177,14 @@ int bg_db_audio_file_query(bg_db_t * db, bg_db_audio_file_t * f)
 
 int bg_db_audio_file_del(bg_db_t * db, bg_db_audio_file_t * f)
   {
-  
+  char * sql;
+  int result;
+  bg_db_audio_file_remove_from_album(db, f);
+  sql = sqlite3_mprintf("DELETE FROM AUDIO_FILES WHERE ID = %"PRId64";", f->id);
+  result = bg_sqlite_exec(db->db, sql, NULL, NULL);
+  sqlite3_free(sql);
+  if(!result)
+    return 0;
+  return 1;
   }
 

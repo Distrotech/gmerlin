@@ -170,9 +170,12 @@ bg_db_t * bg_db_create(const char * file,
   return ret;
   }
 
-char * bg_db_filename_to_abs(bg_db_t * db, const char * filename)
+char * bg_db_filename_to_abs(bg_db_t * db, char * filename)
   {
-  return bg_sprintf("%s%s", db->base_dir, filename);
+  char * ret;
+  ret = bg_sprintf("%s%s", db->base_dir, filename);
+  free(filename);
+  return ret;
   }
 
 const char * bg_db_filename_to_rel(bg_db_t * db, const char * filename)
@@ -228,7 +231,7 @@ void bg_db_add_directory(bg_db_t * db, const char * d, int scan_flags)
 
   files = bg_db_scan_directory(dir.path, &num_files);
 
-  if(bg_db_dir_query(db, &dir))
+  if(bg_db_dir_query(db, &dir, 0))
     {
     bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Directory %s already in database, updating", dir.path);
     bg_db_update_files(db, files, num_files, dir.scan_flags, dir.id);

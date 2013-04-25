@@ -59,7 +59,7 @@ void bg_db_audio_file_add_to_album(bg_db_t * db, bg_db_audio_file_t * f)
                                "ID", "NAME", f->albumartist);
   a.title = gavl_strdup(f->album);
 
-  if(!bg_db_audio_album_query(db, &a))
+  if(!bg_db_audio_album_query(db, &a, 0))
     {
     a.id = bg_sqlite_get_next_id(db->db, "AUDIO_ALBUMS");
     /* Date */
@@ -115,9 +115,31 @@ void bg_db_audio_file_add_to_album(bg_db_t * db, bg_db_audio_file_t * f)
   f->album_id = a.id;
   }
 
-void bg_db_audio_file_remove_from_album(bg_db_t * db, bg_db_audio_file_t * t)
+void bg_db_audio_file_remove_from_album(bg_db_t * db, bg_db_audio_file_t * f)
   {
-  
+  int num_tracks;
+  char * sql;
+  int result;
+
+  if(f->album_id <= 0)
+    return;
+  num_tracks = bg_sqlite_id_to_id(db->db, "AUDIO_ALBUMS", "TRACKS",
+                                  "ID", f->album_id);
+
+  if(num_tracks == 1) // Delete entire album
+    {
+    sql = sqlite3_mprintf("DELETE FROM AUDIO_ALBUMS WHERE ID = %"PRId64";", f->album_id);
+    result = bg_sqlite_exec(db->db, sql, NULL, NULL);
+    sqlite3_free(sql);
+    }
+  else
+    {
+    num_tracks--;
+    sql = sqlite3_mprintf("UPDATE AUDIO_ALBUMS SET TRACKS = %d WHERE ID = %"PRId64";",
+                          num_tracks, f->album_id);
+    result = bg_sqlite_exec(db->db, sql, NULL, NULL);
+    sqlite3_free(sql);
+    }
   }
 
 static int album_query_callback(void * data, int argc, char **argv, char **azColName)
@@ -137,8 +159,7 @@ static int album_query_callback(void * data, int argc, char **argv, char **azCol
   return 0;
   }
 
-
-int bg_db_audio_album_query(bg_db_t * db, bg_db_audio_album_t*a)
+int bg_db_audio_album_query(bg_db_t * db, bg_db_audio_album_t*a, int full)
   {
   char * sql;
   int result;
@@ -164,9 +185,11 @@ int bg_db_audio_album_query(bg_db_t * db, bg_db_audio_album_t*a)
   else
     {
     bg_log(BG_LOG_ERROR, LOG_DOMAIN,
-           "Either ID or path must be set in directory");
+           "Either ID or artist and title must be set in audio album");
     return 0;
     }
+  if(!full)
+    return 1;
   a->artist = bg_sqlite_id_to_string(db->db, "AUDIO_ARTISTS", "NAME", "ID", a->artist_id);
   a->genre  = bg_sqlite_id_to_string(db->db, "AUDIO_GENRES",  "NAME", "ID", a->genre_id);
   return 1;

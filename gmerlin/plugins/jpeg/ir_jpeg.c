@@ -183,6 +183,7 @@ int read_header_jpeg(void * priv, const char * filename,
 #endif
 
   gavl_metadata_set(&jpeg->metadata, GAVL_META_FORMAT, "JPEG");
+  gavl_metadata_set(&jpeg->metadata, GAVL_META_MIMETYPE; "image/jpeg");
   return 1;
   }
 

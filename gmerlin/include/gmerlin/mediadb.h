@@ -97,7 +97,7 @@ typedef struct
 
 void bg_db_dir_init(bg_db_dir_t * dir);
 void bg_db_dir_free(bg_db_dir_t * dir);
-int  bg_db_dir_query(bg_db_t * db, bg_db_dir_t * dir);
+int  bg_db_dir_query(bg_db_t * db, bg_db_dir_t * dir, int full);
 int bg_db_dir_add(bg_db_t * db, bg_db_dir_t * dir);
 int bg_db_dir_del(bg_db_t * db, bg_db_dir_t * dir);
 
@@ -124,7 +124,7 @@ void bg_db_file_init(bg_db_file_t * f);
 void bg_db_file_free(bg_db_file_t * f);
 
 int bg_db_file_add(bg_db_t * db, bg_db_file_t * f);
-int bg_db_file_query(bg_db_t * db, bg_db_file_t * f);
+int bg_db_file_query(bg_db_t * db, bg_db_file_t * f, int full);
 int bg_db_file_del(bg_db_t * db, bg_db_file_t * f);
 
 /* 
@@ -171,7 +171,7 @@ void bg_db_audio_file_get_info(bg_db_audio_file_t * f,
 int bg_db_audio_file_add(bg_db_t * db, bg_db_audio_file_t * t);
 
 /* Get from db */
-int bg_db_audio_file_query(bg_db_t * db, bg_db_audio_file_t * t);
+int bg_db_audio_file_query(bg_db_t * db, bg_db_audio_file_t * t, int full);
 
 /* Delete from dB */
 int bg_db_audio_file_del(bg_db_t * db, bg_db_audio_file_t * t);
@@ -199,7 +199,7 @@ void bg_db_audio_album_free(bg_db_audio_album_t*a);
 void bg_db_audio_file_add_to_album(bg_db_t * db, bg_db_audio_file_t * t);
 void bg_db_audio_file_remove_from_album(bg_db_t * db, bg_db_audio_file_t * t);
 
-int bg_db_audio_album_query(bg_db_t * db, bg_db_audio_album_t*a);
+int bg_db_audio_album_query(bg_db_t * db, bg_db_audio_album_t * a, int full);
 
 /* Video */
 typedef struct

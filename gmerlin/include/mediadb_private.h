@@ -56,7 +56,7 @@ bg_db_scan_item_t * bg_db_scan_directory(const char * directory, int * num);
 
 /* Utility functions we might want */
 
-char * bg_db_filename_to_abs(bg_db_t * db, const char * filename);
+char * bg_db_filename_to_abs(bg_db_t * db, char * filename);
 const char * bg_db_filename_to_rel(bg_db_t * db, const char * filename);
 
 void bg_db_add_files(bg_db_t * db, bg_db_scan_item_t * files, int num, int scan_flags);
