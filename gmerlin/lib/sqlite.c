@@ -111,10 +111,12 @@ int64_t bg_sqlite_string_to_id_add(sqlite3 * db,
   ret = bg_sqlite_string_to_id(db, table, id_row, string_row, str);
   if(ret >= 0)
     return ret;
-  ret = get_max_int(db, table, "id_row");
+  ret = get_max_int(db, table, id_row);
   if(ret < 0)
     return ret;
 
+  ret++;
+  
   /* Insert into table */
   sql = sqlite3_mprintf("INSERT INTO %s "
                           "( %s, %s ) VALUES "
@@ -166,3 +168,47 @@ int64_t bg_sqlite_get_next_id(sqlite3 * db, const char * table)
     return -1;
   return ret + 1;
   }
+
+#if 0
+typedef struct
+  {
+  int64_t * val;
+  int val_alloc;
+  int num_val;
+  } bg_sqlite_id_tab_t;
+#endif
+
+void bg_sqlite_id_tab_init(bg_sqlite_id_tab_t * tab)
+  {
+  memset(tab, 0, sizeof(*tab));
+  }
+
+void bg_sqlite_id_tab_free(bg_sqlite_id_tab_t * tab)
+  {
+  if(tab->val)
+    free(tab->val);
+  }
+
+void bg_sqlite_id_tab_reset(bg_sqlite_id_tab_t * tab)
+  {
+  tab->num_val = 0;
+  }
+
+int bg_sqlite_append_id_callback(void * data, int argc, char **argv, char **azColName)
+  {
+  int64_t ret;
+  bg_sqlite_id_tab_t * val = data;
+  if(argv[0])
+    {
+    ret = strtoll(argv[0], NULL, 10);
+    if(val->num_val + 1 > val->val_alloc)
+      {
+      val->val_alloc = val->num_val + 1024;
+      val->val = realloc(val->val, val->val_alloc * sizeof(*val->val));
+      }
+    val->val[val->num_val] = ret;
+    val->num_val++;
+    }
+  return 0;
+  }
+

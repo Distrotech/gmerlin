@@ -21,6 +21,7 @@
 
 #include <gavl/gavl.h>
 #include <gmerlin/mediadb.h>
+#include <gavl/metatags.h>
 
 #include <bgsqlite.h>
 
@@ -59,7 +60,8 @@ char * bg_db_filename_to_abs(bg_db_t * db, const char * filename);
 const char * bg_db_filename_to_rel(bg_db_t * db, const char * filename);
 
 void bg_db_add_files(bg_db_t * db, bg_db_scan_item_t * files, int num, int scan_flags);
-void bg_db_update_files(bg_db_t * db, bg_db_scan_item_t * files, int num, int scan_flags);
+void bg_db_update_files(bg_db_t * db, bg_db_scan_item_t * files, int num, int scan_flags,
+                        int64_t scan_dir_id);
 
 #define BG_DB_TIME_STRING_LEN 20
 time_t bg_db_string_to_time(const char * str);
@@ -74,4 +76,12 @@ void bg_db_time_to_string(time_t time, char * str);
 #define BG_DB_SET_QUERY_INT(col, val)      \
   if(!strcasecmp(azColName[i], col) && argv[i]) \
     ret->val = strtoll(argv[i], NULL, 10);
+
+#define BG_DB_SET_QUERY_DATE(col, val)      \
+  if(!strcasecmp(azColName[i], col) && argv[i]) \
+    bg_db_string_to_date(argv[i], &ret->val);
+
+#define BG_DB_SET_QUERY_MTIME(col, val)      \
+  if(!strcasecmp(azColName[i], col) && argv[i]) \
+    ret->val = bg_db_string_to_time(argv[i]);
 

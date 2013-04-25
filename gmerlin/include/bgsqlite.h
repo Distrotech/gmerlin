@@ -55,3 +55,19 @@ int64_t bg_sqlite_id_to_id(sqlite3 * db,
                            int64_t id);
 
 int64_t bg_sqlite_get_next_id(sqlite3 * db, const char * table);
+
+/* Get an array of int's */
+
+typedef struct
+  {
+  int64_t * val;
+  int val_alloc;
+  int num_val;
+  } bg_sqlite_id_tab_t;
+
+void bg_sqlite_id_tab_init(bg_sqlite_id_tab_t * tab);
+void bg_sqlite_id_tab_free(bg_sqlite_id_tab_t * tab);
+void bg_sqlite_id_tab_reset(bg_sqlite_id_tab_t * tab);
+
+int bg_sqlite_append_id_callback(void * data, int argc, char **argv, char **azColName);
+

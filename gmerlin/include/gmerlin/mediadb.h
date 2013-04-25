@@ -66,6 +66,20 @@ typedef struct
   int year;  // 2013
   } bg_db_date_t;
 
+int bg_db_date_equal(const bg_db_date_t * d1,
+                     const bg_db_date_t * d2);
+
+void bg_db_date_copy(bg_db_date_t * dst,
+                     const bg_db_date_t * src);
+
+#define BG_DB_DATE_STRING_LEN GAVL_METADATA_DATE_STRING_LEN
+
+void bg_db_date_to_string(const bg_db_date_t * d, char * str);
+
+void bg_db_string_to_date(const char * str, bg_db_date_t * d);
+
+void bg_db_date_set_invalid(bg_db_date_t * d);
+
 /* Directory on the file system */
 typedef struct
   {
@@ -119,25 +133,29 @@ int bg_db_file_del(bg_db_t * db, bg_db_file_t * f);
 
 typedef struct
   {
-  int64_t id; // Same as in bg_db_file_t
+  int64_t id;        // ID Same as in bg_db_file_t
+  char * title;      // TITLE
+  
+  char * artist;     
+  int64_t artist_id; // ARTIST
 
-  int64_t album_id;
-  int64_t file_id;
-  int64_t artist_id;
+  char * genre;      // GENRE
   int64_t genre_id;
 
-  char * title;
-  gavl_time_t duration;
-  char * format;
-  char * bitrate;
   bg_db_date_t date;
+
+  gavl_time_t duration;
+
+  char * album;
+  int64_t album_id;
+
   int track;
+  
+  char * bitrate;    // BITRATE
 
   /* Secondary variables */
-  char * genre;
-  char * album;
   char * albumartist;
-
+  
   int found; // Used by sqlite
   } bg_db_audio_file_t;
 
@@ -146,7 +164,8 @@ void bg_db_audio_file_init(bg_db_audio_file_t * t);
 void bg_db_audio_file_free(bg_db_audio_file_t * t);
 
 /* Get info, don't touch db */
-void bg_db_audio_file_get_info(bg_db_audio_file_t * f, bg_db_file_t * file, bg_track_info_t * t);
+void bg_db_audio_file_get_info(bg_db_audio_file_t * f,
+                               bg_db_file_t * file, bg_track_info_t * t);
 
 /* Add to db (including secondary objects, album, genre) */
 int bg_db_audio_file_add(bg_db_t * db, bg_db_audio_file_t * t);
@@ -156,6 +175,31 @@ int bg_db_audio_file_query(bg_db_t * db, bg_db_audio_file_t * t);
 
 /* Delete from dB */
 int bg_db_audio_file_del(bg_db_t * db, bg_db_audio_file_t * t);
+
+/* Audio Album */
+typedef struct
+  {
+  int64_t id;
+  char * artist;
+  int64_t artist_id;
+  char * title;
+  int tracks;
+
+  char * genre;
+  int64_t genre_id;
+
+  bg_db_date_t date;
+  
+  int found; // Used by sqlite
+  } bg_db_audio_album_t;
+
+void bg_db_audio_album_init(bg_db_audio_album_t*a);
+void bg_db_audio_album_free(bg_db_audio_album_t*a);
+
+void bg_db_audio_file_add_to_album(bg_db_t * db, bg_db_audio_file_t * t);
+void bg_db_audio_file_remove_from_album(bg_db_t * db, bg_db_audio_file_t * t);
+
+int bg_db_audio_album_query(bg_db_t * db, bg_db_audio_album_t*a);
 
 /* Video */
 typedef struct
@@ -171,15 +215,6 @@ typedef struct
   int found; // Used by sqlite
   } bg_db_video_t;
 
-/* Music Album */
-typedef struct
-  {
-  int64_t id;
-  char * artist;
-  char * title;
-  int tracks;
-  int found; // Used by sqlite
-  } bg_db_musicalbum_t;
 
 /* Playlist */
 typedef struct

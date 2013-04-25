@@ -76,7 +76,9 @@ int bg_db_dir_query(bg_db_t * db, bg_db_dir_t * dir)
     }
   else if(dir->id >= 0)
     {
-    sql = sqlite3_mprintf("select * from DIRECTORIES where ID = %"PRId64";", dir->id);
+    sql =
+      sqlite3_mprintf("select * from DIRECTORIES where ID = %"PRId64";",
+                      dir->id);
     result = bg_sqlite_exec(db->db, sql, dir_query_callback, dir);
     sqlite3_free(sql);
     return result && dir->found;
@@ -97,7 +99,7 @@ int bg_db_dir_add(bg_db_t * db, bg_db_dir_t * dir)
   dir->id = bg_sqlite_get_next_id(db->db, "DIRECTORIES");
   dir->update_id = 1;
 
-  sql = sqlite3_mprintf("INSERT INTO DIRECTORIES ( ID, PATH, SIZE, SCAN_FLAGS, UPDATE_ID, PARENT_ID, SCAN_DIR_ID, ) VALUES ( %"PRId64", %Q, %"PRId64", %"PRId64", %"PRId64", %"PRId64" );",
+  sql = sqlite3_mprintf("INSERT INTO DIRECTORIES ( ID, PATH, SIZE, SCAN_FLAGS, UPDATE_ID, PARENT_ID, SCAN_DIR_ID ) VALUES ( %"PRId64", %Q, %"PRId64", %"PRId64", %"PRId64", %"PRId64", %"PRId64" );",
                         dir->id, bg_db_filename_to_rel(db, dir->path), dir->size, dir->scan_flags, dir->update_id, dir->parent_id, dir->scan_dir_id);
 
   result = bg_sqlite_exec(db->db, sql, NULL, NULL);
@@ -113,8 +115,8 @@ int bg_db_dir_update(bg_db_t * db, bg_db_dir_t * dir)
   dir->update_id++;
   
   sql = sqlite3_mprintf("UPDATE DIRECORIES SET UPDATE_ID = %"PRId64" WHERE ID = %"PRId64";",
-                        dir->id, dir->update_id);
-
+                        dir->update_id, dir->id);
+  
   result = bg_sqlite_exec(db->db, sql, NULL, NULL);
   sqlite3_free(sql);
   return result;

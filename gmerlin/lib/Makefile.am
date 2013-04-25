@@ -87,6 +87,7 @@ cmdline.c \
 converters.c \
 db.c \
 db_audio.c \
+db_audioalbum.c \
 db_dir.c \
 db_file.c \
 db_scan.c \

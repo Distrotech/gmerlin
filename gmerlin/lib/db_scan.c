@@ -83,7 +83,7 @@ static bg_db_scan_item_t * scan_internal(const char * directory,
       if(S_ISDIR(st.st_mode))
         {
         file->type = BG_SCAN_TYPE_DIRECTORY;
-        files = scan_internal(filename, files, &num, &alloc, num-1);
+        files = scan_internal(file->path, files, &num, &alloc, num-1);
         }
       else if(S_ISREG(st.st_mode))
         {

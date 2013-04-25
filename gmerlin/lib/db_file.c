@@ -36,10 +36,38 @@
 
 #define LOG_DOMAIN "db.file"
 
+static int file_add(bg_db_t * db, bg_db_file_t * f)
+  {
+  char * sql;
+  int result;
+  char mtime_str[BG_DB_TIME_STRING_LEN];
+  f->id = bg_sqlite_get_next_id(db->db, "FILES");
+
+  /* Mimetype */
+  if(f->mimetype)
+    {
+    f->mimetype_id = 
+      bg_sqlite_string_to_id_add(db->db, "MIMETYPES",
+                                 "ID", "NAME", f->mimetype);
+    }
+  /* Mtime */
+  bg_db_time_to_string(f->mtime, mtime_str);
+
+#if 1
+  sql = sqlite3_mprintf("INSERT INTO FILES ( ID, PATH, SIZE, MTIME, MIMETYPE, TYPE, PARENT_ID, SCAN_DIR_ID ) VALUES ( %"PRId64", %Q, %"PRId64", %Q, %"PRId64", %d, %"PRId64", %"PRId64" );",
+                        f->id, bg_db_filename_to_rel(db, f->path), f->size, mtime_str, f->mimetype_id, f->type, f->parent_id, f->scan_dir_id);
+
+  result = bg_sqlite_exec(db->db, sql, NULL, NULL);
+  sqlite3_free(sql);
+#endif
+  return result;
+  }
+
 
 /* Open the file, load metadata and so on */
-static void create_file(bg_db_t * db, bg_db_file_t * file, int64_t parent_id, int64_t scan_id)
+static void create_file(bg_db_t * db, bg_db_file_t * file, int scan_flags)
   {
+  int i;
   bg_track_info_t * ti;
   bg_plugin_handle_t * h = NULL;
   bg_input_plugin_t * plugin = NULL;
@@ -67,6 +95,44 @@ static void create_file(bg_db_t * db, bg_db_file_t * file, int64_t parent_id, in
       file->type = BG_DB_VIDEO;
     }
 
+  file->mimetype =
+    gavl_strdup(gavl_metadata_get(&ti->metadata, GAVL_META_MIMETYPE));
+
+  /* Add to DB */
+  if(!file_add(db, file))
+    goto fail;
+
+  if(!(file->type & scan_flags))
+    goto fail;
+
+  if(plugin->set_track && !plugin->set_track(h->priv, 0))
+    goto fail;
+  
+  
+  /* Start everything */
+  if(plugin->set_audio_stream)
+    {
+    for(i = 0; i < ti->num_audio_streams; i++)
+      plugin->set_audio_stream(h->priv, i, BG_STREAM_ACTION_DECODE);
+    }
+  if(plugin->set_video_stream)
+    {
+    for(i = 0; i < ti->num_video_streams; i++)
+      plugin->set_video_stream(h->priv, i, BG_STREAM_ACTION_DECODE);
+    }
+  if(plugin->set_text_stream)
+    {
+    for(i = 0; i < ti->num_text_streams; i++)
+      plugin->set_text_stream(h->priv, i, BG_STREAM_ACTION_DECODE);
+    }
+  if(plugin->set_overlay_stream)
+    {
+    for(i = 0; i < ti->num_overlay_streams; i++)
+      plugin->set_overlay_stream(h->priv, i, BG_STREAM_ACTION_DECODE);
+    }
+  if(plugin->start && !plugin->start(h->priv))
+    goto fail;
+  
   /* Create derived type */
   switch(file->type)
     {
@@ -83,9 +149,6 @@ static void create_file(bg_db_t * db, bg_db_file_t * file, int64_t parent_id, in
     case BG_DB_PHOTO:
      break;
     }
-  /* Insert into database */
-
-
   fail:
 
   if(plugin)
@@ -93,8 +156,6 @@ static void create_file(bg_db_t * db, bg_db_file_t * file, int64_t parent_id, in
   
   if(h)
     bg_plugin_unref(h);
-
-
   }
 
 void bg_db_file_init(bg_db_file_t * file)
@@ -107,34 +168,6 @@ void bg_db_file_free(bg_db_file_t * file)
   {
   if(file->path)
     free(file->path);
-  }
-
-int bg_db_file_add(bg_db_t * db, bg_db_file_t * f)
-  {
-  char * sql;
-  int result;
-  char mtime_str[BG_DB_TIME_STRING_LEN];
-  f->id = bg_sqlite_get_next_id(db->db, "FILES");
-
-  /* Mimetype */
-  if(f->mimetype)
-    {
-    f->mimetype_id = 
-      bg_sqlite_string_to_id_add(db->db, "MIMETYPES",
-                                 "ID", "NAME", f->mimetype);
-    }
-  /* Mtime */
-  bg_db_time_to_string(f->mtime, mtime_str);
-
-#if 1
-  sql = sqlite3_mprintf("INSERT INTO FILES ( ID, PATH, SIZE, MTIME, MIMETYPE, TYPE, PARENT_ID, SCAN_DIR_ID ) VALUES ( %"PRId64", %Q, %"PRId64", %Q, %"PRId64", %"PRId64", %"PRId64", %"PRId64" );",
-                        f->id, bg_db_filename_to_rel(db, f->path), f->size, mtime_str, f->mimetype_id, f->type, f->parent_id, f->scan_dir_id);
-
-  result = bg_sqlite_exec(db->db, sql, NULL, NULL);
-  sqlite3_free(sql);
-#endif
-  return result;
-
   }
 
 int bg_db_file_query(bg_db_t * db, bg_db_file_t * f)
@@ -162,6 +195,9 @@ void bg_db_add_files(bg_db_t * db, bg_db_scan_item_t * files, int num, int scan_
         bg_db_dir_init(&dir);
         dir.scan_flags = scan_flags;
         dir.path = files[i].path;
+        dir.size = files[i].size;
+        dir.parent_id = files[files[i].parent_index].id;
+        dir.scan_dir_id = files[0].id;
         files[i].path = NULL;
         bg_db_dir_add(db, &dir);
         files[i].id = dir.id;
@@ -173,10 +209,12 @@ void bg_db_add_files(bg_db_t * db, bg_db_scan_item_t * files, int num, int scan_
         bg_db_file_t file;
         bg_db_file_init(&file);
         file.path = files[i].path;
+        file.size = files[i].size;
+        file.mtime = files[i].mtime;
         files[i].path = NULL;
-        create_file(db, &file, files[files[i].parent_index].id, files[0].id);
-        
-        bg_db_file_add(db, &file);
+        file.parent_id = files[files[i].parent_index].id;
+        file.scan_dir_id = files[0].id;
+        create_file(db, &file, scan_flags);
         bg_db_file_free(&file);
         }
         break;
@@ -184,7 +222,55 @@ void bg_db_add_files(bg_db_t * db, bg_db_scan_item_t * files, int num, int scan_
     }
   }
 
-void bg_db_update_files(bg_db_t * db, bg_db_scan_item_t * files, int num, int scan_flags)
+static bg_db_scan_item_t * find_by_path(bg_db_scan_item_t * files, int num, char * path)
   {
+  int i;
+  for(i = 0; i < num; i++)
+    {
+    if(!strcmp(files[i].path, path))
+      return &files[i];
+    }
+  return NULL;
+  }
+
+void bg_db_update_files(bg_db_t * db, bg_db_scan_item_t * files, int num, int scan_flags,
+                        int64_t scan_dir_id)
+  {
+  char * sql;
+  int result;
+  bg_db_file_t file;
+  int i;
+  bg_db_scan_item_t * si;
+  
+  bg_sqlite_id_tab_t tab;
+  bg_sqlite_id_tab_init(&tab);
+
+  bg_log(BG_LOG_INFO, LOG_DOMAIN, "Getting songs from database");
+  
+  sql =
+    sqlite3_mprintf("select ID from FILES where SCAN_DIR_ID = %"PRId64";", scan_dir_id);
+  result = bg_sqlite_exec(db->db, sql, bg_sqlite_append_id_callback, &tab);
+  sqlite3_free(sql);
+  
+  if(!result)
+    goto fail;
+  
+  bg_log(BG_LOG_INFO, LOG_DOMAIN, "Found %d files in database", tab.num_val);
+
+  for(i = 0; i < tab.num_val; i++)
+    {
+    bg_db_file_init(&file);
+
+    if(!bg_db_file_query(db, &file))
+      goto fail;
+
+    si = find_by_path(files, num, file.path);
+
+    if(!si || (si->mtime != file.mtime))
+      bg_db_file_del(db, file);
+    }
+  
+  fail:
+  bg_sqlite_id_tab_free(&tab);
   
   }

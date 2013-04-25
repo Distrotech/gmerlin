@@ -20,6 +20,8 @@
  * *****************************************************************/
 
 #define _XOPEN_SOURCE
+#define _GNU_SOURCE
+
 #include <config.h>
 #include <unistd.h>
 
@@ -59,29 +61,35 @@ static const char * create_commands[] =
     ");",
 
     
-    "CREATE TABLE MUSIC_GENRES("
+    "CREATE TABLE AUDIO_GENRES("
     "ID INTEGER PRIMARY KEY, "
     "NAME TEXT"
     ");",
 
-    "CREATE TABLE MUSIC_ARTISTS("
+    "CREATE TABLE AUDIO_ARTISTS("
     "ID INTEGER PRIMARY KEY, "
     "NAME TEXT"
     ");",
 
-    "CREATE TABLE MUSIC_FILES("
+    "CREATE TABLE AUDIO_FILES("
     "ID INTEGER PRIMARY KEY, "
     "TITLE TEXT, "
     "ARTIST INTEGER, "
     "GENRE INTEGER, "
     "DATE TEXT, "
-    "DURATION INTEGER"
-    "FILE INTEGER"
+    "DURATION INTEGER, "
+    "ALBUM INTEGER, "
+    "TRACK INTEGER, "
+    "BITRATE TEXT"
     ");",
 
-    "CREATE TABLE MUSIC_ALBUMS("
+    "CREATE TABLE AUDIO_ALBUMS("
     "ID INTEGER PRIMARY KEY, "
-    "TITLE TEXT"
+    "ARTIST INTEGER, "
+    "TITLE TEXT, "
+    "TRACKS INTEGER, "
+    "GENRE INTEGER, "
+    "DATE TEXT"
     ");",
 
     "CREATE TABLE MUSIC_ALBUMS_GENRES("
@@ -223,7 +231,7 @@ void bg_db_add_directory(bg_db_t * db, const char * d, int scan_flags)
   if(bg_db_dir_query(db, &dir))
     {
     bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Directory %s already in database, updating", dir.path);
-    bg_db_update_files(db, files, num_files, dir.scan_flags);
+    bg_db_update_files(db, files, num_files, dir.scan_flags, dir.id);
     }
   else
     {
@@ -235,4 +243,36 @@ void bg_db_add_directory(bg_db_t * db, const char * d, int scan_flags)
 void bg_db_del_directory(bg_db_t * db, const char * dir)
   {
   
+  }
+
+int bg_db_date_equal(const bg_db_date_t * d1,
+                     const bg_db_date_t * d2)
+  {
+  return
+    (d1->year == d2->year) &&
+    (d1->month == d2->month) &&
+    (d1->day == d2->day);
+  }
+
+void bg_db_date_copy(bg_db_date_t * dst,
+                     const bg_db_date_t * src)
+  {
+  memcpy(dst, src, sizeof(*dst));
+  }
+
+void bg_db_date_to_string(const bg_db_date_t * d, char * str)
+  {
+  gavl_metadata_date_to_string(d->year, d->month, d->day, str);
+  }
+
+void bg_db_string_to_date(const char * str, bg_db_date_t * d)
+  {
+  sscanf(str, "%d-%d-%d", &d->year, &d->month, &d->day);
+  }
+
+void bg_db_date_set_invalid(bg_db_date_t * d)
+  {
+  d->year  = 9999;
+  d->day   = 01;
+  d->month = 01;
   }
