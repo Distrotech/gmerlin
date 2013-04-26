@@ -212,3 +212,11 @@ int bg_sqlite_append_id_callback(void * data, int argc, char **argv, char **azCo
   return 0;
   }
 
+void bg_sqlite_delete_by_id(sqlite3 * db,
+                            const char * table,
+                            int64_t id)
+  {
+  sql = sqlite3_mprintf("DELETE FROM %s WHERE ID = %"PRId64";", table, id);
+  result = bg_sqlite_exec(db->db, sql, NULL, NULL);
+  sqlite3_free(sql);
+  }

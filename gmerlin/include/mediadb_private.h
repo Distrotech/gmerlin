@@ -25,6 +25,8 @@
 
 #include <bgsqlite.h>
 
+#define BG_DB_OBJ_FLAG_DONT_PROPAGATE (1<<0)
+
 struct bg_db_s
   {
   sqlite3 * db;
@@ -55,6 +57,7 @@ typedef struct
   } bg_db_scan_item_t;
 
 bg_db_scan_item_t * bg_db_scan_directory(const char * directory, int * num);
+void bg_scan_items_free(bg_db_scan_item_t *, int num);
 
 /* Utility functions we might want */
 

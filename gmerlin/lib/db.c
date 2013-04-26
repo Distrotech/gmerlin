@@ -34,6 +34,16 @@
 
 static const char * create_commands[] =
   {
+
+    "CREATE TABLE OBJECTS ("
+    "ID INTEGER PRIMARY KEY, "
+    "REF_ID INTEGER, "
+    "PARENT_ID INTEGER, "
+    "CHILDREN INTEGER, "
+    "SIZE INTEGER, "
+    "DURATION INTEGER, "
+    "LABEL INTEGER);"
+    
     "CREATE TABLE DIRECTORIES ("
     "ID INTEGER PRIMARY KEY, "
     "PATH TEXT, "

@@ -90,6 +90,7 @@ db_audio.c \
 db_audioalbum.c \
 db_dir.c \
 db_file.c \
+db_object.c \
 db_scan.c \
 device.c \
 edl.c \

@@ -59,19 +59,46 @@ typedef enum
   // BG_DB_ACCESS_ONDEMAND ?
   } bg_db_access_t;
 
-#define BG_DB_FLAG_CONTAINER 0x8000
+#define BG_DB_FLAG_CONTAINER (1<<8)
+#define BG_DB_FLAG_NO_EMPTY  (1<<9)  
 // #define BG_DB_UNIQUE_ID_REFERENCE 0x4000
 
 typedef enum
   {
-  BG_DB_OBJECT_AUDIO_FILE = 1,
-  BG_DB_OBJECT_VIDEO_FILE = 2,
-  BG_DB_OBJECT_PHOTO_FILE = 3,
+  BG_DB_OBJECT_AUDIO_FILE   = 1,
+  BG_DB_OBJECT_VIDEO_FILE   = 2,
+  BG_DB_OBJECT_PHOTO_FILE   = 3,
   BG_DB_OBJECT_CONTAINER   =  1 | BG_DB_FLAG_CONTAINER,
   BG_DB_OBJECT_DIRECTORY   =  2 | BG_DB_FLAG_CONTAINER,
   BG_DB_OBJECT_PLAYLIST    =  3 | BG_DB_FLAG_CONTAINER,
-  BG_DB_OBJECT_AUDIO_ALBUM =  4 | BG_DB_FLAG_CONTAINER,
+  BG_DB_OBJECT_AUDIO_ALBUM =  4 | BG_DB_FLAG_CONTAINER | BG_DB_FLAG_NO_EMPTY,
   } bg_db_object_type_t;
+
+typedef struct
+  {
+  int64_t id;
+  bg_db_object_type_t type;
+  
+  int64_t ref_id;
+  int64_t parent_id;
+  int children;     // -1 for non-containers
+
+  int64_t size;
+  gavl_time_t duration;
+  char * label;
+  int found;    // Used by sqlite
+
+  int flags;    // Used in-memory only
+  } bg_db_object_t;
+
+void bg_db_object_init(bg_db_object_t * obj, bg_db_object_type_t type);
+void bg_db_object_create(bg_db_t * db, bg_db_object_t * obj, int64_t parent_id);
+int bg_db_object_query(bg_db_t * db, bg_db_object_t * obj);
+void bg_db_object_add(bg_db_t * db, bg_db_object_t * obj);
+void bg_db_object_update(bg_db_t * db, bg_db_object_t * obj);
+void bg_db_object_delete(bg_db_t * db, bg_db_object_t * obj);
+void bg_db_object_free(bg_db_object_t * obj);
+
 
 int64_t bg_db_get_unique_id(bg_db_type_t type, bg_db_access_t access, int64_t id, int64_t ref_id);
 

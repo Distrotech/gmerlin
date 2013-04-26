@@ -20,7 +20,6 @@
  * *****************************************************************/
 
 #include <config.h>
-#include <unistd.h>
 
 #include <mediadb_private.h>
 #include <gmerlin/log.h>
