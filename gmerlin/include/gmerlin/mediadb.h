@@ -33,6 +33,7 @@
  *   object.item.playlistItem
  *   object.item.textItem
  *   object.container
+ *   object.container.storageFolder
  *   object.container.person
  *   object.container.person.musicArtist
  *   object.container.playlistContainer
@@ -59,54 +60,9 @@ typedef enum
   // BG_DB_ACCESS_ONDEMAND ?
   } bg_db_access_t;
 
-#define BG_DB_FLAG_CONTAINER (1<<8)
-#define BG_DB_FLAG_NO_EMPTY  (1<<9)  
-// #define BG_DB_UNIQUE_ID_REFERENCE 0x4000
-
-typedef enum
-  {
-  BG_DB_OBJECT_AUDIO_FILE   = 1,
-  BG_DB_OBJECT_VIDEO_FILE   = 2,
-  BG_DB_OBJECT_PHOTO_FILE   = 3,
-  BG_DB_OBJECT_CONTAINER   =  1 | BG_DB_FLAG_CONTAINER,
-  BG_DB_OBJECT_DIRECTORY   =  2 | BG_DB_FLAG_CONTAINER,
-  BG_DB_OBJECT_PLAYLIST    =  3 | BG_DB_FLAG_CONTAINER,
-  BG_DB_OBJECT_AUDIO_ALBUM =  4 | BG_DB_FLAG_CONTAINER | BG_DB_FLAG_NO_EMPTY,
-  } bg_db_object_type_t;
-
-typedef struct
-  {
-  int64_t id;
-  bg_db_object_type_t type;
-  
-  int64_t ref_id;
-  int64_t parent_id;
-  int children;     // -1 for non-containers
-
-  int64_t size;
-  gavl_time_t duration;
-  char * label;
-  int found;    // Used by sqlite
-
-  int flags;    // Used in-memory only
-  } bg_db_object_t;
-
-void bg_db_object_init(bg_db_object_t * obj, bg_db_object_type_t type);
-void bg_db_object_create(bg_db_t * db, bg_db_object_t * obj, int64_t parent_id);
-int bg_db_object_query(bg_db_t * db, bg_db_object_t * obj);
-void bg_db_object_add(bg_db_t * db, bg_db_object_t * obj);
-void bg_db_object_update(bg_db_t * db, bg_db_object_t * obj);
-void bg_db_object_delete(bg_db_t * db, bg_db_object_t * obj);
-void bg_db_object_free(bg_db_object_t * obj);
-
-
-int64_t bg_db_get_unique_id(bg_db_type_t type, bg_db_access_t access, int64_t id, int64_t ref_id);
-
-void bg_db_parse_unique_id(int64_t unique_id, 
-                           bg_db_type_t * type,
-                           bg_db_access_t * access,
-                           int64_t * id,
-                           int64_t * ref_id);
+/*
+ *  Date
+ */
 
 typedef struct
   {
@@ -129,52 +85,69 @@ void bg_db_string_to_date(const char * str, bg_db_date_t * d);
 
 void bg_db_date_set_invalid(bg_db_date_t * d);
 
-/* Directory on the file system */
+/*
+ *  Object definitions
+ */
+
+#define BG_DB_FLAG_CONTAINER (1<<8)
+#define BG_DB_FLAG_NO_EMPTY  (1<<9)  
+// #define BG_DB_UNIQUE_ID_REFERENCE 0x4000
+
+typedef enum
+  {
+  BG_DB_OBJECT_OBJECT       = 0,
+  BG_DB_OBJECT_FILE         = 1,
+  // object.item.audioItem.musicTrack
+  BG_DB_OBJECT_AUDIO_FILE   = 2,
+  BG_DB_OBJECT_VIDEO_FILE   = 3,
+  BG_DB_OBJECT_PHOTO_FILE   = 4,
+  BG_DB_OBJECT_CONTAINER   =  1 | BG_DB_FLAG_CONTAINER,
+  // object.container.storageFolder
+  BG_DB_OBJECT_DIRECTORY   =  2 | BG_DB_FLAG_CONTAINER, 
+  BG_DB_OBJECT_PLAYLIST    =  3 | BG_DB_FLAG_CONTAINER,
+  // object.container.album.musicAlbum
+  BG_DB_OBJECT_AUDIO_ALBUM =  4 | BG_DB_FLAG_CONTAINER | BG_DB_FLAG_NO_EMPTY,
+  } bg_db_object_type_t;
+
+typedef struct bg_db_object_class_s bg_db_object_class_t;
+
 typedef struct
   {
   int64_t id;
+  bg_db_object_type_t type;
+  
+  int64_t ref_id;    // Original ID
+  int64_t parent_id;
+  int children;      // For containers only
+
+  int64_t size;
+  gavl_time_t duration;
+  char * label;
+  int found;    // Used by sqlite
+  int flags;    // Used in-memory only
+  bg_db_object_class_t * klass;
+  } bg_db_object_t;
+
+/* Directory on the file system */
+typedef struct
+  {
+  bg_db_object_t obj;
   char * path;   // Relative to db file
   int scan_flags; // ORed flags if BG_DB_* types
   int update_id;
-
-  int64_t parent_id;
   int64_t scan_dir_id;
-  int64_t size;
-
-  int found; // Used by sqlite
   } bg_db_dir_t;
-
-void bg_db_dir_init(bg_db_dir_t * dir);
-void bg_db_dir_free(bg_db_dir_t * dir);
-int  bg_db_dir_query(bg_db_t * db, bg_db_dir_t * dir, int full);
-int bg_db_dir_add(bg_db_t * db, bg_db_dir_t * dir);
-int bg_db_dir_del(bg_db_t * db, bg_db_dir_t * dir);
 
 /* File in the file system */
 typedef struct
   {
-  int64_t id;  // Global id, will be used for upnp also
-
+  bg_db_object_t obj;
   char * path;  // Relative to db file
-  int64_t size;
   time_t mtime;
-
   char * mimetype;
   int64_t mimetype_id;
-  int type;
-
-  int64_t parent_id;
   int64_t scan_dir_id;
-
-  int found; // Used by sqlite
   } bg_db_file_t;
-
-void bg_db_file_init(bg_db_file_t * f);
-void bg_db_file_free(bg_db_file_t * f);
-
-int bg_db_file_add(bg_db_t * db, bg_db_file_t * f);
-int bg_db_file_query(bg_db_t * db, bg_db_file_t * f, int full);
-int bg_db_file_del(bg_db_t * db, bg_db_file_t * f);
 
 /* 
  * Audio file 
@@ -182,10 +155,9 @@ int bg_db_file_del(bg_db_t * db, bg_db_file_t * f);
 
 typedef struct
   {
-  int64_t id;        // ID Same as in bg_db_file_t
-  int64_t ref_id;    // If 0, it's the original
-  char * title;      // TITLE
+  bg_db_file_t file;
   
+  char * title;      // TITLE
   char * artist;     
   int64_t artist_id; // ARTIST
 
@@ -193,8 +165,6 @@ typedef struct
   int64_t genre_id;
 
   bg_db_date_t date;
-
-  gavl_time_t duration;
 
   char * album;
   int64_t album_id;
@@ -205,54 +175,22 @@ typedef struct
 
   /* Secondary variables */
   char * albumartist;
-  
-  int found; // Used by sqlite
   } bg_db_audio_file_t;
-
-/* Housekeeping */
-void bg_db_audio_file_init(bg_db_audio_file_t * t);
-void bg_db_audio_file_free(bg_db_audio_file_t * t);
-
-/* Get info, don't touch db */
-void bg_db_audio_file_get_info(bg_db_audio_file_t * f,
-                               bg_db_file_t * file, bg_track_info_t * t);
-
-/* Add to db (including secondary objects, album, genre) */
-int bg_db_audio_file_add(bg_db_t * db, bg_db_audio_file_t * t);
-
-/* Get from db */
-int bg_db_audio_file_query(bg_db_t * db, bg_db_audio_file_t * t, int full);
-
-/* Delete from dB */
-int bg_db_audio_file_del(bg_db_t * db, bg_db_audio_file_t * t);
-
-int64_t bg_db_audio_file_get_unique_id(bg_db_audio_file_t * t);
 
 /* Audio Album */
 typedef struct
   {
-  int64_t id;
+  bg_db_object_t obj;
   char * artist;
   int64_t artist_id;
   char * title;
-  int tracks;
-
   char * genre;
   int64_t genre_id;
 
   bg_db_date_t date;
-  gavl_time_t duration;
   
-  int found; // Used by sqlite
   } bg_db_audio_album_t;
 
-void bg_db_audio_album_init(bg_db_audio_album_t*a);
-void bg_db_audio_album_free(bg_db_audio_album_t*a);
-
-void bg_db_audio_file_add_to_album(bg_db_t * db, bg_db_audio_file_t * t);
-void bg_db_audio_file_remove_from_album(bg_db_t * db, bg_db_audio_file_t * t);
-
-int bg_db_audio_album_query(bg_db_t * db, bg_db_audio_album_t * a, int full);
 
 /* Video */
 typedef struct
@@ -268,13 +206,15 @@ typedef struct
   int found; // Used by sqlite
   } bg_db_video_t;
 
-
 /* Playlist */
 typedef struct
   {
   
   } bg_db_playlist_t;
 
+/*
+ *  Public entry points
+ */
 
 bg_db_t * bg_db_create(const char * file,
                        bg_plugin_registry_t * plugin_reg, int create);
@@ -284,3 +224,11 @@ void bg_db_destroy(bg_db_t *);
 /* Edit functions */
 void bg_db_add_directory(bg_db_t *, const char * dir, int scan_type);
 void bg_db_del_directory(bg_db_t *, const char * dir);
+
+/* Query functions */
+
+typedef void (*bg_db_query_callback)(void * priv, const bg_db_object_t * obj);
+
+void bg_db_query_object(bg_db_t *, int64_t id, bg_db_query_callback cb, void * priv);
+void bg_db_query_children(bg_db_t *, int64_t id, bg_db_query_callback cb, void * priv);
+

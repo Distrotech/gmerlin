@@ -35,14 +35,9 @@
 
 #define LOG_DOMAIN "db.audiofile"
 
-void bg_db_audio_file_init(bg_db_audio_file_t * file)
+static void free_audio_file(void * obj)
   {
-  memset(file, 0, sizeof(*file));
-  file->id = -1;
-  }
-
-void bg_db_audio_file_free(bg_db_audio_file_t * file)
-  {
+  bg_db_audio_file_t * file = obj;
   if(file->title)
     free(file->title);
   if(file->bitrate)
@@ -55,13 +50,27 @@ void bg_db_audio_file_free(bg_db_audio_file_t * file)
     free(file->albumartist);
   }
 
-void bg_db_audio_file_get_info(bg_db_audio_file_t * f,
-                               bg_db_file_t * file, bg_track_info_t * t)
+static void del_audio_file(bg_db_t * db, bg_db_object_t * obj) // Delete from db
   {
+  bg_sqlite_delete_by_id(db->db, "FILES", obj->id);
+  bg_sqlite_delete_by_id(db->db, "AUDIO_FILES", obj->id);
+  }
+
+const bg_db_object_class_t bg_db_audio_file_class =
+  {
+  .del = del_audio_file,
+  .free = free_audio_file,
+  .parent = &bg_db_file_class,
+  };
+
+void bg_db_audio_file_get_info(void * object, bg_track_info_t * t)
+  {
+  gavl_time_t duration;
   int bitrate = 0;
   const char * var;
-  f->id = file->id;
-
+  bg_db_audio_file_t * f = object;
+  bg_object_set_type(object, BG_DB_OBJECT_AUDIO_FILE);
+  
   if((var = gavl_metadata_get(&t->metadata, GAVL_META_TITLE)))
     f->title = gavl_strdup(var);
   if((var = gavl_metadata_get(&t->metadata, GAVL_META_ARTIST)))
@@ -73,9 +82,9 @@ void bg_db_audio_file_get_info(bg_db_audio_file_t * f,
   
   f->date.year = bg_metadata_get_year(&t->metadata);
 
-  if(!gavl_metadata_get_long(&t->metadata, GAVL_META_APPROX_DURATION, &f->duration))
-    f->duration = GAVL_TIME_UNDEFINED;
-
+  if(!gavl_metadata_get_long(&t->metadata, GAVL_META_APPROX_DURATION, &duration))
+    bg_object_set_duration(f, duration);
+  
   if((var = gavl_metadata_get(&t->metadata, GAVL_META_ALBUM)))
     f->album = gavl_strdup(var);
 
@@ -125,8 +134,10 @@ int bg_db_audio_file_add(bg_db_t * db, bg_db_audio_file_t * f)
     bg_db_audio_file_add_to_album(db, f);
     }
   
-  sql = sqlite3_mprintf("INSERT INTO AUDIO_FILES ( ID, TITLE, ARTIST, GENRE, DATE, DURATION, ALBUM, TRACK, BITRATE ) VALUES ( %"PRId64", %Q, %"PRId64", %"PRId64", %Q, %"PRId64", %"PRId64", %d, %Q );",
-                        f->id, f->title, f->artist_id, f->genre_id, date_string, f->duration, f->album_id, f->track, f->bitrate);
+  sql = sqlite3_mprintf("INSERT INTO AUDIO_FILES ( ID, TITLE, ARTIST, GENRE, DATE, ALBUM, TRACK, BITRATE ) "
+                        "VALUES"
+                        " ( %"PRId64", %Q, %"PRId64", %"PRId64", %Q, %"PRId64", %"PRId64", %d, %Q );",
+                        bg_db_object_get_id(f) , f->title, f->artist_id, f->genre_id, date_string, f->album_id, f->track, f->bitrate);
 
   result = bg_sqlite_exec(db->db, sql, NULL, NULL);
   sqlite3_free(sql);
@@ -140,17 +151,15 @@ static int audio_query_callback(void * data, int argc, char **argv, char **azCol
   
   for(i = 0; i < argc; i++)
     {
-    BG_DB_SET_QUERY_INT("ID",          id);
     BG_DB_SET_QUERY_STRING("TITLE",    title);
     BG_DB_SET_QUERY_INT("ARTIST",      artist_id);
     BG_DB_SET_QUERY_INT("GENRE",       genre_id);
     BG_DB_SET_QUERY_DATE("DATE",       date);
-    BG_DB_SET_QUERY_INT("DURATION",    duration);
     BG_DB_SET_QUERY_INT("ALBUM",       album_id);
     BG_DB_SET_QUERY_INT("TRACK",       track);
     BG_DB_SET_QUERY_STRING("BITRATE",  bitrate);
     }
-  ret->found = 1;
+  ret->file.obj.found = 1;
   return 0;
   }
 
@@ -159,12 +168,12 @@ int bg_db_audio_file_query(bg_db_t * db, bg_db_audio_file_t * f, int full)
   {
   char * sql;
   int result;
-  f->found = 0;
+  f->file.obj.found = 0;
   sql =
-    sqlite3_mprintf("select * from AUDIO_FILES where ID = %"PRId64";", f->id);
+    sqlite3_mprintf("select * from AUDIO_FILES where ID = %"PRId64";", bg_db_object_get_id(f));
   result = bg_sqlite_exec(db->db, sql, audio_query_callback, f);
   sqlite3_free(sql);
-  if(!result || f->found)
+  if(!result || f->file.obj.found)
     return 0;
   if(!full)
     return 1;
@@ -172,19 +181,6 @@ int bg_db_audio_file_query(bg_db_t * db, bg_db_audio_file_t * f, int full)
   f->artist = bg_sqlite_id_to_string(db->db, "AUDIO_ARTISTS", "NAME", "ID", f->artist_id);
   f->genre  = bg_sqlite_id_to_string(db->db, "AUDIO_GENRES",  "NAME", "ID", f->genre_id);
   f->album  = bg_sqlite_id_to_string(db->db, "AUDIO_ALBUMS",  "NAME", "ID", f->album_id);
-  return 1;
-  }
-
-int bg_db_audio_file_del(bg_db_t * db, bg_db_audio_file_t * f)
-  {
-  char * sql;
-  int result;
-  bg_db_audio_file_remove_from_album(db, f);
-  sql = sqlite3_mprintf("DELETE FROM AUDIO_FILES WHERE ID = %"PRId64";", f->id);
-  result = bg_sqlite_exec(db->db, sql, NULL, NULL);
-  sqlite3_free(sql);
-  if(!result)
-    return 0;
   return 1;
   }
 

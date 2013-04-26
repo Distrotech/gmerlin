@@ -30,17 +30,48 @@
 
 #define LOG_DOMAIN "db.dir"
 
+/* Delete from database */
+
+static void del_dir(bg_db_t * db, bg_db_object_t * obj) // Delete from db
+  {
+  bg_sqlite_delete_by_id(db->db, "DIRECTORIES", obj->id);
+  }
+
+static void free_dir(void * obj) // Delete from db
+  {
+  bg_db_dir_t*d = obj;
+  if(d->path)
+    free(d->path);
+  }
+
+const bg_db_object_class_t bg_db_dir_class =
+  {
+  .del = del_dir,
+  .free = free_dir,
+  .parent = NULL,
+  };
+
+#if 0
 void bg_db_dir_init(bg_db_dir_t * dir)
   {
   memset(dir, 0, sizeof(*dir));
-  dir->id = -1;
-  }
 
+  if(obj)
+    memcpy(&dir->obj, obj, sizeof(*obj));
+
+  dir->obj.type = BG_DB_OBJECT_DIRECTORY;
+  dir->obj.klass = &klass;
+  
+  bg_db_object_init(&dir->obj);
+  
+  }
 void bg_db_dir_free(bg_db_dir_t * dir)
   {
   if(dir->path)
     free(dir->path);
   }
+#endif
+
 
 static int dir_query_callback(void * data, int argc, char **argv, char **azColName)
   {
@@ -49,15 +80,12 @@ static int dir_query_callback(void * data, int argc, char **argv, char **azColNa
   
   for(i = 0; i < argc; i++)
     {
-    BG_DB_SET_QUERY_INT("ID",          id);
     BG_DB_SET_QUERY_STRING("PATH",     path);
-    BG_DB_SET_QUERY_INT("SIZE",        size);
     BG_DB_SET_QUERY_INT("SCAN_FLAGS",  scan_flags);
     BG_DB_SET_QUERY_INT("UPDATE_ID",   update_id);
-    BG_DB_SET_QUERY_INT("PARENT_ID",   parent_id);
     BG_DB_SET_QUERY_INT("SCAN_DIR_ID", scan_dir_id);
     }
-  ret->found = 1;
+  ret->obj.found = 1;
   return 0;
   }
 
@@ -66,29 +94,33 @@ int bg_db_dir_query(bg_db_t * db, bg_db_dir_t * dir, int full)
   char * sql;
   int result;
 
-  if(dir->path)
+  if(dir->obj.id <= 0)
     {
-    sql = sqlite3_mprintf("select * from DIRECTORIES where PATH = %Q;", 
-                          bg_db_filename_to_rel(db, dir->path));
-    result = bg_sqlite_exec(db->db, sql, dir_query_callback, dir);
-    sqlite3_free(sql);
-    return result && dir->found;
+    if(!dir->path)
+      {
+      bg_log(BG_LOG_ERROR, LOG_DOMAIN,
+             "Either ID or path must be set in directory");
+      return 0;
+      }
+    
+    dir->obj.id = bg_sqlite_string_to_id(db->db,
+                                         "DIRECTORIES",
+                                         "ID",
+                                         "PATH",
+                                         dir->path);
     }
-  else if(dir->id >= 0)
-    {
-    sql =
-      sqlite3_mprintf("select * from DIRECTORIES where ID = %"PRId64";",
-                      dir->id);
-    result = bg_sqlite_exec(db->db, sql, dir_query_callback, dir);
-    sqlite3_free(sql);
-    return result && dir->found;
-    }
-  else
-    {
-    bg_log(BG_LOG_ERROR, LOG_DOMAIN,
-           "Either ID or path must be set in directory");
+
+  if(!bg_db_object_query(db, &dir->obj))
     return 0;
-    }
+  
+  sql =
+    sqlite3_mprintf("select * from DIRECTORIES where ID = %"PRId64";",
+                    dir->obj.id);
+  result = bg_sqlite_exec(db->db, sql, dir_query_callback, dir);
+  sqlite3_free(sql);
+  if(!result || dir->obj.found)
+    return 0;
+  
   dir->path = bg_db_filename_to_abs(db, dir->path);
   return 1;
   }
@@ -97,18 +129,37 @@ int bg_db_dir_add(bg_db_t * db, bg_db_dir_t * dir)
   {
   char * sql;
   int result;
-
-  dir->id = bg_sqlite_get_next_id(db->db, "DIRECTORIES");
+  bg_db_object_create(db, &dir->obj);
+  bg_db_object_add(db, &dir->obj);
+  
+  dir->obj.id = bg_sqlite_get_next_id(db->db, "DIRECTORIES");
   dir->update_id = 1;
 
-  sql = sqlite3_mprintf("INSERT INTO DIRECTORIES ( ID, PATH, SIZE, SCAN_FLAGS, UPDATE_ID, PARENT_ID, SCAN_DIR_ID ) VALUES ( %"PRId64", %Q, %"PRId64", %"PRId64", %"PRId64", %"PRId64", %"PRId64" );",
-                        dir->id, bg_db_filename_to_rel(db, dir->path), dir->size, dir->scan_flags, dir->update_id, dir->parent_id, dir->scan_dir_id);
+  sql = sqlite3_mprintf("INSERT INTO DIRECTORIES ( ID, PATH, SCAN_FLAGS, UPDATE_ID, SCAN_DIR_ID ) VALUES ( %"PRId64", %Q, %"PRId64", %"PRId64", %"PRId64", %"PRId64", %"PRId64" );",
+                        dir->obj.id, bg_db_filename_to_rel(db, dir->path), dir->scan_flags, dir->update_id, dir->scan_dir_id);
 
   result = bg_sqlite_exec(db->db, sql, NULL, NULL);
   sqlite3_free(sql);
   return result;
   }
 
+bg_db_dir_t * bg_db_get_parent_dir(bg_db_t * db, const char * path_c)
+  {
+  int i;
+  char * path = gavl_strdup(path_c);
+  char * end_pos = strrchr(path, '/');
+  if(!end_pos)
+    return NULL;
+
+  *end_pos = '\0';
+
+  for(i = 0; i < BG_DB_CACHE_SIZE; i++)
+    {
+    
+    }
+  }
+
+#if 0
 int bg_db_dir_update(bg_db_t * db, bg_db_dir_t * dir)
   {
   char * sql;
@@ -123,54 +174,5 @@ int bg_db_dir_update(bg_db_t * db, bg_db_dir_t * dir)
   sqlite3_free(sql);
   return result;
   }
-
-int bg_db_dir_del(bg_db_t * db, bg_db_dir_t * dir)
-  {
-  char * sql;
-  int result;
-  int i;
-  bg_db_dir_t child;
-  bg_db_file_t file;
-  bg_sqlite_id_tab_t tab;
-  bg_sqlite_id_tab_init(&tab);
-
-  /* Get and delete child directories */
-  sql =
-    sqlite3_mprintf("select ID from DIRECORIES where PARENT_ID = %"PRId64";", dir->id);
-  result = bg_sqlite_exec(db->db, sql, bg_sqlite_append_id_callback, &tab);
-  sqlite3_free(sql);
-
-  for(i = 0; i < tab.num_val; i++)
-    {
-    bg_db_dir_init(&child);
-    child.id = tab.val[i];
-    bg_db_dir_del(db, &child);
-    bg_db_dir_free(&child);
-    }
-  /* Delete files */
-  bg_sqlite_id_tab_reset(&tab);
-
-  sql =
-    sqlite3_mprintf("select ID from FILES where PARENT_ID = %"PRId64";", dir->id);
-  result = bg_sqlite_exec(db->db, sql, bg_sqlite_append_id_callback, &tab);
-  sqlite3_free(sql);
-
-  for(i = 0; i < tab.num_val; i++)
-    {
-    bg_db_file_init(&file);
-    file.id = tab.val[i];
-    bg_db_file_query(db, &file, 0);
-    bg_db_file_del(db, &file);
-    bg_db_file_free(&file);
-    }
-
-  /* Delete from directory table */
-  sql =
-    sqlite3_mprintf("delete from DIRECTORIES where ID = %"PRId64";", dir->id);
-  result = bg_sqlite_exec(db->db, sql, NULL, NULL);
-  sqlite3_free(sql);
-  
-  bg_sqlite_id_tab_free(&tab);
-
-  }
+#endif
 

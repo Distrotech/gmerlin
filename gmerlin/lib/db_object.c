@@ -42,13 +42,71 @@
   char * label;
     */
 
-void bg_db_object_init(bg_db_object_t * obj, bg_db_object_type_t type)
+void bg_db_object_init(bg_db_object_storage_t * obj)
   {
   memset(obj, 0, sizeof(*obj));
-  obj->id   = -1;
-  obj->type = type;
-  if(obj->type & BG_DB_FLAG_CONTAINER)
-    obj->children = -1;
+  obj->obj.id   = -1;
+  }
+
+const bg_db_object_class_t * bg_db_object_get_class(bg_db_object_type_t t)
+  {
+  switch(t)
+    {
+    case BG_DB_OBJECT_OBJECT:
+      return NULL;
+      break;
+    case BG_DB_OBJECT_FILE:
+      return &bg_db_file_class;
+      break;
+    case BG_DB_OBJECT_AUDIO_FILE:
+      return &bg_db_audio_file_class;
+      break;
+    case BG_DB_OBJECT_VIDEO_FILE:
+      break;
+    case BG_DB_OBJECT_PHOTO_FILE:
+      break;
+    case BG_DB_OBJECT_CONTAINER:
+      break;
+    case BG_DB_OBJECT_DIRECTORY: 
+      return &bg_db_dir_class;
+      break;
+    case BG_DB_OBJECT_PLAYLIST:
+      break;
+    case BG_DB_OBJECT_AUDIO_ALBUM:
+      return &bg_db_audio_album_class;
+      break;
+    }
+  return NULL;
+  }
+
+void bg_object_set_size(void * obj, int64_t size)
+  {
+  bg_db_object_t * o = obj;
+  o->size = size;
+  }
+
+void bg_object_set_duration(void * obj, gavl_time_t d)
+  {
+  bg_db_object_t * o = obj;
+  o->duration = duration;
+  }
+
+int64_t bg_object_get_id(void * obj)
+  {
+  bg_db_object_t * o = obj;
+  return o->id;
+  }
+
+
+
+void bg_object_set_type(void * obj, bg_db_object_type_t t)
+  {
+  bg_db_object_t * o = obj;
+  const bg_db_object_class_t * c = bg_db_object_get_class(t);
+  if(c->parent != o->klass)
+    bg_log(BG_LOG_ERROR, LOG_DOMAIN, "bg_object_set_type failed");
+  o->klass = c;
+  o->type = t;
   }
 
 void bg_db_object_create(bg_db_t * db, bg_db_object_t * obj, int64_t parent_id)
@@ -81,6 +139,10 @@ int bg_db_object_query(bg_db_t * db, bg_db_object_t * obj)
   {
   char * sql;
   int result;
+
+  if(obj->flags & BG_DB_OBJ_FLAG_QUERIED)
+    return 1;
+  
   obj->found = 0;
   sql = sqlite3_mprintf("select * from OBJECTS where ID = %"PRId64";",
                         obj->id);
@@ -88,6 +150,9 @@ int bg_db_object_query(bg_db_t * db, bg_db_object_t * obj)
   sqlite3_free(sql);
   if(!result || !obj->found)
     return 0;
+
+  obj->flags |= BG_DB_OBJ_FLAG_QUERIED;
+  
   return 1;
   }
 
@@ -96,7 +161,7 @@ static void add_to_parent(bg_db_t * db, bg_db_object_t * obj)
   bg_db_object_t obj1;
   if(obj->parent_id > 0)
     {
-    bg_db_object_init(&obj1, 0);
+    bg_db_object_init(&obj1);
     obj1.id = obj->parent_id;
     if(bg_db_object_query(db, &obj1))
       {
@@ -118,7 +183,7 @@ static void delete_from_parent(bg_db_t * db, bg_db_object_t * obj)
 
   if(obj->parent_id > 0)
     {
-    bg_db_object_init(&obj1, 0);
+    bg_db_object_init(&obj1);
     obj1.id = obj->parent_id;
     if(bg_db_object_query(db, &obj1))
       {
@@ -176,8 +241,7 @@ void bg_db_object_delete(bg_db_t * db, bg_db_object_t * obj)
   bg_db_object_t obj1;
   int i;
   char * sql;
-  int result;
-
+  
   bg_sqlite_id_tab_init(&tab);
   
   /* Delete referenced objects and children */
@@ -187,7 +251,7 @@ void bg_db_object_delete(bg_db_t * db, bg_db_object_t * obj)
   
   for(i = 0; i < tab.num_val; i++)
     {
-    bg_db_object_init(&obj1, 0);
+    bg_db_object_init(&obj1);
     obj1.id = tab.val[i];
     if(!bg_db_object_query(db, &obj1))
       continue;

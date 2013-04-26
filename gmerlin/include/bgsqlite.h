@@ -75,3 +75,6 @@ void bg_sqlite_id_tab_reset(bg_sqlite_id_tab_t * tab);
 
 int bg_sqlite_append_id_callback(void * data, int argc, char **argv, char **azColName);
 
+int bg_sqlite_int_callback(void * data, int argc, char **argv, char **azColName);
+int bg_sqlite_string_callback(void * data, int argc, char **argv, char **azColName);
+

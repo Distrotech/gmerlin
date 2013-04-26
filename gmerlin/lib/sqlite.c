@@ -22,6 +22,8 @@
 #include <config.h>
 #include <bgsqlite.h>
 
+#include <string.h>
+
 #include <gmerlin/utils.h>
 #include <gmerlin/log.h>
 #define LOG_DOMAIN "sqlite"
@@ -49,7 +51,7 @@ bg_sqlite_exec(sqlite3 * db,                              /* An open database */
   return 1;
   }
 
-static int id_callback(void * data, int argc, char **argv, char **azColName)
+int bg_sqlite_int_callback(void * data, int argc, char **argv, char **azColName)
   {
   int64_t * ret = data;
   if(argv[0])
@@ -57,7 +59,7 @@ static int id_callback(void * data, int argc, char **argv, char **azColName)
   return 0;
   }
 
-static int string_callback(void * data, int argc, char **argv, char **azColName)
+int bg_sqlite_string_callback(void * data, int argc, char **argv, char **azColName)
   {
   char ** ret = data;
   if((argv[0]) && (*(argv[0]) != '\0'))
@@ -72,7 +74,7 @@ static int64_t get_max_int(sqlite3 * db, const char * table, const char * row)
   int64_t ret = 0;
 
   sql = sqlite3_mprintf("select max(%s) from %s;", row, table);
-  result = bg_sqlite_exec(db, sql, id_callback, &ret);
+  result = bg_sqlite_exec(db, sql, bg_sqlite_int_callback, &ret);
   sqlite3_free(sql);
   if(!result)
     return -1;
@@ -93,7 +95,7 @@ int64_t bg_sqlite_string_to_id(sqlite3 * db,
   int result;
   buf = sqlite3_mprintf("select %s from %s where %s = %Q;",
                         id_row, table, string_row, str);
-  result = bg_sqlite_exec(db, buf, id_callback, &ret);
+  result = bg_sqlite_exec(db, buf, bg_sqlite_int_callback, &ret);
   sqlite3_free(buf);
   return result ? ret : -1 ;
   }
@@ -142,7 +144,7 @@ char * bg_sqlite_id_to_string(sqlite3 * db,
   int result;
   buf = sqlite3_mprintf("select %s from %s where %s = %"PRId64";",
                         string_row, table, id_row, id);
-  result = bg_sqlite_exec(db, buf, string_callback, &ret);
+  result = bg_sqlite_exec(db, buf, bg_sqlite_string_callback, &ret);
   return result ? ret : NULL;
   }
 
@@ -157,7 +159,7 @@ int64_t bg_sqlite_id_to_id(sqlite3 * db,
   int result;
   buf = sqlite3_mprintf("select %s from %s where %s = %"PRId64";",
                         dst_row, table, src_row, id);
-  result = bg_sqlite_exec(db, buf, id_callback, &ret);
+  result = bg_sqlite_exec(db, buf, bg_sqlite_int_callback, &ret);
   return result ? ret : -1;
   }
 
@@ -216,7 +218,9 @@ void bg_sqlite_delete_by_id(sqlite3 * db,
                             const char * table,
                             int64_t id)
   {
+  char * sql;
+  int result;
   sql = sqlite3_mprintf("DELETE FROM %s WHERE ID = %"PRId64";", table, id);
-  result = bg_sqlite_exec(db->db, sql, NULL, NULL);
+  result = bg_sqlite_exec(db, sql, NULL, NULL);
   sqlite3_free(sql);
   }
