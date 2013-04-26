@@ -54,6 +54,10 @@ int64_t bg_sqlite_id_to_id(sqlite3 * db,
                            const char * src_row,
                            int64_t id);
 
+void bg_sqlite_delete_by_id(sqlite3 * db,
+                            const char * table,
+                            int64_t id);
+
 int64_t bg_sqlite_get_next_id(sqlite3 * db, const char * table);
 
 /* Get an array of int's */
