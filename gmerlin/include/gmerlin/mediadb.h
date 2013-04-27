@@ -125,7 +125,7 @@ typedef struct
   char * label;
   int found;    // Used by sqlite
   int flags;    // Used in-memory only
-  bg_db_object_class_t * klass;
+  const bg_db_object_class_t * klass;
   } bg_db_object_t;
 
 /* Directory on the file system */

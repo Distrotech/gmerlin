@@ -28,7 +28,7 @@
 
 #include <string.h>
 #include <ctype.h>
-#include <bgsqlite.h>
+// #include <bgsqlite.h>
 
 /* Callbacks */
 

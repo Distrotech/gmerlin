@@ -37,6 +37,7 @@ static const char * create_commands[] =
 
     "CREATE TABLE OBJECTS ("
     "ID INTEGER PRIMARY KEY, "
+    "TYPE INTEGER, "
     "REF_ID INTEGER, "
     "PARENT_ID INTEGER, "
     "CHILDREN INTEGER, "
@@ -57,7 +58,6 @@ static const char * create_commands[] =
     "PATH TEXT, "
     "MTIME TEXT, "
     "MIMETYPE INTEGER, "
-    "TYPE INTEGER, "
     "SCAN_DIR_ID INTEGER" 
     ");",
 
@@ -83,7 +83,6 @@ static const char * create_commands[] =
     "ARTIST INTEGER, "
     "GENRE INTEGER, "
     "DATE TEXT, "
-    "DURATION INTEGER, "
     "ALBUM INTEGER, "
     "TRACK INTEGER, "
     "BITRATE TEXT"
@@ -221,55 +220,74 @@ void bg_db_add_directory(bg_db_t * db, const char * d, int scan_flags)
   {
   bg_db_scan_item_t * files;
   int num_files = 0;
-
+  char * path;
+  int64_t id;
+  bg_db_object_storage_t scan_dir;
   bg_db_dir_t * dir;
-  bg_db_object_storage_t obj;
-  bg_db_object_init(&obj);
-
-  dir = (bg_db_dir_t *)&obj;
-
-  bg_db_object_set_type(&obj, BG_DB_OBJECT_DIRECTORY);
-  dir->path = bg_canonical_filename(d);
   
-  if(strncmp(dir->path, db->base_dir, db->base_len))
+  dir = (bg_db_dir_t *)&scan_dir;
+
+  bg_db_object_init(&scan_dir);
+  
+  path = bg_canonical_filename(d);
+  
+  if(strncmp(path, db->base_dir, db->base_len))
     {
     bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Cannot add directory %s: No child of %s",
-           dir->path, db->base_dir);
-    bg_db_object_free(&obj);
+           path, db->base_dir);
     return;
     }
+  
+  files = bg_db_scan_directory(path, &num_files);
 
-  files = bg_db_scan_directory(dir->path, &num_files);
-
-  if(bg_db_dir_query(db, dir, 0))
+  if((id = bg_dir_by_path(db, path) > 0))
     {
-    bg_log(BG_LOG_INFO, LOG_DOMAIN, "Directory %s already in database, updating", dir->path);
-    bg_db_update_files(db, files, num_files, dir->scan_flags, bg_db_object_get_id(&obj));
+    bg_db_object_query(db, &scan_dir, id, 1, 1);
+    
+    bg_log(BG_LOG_INFO, LOG_DOMAIN, "Directory %s already in database, updating", path);
+    bg_db_update_files(db, files, num_files, dir->scan_flags, id);
     }
   else
     {
-    bg_db_add_files(db, files, num_files, scan_flags);
+    /* Create root container */
+    bg_db_scan_item_t item;
+    int64_t scan_dir_id = -1;
+    memset(&item, 0, sizeof(&item));
+    item.path = path;
+    bg_db_dir_create(db, scan_flags,
+                     &item, NULL, &scan_dir_id);
+    
+    bg_db_add_files(db, files, num_files, scan_flags, scan_dir_id);
+    bg_db_object_free(&scan_dir);
     }
-  bg_db_object_free(dir);
   }
 
 void bg_db_del_directory(bg_db_t * db, const char * d)
   {
+  bg_db_object_storage_t scan_dir;
   bg_db_dir_t * dir;
-  bg_db_object_storage_t obj;
-  bg_db_object_init(&obj);
-
-  dir = (bg_db_dir_t *)&obj;
   
-  dir->path = bg_canonical_filename(d);
+  int64_t id;
+  char * path = bg_canonical_filename(d);
 
-  if(!bg_db_dir_query(db, dir, 0))
+  dir = (bg_db_dir_t *)&scan_dir;
+  
+  if((id = bg_dir_by_path(db, path) <= 0))
+    {
     bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Directory %s not in database", dir->path);
-  else if(dir->obj.parent_id > 0)
-    bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Directory %s not a root scan directory", dir->path);
+    free(path);
+    return;
+    }
+
+  bg_db_object_init(&scan_dir);
+  bg_db_object_query(db, &scan_dir, id, 1, 1);
+
+  if(bg_db_object_get_parent(dir) > 0)
+    bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Directory %s not a root scan directory", path);
   else
-    bg_db_object_delete(db, &obj);
-  bg_db_object_free(&dir);
+    bg_db_object_delete(db, &scan_dir);
+  bg_db_object_free(&scan_dir);
+  free(path);
   }
 
 int bg_db_date_equal(const bg_db_date_t * d1,

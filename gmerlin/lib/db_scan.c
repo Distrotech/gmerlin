@@ -38,7 +38,7 @@
 
 static bg_db_scan_item_t * scan_internal(const char * directory,
                                          bg_db_scan_item_t * files,
-                                         int * num_p, int * alloc_p, int parent_index)
+                                         int * num_p, int * alloc_p)
   {
   char * filename;
   DIR * d;
@@ -76,14 +76,13 @@ static bg_db_scan_item_t * scan_internal(const char * directory,
       
       file = files + num;
       file->path = filename;
-      file->parent_index = parent_index;
       filename = NULL;
       num++;
       /* Check for directory */
       if(S_ISDIR(st.st_mode))
         {
         file->type = BG_SCAN_TYPE_DIRECTORY;
-        files = scan_internal(file->path, files, &num, &alloc, num-1);
+        files = scan_internal(file->path, files, &num, &alloc);
         }
       else if(S_ISREG(st.st_mode))
         {
@@ -91,7 +90,6 @@ static bg_db_scan_item_t * scan_internal(const char * directory,
         file->size = st.st_size;
         file->mtime = st.st_mtime;
         }
-      files[parent_index].size += file->size;
       }
     if(filename)
       free(filename);
@@ -107,13 +105,10 @@ bg_db_scan_item_t * bg_db_scan_directory(const char * directory,
                                          int * num)
   {
   bg_db_scan_item_t * ret = calloc(256, sizeof(*ret));
-  int num_ret = 1;
+  int num_ret = 0;
   int ret_alloc = 256;
-
-  ret->type = BG_SCAN_TYPE_DIRECTORY;
-  ret->path = gavl_strdup(directory);
-
-  ret = scan_internal(directory, ret, &num_ret, &ret_alloc, 0);
+  
+  ret = scan_internal(directory, ret, &num_ret, &ret_alloc);
 
   *num = num_ret;
   return ret;

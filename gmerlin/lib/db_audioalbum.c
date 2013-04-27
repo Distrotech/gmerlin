@@ -44,6 +44,20 @@ static int album_query_callback(void * data, int argc, char **argv, char **azCol
   return 0;
   }
 
+static int query_audioalbum(bg_db_t * db, void * a1, int full)
+  {
+  char * sql;
+  int result;
+  bg_db_object_t * a = a1;
+  
+  sql = sqlite3_mprintf("select * from AUDIO_ALBUMS where ID = %"PRId64";", a->id);
+  result = bg_sqlite_exec(db->db, sql, album_query_callback, a);
+  sqlite3_free(sql);
+  if(!result || !a->found)
+    return 0;
+  return 1;
+  }
+
 static void del_audioalbum(bg_db_t * db, bg_db_object_t * obj) // Delete from db
   {
   bg_sqlite_delete_by_id(db->db, "AUDIO_ALBUMS", obj->id);
@@ -56,12 +70,13 @@ static void free_audioalbum(void * obj)
     free(a->artist);
   if(a->title)
     free(a->title);
-  
   }
 
 const bg_db_object_class_t bg_db_audio_album_class =
   {
     .del = del_audioalbum,
+    .free = free_audioalbum,
+    .query = query_audioalbum,
     .parent = NULL, // Object
   };
 

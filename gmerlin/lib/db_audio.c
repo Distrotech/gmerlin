@@ -56,94 +56,6 @@ static void del_audio_file(bg_db_t * db, bg_db_object_t * obj) // Delete from db
   bg_sqlite_delete_by_id(db->db, "AUDIO_FILES", obj->id);
   }
 
-const bg_db_object_class_t bg_db_audio_file_class =
-  {
-  .del = del_audio_file,
-  .free = free_audio_file,
-  .parent = &bg_db_file_class,
-  };
-
-void bg_db_audio_file_get_info(void * object, bg_track_info_t * t)
-  {
-  gavl_time_t duration;
-  int bitrate = 0;
-  const char * var;
-  bg_db_audio_file_t * f = object;
-  bg_object_set_type(object, BG_DB_OBJECT_AUDIO_FILE);
-  
-  if((var = gavl_metadata_get(&t->metadata, GAVL_META_TITLE)))
-    f->title = gavl_strdup(var);
-  if((var = gavl_metadata_get(&t->metadata, GAVL_META_ARTIST)))
-    f->artist = gavl_strdup(var);
-  if((var = gavl_metadata_get(&t->metadata, GAVL_META_ALBUMARTIST)))
-    f->albumartist = gavl_strdup(var);
-  if((var = gavl_metadata_get(&t->metadata, GAVL_META_GENRE)))
-    f->genre = gavl_strdup(var);
-  
-  f->date.year = bg_metadata_get_year(&t->metadata);
-
-  if(!gavl_metadata_get_long(&t->metadata, GAVL_META_APPROX_DURATION, &duration))
-    bg_object_set_duration(f, duration);
-  
-  if((var = gavl_metadata_get(&t->metadata, GAVL_META_ALBUM)))
-    f->album = gavl_strdup(var);
-
-  gavl_metadata_get_int(&t->metadata, GAVL_META_TRACKNUMBER, &f->track);
-
-  gavl_metadata_get_int(&t->audio_streams[0].m, GAVL_META_BITRATE, &bitrate);
-
-  if(bitrate == GAVL_BITRATE_VBR)
-    f->bitrate = gavl_strdup("VBR");
-  else if(bitrate <= 0)
-    f->bitrate = gavl_strdup("Unknown");
-  else
-    f->bitrate = bg_sprintf("%d", bitrate / 1000);
-  }
-
-
-int bg_db_audio_file_add(bg_db_t * db, bg_db_audio_file_t * f)
-  {
-  char * sql;
-  int result;
-  char date_string[BG_DB_DATE_STRING_LEN];
-
-  
-  /* Artist */
-  if(f->artist)
-    {
-    f->artist_id = 
-      bg_sqlite_string_to_id_add(db->db, "AUDIO_ARTISTS",
-                                 "ID", "NAME", f->artist);
-    }
-
-  /* Genre */
-  if(f->genre)
-    {
-    f->genre_id = 
-      bg_sqlite_string_to_id_add(db->db, "AUDIO_GENRES",
-                                 "ID", "NAME", f->genre);
-    }
-  
-  /* Date */
-  bg_db_date_to_string(&f->date, date_string);
-
-  /* Album */
-  if(f->album && f->albumartist)
-    {
-    /* Sets album ID */
-    bg_db_audio_file_add_to_album(db, f);
-    }
-  
-  sql = sqlite3_mprintf("INSERT INTO AUDIO_FILES ( ID, TITLE, ARTIST, GENRE, DATE, ALBUM, TRACK, BITRATE ) "
-                        "VALUES"
-                        " ( %"PRId64", %Q, %"PRId64", %"PRId64", %Q, %"PRId64", %"PRId64", %d, %Q );",
-                        bg_db_object_get_id(f) , f->title, f->artist_id, f->genre_id, date_string, f->album_id, f->track, f->bitrate);
-
-  result = bg_sqlite_exec(db->db, sql, NULL, NULL);
-  sqlite3_free(sql);
-  return result;
-  }
-
 static int audio_query_callback(void * data, int argc, char **argv, char **azColName)
   {
   int i;
@@ -163,11 +75,12 @@ static int audio_query_callback(void * data, int argc, char **argv, char **azCol
   return 0;
   }
 
-
-int bg_db_audio_file_query(bg_db_t * db, bg_db_audio_file_t * f, int full)
+static int query_audio_file(bg_db_t * db, void * obj, int full)
   {
   char * sql;
   int result;
+  bg_db_audio_file_t * f = obj;
+  
   f->file.obj.found = 0;
   sql =
     sqlite3_mprintf("select * from AUDIO_FILES where ID = %"PRId64";", bg_db_object_get_id(f));
@@ -182,5 +95,96 @@ int bg_db_audio_file_query(bg_db_t * db, bg_db_audio_file_t * f, int full)
   f->genre  = bg_sqlite_id_to_string(db->db, "AUDIO_GENRES",  "NAME", "ID", f->genre_id);
   f->album  = bg_sqlite_id_to_string(db->db, "AUDIO_ALBUMS",  "NAME", "ID", f->album_id);
   return 1;
+  }
+
+const bg_db_object_class_t bg_db_audio_file_class =
+  {
+  .del = del_audio_file,
+  .free = free_audio_file,
+  .query = query_audio_file,
+  .parent = &bg_db_file_class,
+  };
+
+/* Add to db */
+static void audio_file_add(bg_db_t * db, bg_db_audio_file_t * f)
+  {
+  char * sql;
+  int result;
+
+  char date_string[BG_DB_DATE_STRING_LEN];
+
+  /* Date */
+  bg_db_date_to_string(&f->date, date_string);
+  
+#if 0
+  /* Album */
+  if(f->album && f->albumartist)
+    {
+    /* Sets album ID */
+    bg_db_audio_file_add_to_album(db, f);
+    }
+#endif
+  
+  sql = sqlite3_mprintf("INSERT INTO AUDIO_FILES ( ID, TITLE, ARTIST, GENRE, DATE, ALBUM, TRACK, BITRATE ) "
+                        "VALUES"
+                        " ( %"PRId64", %Q, %"PRId64", %"PRId64", %Q, %"PRId64", %d, %Q );",
+                        bg_db_object_get_id(f) , f->title, f->artist_id, f->genre_id, date_string, f->album_id, f->track, f->bitrate);
+
+  result = bg_sqlite_exec(db->db, sql, NULL, NULL);
+  sqlite3_free(sql);
+  }
+
+void bg_db_audio_file_create(bg_db_t * db, void * obj, bg_track_info_t * t)
+  {
+  gavl_time_t duration;
+  int bitrate = 0;
+  const char * var;
+  bg_db_audio_file_t * f = obj;
+  
+  bg_db_object_set_type(obj, BG_DB_OBJECT_AUDIO_FILE);
+  
+  if((var = gavl_metadata_get(&t->metadata, GAVL_META_TITLE)))
+    f->title = gavl_strdup(var);
+  if((var = gavl_metadata_get(&t->metadata, GAVL_META_ARTIST)))
+    f->artist = gavl_strdup(var);
+  if((var = gavl_metadata_get(&t->metadata, GAVL_META_ALBUMARTIST)))
+    f->albumartist = gavl_strdup(var);
+  if((var = gavl_metadata_get(&t->metadata, GAVL_META_GENRE)))
+    f->genre = gavl_strdup(var);
+  
+  f->date.year = bg_metadata_get_year(&t->metadata);
+    
+  if((var = gavl_metadata_get(&t->metadata, GAVL_META_ALBUM)))
+    f->album = gavl_strdup(var);
+
+  gavl_metadata_get_int(&t->metadata, GAVL_META_TRACKNUMBER, &f->track);
+
+  gavl_metadata_get_int(&t->audio_streams[0].m, GAVL_META_BITRATE, &bitrate);
+
+  if(bitrate == GAVL_BITRATE_VBR)
+    f->bitrate = gavl_strdup("VBR");
+  else if(bitrate <= 0)
+    f->bitrate = gavl_strdup("Unknown");
+  else
+    f->bitrate = bg_sprintf("%d", bitrate / 1000);
+
+  /* Artist */
+  if(f->artist)
+    {
+    f->artist_id = 
+      bg_sqlite_string_to_id_add(db->db, "AUDIO_ARTISTS",
+                                 "ID", "NAME", f->artist);
+    }
+
+  /* Genre */
+  if(f->genre)
+    {
+    f->genre_id = 
+      bg_sqlite_string_to_id_add(db->db, "AUDIO_GENRES",
+                                 "ID", "NAME", f->genre);
+    }
+  bg_db_object_update(db, f, 0);
+  
+  audio_file_add(db, f);
   }
 

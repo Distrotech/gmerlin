@@ -81,58 +81,6 @@ char * bg_fix_path(char * path)
   else
     return path;
   }
-#if 0
-char * bg_strdup(char * old_string, const char * new_string)
-  {
-  char * ret;
-  int len;
-  if(!new_string || (*new_string == '\0'))
-    {
-    if(old_string)
-      free(old_string);
-    return NULL;
-    }
-
-  if(old_string)
-    {
-    if(!strcmp(old_string, new_string))
-      return old_string;
-    else
-      free(old_string);
-    }
-  len = ((strlen(new_string)+1 + 3) / 4) * 4 ;
-  
-  ret = malloc(len);
-  strcpy(ret, new_string);
-  return ret;
-  }
-
-char * bg_strndup(char * old_string,
-                  const char * new_string_start,
-                  const char * new_string_end)
-  {
-  char * ret;
-  if(!new_string_start || (*new_string_start == '\0'))
-    {
-    if(old_string)
-      free(old_string);
-    return NULL;
-    }
-
-  if(old_string)
-    {
-    if(!strncmp(old_string, new_string_start,
-                new_string_end - new_string_start))
-      return old_string;
-    else
-      free(old_string);
-    }
-  ret = malloc(new_string_end - new_string_start + 1);
-  strncpy(ret, new_string_start, new_string_end - new_string_start);
-  ret[new_string_end - new_string_start] = '\0';
-  return ret;
-  }
-#endif
 
 char * bg_sprintf(const char * format,...)
   {
