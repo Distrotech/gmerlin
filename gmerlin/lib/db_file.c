@@ -135,12 +135,13 @@ void bg_db_file_create(bg_db_t * db, int scan_flags,
   bg_db_file_t * file;
   bg_db_object_type_t type;
   int added = 0;
+  
   gavl_time_t duration;
   
   /* Make sure we have the right parent directoy */  
   if(!bg_db_dir_ensure_parent(db, dir, item->path))
     return;
-    
+  
   bg_db_object_init(&obj);
   bg_db_object_create(db, &obj);
   bg_db_object_set_type(&obj, BG_DB_OBJECT_FILE);
@@ -152,6 +153,7 @@ void bg_db_file_create(bg_db_t * db, int scan_flags,
   file->mtime = item->mtime;
   file->scan_dir_id = scan_dir_id;
   bg_db_object_set_size(file, item->size);
+  bg_db_object_set_label_nocpy(file, bg_db_path_to_label(file->path));
   
   /* Load all infos */  
   if(!bg_input_plugin_load(db->plugin_reg, file->path, NULL, &h, NULL, 0))
@@ -231,9 +233,6 @@ void bg_db_file_create(bg_db_t * db, int scan_flags,
                              &duration))
     bg_db_object_set_duration(file, duration);
     
-  file_add(db, file);
-  bg_db_object_set_parent(file, dir);
-  bg_db_object_update(db, file, 1);
   
   /* Create derived type */
   switch(type)
@@ -251,6 +250,9 @@ void bg_db_file_create(bg_db_t * db, int scan_flags,
   
   fail:
 
+  file_add(db, file);
+  bg_db_object_set_parent(file, dir);
+  bg_db_object_update(db, file, 0, 0);
   bg_db_object_free(file);
   
   if(plugin)
@@ -310,6 +312,9 @@ void bg_db_add_files(bg_db_t * db, bg_db_scan_item_t * files, int num,
         break;
       }
     }
+
+  bg_db_object_update(db, &parent, 0, 1);
+  bg_db_object_free(&parent);
   }
 
 static bg_db_scan_item_t * find_by_path(bg_db_scan_item_t * files, int num, 

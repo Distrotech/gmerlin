@@ -59,7 +59,7 @@ static int query_dir(bg_db_t * db, void * dir1, int full)
                     dir->obj.id);
   result = bg_sqlite_exec(db->db, sql, dir_query_callback, dir);
   sqlite3_free(sql);
-  if(!result || dir->obj.found)
+  if(!result || !dir->obj.found)
     return 0;
   
   dir->path = bg_db_filename_to_abs(db, dir->path);
@@ -72,7 +72,7 @@ static void update_dir(bg_db_t * db, void * obj)
   char * sql;
   int result;
   
-  sql = sqlite3_mprintf("UPDATE DIRECORIES SET UPDATE_ID = %"PRId64" WHERE ID = %"PRId64";",
+  sql = sqlite3_mprintf("UPDATE DIRECTORIES SET UPDATE_ID = %"PRId64" WHERE ID = %"PRId64";",
                         dir->update_id, bg_db_object_get_id(obj));
   result = bg_sqlite_exec(db->db, sql, NULL, NULL);
   sqlite3_free(sql);
@@ -139,6 +139,10 @@ void bg_db_dir_create(bg_db_t * db, int scan_flags,
   bg_db_object_init(&obj);
   bg_db_object_create(db, &obj);
   bg_db_object_set_type(&obj, BG_DB_OBJECT_DIRECTORY);
+
+  if(parent)
+    bg_db_object_set_parent(&obj, parent);
+  
   dir = (bg_db_dir_t *)&obj;
 
   if(*scan_dir_id > 0)
@@ -148,7 +152,11 @@ void bg_db_dir_create(bg_db_t * db, int scan_flags,
     dir->scan_dir_id = bg_db_object_get_id(dir);
     *scan_dir_id = dir->scan_dir_id;
     }
-  dir->path = gavl_strdup(item->path);
+  dir->scan_flags = scan_flags;
+  dir->path = item->path;
+  item->path = NULL;
+  bg_db_object_set_label_nocpy(dir, bg_db_path_to_label(dir->path));
+  
   
   sql = sqlite3_mprintf("INSERT INTO DIRECTORIES ( ID, PATH, SCAN_FLAGS, UPDATE_ID, SCAN_DIR_ID ) VALUES ( %"PRId64", %Q, %d, %"PRId64", %"PRId64");",
                         bg_db_object_get_id(&obj), bg_db_filename_to_rel(db, dir->path), dir->scan_flags, dir->update_id, dir->scan_dir_id);
@@ -156,28 +164,9 @@ void bg_db_dir_create(bg_db_t * db, int scan_flags,
   result = bg_sqlite_exec(db->db, sql, NULL, NULL);
   sqlite3_free(sql);
 
-  bg_db_object_update(db, &obj, 0);
-  
+  bg_db_object_update(db, &obj, 0, 0);
   bg_db_object_free(&obj);
   }
-
-#if 0
-int bg_db_dir_add(bg_db_t * db, bg_db_dir_t * dir)
-  {
-  bg_db_object_create(db, &dir->obj);
-  bg_db_object_add(db, &dir->obj);
-  
-  dir->obj.id = bg_sqlite_get_next_id(db->db, "DIRECTORIES");
-  dir->update_id = 1;
-
-  sql = sqlite3_mprintf("INSERT INTO DIRECTORIES ( ID, PATH, SCAN_FLAGS, UPDATE_ID, SCAN_DIR_ID ) VALUES ( %"PRId64", %Q, %"PRId64", %"PRId64", %"PRId64", %"PRId64", %"PRId64" );",
-                        dir->obj.id, bg_db_filename_to_rel(db, dir->path), dir->scan_flags, dir->update_id, dir->scan_dir_id);
-
-  result = bg_sqlite_exec(db->db, sql, NULL, NULL);
-  sqlite3_free(sql);
-  return result;
-  }
-#endif
 
 int bg_db_dir_ensure_parent(bg_db_t * db, bg_db_dir_t * dir, const char * path)
   {
@@ -192,7 +181,7 @@ int bg_db_dir_ensure_parent(bg_db_t * db, bg_db_dir_t * dir, const char * path)
     return 1;
 
   /* Get proper parent */
-  bg_db_object_update(db, dir, 1);
+  bg_db_object_update(db, dir, 1, 1);
   bg_db_object_free(dir);
   bg_db_object_init(dir);
 

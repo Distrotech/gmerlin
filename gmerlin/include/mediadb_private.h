@@ -27,6 +27,7 @@
 
 #define BG_DB_OBJ_FLAG_DONT_PROPAGATE (1<<0)
 #define BG_DB_OBJ_FLAG_QUERIED        (1<<1)
+#define BG_DB_OBJ_FLAG_CHANGED        (1<<2)
 
 /*
  *  Object creation:
@@ -116,7 +117,7 @@ int bg_db_object_query(bg_db_t * db, void * obj, int64_t id,
                        int full, int children); /* Query from DB  */
 
 void bg_db_object_add(bg_db_t * db, bg_db_object_t * obj);    /* Add to DB      */
-void bg_db_object_update(bg_db_t * db, void * obj, int children); /* Update in DB   */
+void bg_db_object_update(bg_db_t * db, void * obj, int children, int parent); /* Update in DB   */
 void bg_db_object_delete(bg_db_t * db, void * obj); /* Delete from DB */
 void bg_db_object_free(void * obj);
 
@@ -133,9 +134,14 @@ int64_t bg_db_object_get_parent(void * obj);
 void bg_db_object_set_size(void * obj, int64_t size);
 void bg_db_object_set_duration(void * obj, gavl_time_t d);
 
+void bg_db_object_update_size(void * obj, int64_t delta_size);
+void bg_db_object_update_duration(void * obj, gavl_time_t delta_d);
+
+
 int64_t bg_db_object_get_id(void * obj);
 
 void bg_db_object_create_ref(void * obj, void * parent);
+void bg_db_object_set_label_nocpy(void * obj, char * label);
 
 
 /* Directory */
@@ -188,6 +194,8 @@ const char * bg_db_filename_to_rel(bg_db_t * db, const char * filename);
 void bg_db_add_files(bg_db_t * db, bg_db_scan_item_t * files, int num, int scan_flags, int64_t scan_dir_id);
 void bg_db_update_files(bg_db_t * db, bg_db_scan_item_t * files, int num, int scan_flags,
                         int64_t scan_dir_id);
+
+char * bg_db_path_to_label(const char * path);
 
 #define BG_DB_TIME_STRING_LEN 20
 time_t bg_db_string_to_time(const char * str);

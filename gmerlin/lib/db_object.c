@@ -89,7 +89,25 @@ void bg_db_object_set_size(void * obj, int64_t size)
 void bg_db_object_set_duration(void * obj, gavl_time_t d)
   {
   bg_db_object_t * o = obj;
+
+  if(d == GAVL_TIME_UNDEFINED)
+    d = 0;
   o->duration = d;
+  }
+
+void bg_db_object_update_size(void * obj, int64_t delta_size)
+  {
+  bg_db_object_t * o = obj;
+  o->size += delta_size;
+
+  fprintf(stderr, "Update size %ld: %ld -> %ld\n", o->id, delta_size, o->size);
+  }
+
+void bg_db_object_update_duration(void * obj, gavl_time_t delta_d)
+  {
+  bg_db_object_t * o = obj;
+  if(delta_d != GAVL_TIME_UNDEFINED)
+    o->duration += delta_d;
   }
 
 int64_t bg_db_object_get_id(void * obj)
@@ -153,6 +171,7 @@ static int object_query_callback(void * data, int argc, char **argv, char **azCo
   
   for(i = 0; i < argc; i++)
     {
+    BG_DB_SET_QUERY_INT("ID",          id);
     BG_DB_SET_QUERY_INT("TYPE",        type);
     BG_DB_SET_QUERY_INT("REF_ID",      ref_id);
     BG_DB_SET_QUERY_INT("PARENT_ID",   parent_id);
@@ -178,7 +197,7 @@ int bg_db_object_query(bg_db_t * db, void * obj1, int64_t id,
   
   obj->found = 0;
   sql = sqlite3_mprintf("select * from OBJECTS where ID = %"PRId64";",
-                        obj->id);
+                        id);
   result = bg_sqlite_exec(db->db, sql, object_query_callback, obj);
   sqlite3_free(sql);
   if(!result || !obj->found)
@@ -188,6 +207,8 @@ int bg_db_object_query(bg_db_t * db, void * obj1, int64_t id,
 
   obj->klass = bg_db_object_get_class(obj->type);
 
+  obj->old_size     = obj->size;
+  obj->old_duration = obj->duration;
   
   if(children)
     {
@@ -220,7 +241,7 @@ void bg_db_object_free(void * obj1)
   obj->id = -1;
   }
 
-void bg_db_object_update(bg_db_t * db, void * obj1, int children)
+void bg_db_object_update(bg_db_t * db, void * obj1, int children, int parent)
   {
   char * sql;
   int result;
@@ -229,6 +250,9 @@ void bg_db_object_update(bg_db_t * db, void * obj1, int children)
 
   if(obj->id <= 0)
     return;
+
+  fprintf(stderr, "Update Object %ld\n", obj->id);
+
   
   sql = sqlite3_mprintf("UPDATE OBJECTS SET TYPE = %d, REF_ID = %"PRId64", PARENT_ID = %"PRId64",  CHILDREN = %d, SIZE = %"PRId64", DURATION = %"PRId64", LABEL = %Q   WHERE ID = %"PRId64";",
                         obj->type, obj->ref_id, obj->parent_id, obj->children, obj->size,
@@ -236,19 +260,45 @@ void bg_db_object_update(bg_db_t * db, void * obj1, int children)
   result = bg_sqlite_exec(db->db, sql, NULL, NULL);
   sqlite3_free(sql);
 
-  if(!children)
-    return;
-
-  c = obj->klass;
-  
-  while(c)
+  if(parent)
     {
-    if(c->update)
-      c->update(db, obj);
-    c = c->parent;
+    /* Update parent */
+    if(obj->parent_id > 0 &&
+       ((obj->old_size != obj->size) ||
+        (obj->old_duration != obj->old_duration)))
+      {
+      bg_db_object_storage_t parent;
+      bg_db_object_init(&parent);
+      bg_db_object_query(db, &parent, obj->parent_id, 0, 0);
+      bg_db_object_update_size(&parent, obj->size - obj->old_size);
+      bg_db_object_update_duration(&parent, obj->duration - obj->old_duration);
+      bg_db_object_update(db, &parent, 0, 1);
+      bg_db_object_free(&parent);
+      }
+
+    obj->old_size = obj->size;
+    obj->old_duration = obj->old_duration;
+    }
+  
+  
+  if(children)
+    {
+    c = obj->klass;
+  
+    while(c)
+      {
+      if(c->update)
+        c->update(db, obj);
+      c = c->parent;
+      }
     }
   }
 
+void bg_db_object_set_label_nocpy(void * obj1, char * label)
+  {
+  bg_db_object_t * obj = obj1;
+  obj->label = label;
+  }
 
 void bg_db_object_set_parent_id(bg_db_t * db, void * obj, int64_t parent_id)
   {
@@ -256,7 +306,7 @@ void bg_db_object_set_parent_id(bg_db_t * db, void * obj, int64_t parent_id)
   bg_db_object_init(&parent);
   bg_db_object_query(db, &parent, parent_id, 1, 0);
   bg_db_object_set_parent(obj, &parent);
-  bg_db_object_update(db, &parent, 0);
+  bg_db_object_update(db, &parent, 0, 1);
   bg_db_object_free(&parent);
   }
 
@@ -264,14 +314,11 @@ void bg_db_object_set_parent(void * obj1, void * parent1)
   {
   bg_db_object_t * obj = obj1;
   bg_db_object_t * parent = parent1;
-
+  obj->parent_id = parent->id;
   parent->children++;
-
-  if(obj->size > 0)
-    parent->size += obj->size;
-
-  if(obj->duration > 0)
-    parent->duration += obj->duration;
+  
+  bg_db_object_update_size(parent, obj->size);
+  bg_db_object_update_duration(parent, obj->duration);
   }
 
 static void delete_from_parent(bg_db_t * db, bg_db_object_t * obj)
@@ -292,36 +339,14 @@ static void delete_from_parent(bg_db_t * db, bg_db_object_t * obj)
         bg_db_object_delete(db, parent);
       else
         {
-        if(obj->size > 0)
-          parent->size -= obj->size;
-
-        if(obj->duration > 0)
-          parent->duration -= obj->duration;
+        bg_db_object_update_size(parent, -obj->size);
+        bg_db_object_update_duration(parent, -obj->duration);
+        bg_db_object_update(db, parent, 0, 1);
         }
       bg_db_object_free(&parent_s);
       }
     }
   }
-
-#if 0
-void bg_db_object_add(bg_db_t * db, bg_db_object_t * obj)
-  {
-  char * sql;
-  int result;
-  
-  sql = sqlite3_mprintf("INSERT INTO OBJECTS "
-                        "( ID, TYPE, REF_ID, PARENT_ID, CHILDREN, SIZE, DURATION, LABEL ) "
-                        "VALUES "
-                        "( %"PRId64", %d, %"PRId64", %"PRId64", %d, %"PRId64", %"PRId64", %Q);",
-                        obj->id, obj->type, obj->ref_id, obj->parent_id, obj->children, obj->size,
-                        obj->duration, obj->label);
-  result = bg_sqlite_exec(db->db, sql, NULL, NULL);
-  sqlite3_free(sql);
-
-  /* Add to parent container */
-  add_to_parent(db, obj);
-  }
-#endif
 
 void bg_db_object_delete(bg_db_t * db, void * obj1)
   {

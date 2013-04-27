@@ -123,9 +123,14 @@ typedef struct
   int64_t size;
   gavl_time_t duration;
   char * label;
+
+  /* Internal stuff, do not touch */
   int found;    // Used by sqlite
   int flags;    // Used in-memory only
   const bg_db_object_class_t * klass;
+
+  int64_t old_size;
+  int64_t old_duration;
   } bg_db_object_t;
 
 /* Directory on the file system */

@@ -321,3 +321,20 @@ void bg_db_date_set_invalid(bg_db_date_t * d)
   d->day   = 01;
   d->month = 01;
   }
+
+char * bg_db_path_to_label(const char * path)
+  {
+  const char * start;
+  const char * end;
+  start = strrchr(path, '/');
+  if(!start)
+    start = path;
+  else
+    start++;
+
+  end = strrchr(start, '.');
+  if(!end)
+    end = start + strlen(start);
+
+  return gavl_strndup(start, end);
+  }

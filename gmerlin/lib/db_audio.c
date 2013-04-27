@@ -136,7 +136,6 @@ static void audio_file_add(bg_db_t * db, bg_db_audio_file_t * f)
 
 void bg_db_audio_file_create(bg_db_t * db, void * obj, bg_track_info_t * t)
   {
-  gavl_time_t duration;
   int bitrate = 0;
   const char * var;
   bg_db_audio_file_t * f = obj;
@@ -183,8 +182,6 @@ void bg_db_audio_file_create(bg_db_t * db, void * obj, bg_track_info_t * t)
       bg_sqlite_string_to_id_add(db->db, "AUDIO_GENRES",
                                  "ID", "NAME", f->genre);
     }
-  bg_db_object_update(db, f, 0);
-  
   audio_file_add(db, f);
   }
 
