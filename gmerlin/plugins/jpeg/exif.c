@@ -558,12 +558,12 @@ void bg_exif_get_metadata(const char * filename,
   ExifData * d;
   foreach_data_t fd;
   fd.m = ret;
-  fd.cnv = bg_charset_converter_create("UTF-16LE", "UTF-8");
   
   d = exif_data_new_from_file(filename);
   if(!d)
     return;
 
+  fd.cnv = bg_charset_converter_create("UTF-16LE", "UTF-8");
   fd.bo = exif_data_get_byte_order(d);
   
   exif_data_foreach_content(d, foreach1, &fd);

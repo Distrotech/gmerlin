@@ -125,12 +125,11 @@ typedef struct
   char * label;
 
   /* Internal stuff, do not touch */
+
   int found;    // Used by sqlite
   int flags;    // Used in-memory only
   const bg_db_object_class_t * klass;
 
-  int64_t old_size;
-  int64_t old_duration;
   } bg_db_object_t;
 
 /* Directory on the file system */
@@ -189,7 +188,8 @@ typedef struct
   char * artist;
   int64_t artist_id;
   char * title;
-  char * genre;
+
+  char * genre;      // GENRE
   int64_t genre_id;
 
   bg_db_date_t date;
@@ -200,16 +200,12 @@ typedef struct
 /* Video */
 typedef struct
   {
-  int64_t id;
-
+  bg_db_file_t file;
   char * title;
   char * genre;
-  int year;
-  gavl_time_t duration;
-  int64_t file_id;
-
-  int found; // Used by sqlite
-  } bg_db_video_t;
+  int64_t genre_id;
+  bg_db_date_t date;
+  } bg_db_video_file_t;
 
 /* Playlist */
 typedef struct
@@ -221,8 +217,12 @@ typedef struct
  *  Public entry points
  */
 
+bg_db_object_type_t bg_db_object_get_type(void * obj);
+
 bg_db_t * bg_db_create(const char * file,
                        bg_plugin_registry_t * plugin_reg, int create);
+
+void bg_db_flush(bg_db_t * db);
 
 void bg_db_destroy(bg_db_t *);
 

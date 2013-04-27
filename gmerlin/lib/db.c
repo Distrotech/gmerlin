@@ -131,6 +131,7 @@ bg_db_t * bg_db_create(const char * file,
   sqlite3 * db;
   bg_db_t * ret;
   char * pos;
+  int i;
   
   if(!access(file, R_OK | W_OK))
     exists = 1;
@@ -160,7 +161,14 @@ bg_db_t * bg_db_create(const char * file,
 
   ret = calloc(1, sizeof(*ret));
   ret->db = db;
-  ret->plugin_reg = plugin_reg; 
+  ret->plugin_reg = plugin_reg;
+
+  ret->cache_size = 16;
+  ret->cache = calloc(ret->cache_size, sizeof(*ret->cache));
+
+  for(i = 0; i < ret->cache_size; i++)
+    bg_db_object_init(&ret->cache[i]);
+                      
   if(!exists)
     build_database(ret);
   
@@ -207,9 +215,94 @@ void bg_db_time_to_string(time_t time, char * str)
   strftime(str, BG_DB_TIME_STRING_LEN, TIME_FORMAT, &tm);
   }
 
+static int flush_object(bg_db_t * db, int i)
+  {
+  if(memcmp(&db->cache[i].obj, &db->cache[i].orig,
+            sizeof(db->cache[i].obj)))
+    {
+    //    fprintf(stderr, "Flush %ld\n", db->cache[i].obj.obj.id);
+    bg_db_object_update(db, &db->cache[i].obj, 1, 1);
+    memcpy(&db->cache[i].orig, &db->cache[i].obj,
+           sizeof(db->cache[i].obj));
+    return 1;
+    }
+  return 0;
+  }
+
+static int children_in_cache(bg_db_t * db, int i)
+  {
+  int j;
+  int64_t id = bg_db_object_get_id(&db->cache[i]);
+  
+  for(j = 0; j < db->cache_size; j++)
+    {
+    if(j != i)
+      {
+      if(bg_db_object_is_valid(&db->cache[j]) &&
+         (db->cache[j].obj.obj.parent_id == id))
+        return 1;
+      }
+    }
+  return 0;
+  }
+
+static void db_flush(bg_db_t * db, int do_free)
+  {
+  int i;
+  int done = 0;
+
+  /* Pass 1: Flush all leaf objects */
+  for(i = 0; i < db->cache_size; i++)
+    {
+    if(!bg_db_object_is_valid(&db->cache[i]))
+      continue;
+    
+    if(!(bg_db_object_get_type(&db->cache[i]) & BG_DB_FLAG_CONTAINER))
+      {
+      flush_object(db, i);
+      if(do_free)
+        {
+        bg_db_object_free(&db->cache[i].obj);
+        bg_db_object_init(&db->cache[i].obj);
+        }
+      }
+    }
+  
+  while(!done)
+    {
+    done = 1;
+    for(i = 0; i < db->cache_size; i++)
+      {
+      if(!bg_db_object_is_valid(&db->cache[i]))
+        continue;
+      
+      if(!children_in_cache(db, i))
+        {
+        if(flush_object(db, i))
+          done = 0;
+
+        if(do_free)
+          {
+          bg_db_object_free(&db->cache[i].obj);
+          bg_db_object_init(&db->cache[i].obj);
+          }
+        }
+      }
+    }
+  
+  }
+
+void bg_db_flush(bg_db_t * db)
+  {
+  db_flush(db, 0);
+  }
 
 void bg_db_destroy(bg_db_t * db)
   {
+  /* Flush cache */
+  db_flush(db, 1);
+  free(db->cache);
+  
   sqlite3_close(db->db);
   free(db->base_dir);
   free(db);
@@ -222,12 +315,6 @@ void bg_db_add_directory(bg_db_t * db, const char * d, int scan_flags)
   int num_files = 0;
   char * path;
   int64_t id;
-  bg_db_object_storage_t scan_dir;
-  bg_db_dir_t * dir;
-  
-  dir = (bg_db_dir_t *)&scan_dir;
-
-  bg_db_object_init(&scan_dir);
   
   path = bg_canonical_filename(d);
   
@@ -242,10 +329,13 @@ void bg_db_add_directory(bg_db_t * db, const char * d, int scan_flags)
 
   if((id = bg_dir_by_path(db, path) > 0))
     {
-    bg_db_object_query(db, &scan_dir, id, 1, 1);
+    bg_db_dir_t * dir;
+    dir = bg_db_object_query(db, id);
     
-    bg_log(BG_LOG_INFO, LOG_DOMAIN, "Directory %s already in database, updating", path);
+    bg_log(BG_LOG_INFO, LOG_DOMAIN,
+           "Directory %s already in database, updating", path);
     bg_db_update_files(db, files, num_files, dir->scan_flags, id);
+    bg_db_object_unref(dir);
     }
   else
     {
@@ -258,35 +348,35 @@ void bg_db_add_directory(bg_db_t * db, const char * d, int scan_flags)
                      &item, NULL, &scan_dir_id);
     
     bg_db_add_files(db, files, num_files, scan_flags, scan_dir_id);
-    bg_db_object_free(&scan_dir);
     }
+  bg_db_scan_items_free(files, num_files);
   }
 
 void bg_db_del_directory(bg_db_t * db, const char * d)
   {
-  bg_db_object_storage_t scan_dir;
   bg_db_dir_t * dir;
   
   int64_t id;
   char * path = bg_canonical_filename(d);
-
-  dir = (bg_db_dir_t *)&scan_dir;
   
   if((id = bg_dir_by_path(db, path) <= 0))
     {
-    bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Directory %s not in database", dir->path);
+    bg_log(BG_LOG_ERROR, LOG_DOMAIN,
+           "Directory %s not in database", path);
     free(path);
     return;
     }
 
-  bg_db_object_init(&scan_dir);
-  bg_db_object_query(db, &scan_dir, id, 1, 1);
-
+  dir = bg_db_object_query(db, id);
+  
   if(bg_db_object_get_parent(dir) > 0)
-    bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Directory %s not a root scan directory", path);
+    {
+    bg_log(BG_LOG_ERROR, LOG_DOMAIN,
+           "Directory %s not a root scan directory", path);
+    bg_db_object_unref(dir);
+    }
   else
-    bg_db_object_delete(db, &scan_dir);
-  bg_db_object_free(&scan_dir);
+    bg_db_object_delete(db, dir);
   free(path);
   }
 
@@ -337,4 +427,17 @@ char * bg_db_path_to_label(const char * path)
     end = start + strlen(start);
 
   return gavl_strndup(start, end);
+  }
+
+int64_t bg_db_cache_search(bg_db_t * db,
+                           int (*compare)(const bg_db_object_t*,const void*),
+                           const void * data)
+  {
+  int i;
+  for(i = 0; i < db->cache_size; i++)
+    {
+    if(compare(&db->cache[i].obj.obj, data))
+      return db->cache[i].obj.obj.id;
+    }
+  return -1;
   }

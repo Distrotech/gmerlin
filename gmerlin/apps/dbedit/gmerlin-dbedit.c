@@ -192,5 +192,10 @@ int main(int argc, char ** argv)
     bg_db_del_directory(db, add_dirs[i]);
   
   bg_db_destroy(db);
+
+  bg_plugin_registry_destroy(plugin_reg);
+  bg_cfg_registry_destroy(cfg_reg);
+  
+
   return 0;
   }

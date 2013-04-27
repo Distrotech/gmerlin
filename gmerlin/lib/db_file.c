@@ -80,6 +80,8 @@ static void free_file(void * obj)
   bg_db_file_t * f = obj;
   if(f->path)
     free(f->path);
+  if(f->mimetype)
+    free(f->mimetype);
   }
 
 const bg_db_object_class_t bg_db_file_class =
@@ -116,8 +118,31 @@ static int file_add(bg_db_t * db, bg_db_file_t * f)
   return result;
   }
 
+static int compare_file_by_path(const bg_db_object_t * obj, const void * data)
+  {
+  bg_db_file_t * file;
+  if((obj->type == BG_DB_OBJECT_FILE) ||
+     (obj->type == BG_DB_OBJECT_AUDIO_FILE) ||
+     (obj->type == BG_DB_OBJECT_VIDEO_FILE) ||
+     (obj->type == BG_DB_OBJECT_PHOTO_FILE))
+    {
+    file = (bg_db_file_t*)obj;
+    if(!strcmp(file->path, data))
+      return 1;
+    }
+  return 0;
+  } 
+
 int64_t bg_db_file_by_path(bg_db_t * db, const char * path)
   {
+  int64_t ret;
+
+  ret = bg_db_cache_search(db, compare_file_by_path,
+                           path);
+  if(ret > 0)
+    return ret;
+
+  
   return bg_sqlite_string_to_id(db->db, "FILES", "ID", "PATH",
                                 bg_db_filename_to_rel(db, path));
   }
@@ -125,13 +150,13 @@ int64_t bg_db_file_by_path(bg_db_t * db, const char * path)
 /* Open the file, load metadata and so on */
 void bg_db_file_create(bg_db_t * db, int scan_flags,
                        bg_db_scan_item_t * item,
-                       bg_db_dir_t * dir, int64_t scan_dir_id)
+                       bg_db_dir_t ** dir, int64_t scan_dir_id)
   {
   int i;
   bg_track_info_t * ti;
   bg_plugin_handle_t * h = NULL;
   bg_input_plugin_t * plugin = NULL;
-  bg_db_object_storage_t obj;
+  bg_db_object_t * obj;
   bg_db_file_t * file;
   bg_db_object_type_t type;
   int added = 0;
@@ -139,20 +164,19 @@ void bg_db_file_create(bg_db_t * db, int scan_flags,
   gavl_time_t duration;
   
   /* Make sure we have the right parent directoy */  
-  if(!bg_db_dir_ensure_parent(db, dir, item->path))
+  if(!(*dir = bg_db_dir_ensure_parent(db, *dir, item->path)))
     return;
   
-  bg_db_object_init(&obj);
-  bg_db_object_create(db, &obj);
-  bg_db_object_set_type(&obj, BG_DB_OBJECT_FILE);
+  obj = bg_db_object_create(db);
+  bg_db_object_set_type(obj, BG_DB_OBJECT_FILE);
 
-  file = (bg_db_file_t *)&obj;
+  file = (bg_db_file_t *)obj;
   file->path = item->path;
   item->path = NULL;
 
   file->mtime = item->mtime;
   file->scan_dir_id = scan_dir_id;
-  bg_db_object_set_size(file, item->size);
+  bg_db_object_update_size(db, file, item->size);
   bg_db_object_set_label_nocpy(file, bg_db_path_to_label(file->path));
   
   /* Load all infos */  
@@ -231,7 +255,7 @@ void bg_db_file_create(bg_db_t * db, int scan_flags,
 
   if(gavl_metadata_get_long(&ti->metadata, GAVL_META_APPROX_DURATION,
                              &duration))
-    bg_db_object_set_duration(file, duration);
+    bg_db_object_update_duration(db, file, duration);
     
   
   /* Create derived type */
@@ -251,9 +275,8 @@ void bg_db_file_create(bg_db_t * db, int scan_flags,
   fail:
 
   file_add(db, file);
-  bg_db_object_set_parent(file, dir);
-  bg_db_object_update(db, file, 0, 0);
-  bg_db_object_free(file);
+  bg_db_object_set_parent(db, obj, *dir);
+  bg_db_object_unref(obj);
   
   if(plugin)
     plugin->close(h->priv);
@@ -284,37 +307,31 @@ void bg_db_add_files(bg_db_t * db, bg_db_scan_item_t * files, int num,
                      int scan_flags, int64_t scan_dir_id)
   {
   int i;
-  bg_db_object_storage_t obj;
-  bg_db_object_storage_t parent;
-
-  bg_db_object_init(&parent);
+  
+  bg_db_dir_t * dir = NULL;
   
   for(i = 0; i < num; i++)
     {
     if(files[i].done)
       continue;
-
-    bg_db_object_init(&obj);
     
     switch(files[i].type)
       {
       case BG_SCAN_TYPE_DIRECTORY:
         {
         bg_db_dir_create(db, scan_flags, &files[i],
-                         (bg_db_dir_t*)&parent, &scan_dir_id);
+                         &dir, &scan_dir_id);
         }
         break;
       case BG_SCAN_TYPE_FILE:
         {
         bg_db_file_create(db, scan_flags, &files[i],
-                          (bg_db_dir_t*)&parent, scan_dir_id);
+                          &dir, scan_dir_id);
         }
         break;
       }
     }
-
-  bg_db_object_update(db, &parent, 0, 1);
-  bg_db_object_free(&parent);
+  bg_db_object_unref(dir);
   }
 
 static bg_db_scan_item_t * find_by_path(bg_db_scan_item_t * files, int num, 
@@ -334,8 +351,7 @@ void bg_db_update_files(bg_db_t * db, bg_db_scan_item_t * files, int num, int sc
   {
   char * sql;
   int result;
-  bg_db_file_t file;
-  bg_db_object_storage_t obj;
+  bg_db_file_t * file;
   bg_db_dir_t * dir;
   
   int i;
@@ -354,20 +370,20 @@ void bg_db_update_files(bg_db_t * db, bg_db_scan_item_t * files, int num, int sc
 
   for(i = 0; i < tab.num_val; i++)
     {
-    bg_db_object_init(&obj);
-    bg_db_object_query(db, &obj, tab.val[i], 0, 1);
-    dir = (bg_db_dir_t *)&obj;
+    dir = bg_db_object_query(db, tab.val[i]);
     
     si = find_by_path(files, num, dir->path, BG_SCAN_TYPE_DIRECTORY);
     if(!si)
       {
       bg_log(BG_LOG_INFO, LOG_DOMAIN,
              "Directory %s disappeared, removing from database", dir->path);
-      bg_db_object_delete(db, &obj);
+      bg_db_object_delete(db, dir);
       }
     else
+      {
+      bg_db_object_unref(dir);
       si->done = 1;
-    bg_db_object_free(&obj);
+      }
     }
 
   bg_sqlite_id_tab_reset(&tab);
@@ -385,24 +401,26 @@ void bg_db_update_files(bg_db_t * db, bg_db_scan_item_t * files, int num, int sc
 
   for(i = 0; i < tab.num_val; i++)
     {
-    bg_db_object_init(&obj);
-    bg_db_object_query(db, &obj, tab.val[i], 0, 1);
+    file = bg_db_object_query(db, tab.val[i]);
     
-    si = find_by_path(files, num, file.path, BG_SCAN_TYPE_FILE);
+    si = find_by_path(files, num, file->path, BG_SCAN_TYPE_FILE);
     if(!si)
       {
-      bg_log(BG_LOG_INFO, LOG_DOMAIN, "File %s disappeared, removing from database", file.path);
-      bg_db_object_delete(db, &obj);
+      bg_log(BG_LOG_INFO, LOG_DOMAIN,
+             "File %s disappeared, removing from database", file->path);
+      bg_db_object_delete(db, file);
       }
-    else if(si->mtime != file.mtime)
+    else if(si->mtime != file->mtime)
       {
       bg_log(BG_LOG_INFO, LOG_DOMAIN, 
-             "File %s changed on disk, removing from database for re-adding later", file.path);
-      bg_db_object_delete(db, &obj);
+             "File %s changed on disk, removing from database for re-adding later", file->path);
+      bg_db_object_delete(db, file);
       }
     else
+      {
       si->done = 1;
-    bg_db_object_free(&obj);
+      bg_db_object_unref(file);
+      }
     }
 
   bg_db_add_files(db, files, num, scan_flags, scan_dir_id);

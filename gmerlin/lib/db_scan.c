@@ -114,3 +114,13 @@ bg_db_scan_item_t * bg_db_scan_directory(const char * directory,
   return ret;
   }
 
+void bg_db_scan_items_free(bg_db_scan_item_t * items, int num)
+  {
+  int i;
+  for(i = 0; i < num; i++)
+    {
+    if(items[i].path)
+      free(items[i].path);
+    }
+  free(items);
+  }

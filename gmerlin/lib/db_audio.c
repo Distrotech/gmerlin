@@ -35,6 +35,25 @@
 
 #define LOG_DOMAIN "db.audiofile"
 
+/*
+ *  Virtual folders should be made the following way:
+ *
+ *  Music
+ *    +---By Genre
+ *    |       +-----Jazz
+ *    |               +-----A
+ *    |                     +---- Art Blakey
+ *    |                               +-------Art Blakey - Moanin
+ *    |                                            01 - Art Blakey - Moanin
+ *    +---By Artist
+ *            +-------A
+ *                    +----- Art Blakey
+ *
+ *
+ *
+ */
+
+
 static void free_audio_file(void * obj)
   {
   bg_db_audio_file_t * file = obj;
@@ -46,6 +65,8 @@ static void free_audio_file(void * obj)
     free(file->genre);
   if(file->album)
     free(file->album);
+  if(file->artist)
+    free(file->artist);
   if(file->albumartist)
     free(file->albumartist);
   }

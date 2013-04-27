@@ -26,7 +26,6 @@
 #include <bgsqlite.h>
 
 #define BG_DB_OBJ_FLAG_DONT_PROPAGATE (1<<0)
-#define BG_DB_OBJ_FLAG_QUERIED        (1<<1)
 #define BG_DB_OBJ_FLAG_CHANGED        (1<<2)
 
 /*
@@ -70,7 +69,15 @@ struct bg_db_object_class_s
   const struct bg_db_object_class_s * parent;
   };
 
-#define BG_DB_CACHE_SIZE 16
+
+#define BG_DB_CACHE_SIZE 128
+
+typedef struct
+  {
+  bg_db_object_storage_t obj; // Must be first
+  bg_db_object_storage_t orig;
+  int refcount;
+  } bg_db_cache_t;
 
 struct bg_db_s
   {
@@ -79,7 +86,8 @@ struct bg_db_s
   int base_len;
   bg_plugin_registry_t * plugin_reg;
   
-  bg_db_object_storage_t object_cache[BG_DB_CACHE_SIZE];
+  int cache_size;
+  bg_db_cache_t * cache;
   };
 
 /* File scanning */
@@ -104,17 +112,24 @@ typedef struct
 
 /* Get the parent album of an audio file */
 
-bg_db_audio_album_t * bg_db_get_audio_album(bg_db_t * db, bg_db_audio_file_t * file);
+bg_db_audio_album_t *
+bg_db_get_audio_album(bg_db_t * db, bg_db_audio_file_t * file);
 
-bg_db_scan_item_t * bg_db_scan_directory(const char * directory, int * num);
-void bg_scan_items_free(bg_db_scan_item_t *, int num);
+bg_db_scan_item_t *
+bg_db_scan_directory(const char * directory, int * num);
+
+void bg_db_scan_items_free(bg_db_scan_item_t *, int num);
 
 /* Object */
-void bg_db_object_init(void * obj);
-int bg_db_object_create(bg_db_t * db, void * obj); /* Create an ID */
+void * bg_db_object_create(bg_db_t * db); /* Create an object */
 
-int bg_db_object_query(bg_db_t * db, void * obj, int64_t id,
-                       int full, int children); /* Query from DB  */
+/* Query from DB  */
+void *
+bg_db_object_query(bg_db_t * db, int64_t id); 
+
+void
+bg_db_object_unref(void * obj);
+
 
 void bg_db_object_add(bg_db_t * db, bg_db_object_t * obj);    /* Add to DB      */
 void bg_db_object_update(bg_db_t * db, void * obj, int children, int parent); /* Update in DB   */
@@ -127,15 +142,12 @@ const bg_db_object_class_t * bg_db_object_get_class(bg_db_object_type_t t);
 void bg_db_object_set_type(void * obj, bg_db_object_type_t t);
 
 void bg_db_object_set_parent_id(bg_db_t * db, void * obj, int64_t parent_id);
-void bg_db_object_set_parent(void * obj, void * parent);
+void bg_db_object_set_parent(bg_db_t * db, void * obj, void * parent);
 
 int64_t bg_db_object_get_parent(void * obj);
 
-void bg_db_object_set_size(void * obj, int64_t size);
-void bg_db_object_set_duration(void * obj, gavl_time_t d);
-
-void bg_db_object_update_size(void * obj, int64_t delta_size);
-void bg_db_object_update_duration(void * obj, gavl_time_t delta_d);
+void bg_db_object_update_size(bg_db_t * db, void * obj, int64_t delta_size);
+void bg_db_object_update_duration(bg_db_t * db, void * obj, gavl_time_t delta_d);
 
 
 int64_t bg_db_object_get_id(void * obj);
@@ -143,21 +155,25 @@ int64_t bg_db_object_get_id(void * obj);
 void bg_db_object_create_ref(void * obj, void * parent);
 void bg_db_object_set_label_nocpy(void * obj, char * label);
 
+void bg_db_object_init(void * obj1);
+
 
 /* Directory */
 
 extern const bg_db_object_class_t bg_db_dir_class;
 
 int bg_db_dir_del(bg_db_t * db, bg_db_dir_t * dir);
+
 int64_t bg_dir_by_path(bg_db_t * db, const char * path);
 int64_t bg_parent_dir_by_path(bg_db_t * db, const char * path1);
 
-int bg_db_dir_ensure_parent(bg_db_t * db,
-                            bg_db_dir_t * dir, const char * path);
+bg_db_dir_t *
+bg_db_dir_ensure_parent(bg_db_t * db,
+                        bg_db_dir_t * dir, const char * path);
 
 void bg_db_dir_create(bg_db_t * db, int scan_flags,
                       bg_db_scan_item_t * item,
-                      bg_db_dir_t * parent, int64_t * scan_dir_id);
+                      bg_db_dir_t ** parent, int64_t * scan_dir_id);
 
 /* File */
 
@@ -166,7 +182,7 @@ extern const bg_db_object_class_t bg_db_file_class;
 
 void bg_db_file_create(bg_db_t * db, int scan_flags,
                        bg_db_scan_item_t * item,
-                       bg_db_dir_t * parent, int64_t scan_dir_id);
+                       bg_db_dir_t ** parent, int64_t scan_dir_id);
 
 int64_t bg_db_file_by_path(bg_db_t * db, const char * path);
 
@@ -191,11 +207,18 @@ extern const bg_db_object_class_t bg_db_audio_album_class;
 char * bg_db_filename_to_abs(bg_db_t * db, char * filename);
 const char * bg_db_filename_to_rel(bg_db_t * db, const char * filename);
 
-void bg_db_add_files(bg_db_t * db, bg_db_scan_item_t * files, int num, int scan_flags, int64_t scan_dir_id);
-void bg_db_update_files(bg_db_t * db, bg_db_scan_item_t * files, int num, int scan_flags,
+void bg_db_add_files(bg_db_t * db, bg_db_scan_item_t * files,
+                     int num, int scan_flags, int64_t scan_dir_id);
+
+void bg_db_update_files(bg_db_t * db, bg_db_scan_item_t * files,
+                        int num, int scan_flags,
                         int64_t scan_dir_id);
 
 char * bg_db_path_to_label(const char * path);
+
+int64_t bg_db_cache_search(bg_db_t * db,
+                           int (*compare)(const bg_db_object_t * ,const void*),
+                           const void * data);
 
 #define BG_DB_TIME_STRING_LEN 20
 time_t bg_db_string_to_time(const char * str);

@@ -100,23 +100,50 @@ const bg_db_object_class_t bg_db_dir_class =
   .parent = NULL,
   };
 
+static int compare_dir_by_path(const bg_db_object_t * obj, const void * data)
+  {
+  bg_db_dir_t * dir;
+  if(obj->type == BG_DB_OBJECT_DIRECTORY)
+    {
+    dir = (bg_db_dir_t*)obj;
+    if(!strcmp(dir->path, data))
+      return 1;
+    }
+  return 0;
+  } 
+
 int64_t bg_dir_by_path(bg_db_t * db, const char * path)
   {
+  int64_t ret;
+
+  ret = bg_db_cache_search(db, compare_dir_by_path,
+                           path);
+  if(ret > 0)
+    return ret;
+  
   return bg_sqlite_string_to_id(db->db,
                                 "DIRECTORIES", "ID", "PATH",
                                 bg_db_filename_to_rel(db, path));
   }
+
 
 int64_t bg_parent_dir_by_path(bg_db_t * db, const char * path1)
   {
   int64_t ret;
   char * path = gavl_strdup(path1);
   char * end = strrchr(path, '/');
-
+  
   if(!end)
     return -1;
   *end = '\0';
-  
+
+  ret = bg_db_cache_search(db, compare_dir_by_path,
+                           path);
+  if(ret > 0)
+    {
+    free(path);
+    return ret;
+    }
   ret = bg_sqlite_string_to_id(db->db, "DIRECTORIES", "ID", "PATH",
                                bg_db_filename_to_rel(db, path));
   free(path);
@@ -125,25 +152,25 @@ int64_t bg_parent_dir_by_path(bg_db_t * db, const char * path1)
 
 void bg_db_dir_create(bg_db_t * db, int scan_flags,
                       bg_db_scan_item_t * item,
-                      bg_db_dir_t * parent, int64_t * scan_dir_id)
+                      bg_db_dir_t ** parent, int64_t * scan_dir_id)
   {
-  bg_db_object_storage_t obj;
+  bg_db_object_t * obj;
   bg_db_dir_t * dir;
   char * sql;
   int result;
   
   /* Make sure we have the right parent directoy */  
-  if(parent && !bg_db_dir_ensure_parent(db, parent, item->path))
+  if(parent &&
+     !(*parent = bg_db_dir_ensure_parent(db, *parent, item->path)))
     return;
-
-  bg_db_object_init(&obj);
-  bg_db_object_create(db, &obj);
-  bg_db_object_set_type(&obj, BG_DB_OBJECT_DIRECTORY);
-
-  if(parent)
-    bg_db_object_set_parent(&obj, parent);
   
-  dir = (bg_db_dir_t *)&obj;
+  obj = bg_db_object_create(db);
+  bg_db_object_set_type(obj, BG_DB_OBJECT_DIRECTORY);
+  
+  if(parent)
+    bg_db_object_set_parent(db, obj, *parent);
+  
+  dir = (bg_db_dir_t *)obj;
 
   if(*scan_dir_id > 0)
     dir->scan_dir_id = *scan_dir_id;
@@ -159,32 +186,31 @@ void bg_db_dir_create(bg_db_t * db, int scan_flags,
   
   
   sql = sqlite3_mprintf("INSERT INTO DIRECTORIES ( ID, PATH, SCAN_FLAGS, UPDATE_ID, SCAN_DIR_ID ) VALUES ( %"PRId64", %Q, %d, %"PRId64", %"PRId64");",
-                        bg_db_object_get_id(&obj), bg_db_filename_to_rel(db, dir->path), dir->scan_flags, dir->update_id, dir->scan_dir_id);
+                        bg_db_object_get_id(obj), bg_db_filename_to_rel(db, dir->path), dir->scan_flags, dir->update_id, dir->scan_dir_id);
   
   result = bg_sqlite_exec(db->db, sql, NULL, NULL);
   sqlite3_free(sql);
-
-  bg_db_object_update(db, &obj, 0, 0);
-  bg_db_object_free(&obj);
+  
+  bg_db_object_unref(obj);
   }
 
-int bg_db_dir_ensure_parent(bg_db_t * db, bg_db_dir_t * dir, const char * path)
+bg_db_dir_t *
+bg_db_dir_ensure_parent(bg_db_t * db, bg_db_dir_t * dir, const char * path)
   {
   int64_t id;
   const char * end = strrchr(path, '/');
   if(!end)
     return 0;
   
-  if(bg_db_object_is_valid(dir) &&
+  if(dir &&
      (strlen(dir->path) == (end - path)) &&
      !strncmp(dir->path, path, end-path))
-    return 1;
+    return dir;
 
   /* Get proper parent */
-  bg_db_object_update(db, dir, 1, 1);
-  bg_db_object_free(dir);
-  bg_db_object_init(dir);
-
+  if(dir)
+    bg_db_object_unref(dir);
+  
   id = bg_parent_dir_by_path(db, path);
 
   if(id < 0)
@@ -193,9 +219,7 @@ int bg_db_dir_ensure_parent(bg_db_t * db, bg_db_dir_t * dir, const char * path)
            path);
     return 0;
     }
-    
-  bg_db_object_query(db, dir, id, 1, 1);
-  return 1;
+  return bg_db_object_query(db, id);
   }
 
 #if 0
