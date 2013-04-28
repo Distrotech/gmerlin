@@ -27,7 +27,7 @@
 #include <gmerlin/utils.h>
 #include <string.h>
 
-#define LOG_DOMAIN "db.audiofile"
+#define LOG_DOMAIN "db.audioalbum"
 
 static int album_query_callback(void * data, int argc, char **argv, char **azColName)
   {
@@ -185,14 +185,20 @@ void bg_db_audio_file_add_to_album(bg_db_t * db, bg_db_audio_file_t * f)
     a->genre_id = f->genre_id;
     /* Remove title completely? */
     a->title = gavl_strdup(f->album);
+    a->search_title = gavl_strdup(bg_db_get_search_string(a->title));
+    
     bg_db_object_set_label(a, f->album);
     bg_db_date_copy(&a->date, &f->date);
     a->artist_id = f->albumartist_id;
 
+    bg_log(BG_LOG_INFO, LOG_DOMAIN, "Adding audio album %s", a->title);
+
+    
     bg_db_date_to_string(&a->date, date_string);
     
-    sql = sqlite3_mprintf("INSERT INTO AUDIO_ALBUMS ( ID, ARTIST, TITLE, GENRE, DATE ) VALUES ( %"PRId64", %"PRId64", %Q, %"PRId64", %Q);",
-                          bg_db_object_get_id(a), a->artist_id, a->title, a->genre_id, date_string);
+    sql = sqlite3_mprintf("INSERT INTO AUDIO_ALBUMS ( ID, ARTIST, TITLE, SEARCH_TITLE, GENRE, DATE ) VALUES ( %"PRId64", %"PRId64", %Q, %Q, %"PRId64", %Q);",
+                          bg_db_object_get_id(a), a->artist_id, a->title,
+                          a->search_title, a->genre_id, date_string);
     result = bg_sqlite_exec(db->db, sql, NULL, NULL);
     sqlite3_free(sql);
 

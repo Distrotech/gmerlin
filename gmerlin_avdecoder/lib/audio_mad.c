@@ -198,8 +198,10 @@ static gavl_source_status_t decode_frame_mad(bgav_stream_t * s)
       got_frame = 0;
       if(priv->stream.error != MAD_ERROR_BUFLEN)
         {
-        bgav_log(s->opt, BGAV_LOG_ERROR, LOG_DOMAIN, "Decode failed %s\n",
-                 mad_stream_errorstr(&priv->stream));
+        /* This is often a spurious error, which ALWAYS occurs for ripped radio stations */
+        if(priv->stream.error != MAD_ERROR_BADDATAPTR)
+          bgav_log(s->opt, BGAV_LOG_ERROR, LOG_DOMAIN, "Decode failed %s\n",
+                   mad_stream_errorstr(&priv->stream));
         break;
         }
       }

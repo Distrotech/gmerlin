@@ -92,6 +92,7 @@ static const char * create_commands[] =
     "ID INTEGER PRIMARY KEY, "
     "ARTIST INTEGER, "
     "TITLE TEXT, "
+    "SEARCH_TITLE TEXT, "
     "GENRE INTEGER, "
     "DATE TEXT"
     ");",
@@ -244,7 +245,7 @@ static void db_flush(bg_db_t * db, int do_free)
     if(!bg_db_object_is_valid(&db->cache[i]))
       continue;
     
-    if(!(bg_db_object_get_type(&db->cache[i]) & BG_DB_FLAG_CONTAINER))
+    if(!(bg_db_object_get_type(&db->cache[i]) & (BG_DB_FLAG_CONTAINER|BG_DB_FLAG_VCONTAINER)))
       {
       flush_object(db, i);
       if(do_free)
@@ -427,4 +428,27 @@ int64_t bg_db_cache_search(bg_db_t * db,
       return db->cache[i].obj.obj.id;
     }
   return -1;
+  }
+
+static const char * search_string_skip[] =
+  {
+    "a ",
+    "the ",
+    "'", // 'Round Midnight
+    NULL
+  };
+
+const char * bg_db_get_search_string(const char * str)
+  {
+  int i, len;
+  
+  i = 0;
+  while(search_string_skip[i])
+    {
+    len = strlen(search_string_skip[i]);
+    if(!strncasecmp(str, search_string_skip[i], len))
+      return str + len;
+    i++;
+    }
+  return str;
   }

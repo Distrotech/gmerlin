@@ -97,7 +97,8 @@ typedef enum
     GAVL_CODEC_ID_VP8,            //!< VP8 (as used in webm)
   } gavl_codec_id_t;
 
-#define GAVL_BITRATE_VBR -1 //!< Use this to specify a VBR stream
+#define GAVL_BITRATE_VBR      -1 //!< Use this to specify a VBR stream
+#define GAVL_BITRATE_LOSSLESS -2 //!< Use this to specify a losslessly compressed stream
   
   /** \brief Compression format
    *

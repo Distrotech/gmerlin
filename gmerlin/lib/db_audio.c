@@ -135,17 +135,10 @@ static void audio_file_add(bg_db_t * db, bg_db_audio_file_t * f)
 
   char date_string[BG_DB_DATE_STRING_LEN];
 
+  bg_log(BG_LOG_INFO, LOG_DOMAIN, "Adding audio file %s", f->file.path);
+  
   /* Date */
   bg_db_date_to_string(&f->date, date_string);
-  
-#if 0
-  /* Album */
-  if(f->album && f->albumartist)
-    {
-    /* Sets album ID */
-    bg_db_audio_file_add_to_album(db, f);
-    }
-#endif
   
   sql = sqlite3_mprintf("INSERT INTO AUDIO_FILES ( ID, TITLE, ARTIST, GENRE, DATE, ALBUM, TRACK, BITRATE ) "
                         "VALUES"
@@ -185,6 +178,8 @@ void bg_db_audio_file_create(bg_db_t * db, void * obj, bg_track_info_t * t)
 
   if(bitrate == GAVL_BITRATE_VBR)
     f->bitrate = gavl_strdup("VBR");
+  else if(bitrate == GAVL_BITRATE_LOSSLESS)
+    f->bitrate = gavl_strdup("Lossless");
   else if(bitrate <= 0)
     f->bitrate = gavl_strdup("Unknown");
   else
@@ -213,11 +208,14 @@ void bg_db_audio_file_create(bg_db_t * db, void * obj, bg_track_info_t * t)
       bg_sqlite_string_to_id_add(db->db, "AUDIO_ARTISTS",
                                  "ID", "NAME", f->albumartist);
     }
-  audio_file_add(db, f);
 
   /* Add to album */
-
   if(f->album && f->albumartist)
     bg_db_audio_file_add_to_album(db, f);
+
+  /* Add to db */
+  
+  audio_file_add(db, f);
+
   }
 

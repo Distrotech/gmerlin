@@ -425,7 +425,7 @@ static int init_vorbis(bgav_stream_t * s)
 
     op.b_o_s = 1;
 
-    gavl_hexdump(s->ext_data, 64, 16);
+    //    gavl_hexdump(s->ext_data, 64, 16);
     
     for(i = 0; i < 3; i++)
       {

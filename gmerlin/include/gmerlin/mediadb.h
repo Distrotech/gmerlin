@@ -89,8 +89,10 @@ void bg_db_date_set_invalid(bg_db_date_t * d);
  *  Object definitions
  */
 
-#define BG_DB_FLAG_CONTAINER (1<<8)
-#define BG_DB_FLAG_NO_EMPTY  (1<<9)  
+#define BG_DB_FLAG_CONTAINER  (1<<8)
+#define BG_DB_FLAG_NO_EMPTY   (1<<9)  
+#define BG_DB_FLAG_VCONTAINER (1<<10)
+
 // #define BG_DB_UNIQUE_ID_REFERENCE 0x4000
 
 typedef enum
@@ -106,7 +108,7 @@ typedef enum
   // Audio albums are *no* containers for the internal database
   // because they are referenced by their children not by the parent_id
   // but by the album
-  BG_DB_OBJECT_AUDIO_ALBUM =  5,
+  BG_DB_OBJECT_AUDIO_ALBUM =  5 | BG_DB_FLAG_VCONTAINER,
 
   BG_DB_OBJECT_CONTAINER   =  1 | BG_DB_FLAG_CONTAINER,
   // object.container.storageFolder
@@ -198,7 +200,8 @@ typedef struct
   char * artist;
   int64_t artist_id;
   char * title;
-
+  char * search_title;
+  
   char * genre;      // GENRE
   int64_t genre_id;
 

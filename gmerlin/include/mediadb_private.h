@@ -210,6 +210,8 @@ extern const bg_db_object_class_t bg_db_audio_album_class;
 char * bg_db_filename_to_abs(bg_db_t * db, char * filename);
 const char * bg_db_filename_to_rel(bg_db_t * db, const char * filename);
 
+const char * bg_db_get_search_string(const char * str);
+
 void bg_db_add_files(bg_db_t * db, bg_db_scan_item_t * files,
                      int num, int scan_flags, int64_t scan_dir_id);
 
