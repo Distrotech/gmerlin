@@ -123,12 +123,6 @@ void bg_db_scan_items_free(bg_db_scan_item_t *, int num);
 /* Object */
 void * bg_db_object_create(bg_db_t * db); /* Create an object */
 
-/* Query from DB  */
-void *
-bg_db_object_query(bg_db_t * db, int64_t id); 
-
-void
-bg_db_object_unref(void * obj);
 
 
 void bg_db_object_add(bg_db_t * db, bg_db_object_t * obj);    /* Add to DB      */
@@ -211,6 +205,11 @@ char * bg_db_filename_to_abs(bg_db_t * db, char * filename);
 const char * bg_db_filename_to_rel(bg_db_t * db, const char * filename);
 
 const char * bg_db_get_search_string(const char * str);
+
+void bg_db_create_tables_vfolders(bg_db_t * db);
+
+void
+bg_db_create_vfolders(bg_db_t * db, bg_db_object_t * obj);
 
 void bg_db_add_files(bg_db_t * db, bg_db_scan_item_t * files,
                      int num, int scan_flags, int64_t scan_dir_id);

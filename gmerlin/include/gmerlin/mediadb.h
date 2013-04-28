@@ -110,13 +110,15 @@ typedef enum
   // but by the album
   BG_DB_OBJECT_AUDIO_ALBUM =  5 | BG_DB_FLAG_VCONTAINER,
 
-  BG_DB_OBJECT_CONTAINER   =  1 | BG_DB_FLAG_CONTAINER,
+  BG_DB_OBJECT_CONTAINER   =  6 | BG_DB_FLAG_CONTAINER,
   // object.container.storageFolder
-  BG_DB_OBJECT_DIRECTORY   =  2 | BG_DB_FLAG_CONTAINER, 
-  BG_DB_OBJECT_PLAYLIST    =  3 | BG_DB_FLAG_CONTAINER,
+  BG_DB_OBJECT_DIRECTORY   =  7 | BG_DB_FLAG_CONTAINER, 
+  BG_DB_OBJECT_PLAYLIST    =  8 | BG_DB_FLAG_CONTAINER,
 
   // Virtual Folder */
-  BG_DB_OBJECT_VFOLDER     =  5 | BG_DB_FLAG_CONTAINER | BG_DB_FLAG_NO_EMPTY,
+  BG_DB_OBJECT_VFOLDER      =  9  | BG_DB_FLAG_CONTAINER | BG_DB_FLAG_NO_EMPTY,
+  BG_DB_OBJECT_VFOLDER_LEAF =  10 | BG_DB_FLAG_NO_EMPTY,
+
   } bg_db_object_type_t;
 
 typedef struct bg_db_object_class_s bg_db_object_class_t;
@@ -127,7 +129,7 @@ typedef struct
   bg_db_object_type_t type;
   
   int64_t ref_id;    // Original ID
-  int64_t parent_id;
+  int64_t parent_id;  // ID of the real parent
   int children;      // For containers only
 
   int64_t size;
@@ -212,34 +214,39 @@ typedef struct
 
 typedef enum
   {
-    BG_DB_AUDIO_CAT_SONG              = 1,
-    BG_DB_AUDIO_CAT_ALBUM             = 2,
-    BG_DB_AUDIO_CAT_YEAR              = 3,
-    BG_DB_AUDIO_CAT_ALBUMARTIST       = 4,
-    BG_DB_AUDIO_CAT_ALBUMARTIST_GROUP = 5,
-    BG_DB_AUDIO_CAT_ARTIST            = 6,
-    BG_DB_AUDIO_CAT_ARTIST_GROUP      = 7,
-    BG_DB_AUDIO_CAT_GENRE             = 8,
-  } bg_db_audio_category_t;
+    BG_DB_CAT_SONGTITLE         = 1,
+    BG_DB_CAT_YEAR              = 2,
+    BG_DB_CAT_ALBUMYEAR         = 3,
+    BG_DB_CAT_ARTIST            = 7,
+    BG_DB_CAT_ARTIST_GROUP      = 8,
+    BG_DB_CAT_ALBUMARTIST       = 5,
+    BG_DB_CAT_ALBUMARTIST_GROUP = 6,
+    BG_DB_CAT_GENRE             = 9,
+    BG_DB_CAT_AUDIOALBUM        = 10,
+  } bg_db_category_t;
 
 struct
   {
-  bg_db_audio_category_t cat;
+  bg_db_category_t cat;
   int64_t id;
   } bg_db_audio_vfolder_structure_t;
+
+#define BG_DB_VFOLDER_MAX_DEPTH 8
 
 typedef struct
   {
   bg_db_object_t obj;
 
-
-  int64_t genre;        // 0 means all
-  int64_t artist;       // 0 means all
-  int64_t albumartist;  // 0 means all
-  int64_t album;        // 0 means all
-  int64_t artist_group; // Alphabetical group, 0 means all
-  bg_db_date_t date;    // Date
-  } bg_db_audio_vfolder_t;
+  int depth;
+  int64_t table;
+  
+  struct
+    {
+    bg_db_category_t cat;
+    int64_t id;
+    } categories[BG_DB_VFOLDER_MAX_DEPTH];
+  
+  } bg_db_vfolder_t;
 
 /* Video */
 typedef struct
@@ -276,8 +283,13 @@ void bg_db_del_directory(bg_db_t *, const char * dir);
 
 /* Query functions */
 
-typedef void (*bg_db_query_callback)(void * priv, const bg_db_object_t * obj);
+typedef void (*bg_db_query_callback)(void * priv, const void * obj);
 
-void bg_db_query_object(bg_db_t *, int64_t id, bg_db_query_callback cb, void * priv);
-void bg_db_query_children(bg_db_t *, int64_t id, bg_db_query_callback cb, void * priv);
+/* Query from DB  */
+void * bg_db_object_query(bg_db_t * db, int64_t id); 
+
+void bg_db_object_unref(void * obj);
+
+void
+bg_db_query_children(bg_db_t *, int64_t id, bg_db_query_callback cb, void * priv);
 

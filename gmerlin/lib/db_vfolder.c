@@ -19,30 +19,79 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  * *****************************************************************/
 
-static struct
+#include <config.h>
+#include <unistd.h>
+
+#include <mediadb_private.h>
+#include <gmerlin/log.h>
+#include <gmerlin/utils.h>
+#include <string.h>
+
+#define LOG_DOMAIN "db.vfolder"
+
+static const struct
   {
-  const char * table;
-  const char * name;
-  bg_db_audio_category_t cats[BG_DB_VFOLDER_MAX_DEPTH];
+  bg_db_object_type_t type;
+  bg_db_category_t cats[BG_DB_VFOLDER_MAX_DEPTH];
   }
 vfolder_types[] =
   {
-    .table = "AUDIO_FILES",
-    .name = "By Artist",
-    .cats = { BG_DB_AUDIO_CAT_GENRE,
-              BG_DB_AUDIO_CAT_ALBUMARTIST_GROUP,
-              BG_DB_AUDIO_CAT_ALBUMARTIST,
-              BG_DB_AUDIO_CAT_ALBUM,
-              BG_DB_AUDIO_CAT_SONG,
-            }
+    {
+      .type = BG_DB_OBJECT_AUDIO_FILE,
+      .cats = { BG_DB_CAT_GENRE,
+                BG_DB_CAT_ALBUMARTIST_GROUP,
+                BG_DB_CAT_ALBUMARTIST,
+                BG_DB_CAT_AUDIOALBUM },
+    },
+    { /* End */ }
   };
 
-void create_vfolders_audio_file(bg_db_t * db, bg_object_t * obj)
+static void create_vfolders_audio_file(bg_db_t * db, bg_db_object_t * obj)
   {
+  int i = 0;
+  int j;
+  
+  while(vfolder_types[i].type)
+    {
+    if(vfolder_types[i].type != BG_DB_OBJECT_AUDIO_FILE)
+      {
+      i++;
+      continue;
+      }
+
+    j = 0;
+
+    while(vfolder_types[i].cats[j])
+      {
+      switch(vfolder_types[i].cats[j])
+        {
+        case BG_DB_CAT_SONGTITLE:
+          break;
+        case BG_DB_CAT_YEAR:
+          break;
+        case BG_DB_CAT_ALBUMYEAR:
+          break;
+        case BG_DB_CAT_ARTIST:
+          break;
+        case BG_DB_CAT_ARTIST_GROUP:
+          break;
+        case BG_DB_CAT_ALBUMARTIST:
+          break;
+        case BG_DB_CAT_ALBUMARTIST_GROUP:
+          break;
+        case BG_DB_CAT_GENRE:
+          break;
+        case BG_DB_CAT_AUDIOALBUM:
+          break;
+        }
+      j++; 
+      }
+    i++;
+    }
   
   }
 
-void create_vfolders_audio_album(bg_db_t * db, bg_object_t * obj)
+static void create_vfolders_audio_album(bg_db_t * db, bg_db_object_t * obj)
   {
   
   }
@@ -51,15 +100,16 @@ void
 bg_db_create_tables_vfolders(bg_db_t * db)
   {
   int i;
-  char * str = bg_strdup("CREATE TABLE VFOLDERS ( ID PRIMARY KEY");
+  char * str = gavl_strdup("CREATE TABLE VFOLDERS ( ID INTEGER PRIMARY KEY,"
+                           "TYPE INTEGER, "
+                           "DEPTH INTEGER" );
   char tmp_string[32];
-
   
   for(i = 0; i < BG_DB_VFOLDER_MAX_DEPTH; i++)
     {
-    snprintf(tmp_string, 32, "CAT_%d", i+1);
+    snprintf(tmp_string, 32, ", CAT_%d INTEGER", i+1);
     str = gavl_strcat(str, tmp_string);
-    snprintf(tmp_string, 32, "VAL_%d", i+1);
+    snprintf(tmp_string, 32, ", VAL_%d INTEGER", i+1);
     str = gavl_strcat(str, tmp_string);
     }
 
@@ -69,7 +119,7 @@ bg_db_create_tables_vfolders(bg_db_t * db)
   }
 
 void
-bg_db_create_vfolders(bg_db_t * db, bg_object_t * obj)
+bg_db_create_vfolders(bg_db_t * db, bg_db_object_t * obj)
   {
   bg_db_object_type_t type;
 
@@ -83,13 +133,9 @@ bg_db_create_vfolders(bg_db_t * db, bg_object_t * obj)
     case BG_DB_OBJECT_AUDIO_ALBUM:
       create_vfolders_audio_album(db, obj);
       break;
+    default:
+      break;
     }
   
   }
-
-
-
-/* External */
-bg_object_t *
-bg_db_audio_vfolder_browse_children(bg_db_t * db, int64_t id);
 

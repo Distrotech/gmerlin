@@ -92,6 +92,7 @@ db_dir.c \
 db_file.c \
 db_object.c \
 db_scan.c \
+db_vfolder.c \
 device.c \
 edl.c \
 edldec.c \
