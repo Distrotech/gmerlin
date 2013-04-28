@@ -155,6 +155,8 @@ const bg_db_object_class_t * bg_db_object_get_class(bg_db_object_type_t t)
       break;
     case BG_DB_OBJECT_VFOLDER:
       break;
+    case BG_DB_OBJECT_VFOLDER_LEAF:
+      break;
     case BG_DB_OBJECT_AUDIO_ALBUM:
       return &bg_db_audio_album_class;
       break;

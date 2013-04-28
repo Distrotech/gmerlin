@@ -109,6 +109,7 @@ static void build_database(bg_db_t * db)
       return;
     i++;
     }
+  bg_db_create_tables_vfolders(db);
   }
 
 bg_db_t * bg_db_create(const char * file,
@@ -245,7 +246,8 @@ static void db_flush(bg_db_t * db, int do_free)
     if(!bg_db_object_is_valid(&db->cache[i]))
       continue;
     
-    if(!(bg_db_object_get_type(&db->cache[i]) & (BG_DB_FLAG_CONTAINER|BG_DB_FLAG_VCONTAINER)))
+    if(!(bg_db_object_get_type(&db->cache[i]) &
+         (BG_DB_FLAG_CONTAINER|BG_DB_FLAG_VCONTAINER)))
       {
       flush_object(db, i);
       if(do_free)
@@ -451,4 +453,60 @@ const char * bg_db_get_search_string(const char * str)
     i++;
     }
   return str;
+  }
+
+/* Query children */
+
+void
+bg_db_query_children(bg_db_t * db, int64_t id, bg_db_query_callback cb, void * priv)
+  {
+  int i;
+  char * sql;
+  int result;
+  
+  bg_sqlite_id_tab_t tab;
+  bg_db_object_type_t type;
+  void * obj;
+  bg_db_object_t * parent = bg_db_object_query(db, id);
+
+  if(!parent)
+    {
+    goto fail;
+    }
+
+  bg_sqlite_id_tab_init(&tab);
+  bg_db_flush(db);
+  
+  type = bg_db_object_get_type(parent);
+  
+  if(type & BG_DB_FLAG_CONTAINER)
+    {
+    sql = sqlite3_mprintf("select ID from OBJECTS where PARENT_ID = %"PRId64" ORDER BY label;",
+                          bg_db_object_get_id(parent));
+    result = bg_sqlite_exec(db->db, sql, bg_sqlite_append_id_callback, &tab);
+    sqlite3_free(sql);
+    if(!result) // Error
+      {
+      goto fail;
+      }
+    }
+  else // Virtual folder
+    {
+    }
+
+  for(i = 0; i < tab.num_val; i++)
+    {
+    obj = bg_db_object_query(db, tab.val[i]);
+    if(!obj)
+      {
+      // Error
+      goto fail;
+      }
+    cb(priv, obj);
+    bg_db_object_unref(obj);
+    }
+
+  fail:
+  if(parent)
+    bg_db_object_unref(parent);
   }
