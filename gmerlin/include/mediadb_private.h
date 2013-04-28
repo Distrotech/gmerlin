@@ -154,6 +154,10 @@ int64_t bg_db_object_get_id(void * obj);
 
 void bg_db_object_create_ref(void * obj, void * parent);
 void bg_db_object_set_label_nocpy(void * obj, char * label);
+void bg_db_object_set_label(void * obj1, const char * label);
+
+void bg_db_object_add_child(bg_db_t * db, void * obj1, void * child1);
+void bg_db_object_remove_child(bg_db_t * db, void * obj1, void * child1);
 
 void bg_db_object_init(void * obj1);
 
@@ -199,7 +203,6 @@ void bg_db_audio_file_create_refs(bg_db_t * db, void * obj);
 
 void bg_db_audio_file_add_to_album(bg_db_t * db, bg_db_audio_file_t * t);
 void bg_db_audio_file_remove_from_album(bg_db_t * db, bg_db_audio_file_t * t);
-int bg_db_audio_album_query(bg_db_t * db, bg_db_audio_album_t * a, int full);
 extern const bg_db_object_class_t bg_db_audio_album_class;
 
 /* Utility functions we might want */

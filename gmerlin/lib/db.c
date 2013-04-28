@@ -88,23 +88,10 @@ static const char * create_commands[] =
     "BITRATE TEXT"
     ");",
 
-    "CREATE TABLE AUDIO_FILES_REFS("
-    "ID INTEGER PRIMARY KEY, "
-    "REF_ID INTEGER, "
-    "TITLE TEXT, "
-    "ARTIST INTEGER, "
-    "GENRE INTEGER, "
-    "DATE TEXT, "
-    "ALBUM INTEGER, "
-    "TRACK INTEGER "
-    ");",
-
     "CREATE TABLE AUDIO_ALBUMS("
     "ID INTEGER PRIMARY KEY, "
     "ARTIST INTEGER, "
     "TITLE TEXT, "
-    "DURATION INTEGER, "
-    "TRACKS INTEGER, "
     "GENRE INTEGER, "
     "DATE TEXT"
     ");",

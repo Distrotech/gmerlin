@@ -120,13 +120,13 @@ static int file_add(bg_db_t * db, bg_db_file_t * f)
 
 static int compare_file_by_path(const bg_db_object_t * obj, const void * data)
   {
-  bg_db_file_t * file;
+  const bg_db_file_t * file;
   if((obj->type == BG_DB_OBJECT_FILE) ||
      (obj->type == BG_DB_OBJECT_AUDIO_FILE) ||
      (obj->type == BG_DB_OBJECT_VIDEO_FILE) ||
      (obj->type == BG_DB_OBJECT_PHOTO_FILE))
     {
-    file = (bg_db_file_t*)obj;
+    file = (const bg_db_file_t*)obj;
     if(!strcmp(file->path, data))
       return 1;
     }

@@ -153,6 +153,8 @@ const bg_db_object_class_t * bg_db_object_get_class(bg_db_object_type_t t)
       break;
     case BG_DB_OBJECT_PLAYLIST:
       break;
+    case BG_DB_OBJECT_VFOLDER:
+      break;
     case BG_DB_OBJECT_AUDIO_ALBUM:
       return &bg_db_audio_album_class;
       break;
@@ -165,7 +167,7 @@ void bg_db_object_update_size(bg_db_t * db, void * obj, int64_t delta_size)
   bg_db_object_t * o = obj;
   o->size += delta_size;
 
-  //  fprintf(stderr, "Update size %ld: %ld -> %ld\n", o->id, delta_size, o->size);
+  //  fprintf(stderr, "Update size %ld %ld: %ld -> %ld\n", o->id, o->parent_id, delta_size, o->size);
   if(o->parent_id > 0)
     {
     bg_db_object_t * parent = bg_db_object_query(db, o->parent_id);
@@ -375,6 +377,12 @@ void bg_db_object_set_label_nocpy(void * obj1, char * label)
   obj->label = label;
   }
 
+void bg_db_object_set_label(void * obj1, const char * label)
+  {
+  bg_db_object_t * obj = obj1;
+  obj->label = gavl_strdup(label);
+  }
+
 void bg_db_object_set_parent_id(bg_db_t * db, void * obj, int64_t parent_id)
   {
   bg_db_object_t * parent = bg_db_object_query(db, parent_id);
@@ -382,16 +390,33 @@ void bg_db_object_set_parent_id(bg_db_t * db, void * obj, int64_t parent_id)
   bg_db_object_unref(parent);
   }
 
+void bg_db_object_add_child(bg_db_t * db, void * obj1, void * child1)
+  {
+  bg_db_object_t * obj = obj1;
+  bg_db_object_t * child = child1;
+
+  obj->children++;
+  bg_db_object_update_size(db, obj, child->size);
+  bg_db_object_update_duration(db, obj, child->duration);
+  }
+
+void bg_db_object_remove_child(bg_db_t * db, void * obj1, void * child1)
+  {
+  bg_db_object_t * obj = obj1;
+  bg_db_object_t * child = child1;
+  obj->children--;
+  bg_db_object_update_size(db, obj, -child->size);
+  bg_db_object_update_duration(db, obj, -child->duration);
+  }
+
 void bg_db_object_set_parent(bg_db_t * db, void * obj1, void * parent1)
   {
   bg_db_object_t * obj = obj1;
   bg_db_object_t * parent = parent1;
   obj->parent_id = parent->id;
-  parent->children++;
-  
-  bg_db_object_update_size(db, parent, obj->size);
-  bg_db_object_update_duration(db, parent, obj->duration);
+  bg_db_object_add_child(db, parent1, obj1);
   }
+
 
 static void delete_from_parent(bg_db_t * db, bg_db_object_t * obj)
   {
@@ -400,16 +425,13 @@ static void delete_from_parent(bg_db_t * db, bg_db_object_t * obj)
   if(obj->parent_id > 0)
     {
     parent = bg_db_object_query(db, obj->parent_id);
-    parent->children--;
 
+    bg_db_object_remove_child(db, parent, obj);
+      
     if(!parent->children && (parent->type & BG_DB_FLAG_NO_EMPTY))
       bg_db_object_delete(db, parent);
     else
-      {
-      bg_db_object_update_size(db, parent, -obj->size);
-      bg_db_object_update_duration(db, parent, -obj->duration);
       bg_db_object_unref(parent);
-      }
     }
   }
 

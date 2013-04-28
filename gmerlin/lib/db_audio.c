@@ -75,6 +75,7 @@ static void del_audio_file(bg_db_t * db, bg_db_object_t * obj) // Delete from db
   {
   bg_sqlite_delete_by_id(db->db, "FILES", obj->id);
   bg_sqlite_delete_by_id(db->db, "AUDIO_FILES", obj->id);
+  bg_db_audio_file_remove_from_album(db, (bg_db_audio_file_t*)obj);
   }
 
 static int audio_query_callback(void * data, int argc, char **argv, char **azColName)
@@ -203,6 +204,19 @@ void bg_db_audio_file_create(bg_db_t * db, void * obj, bg_track_info_t * t)
       bg_sqlite_string_to_id_add(db->db, "AUDIO_GENRES",
                                  "ID", "NAME", f->genre);
     }
+
+  /* Albumartist */
+  if(f->albumartist)
+    {
+    f->albumartist_id = 
+      bg_sqlite_string_to_id_add(db->db, "AUDIO_ARTISTS",
+                                 "ID", "NAME", f->albumartist);
+    }
   audio_file_add(db, f);
+
+  /* Add to album */
+
+  if(f->album && f->albumartist)
+    bg_db_audio_file_add_to_album(db, f);
   }
 

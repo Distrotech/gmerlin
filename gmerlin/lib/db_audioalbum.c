@@ -39,6 +39,7 @@ static int album_query_callback(void * data, int argc, char **argv, char **azCol
     BG_DB_SET_QUERY_INT("ARTIST"   ,   artist_id);
     BG_DB_SET_QUERY_STRING("TITLE",    title);
     BG_DB_SET_QUERY_INT("GENRE",       genre_id);
+    BG_DB_SET_QUERY_DATE("DATE",       date);
     }
   ret->obj.found = 1;
   return 0;
@@ -48,15 +49,38 @@ static int query_audioalbum(bg_db_t * db, void * a1, int full)
   {
   char * sql;
   int result;
-  bg_db_object_t * a = a1;
+  bg_db_audio_album_t * a = a1;
   
-  sql = sqlite3_mprintf("select * from AUDIO_ALBUMS where ID = %"PRId64";", a->id);
+  sql = sqlite3_mprintf("select * from AUDIO_ALBUMS where ID = %"PRId64";", bg_db_object_get_id(a));
   result = bg_sqlite_exec(db->db, sql, album_query_callback, a);
   sqlite3_free(sql);
-  if(!result || !a->found)
+  if(!result || !a->obj.found)
     return 0;
+
+  if(full)
+    {
+    a->artist = bg_sqlite_id_to_string(db->db, "AUDIO_ARTISTS", "NAME", "ID", a->artist_id);
+    a->genre  = bg_sqlite_id_to_string(db->db, "AUDIO_GENRES",  "NAME", "ID", a->genre_id);
+    }
   return 1;
   }
+
+static void update_audioalbum(bg_db_t * db, void * obj)
+  {
+  bg_db_audio_album_t * a = (bg_db_audio_album_t *)obj;
+  char * sql;
+  int result;
+  char date_string[BG_DB_DATE_STRING_LEN];
+  
+  bg_db_date_to_string(&a->date, date_string);
+  
+  sql = sqlite3_mprintf("UPDATE AUDIO_ALBUMS SET DATE = %Q, GENRE = %"PRId64" WHERE ID = %"PRId64";",
+                        date_string, a->genre_id, bg_db_object_get_id(a));
+  result = bg_sqlite_exec(db->db, sql, NULL, NULL);
+  sqlite3_free(sql);
+  return;
+  }
+
 
 static void del_audioalbum(bg_db_t * db, bg_db_object_t * obj) // Delete from db
   {
@@ -77,148 +101,119 @@ const bg_db_object_class_t bg_db_audio_album_class =
     .del = del_audioalbum,
     .free = free_audioalbum,
     .query = query_audioalbum,
+    .update = update_audioalbum,
     .parent = NULL, // Object
   };
 
-void bg_db_audio_file_add_to_album(bg_db_t * db, bg_db_audio_file_t * f)
+static int compare_album_by_file(const bg_db_object_t * obj, const void * data)
   {
-#if 0
-  char * sql;
-  int result;
-  bg_db_audio_album_t a;
-  char date_string[BG_DB_DATE_STRING_LEN];
-  
-  bg_db_audio_album_init(&a, NULL);
+  const bg_db_audio_file_t * file;
+  const bg_db_audio_album_t * album;
 
-  /* Add albumartist */
-  a.artist_id =
-    bg_sqlite_string_to_id_add(db->db, "AUDIO_ARTISTS",
-                               "ID", "NAME", f->albumartist);
-  a.title = gavl_strdup(f->album);
+  if(obj->type == BG_DB_OBJECT_AUDIO_ALBUM)
+    {
+    file = (const bg_db_audio_file_t*)data;
+    album = (const bg_db_audio_album_t*)obj;
+    
+    if(!strcmp(file->album, album->title) &&
+       (album->artist_id == file->albumartist_id))
+      return 1;
+    }
+  return 0;
+  } 
 
   /* Check if the album already exists */
+
+static int64_t find_by_file(bg_db_t * db, bg_db_audio_file_t * f)
+  {
+  int64_t ret;
+  char * sql;
+  int result;
+
+  ret = bg_db_cache_search(db, compare_album_by_file, f);
+  if(ret > 0)
+    return ret;
+
+  ret = -1;
   sql = sqlite3_mprintf("select ID from AUDIO_ALBUMS where ((TITLE = %Q) & (ARTIST = %"PRId64"));",
-                        a.title, a.artist_id);
-  result = bg_sqlite_exec(db->db, sql, bg_sqlite_int_callback, &a.obj.id);
+                        f->album, f->albumartist_id);
+  result = bg_sqlite_exec(db->db, sql, bg_sqlite_int_callback, &ret);
   sqlite3_free(sql);
 
   if(!result)
-    return; // Should never happen
+    return -1; // Should never happen
+
+  return ret;
   
-  if(a.obj.id < 0) /* Album doesn't exit yet, create it */
+  }
+
+void bg_db_audio_file_add_to_album(bg_db_t * db, bg_db_audio_file_t * f)
+  {
+  int64_t id;
+  bg_db_audio_album_t * a;
+  bg_db_object_t * o;
+  
+  if((id = find_by_file(db, f)) > 0)
     {
-    /* Date */
-    bg_db_date_copy(&a.date, &f->date);
-    bg_db_date_to_string(&a.date, date_string);
-    
-    a.genre_id = f->genre_id;
-    
-    sql = sqlite3_mprintf("INSERT INTO AUDIO_ALBUMS ( ID, ARTIST, TITLE, GENRE, DATE ) VALUES ( %"PRId64", %"PRId64", %Q, %"PRId64", %Q);",
-                          a.id, a.artist_id, a.title, a.genre_id, date_string);
-    result = bg_sqlite_exec(db->db, sql, NULL, NULL);
-    sqlite3_free(sql);
+    /* Add to album */
+    a = bg_db_object_query(db, id);
+    o = (bg_db_object_t *)a;
+    bg_db_object_add_child(db, a, f);
+
+    /* Clear some fields if they changed */
+
+    /* If there is a date set, we check if it's the same for the added track */
+    if(!bg_db_date_equal(&a->date, &f->date))
+      bg_db_date_set_invalid(&a->date);
+
+    /* If there is a genre set, we check if it's the same for the added track */
+    if(a->genre_id != f->genre_id)
+      a->genre_id = 0;
+    bg_db_object_unref(a);
     }
   else
     {
-    /* Update tracks and duration */
-    a.tracks++;
-    a.duration += f->duration;
+    char * sql;
+    int result;
+    char date_string[BG_DB_DATE_STRING_LEN];
     
-    /* If there is a date set, we check if it's the same for the added track */
-    if(!bg_db_date_equal(&a.date, &f->date))
-      bg_db_date_set_invalid(&a.date);
+    /* Create album */
+    a = bg_db_object_create(db);
+    bg_db_object_set_type(a, BG_DB_OBJECT_AUDIO_ALBUM);
 
-    bg_db_date_to_string(&a.date, date_string);
+    a->genre_id = f->genre_id;
+    /* Remove title completely? */
+    a->title = gavl_strdup(f->album);
+    bg_db_object_set_label(a, f->album);
+    bg_db_date_copy(&a->date, &f->date);
+    a->artist_id = f->albumartist_id;
 
-    /* If there is a genre set, we check if it's the same for the added track */
-    if(a.genre_id != f->genre_id)
-      a.genre_id = 0;
-
-    sql = sqlite3_mprintf("UPDATE AUDIO_ALBUMS SET TRACKS = %d, DATE = %Q, DURATION = %"PRId64", GENRE = %"PRId64" WHERE ID = %"PRId64";",
-                          a.tracks, date_string, a.duration, a.genre_id, a.id);
+    bg_db_date_to_string(&a->date, date_string);
+    
+    sql = sqlite3_mprintf("INSERT INTO AUDIO_ALBUMS ( ID, ARTIST, TITLE, GENRE, DATE ) VALUES ( %"PRId64", %"PRId64", %Q, %"PRId64", %Q);",
+                          bg_db_object_get_id(a), a->artist_id, a->title, a->genre_id, date_string);
     result = bg_sqlite_exec(db->db, sql, NULL, NULL);
     sqlite3_free(sql);
-    if(!result)
-      return;
     
+    bg_db_object_add_child(db, a, f);
+    bg_db_object_unref(a);
     }
-#endif
   }
 
 void bg_db_audio_file_remove_from_album(bg_db_t * db, bg_db_audio_file_t * f)
   {
-#if 0
-  char * sql;
-  int result;
-  bg_db_audio_album_t a;
+  bg_db_audio_album_t * a;
+  a = bg_db_object_query(db, f->album_id);
 
-  if(f->album_id <= 0)
-    return;
+  if(!a)
+    return; // Shouldn't happen
 
-  bg_db_audio_album_init(&a);
-  a.id = f->album_id;
+  bg_db_object_remove_child(db, a, f);
 
-  sql = sqlite3_mprintf("select TRACKS, DURATION from AUDIO_ALBUMS where ID = %"PRId64";", a.id);
-  result = bg_sqlite_exec(db->db, sql, album_query_callback, &a);
-  sqlite3_free(sql);
-  if(!result || !a.found)
-    return;
-
-  if(a.tracks == 1) // Delete entire album
-    {
-    sql = sqlite3_mprintf("DELETE FROM AUDIO_ALBUMS WHERE ID = %"PRId64";", f->album_id);
-    result = bg_sqlite_exec(db->db, sql, NULL, NULL);
-    sqlite3_free(sql);
-    }
+  if(!a->obj.children)
+    bg_db_object_delete(db, a);
   else
-    {
-    a.tracks--;
-    a.duration -= f->duration;
-    sql = sqlite3_mprintf("UPDATE AUDIO_ALBUMS SET TRACKS = %d, DURATION = %"PRId64" WHERE ID = %"PRId64";",
-                          a.tracks, a.duration, a.id);
-    result = bg_sqlite_exec(db->db, sql, NULL, NULL);
-    sqlite3_free(sql);
-    }
-#endif
+    bg_db_object_unref(a);
+  
   }
 
-int bg_db_audio_album_query(bg_db_t * db, bg_db_audio_album_t*a, int full)
-  {
-#if 0
-  char * sql;
-  int result;
-
-  if(a->id < 0)
-    {
-    if((a->artist_id >= 0) && (a->title))
-      {
-      sql = sqlite3_mprintf("select * from AUDIO_ALBUMS where ((TITLE = %Q) & (ARTIST = %"PRId64"));",
-                            a->title, a->artist_id);
-      result = bg_sqlite_exec(db->db, sql, album_query_callback, a);
-      sqlite3_free(sql);
-      if(!result || !a->found)
-        return 0;
-      }
-    }
-  else if(a->id >= 0)
-    {
-    sql =
-      sqlite3_mprintf("select * from AUDIO_ALBUMS where ID = %"PRId64";", a->id);
-    result = bg_sqlite_exec(db->db, sql, album_query_callback, a);
-    sqlite3_free(sql);
-    if(!result || !a->found)
-      return 0;
-    }
-  else
-    {
-    bg_log(BG_LOG_ERROR, LOG_DOMAIN,
-           "Either ID or artist and title must be set in audio album");
-    return 0;
-    }
-  if(!full)
-    return 1;
-  a->artist = bg_sqlite_id_to_string(db->db, "AUDIO_ARTISTS", "NAME", "ID", a->artist_id);
-  a->genre  = bg_sqlite_id_to_string(db->db, "AUDIO_GENRES",  "NAME", "ID", a->genre_id);
-#endif
-  return 1;
-  }

@@ -101,12 +101,20 @@ typedef enum
   BG_DB_OBJECT_AUDIO_FILE   = 2,
   BG_DB_OBJECT_VIDEO_FILE   = 3,
   BG_DB_OBJECT_PHOTO_FILE   = 4,
+
+  // object.container.album.musicAlbum
+  // Audio albums are *no* containers for the internal database
+  // because they are referenced by their children not by the parent_id
+  // but by the album
+  BG_DB_OBJECT_AUDIO_ALBUM =  5,
+
   BG_DB_OBJECT_CONTAINER   =  1 | BG_DB_FLAG_CONTAINER,
   // object.container.storageFolder
   BG_DB_OBJECT_DIRECTORY   =  2 | BG_DB_FLAG_CONTAINER, 
   BG_DB_OBJECT_PLAYLIST    =  3 | BG_DB_FLAG_CONTAINER,
-  // object.container.album.musicAlbum
-  BG_DB_OBJECT_AUDIO_ALBUM =  4 | BG_DB_FLAG_CONTAINER | BG_DB_FLAG_NO_EMPTY,
+
+  // Virtual Folder */
+  BG_DB_OBJECT_VFOLDER     =  5 | BG_DB_FLAG_CONTAINER | BG_DB_FLAG_NO_EMPTY,
   } bg_db_object_type_t;
 
 typedef struct bg_db_object_class_s bg_db_object_class_t;
@@ -177,14 +185,16 @@ typedef struct
   
   char * bitrate;    // BITRATE
 
-  /* Secondary variables */
-  char * albumartist;
+  char * albumartist;     // Not in db, set only while creating
+  int64_t albumartist_id; // Not in db, set only while creating
+  
   } bg_db_audio_file_t;
 
 /* Audio Album */
 typedef struct
   {
   bg_db_object_t obj;
+
   char * artist;
   int64_t artist_id;
   char * title;
@@ -193,9 +203,26 @@ typedef struct
   int64_t genre_id;
 
   bg_db_date_t date;
-  
   } bg_db_audio_album_t;
 
+/* Virtual audio folder */
+#if 0
+typedef enum
+  {
+    
+  }
+#endif
+  
+typedef struct
+  {
+  bg_db_object_t obj;
+  int64_t genre;        // 0 means all
+  int64_t artist;       // 0 means all
+  int64_t albumartist;  // 0 means all
+  int64_t album;        // 0 means all
+  int64_t artist_group; // Alphabetical group, 0 means all
+  bg_db_date_t date;    // Date
+  } bg_db_audio_vfolder_t;
 
 /* Video */
 typedef struct
