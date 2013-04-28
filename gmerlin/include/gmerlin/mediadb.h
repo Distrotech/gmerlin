@@ -206,16 +206,30 @@ typedef struct
   } bg_db_audio_album_t;
 
 /* Virtual audio folder */
-#if 0
+
 typedef enum
   {
-    
-  }
-#endif
-  
+    BG_DB_AUDIO_CAT_SONG              = 1,
+    BG_DB_AUDIO_CAT_ALBUM             = 2,
+    BG_DB_AUDIO_CAT_YEAR              = 3,
+    BG_DB_AUDIO_CAT_ALBUMARTIST       = 4,
+    BG_DB_AUDIO_CAT_ALBUMARTIST_GROUP = 5,
+    BG_DB_AUDIO_CAT_ARTIST            = 6,
+    BG_DB_AUDIO_CAT_ARTIST_GROUP      = 7,
+    BG_DB_AUDIO_CAT_GENRE             = 8,
+  } bg_db_audio_category_t;
+
+struct
+  {
+  bg_db_audio_category_t cat;
+  int64_t id;
+  } bg_db_audio_vfolder_structure_t;
+
 typedef struct
   {
   bg_db_object_t obj;
+
+
   int64_t genre;        // 0 means all
   int64_t artist;       // 0 means all
   int64_t albumartist;  // 0 means all

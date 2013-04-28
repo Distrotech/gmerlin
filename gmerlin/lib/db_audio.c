@@ -173,8 +173,9 @@ void bg_db_audio_file_create(bg_db_t * db, void * obj, bg_track_info_t * t)
   if((var = gavl_metadata_get(&t->metadata, GAVL_META_GENRE)))
     f->genre = gavl_strdup(var);
   
-  f->date.year = bg_metadata_get_year(&t->metadata);
-    
+  if(!(f->date.year = bg_metadata_get_year(&t->metadata)))
+    bg_db_date_set_invalid(&f->date);
+  
   if((var = gavl_metadata_get(&t->metadata, GAVL_META_ALBUM)))
     f->album = gavl_strdup(var);
 

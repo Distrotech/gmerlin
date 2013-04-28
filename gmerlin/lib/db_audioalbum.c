@@ -169,6 +169,7 @@ void bg_db_audio_file_add_to_album(bg_db_t * db, bg_db_audio_file_t * f)
     /* If there is a genre set, we check if it's the same for the added track */
     if(a->genre_id != f->genre_id)
       a->genre_id = 0;
+    f->album_id = bg_db_object_get_id(a);
     bg_db_object_unref(a);
     }
   else
@@ -194,6 +195,8 @@ void bg_db_audio_file_add_to_album(bg_db_t * db, bg_db_audio_file_t * f)
                           bg_db_object_get_id(a), a->artist_id, a->title, a->genre_id, date_string);
     result = bg_sqlite_exec(db->db, sql, NULL, NULL);
     sqlite3_free(sql);
+
+    f->album_id = bg_db_object_get_id(a);
     
     bg_db_object_add_child(db, a, f);
     bg_db_object_unref(a);
