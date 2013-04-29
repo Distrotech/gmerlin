@@ -66,6 +66,16 @@ static int query_audioalbum(bg_db_t * db, void * a1, int full)
   return 1;
   }
 
+static void get_children_audioalbum(bg_db_t * db, void * obj, bg_sqlite_id_tab_t * tab)
+  {
+  char * sql;
+  int result;
+  sql = sqlite3_mprintf("SELECT ID FROM AUDIO_FILES WHERE ALBUM = %"PRId64" ORDER BY TRACK;",
+                        bg_db_object_get_id(obj));
+  result = bg_sqlite_exec(db->db, sql, bg_sqlite_append_id_callback, &tab);
+  sqlite3_free(sql);
+  }
+
 static void update_audioalbum(bg_db_t * db, void * obj)
   {
   bg_db_audio_album_t * a = (bg_db_audio_album_t *)obj;
@@ -100,12 +110,24 @@ static void free_audioalbum(void * obj)
 
   }
 
+static void dump_audioalbum(void * obj)
+  {
+  bg_db_audio_album_t*a = obj;
+  gavl_diprintf(2, "Artist: %s\n", a->artist);
+  gavl_diprintf(2, "Title:  %s (%s)\n", a->title, a->search_title);
+  gavl_diprintf(2, "Year:   %d\n", a->date.year);
+  gavl_diprintf(2, "Genre:  %s\n", a->genre);
+  }
+
 const bg_db_object_class_t bg_db_audio_album_class =
   {
+    .name = "Audio album",
     .del = del_audioalbum,
     .free = free_audioalbum,
     .query = query_audioalbum,
     .update = update_audioalbum,
+    .dump = dump_audioalbum,
+    .get_children = get_children_audioalbum,
     .parent = NULL, // Object
   };
 
@@ -185,7 +207,7 @@ void bg_db_audio_file_add_to_album(bg_db_t * db, bg_db_audio_file_t * f)
     /* Create album */
     a = bg_db_object_create(db);
     bg_db_object_set_type(a, BG_DB_OBJECT_AUDIO_ALBUM);
-
+    bg_db_object_set_parent_id(db, a, -1);
     a->genre_id = f->genre_id;
     /* Remove title completely? */
     a->title = gavl_strdup(f->album);

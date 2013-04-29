@@ -84,8 +84,19 @@ static void free_file(void * obj)
     free(f->mimetype);
   }
 
+static void dump_file(void * obj)
+  {
+  bg_db_file_t * f = obj;
+  gavl_diprintf(2, "Path:        %s\n", f->path);
+  gavl_diprintf(2, "Mtime:       %"PRId64"\n", (int64_t)f->mtime);
+  gavl_diprintf(2, "Mimetype:    %s\n", f->mimetype);
+  gavl_diprintf(2, "Scan dir ID: %"PRId64"\n", f->scan_dir_id);
+  }
+
 const bg_db_object_class_t bg_db_file_class =
   {
+  .name = "File",
+  .dump = dump_file,
   .del = del_file,
   .free = free_file,
   .query = query_file,

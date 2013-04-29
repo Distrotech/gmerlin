@@ -61,11 +61,13 @@ typedef union
 
 struct bg_db_object_class_s
   {
+  const char * name;
   void (*del)(bg_db_t * db, bg_db_object_t * obj);   // Delete from db
   void (*free)(void * obj);                          // Free memory
   int (*query)(bg_db_t * db, void * obj, int full);  // Query from database
   void (*update)(bg_db_t * db, void * obj);          // Update database with new settings
-  
+  void (*dump)(void * obj);
+  void (*get_children)(bg_db_t * db, void * obj, bg_sqlite_id_tab_t * tab);
   const struct bg_db_object_class_s * parent;
   };
 

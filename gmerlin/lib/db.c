@@ -513,9 +513,8 @@ bg_db_query_children(bg_db_t * db, int64_t id, bg_db_query_callback cb, void * p
       }
     }
   else // Virtual folder
-    {
-    }
-
+    parent->klass->get_children(db, parent, &tab);
+  
   for(i = 0; i < tab.num_val; i++)
     {
     obj = bg_db_object_query(db, tab.val[i]);

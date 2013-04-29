@@ -212,15 +212,9 @@ typedef struct
 
 typedef enum
   {
-    BG_DB_CAT_SONGTITLE         = 1,
     BG_DB_CAT_YEAR              = 2,
-    BG_DB_CAT_ALBUMYEAR         = 3,
     BG_DB_CAT_ARTIST            = 7,
-    BG_DB_CAT_ARTIST_GROUP      = 8,
-    BG_DB_CAT_ALBUMARTIST       = 5,
-    BG_DB_CAT_ALBUMARTIST_GROUP = 6,
     BG_DB_CAT_GENRE             = 9,
-    BG_DB_CAT_AUDIOALBUM        = 10,
   } bg_db_category_t;
 
 struct
@@ -233,17 +227,19 @@ struct
 
 typedef struct
   {
+  bg_db_category_t cat;
+  int64_t val;
+  } bg_db_vfolder_path_t;
+
+typedef struct
+  {
   bg_db_object_t obj;
 
   int depth;
-  int64_t table;
+  bg_db_object_type_t type;
   
-  struct
-    {
-    bg_db_category_t cat;
-    int64_t id;
-    } categories[BG_DB_VFOLDER_MAX_DEPTH];
-  
+  bg_db_vfolder_path_t path[BG_DB_VFOLDER_MAX_DEPTH];
+ 
   } bg_db_vfolder_t;
 
 /* Video */
@@ -285,6 +281,8 @@ typedef void (*bg_db_query_callback)(void * priv, const void * obj);
 
 /* Query from DB  */
 void * bg_db_object_query(bg_db_t * db, int64_t id); 
+
+void bg_db_object_dump(void * obj);
 
 void bg_db_object_unref(void * obj);
 

@@ -91,6 +91,15 @@ static void free_dir(void * obj) // Delete from db
     free(d->path);
   }
 
+static void dump_dir(void * obj)
+  {
+  bg_db_dir_t*d = obj;
+  gavl_diprintf(2, "Path:        %s\n", d->path);
+  gavl_diprintf(2, "Scan flags:  %04x\n", d->scan_flags);
+  gavl_diprintf(2, "Update ID:   %d\n", d->update_id);
+  gavl_diprintf(2, "Scan dir ID: %"PRId64"\n", d->scan_dir_id);
+  }
+
 const bg_db_object_class_t bg_db_dir_class =
   {
   .del = del_dir,

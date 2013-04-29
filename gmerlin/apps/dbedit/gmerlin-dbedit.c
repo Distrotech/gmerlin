@@ -40,6 +40,9 @@ static int scan_type_opt = 0;
 
 static char * path = ".";
 
+static char * dump_object = NULL;
+static char * dump_children = NULL;
+
 static void
 opt_a(void * data, int * argc, char *** _argv, int arg)
   {
@@ -135,6 +138,18 @@ static bg_cmdline_arg_t global_options[] =
       .help_string = TRS("Add photo files"),
       .callback =    opt_photo,
     },
+    {
+      .arg =         "-do",
+      .help_arg =    "<ID>",
+      .help_string = TRS("Dump database object"),
+      .argv = &dump_object,
+    },
+    {
+      .arg =         "-dc",
+      .help_arg =    "<ID>",
+      .help_string = TRS("Dump children of the specified object"),
+      .argv = &dump_children,
+    },
     { /* End */ }
   };
 
@@ -157,6 +172,11 @@ const bg_cmdline_app_data_t app_data =
     },
     
   };
+
+static void callback(void * priv, const void * object)
+  {
+  bg_db_object_dump(object);
+  }
 
 int main(int argc, char ** argv)
   {
@@ -197,6 +217,20 @@ int main(int argc, char ** argv)
     bg_db_add_directory(db, add_dirs[i], scan_type);
   for(i = 0; i < num_del_dirs; i++)
     bg_db_del_directory(db, add_dirs[i]);
+
+  if(dump_object)
+    {
+    bg_db_object_t * obj;
+    int64_t id = strtoll(dump_object, NULL, 10);
+    obj = bg_db_object_query(db, id);
+    if(!obj)
+      bg_log(BG_LOG_ERROR, LOG_DOMAIN, "No such object");
+    else
+      {
+      bg_db_object_dump(obj);
+      bg_db_object_unref(obj);
+      }
+    }
   
   bg_db_destroy(db);
 

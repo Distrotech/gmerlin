@@ -71,6 +71,18 @@ static void free_audio_file(void * obj)
     free(file->albumartist);
   }
 
+static void dump_audio_file(void * obj)
+  {
+  bg_db_audio_file_t * file = obj;
+  gavl_diprintf(2, "Title:   %s\n", file->title);
+  gavl_diprintf(2, "Artist:  %s\n", file->artist);
+  gavl_diprintf(2, "Year:    %d\n", file->date.year);
+  gavl_diprintf(2, "Album:   %s (%"PRId64")\n", file->album, file->album_id);
+  gavl_diprintf(2, "Track:   %d\n", file->track);
+  gavl_diprintf(2, "Bitrate: %s\n", file->album);
+  gavl_diprintf(2, "Genre:   %s\n", file->genre);
+  }
+
 static void del_audio_file(bg_db_t * db, bg_db_object_t * obj) // Delete from db
   {
   bg_sqlite_delete_by_id(db->db, "FILES", obj->id);
@@ -121,6 +133,7 @@ static int query_audio_file(bg_db_t * db, void * obj, int full)
 
 const bg_db_object_class_t bg_db_audio_file_class =
   {
+  .name = "Audio file",
   .del = del_audio_file,
   .free = free_audio_file,
   .query = query_audio_file,

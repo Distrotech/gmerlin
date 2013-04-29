@@ -128,6 +128,29 @@ bg_db_object_unref(void * obj)
   s->refcount--;
   }
 
+void bg_db_object_dump(void * obj1)
+  {
+  bg_db_object_class_t * c;
+  bg_db_object_t * obj = obj1;
+  gavl_diprintf(0, "Object\n");
+  gavl_diprintf(2, "Type:     %d (%s)", obj->type, (obj->klass ? obj->klass->name : "Unknown"));
+  gavl_diprintf(2, "ID:       %"PRId64"\n", obj->id);
+  gavl_diprintf(2, "REF_ID:   %"PRId64"\n", obj->ref_id);
+  gavl_diprintf(2, "Parent:   %"PRId64"\n", obj->parent_id);
+  gavl_diprintf(2, "Children: %d\n", obj->children);
+  gavl_diprintf(2, "Size:     %"PRId64"\n", obj->size);
+  gavl_diprintf(2, "Duration: %"PRId64"\n", obj->duration);
+  gavl_diprintf(2, "Label:    %s\n", obj->label);
+  
+  /* Children */
+  c = obj->klass;
+  while(c)
+    {
+    if(c->dump)
+      c->dump(obj);
+    c = c->parent;
+    }
+  }
 
 const bg_db_object_class_t * bg_db_object_get_class(bg_db_object_type_t t)
   {
@@ -385,11 +408,19 @@ void bg_db_object_set_label(void * obj1, const char * label)
   obj->label = gavl_strdup(label);
   }
 
-void bg_db_object_set_parent_id(bg_db_t * db, void * obj, int64_t parent_id)
+void bg_db_object_set_parent_id(bg_db_t * db, void * obj1, int64_t parent_id)
   {
-  bg_db_object_t * parent = bg_db_object_query(db, parent_id);
-  bg_db_object_set_parent(db, obj, &parent);
-  bg_db_object_unref(parent);
+  if(parent_id <= 0)
+    {
+    bg_db_object_t * obj = obj1;
+    obj->parent_id = parent_id;
+    }
+  else
+    {
+    bg_db_object_t * parent = bg_db_object_query(db, parent_id);
+    bg_db_object_set_parent(db, obj1, &parent);
+    bg_db_object_unref(parent);
+    }
   }
 
 void bg_db_object_add_child(bg_db_t * db, void * obj1, void * child1)
