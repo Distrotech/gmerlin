@@ -112,41 +112,68 @@ static void build_database(bg_db_t * db)
   bg_db_create_tables_vfolders(db);
   }
 
-bg_db_t * bg_db_create(const char * file,
+const char * directories[] =
+  {
+    "gmerlin-db",
+    "gmerlin-db/previews",
+    "gmerlin-db/thumbnails",
+    NULL,
+  };
+
+bg_db_t * bg_db_create(const char * path,
                        bg_plugin_registry_t * plugin_reg, int create)
   {
   int result;
   int exists = 0;
   sqlite3 * db;
   bg_db_t * ret;
-  char * pos;
   int i;
+  char * tmp_string;
+
+  tmp_string = bg_sprintf("%s/gmerlin-db", path);
   
-  if(!access(file, R_OK | W_OK))
+  if(!access(tmp_string, R_OK | W_OK))
     exists = 1;
+  free(tmp_string);
 
   if(!exists && !create)
     {
-    bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Cannot open database %s (maybe use create option)", file);
+    bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Cannot open database in %s (maybe use create option)", path);
     return NULL;
     }
 
   if(exists && create)
     {
-    bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Database %s already exists", file);
+    bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Database in %s already exists", path);
     return NULL;
+    }
+
+  if(create && !exists)
+    {
+    i = 0;
+    while(directories[i])
+      {
+      tmp_string = bg_sprintf("%s/%s", path, directories[i]);
+      bg_ensure_directory(tmp_string);
+      free(tmp_string);
+      i++;
+      }
     }
   
   /* Create database */
 
-  result = sqlite3_open(file, &db);
+  tmp_string = bg_sprintf("%s/gmerlin-db/gmerlin.db", path);
+  result = sqlite3_open(tmp_string, &db);
+
   if(result)
     {
-    bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Cannot open database %s: %s", file,
+    bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Cannot open database %s: %s", tmp_string,
            sqlite3_errmsg(db));
     sqlite3_close(db);
+    free(tmp_string);
     return NULL;
     }
+  free(tmp_string);
 
   ret = calloc(1, sizeof(*ret));
   ret->db = db;
@@ -162,13 +189,8 @@ bg_db_t * bg_db_create(const char * file,
     build_database(ret);
   
   /* Base path */
-  ret->base_dir = bg_canonical_filename(file);
-  
-  pos = strrchr(ret->base_dir, '/');
-  pos++;
-  *pos = '\0';
-
-  ret->base_len = strlen(ret->base_dir);
+  ret->base_dir = bg_canonical_filename(path);
+  ret->base_dir = gavl_strcat(ret->base_dir, "/");
   return ret;
   }
 

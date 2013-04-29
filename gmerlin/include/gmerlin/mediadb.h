@@ -89,20 +89,19 @@ void bg_db_date_set_invalid(bg_db_date_t * d);
  *  Object definitions
  */
 
-#define BG_DB_FLAG_CONTAINER  (1<<8)
-#define BG_DB_FLAG_NO_EMPTY   (1<<9)  
-#define BG_DB_FLAG_VCONTAINER (1<<10)
-
-// #define BG_DB_UNIQUE_ID_REFERENCE 0x4000
+#define BG_DB_FLAG_CONTAINER  (1<<8)  // Real container
+#define BG_DB_FLAG_NO_EMPTY   (1<<9)  // Auto delete when empty
+#define BG_DB_FLAG_VCONTAINER (1<<10) // Virtual container (needs browse_children method)
+#define DB_DB_FLAG_FILE       (1<<11) // Derived from file
 
 typedef enum
   {
   BG_DB_OBJECT_OBJECT       = 0,
-  BG_DB_OBJECT_FILE         = 1,
+  BG_DB_OBJECT_FILE         = 1 | DB_DB_FLAG_FILE,
   // object.item.audioItem.musicTrack
-  BG_DB_OBJECT_AUDIO_FILE   = 2,
-  BG_DB_OBJECT_VIDEO_FILE   = 3,
-  BG_DB_OBJECT_PHOTO_FILE   = 4,
+  BG_DB_OBJECT_AUDIO_FILE   = 2 | DB_DB_FLAG_FILE,
+  BG_DB_OBJECT_VIDEO_FILE   = 3 | DB_DB_FLAG_FILE,
+  BG_DB_OBJECT_PHOTO_FILE   = 4 | DB_DB_FLAG_FILE,
 
   // object.container.album.musicAlbum
   // Audio albums are *no* containers for the internal database
@@ -117,8 +116,7 @@ typedef enum
 
   // Virtual Folder */
   BG_DB_OBJECT_VFOLDER      =  9  | BG_DB_FLAG_CONTAINER | BG_DB_FLAG_NO_EMPTY,
-  BG_DB_OBJECT_VFOLDER_LEAF =  10 | BG_DB_FLAG_NO_EMPTY,
-
+  BG_DB_OBJECT_VFOLDER_LEAF =  10 | BG_DB_FLAG_VCONTAINER | BG_DB_FLAG_NO_EMPTY,
   } bg_db_object_type_t;
 
 typedef struct bg_db_object_class_s bg_db_object_class_t;

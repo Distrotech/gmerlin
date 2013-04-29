@@ -38,6 +38,7 @@ static int album_query_callback(void * data, int argc, char **argv, char **azCol
     {
     BG_DB_SET_QUERY_INT("ARTIST"   ,   artist_id);
     BG_DB_SET_QUERY_STRING("TITLE",    title);
+    BG_DB_SET_QUERY_STRING("SEARCH_TITLE", search_title);
     BG_DB_SET_QUERY_INT("GENRE",       genre_id);
     BG_DB_SET_QUERY_DATE("DATE",       date);
     }
@@ -94,6 +95,9 @@ static void free_audioalbum(void * obj)
     free(a->artist);
   if(a->title)
     free(a->title);
+  if(a->search_title)
+    free(a->search_title);
+
   }
 
 const bg_db_object_class_t bg_db_audio_album_class =

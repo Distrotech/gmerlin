@@ -38,6 +38,8 @@ static int do_create = 0;
 
 static int scan_type_opt = 0;
 
+static char * path = ".";
+
 static void
 opt_a(void * data, int * argc, char *** _argv, int arg)
   {
@@ -100,6 +102,11 @@ static bg_cmdline_arg_t global_options[] =
       .arg =         "-create",
       .help_string = TRS("Create a new database in the current directory"),
       .callback =    opt_create,
+    },
+    {
+      .arg =         "-root",
+      .help_string = "Root directory of the database",
+      .argv         = &path,
     },
     {
       .arg =         "-add",
@@ -177,7 +184,7 @@ int main(int argc, char ** argv)
   cfg_section = bg_cfg_registry_find_section(cfg_reg, "plugins");
   plugin_reg = bg_plugin_registry_create(cfg_section);
 
-  db = bg_db_create("gmerlin.db", plugin_reg, do_create);
+  db = bg_db_create(path, plugin_reg, do_create);
   if(!db)
     return -1;
 
