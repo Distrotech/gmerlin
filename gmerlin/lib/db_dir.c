@@ -102,11 +102,13 @@ static void dump_dir(void * obj)
 
 const bg_db_object_class_t bg_db_dir_class =
   {
-  .del = del_dir,
-  .free = free_dir,
-  .query = query_dir,
-  .update = update_dir,
-  .parent = NULL,
+    .name = "Directory",
+    .del = del_dir,
+    .free = free_dir,
+    .query = query_dir,
+    .update = update_dir,
+    .dump = dump_dir,
+    .parent = NULL,
   };
 
 static int compare_dir_by_path(const bg_db_object_t * obj, const void * data)

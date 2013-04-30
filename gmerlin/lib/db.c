@@ -489,31 +489,38 @@ bg_db_query_children(bg_db_t * db, int64_t id, bg_db_query_callback cb, void * p
   bg_sqlite_id_tab_t tab;
   bg_db_object_type_t type;
   void * obj;
-  bg_db_object_t * parent = bg_db_object_query(db, id);
-
-  if(!parent)
-    {
-    goto fail;
-    }
+  bg_db_object_t * parent = NULL;
 
   bg_sqlite_id_tab_init(&tab);
   bg_db_flush(db);
   
-  type = bg_db_object_get_type(parent);
-  
-  if(type & BG_DB_FLAG_CONTAINER)
+  if(!id)
     {
-    sql = sqlite3_mprintf("select ID from OBJECTS where PARENT_ID = %"PRId64" ORDER BY label;",
-                          bg_db_object_get_id(parent));
+    sql = sqlite3_mprintf("select ID from OBJECTS where PARENT_ID = 0 ORDER BY label;");
     result = bg_sqlite_exec(db->db, sql, bg_sqlite_append_id_callback, &tab);
     sqlite3_free(sql);
     if(!result) // Error
-      {
       goto fail;
-      }
     }
-  else // Virtual folder
-    parent->klass->get_children(db, parent, &tab);
+  else
+    {
+    parent = bg_db_object_query(db, id);
+    if(!parent)
+      goto fail;
+    type = bg_db_object_get_type(parent);
+
+    if(type & BG_DB_FLAG_CONTAINER)
+      {
+      sql = sqlite3_mprintf("select ID from OBJECTS where PARENT_ID = %"PRId64" ORDER BY LABEL;",
+                            bg_db_object_get_id(parent));
+      result = bg_sqlite_exec(db->db, sql, bg_sqlite_append_id_callback, &tab);
+      sqlite3_free(sql);
+      if(!result) // Error
+        goto fail;
+      }
+    else // Virtual folder
+      parent->klass->get_children(db, parent, &tab);
+    }
   
   for(i = 0; i < tab.num_val; i++)
     {
@@ -530,4 +537,6 @@ bg_db_query_children(bg_db_t * db, int64_t id, bg_db_query_callback cb, void * p
   fail:
   if(parent)
     bg_db_object_unref(parent);
+  bg_sqlite_id_tab_free(&tab);
+
   }

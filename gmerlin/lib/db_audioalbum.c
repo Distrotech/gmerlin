@@ -58,11 +58,9 @@ static int query_audioalbum(bg_db_t * db, void * a1, int full)
   if(!result || !a->obj.found)
     return 0;
 
-  if(full)
-    {
-    a->artist = bg_sqlite_id_to_string(db->db, "AUDIO_ARTISTS", "NAME", "ID", a->artist_id);
-    a->genre  = bg_sqlite_id_to_string(db->db, "AUDIO_GENRES",  "NAME", "ID", a->genre_id);
-    }
+  a->artist = bg_sqlite_id_to_string(db->db, "AUDIO_ARTISTS", "NAME", "ID", a->artist_id);
+  a->genre  = bg_sqlite_id_to_string(db->db, "AUDIO_GENRES",  "NAME", "ID", a->genre_id);
+
   return 1;
   }
 
@@ -231,6 +229,7 @@ void bg_db_audio_file_add_to_album(bg_db_t * db, bg_db_audio_file_t * f)
     f->album_id = bg_db_object_get_id(a);
     
     bg_db_object_add_child(db, a, f);
+    bg_db_create_vfolders(db, a);
     bg_db_object_unref(a);
     }
   }

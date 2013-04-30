@@ -173,7 +173,7 @@ const bg_cmdline_app_data_t app_data =
     
   };
 
-static void callback(void * priv, const void * object)
+static void callback(void * priv, void * object)
   {
   bg_db_object_dump(object);
   }
@@ -230,6 +230,11 @@ int main(int argc, char ** argv)
       bg_db_object_dump(obj);
       bg_db_object_unref(obj);
       }
+    }
+  if(dump_children)
+    {
+    int64_t id = strtoll(dump_children, NULL, 10);
+    bg_db_query_children(db, id, callback, NULL);
     }
   
   bg_db_destroy(db);

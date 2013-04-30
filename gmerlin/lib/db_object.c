@@ -130,10 +130,10 @@ bg_db_object_unref(void * obj)
 
 void bg_db_object_dump(void * obj1)
   {
-  bg_db_object_class_t * c;
+  const bg_db_object_class_t * c;
   bg_db_object_t * obj = obj1;
   gavl_diprintf(0, "Object\n");
-  gavl_diprintf(2, "Type:     %d (%s)", obj->type, (obj->klass ? obj->klass->name : "Unknown"));
+  gavl_diprintf(2, "Type:     %d (%s)\n", obj->type, (obj->klass ? obj->klass->name : "Unknown"));
   gavl_diprintf(2, "ID:       %"PRId64"\n", obj->id);
   gavl_diprintf(2, "REF_ID:   %"PRId64"\n", obj->ref_id);
   gavl_diprintf(2, "Parent:   %"PRId64"\n", obj->parent_id);
@@ -177,8 +177,10 @@ const bg_db_object_class_t * bg_db_object_get_class(bg_db_object_type_t t)
     case BG_DB_OBJECT_PLAYLIST:
       break;
     case BG_DB_OBJECT_VFOLDER:
+      return &bg_db_vfolder_class;
       break;
     case BG_DB_OBJECT_VFOLDER_LEAF:
+      return &bg_db_vfolder_leaf_class;
       break;
     case BG_DB_OBJECT_AUDIO_ALBUM:
       return &bg_db_audio_album_class;

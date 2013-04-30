@@ -35,25 +35,6 @@
 
 #define LOG_DOMAIN "db.audiofile"
 
-/*
- *  Virtual folders should be made the following way:
- *
- *  Music
- *    +---By Genre
- *    |       +-----Jazz
- *    |               +-----A
- *    |                     +---- Art Blakey
- *    |                               +-------Art Blakey - Moanin
- *    |                                            01 - Art Blakey - Moanin
- *    +---By Artist
- *            +-------A
- *                    +----- Art Blakey
- *
- *
- *
- */
-
-
 static void free_audio_file(void * obj)
   {
   bg_db_audio_file_t * file = obj;
@@ -79,7 +60,7 @@ static void dump_audio_file(void * obj)
   gavl_diprintf(2, "Year:    %d\n", file->date.year);
   gavl_diprintf(2, "Album:   %s (%"PRId64")\n", file->album, file->album_id);
   gavl_diprintf(2, "Track:   %d\n", file->track);
-  gavl_diprintf(2, "Bitrate: %s\n", file->album);
+  gavl_diprintf(2, "Bitrate: %s\n", file->bitrate);
   gavl_diprintf(2, "Genre:   %s\n", file->genre);
   }
 
@@ -120,14 +101,14 @@ static int query_audio_file(bg_db_t * db, void * obj, int full)
     sqlite3_mprintf("select * from AUDIO_FILES where ID = %"PRId64";", bg_db_object_get_id(f));
   result = bg_sqlite_exec(db->db, sql, audio_query_callback, f);
   sqlite3_free(sql);
-  if(!result || f->file.obj.found)
+  if(!result || !f->file.obj.found)
     return 0;
   if(!full)
     return 1;
 
   f->artist = bg_sqlite_id_to_string(db->db, "AUDIO_ARTISTS", "NAME", "ID", f->artist_id);
   f->genre  = bg_sqlite_id_to_string(db->db, "AUDIO_GENRES",  "NAME", "ID", f->genre_id);
-  f->album  = bg_sqlite_id_to_string(db->db, "AUDIO_ALBUMS",  "NAME", "ID", f->album_id);
+  f->album  = bg_sqlite_id_to_string(db->db, "AUDIO_ALBUMS",  "TITLE", "ID", f->album_id);
   return 1;
   }
 
@@ -137,6 +118,7 @@ const bg_db_object_class_t bg_db_audio_file_class =
   .del = del_audio_file,
   .free = free_audio_file,
   .query = query_audio_file,
+  .dump = &dump_audio_file,
   .parent = &bg_db_file_class,
   };
 
@@ -227,8 +209,6 @@ void bg_db_audio_file_create(bg_db_t * db, void * obj, bg_track_info_t * t)
     bg_db_audio_file_add_to_album(db, f);
 
   /* Add to db */
-  
   audio_file_add(db, f);
-
+  bg_db_create_vfolders(db, f);
   }
-

@@ -277,7 +277,7 @@ void bg_db_del_directory(bg_db_t *, const char * dir);
 
 /* Query functions */
 
-typedef void (*bg_db_query_callback)(void * priv, const void * obj);
+typedef void (*bg_db_query_callback)(void * priv, void * obj);
 
 /* Query from DB  */
 void * bg_db_object_query(bg_db_t * db, int64_t id); 

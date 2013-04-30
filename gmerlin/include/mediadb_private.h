@@ -57,6 +57,7 @@ typedef union
   bg_db_file_t file;
   bg_db_audio_file_t audio_file;
   bg_db_audio_album_t audio_album;
+  bg_db_vfolder_t vfolder;
   } bg_db_object_storage_t;
 
 struct bg_db_object_class_s
@@ -201,6 +202,16 @@ void bg_db_audio_file_add_to_album(bg_db_t * db, bg_db_audio_file_t * t);
 void bg_db_audio_file_remove_from_album(bg_db_t * db, bg_db_audio_file_t * t);
 extern const bg_db_object_class_t bg_db_audio_album_class;
 
+/* Virtual folder */
+
+void
+bg_db_create_vfolders(bg_db_t * db, void * obj);
+
+void bg_db_create_tables_vfolders(bg_db_t * db);
+
+extern const bg_db_object_class_t bg_db_vfolder_leaf_class;
+extern const bg_db_object_class_t bg_db_vfolder_class;
+
 /* Utility functions we might want */
 
 char * bg_db_filename_to_abs(bg_db_t * db, char * filename);
@@ -208,10 +219,6 @@ const char * bg_db_filename_to_rel(bg_db_t * db, const char * filename);
 
 const char * bg_db_get_search_string(const char * str);
 
-void bg_db_create_tables_vfolders(bg_db_t * db);
-
-void
-bg_db_create_vfolders(bg_db_t * db, bg_db_object_t * obj);
 
 void bg_db_add_files(bg_db_t * db, bg_db_scan_item_t * files,
                      int num, int scan_flags, int64_t scan_dir_id);
