@@ -169,9 +169,9 @@ int bgav_audio_start(bgav_stream_t * s)
                           s->data.audio.bits_per_sample);
 
 
-  if(s->container_bitrate == GAVL_BITRATE_VBR)
-    gavl_metadata_set(&s->m, GAVL_META_BITRATE,
-                      "VBR");
+  //  if(s->container_bitrate == GAVL_BITRATE_VBR)
+  //    gavl_metadata_set(&s->m, GAVL_META_BITRATE,
+  //                      "VBR");
   else if(s->codec_bitrate)
     gavl_metadata_set_int(&s->m, GAVL_META_BITRATE,
                           s->codec_bitrate);
