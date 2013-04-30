@@ -89,34 +89,41 @@ void bg_db_date_set_invalid(bg_db_date_t * d);
  *  Object definitions
  */
 
-#define BG_DB_FLAG_CONTAINER  (1<<8)  // Real container
-#define BG_DB_FLAG_NO_EMPTY   (1<<9)  // Auto delete when empty
-#define BG_DB_FLAG_VCONTAINER (1<<10) // Virtual container (needs browse_children method)
-#define DB_DB_FLAG_FILE       (1<<11) // Derived from file
+#define BG_DB_FLAG_CONTAINER  (1<<0)  // Real container
+#define BG_DB_FLAG_NO_EMPTY   (1<<1)  // Auto delete when empty
+#define BG_DB_FLAG_VCONTAINER (1<<2) // Virtual container (needs browse_children method)
+#define DB_DB_FLAG_FILE       (1<<3) // Derived from file
+#define DB_DB_FLAG_IMAGE      (1<<4) // Derived from image
 
 typedef enum
   {
-  BG_DB_OBJECT_OBJECT       = 0,
-  BG_DB_OBJECT_FILE         = 1 | DB_DB_FLAG_FILE,
+  BG_DB_OBJECT_OBJECT       = (0<<16),
+  BG_DB_OBJECT_FILE         = (1<<16) | DB_DB_FLAG_FILE,
   // object.item.audioItem.musicTrack
-  BG_DB_OBJECT_AUDIO_FILE   = 2 | DB_DB_FLAG_FILE,
-  BG_DB_OBJECT_VIDEO_FILE   = 3 | DB_DB_FLAG_FILE,
-  BG_DB_OBJECT_PHOTO_FILE   = 4 | DB_DB_FLAG_FILE,
+  BG_DB_OBJECT_AUDIO_FILE   = (2<<16) | DB_DB_FLAG_FILE,
+  BG_DB_OBJECT_VIDEO_FILE   = (3<<16) | DB_DB_FLAG_FILE,
+  BG_DB_OBJECT_IMAGE_FILE   = (4<<16) | DB_DB_FLAG_FILE | DB_DB_FLAG_IMAGE,
+  // Several image types follow
+  BG_DB_OBJECT_PHOTO         = (5<<16) | DB_DB_FLAG_FILE | DB_DB_FLAG_IMAGE,
+  BG_DB_OBJECT_ALBUM_COVER   = (5<<17) | DB_DB_FLAG_FILE | DB_DB_FLAG_IMAGE,
+  BG_DB_OBJECT_VIDEO_PREVIEW = (6<<18) | DB_DB_FLAG_FILE | DB_DB_FLAG_IMAGE,
+  BG_DB_OBJECT_MOVIE_POSTER  = (6<<19) | DB_DB_FLAG_FILE | DB_DB_FLAG_IMAGE,
+  BG_DB_OBJECT_THUMBNAIL     = (7<<20) | DB_DB_FLAG_FILE | DB_DB_FLAG_IMAGE,
 
   // object.container.album.musicAlbum
   // Audio albums are *no* containers for the internal database
   // because they are referenced by their children not by the parent_id
   // but by the album
-  BG_DB_OBJECT_AUDIO_ALBUM =  5 | BG_DB_FLAG_VCONTAINER,
+  BG_DB_OBJECT_AUDIO_ALBUM =  (256<<16) | BG_DB_FLAG_VCONTAINER,
 
-  BG_DB_OBJECT_CONTAINER   =  6 | BG_DB_FLAG_CONTAINER,
+  BG_DB_OBJECT_CONTAINER   =  (257<<16) | BG_DB_FLAG_CONTAINER,
   // object.container.storageFolder
-  BG_DB_OBJECT_DIRECTORY   =  7 | BG_DB_FLAG_CONTAINER, 
-  BG_DB_OBJECT_PLAYLIST    =  8 | BG_DB_FLAG_CONTAINER,
+  BG_DB_OBJECT_DIRECTORY   =  (258<<16) | BG_DB_FLAG_CONTAINER, 
+  BG_DB_OBJECT_PLAYLIST    =  (259<<16) | BG_DB_FLAG_CONTAINER,
 
   // Virtual Folder */
-  BG_DB_OBJECT_VFOLDER      =  9  | BG_DB_FLAG_CONTAINER | BG_DB_FLAG_NO_EMPTY,
-  BG_DB_OBJECT_VFOLDER_LEAF =  10 | BG_DB_FLAG_VCONTAINER | BG_DB_FLAG_NO_EMPTY,
+  BG_DB_OBJECT_VFOLDER      =  (260<<16)  | BG_DB_FLAG_CONTAINER | BG_DB_FLAG_NO_EMPTY,
+  BG_DB_OBJECT_VFOLDER_LEAF =  (261<<16) | BG_DB_FLAG_VCONTAINER | BG_DB_FLAG_NO_EMPTY,
   } bg_db_object_type_t;
 
 typedef struct bg_db_object_class_s bg_db_object_class_t;
@@ -206,7 +213,20 @@ typedef struct
   int64_t genre_id;
 
   bg_db_date_t date;
+
+  int64_t cover_id;
   } bg_db_audio_album_t;
+
+/* Image */
+
+typedef struct
+  {
+  bg_db_file_t file;
+  int width;
+  int height;
+  int64_t context_id; // Context where this item belongs
+  bg_db_date_t date;  // Date from EXIF
+  } bg_db_image_file_t;
 
 /* Virtual audio folder */
 

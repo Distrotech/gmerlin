@@ -132,10 +132,7 @@ static int file_add(bg_db_t * db, bg_db_file_t * f)
 static int compare_file_by_path(const bg_db_object_t * obj, const void * data)
   {
   const bg_db_file_t * file;
-  if((obj->type == BG_DB_OBJECT_FILE) ||
-     (obj->type == BG_DB_OBJECT_AUDIO_FILE) ||
-     (obj->type == BG_DB_OBJECT_VIDEO_FILE) ||
-     (obj->type == BG_DB_OBJECT_PHOTO_FILE))
+  if(obj->type & DB_DB_FLAG_FILE)
     {
     file = (const bg_db_file_t*)obj;
     if(!strcmp(file->path, data))
@@ -159,9 +156,9 @@ int64_t bg_db_file_by_path(bg_db_t * db, const char * path)
   }
 
 /* Open the file, load metadata and so on */
-void bg_db_file_create(bg_db_t * db, int scan_flags,
-                       bg_db_scan_item_t * item,
-                       bg_db_dir_t ** dir, int64_t scan_dir_id)
+static bg_db_file_t * file_create(bg_db_t * db, int scan_flags,
+                                  bg_db_scan_item_t * item,
+                                  int64_t scan_dir_id)
   {
   int i;
   bg_track_info_t * ti;
@@ -170,13 +167,8 @@ void bg_db_file_create(bg_db_t * db, int scan_flags,
   bg_db_object_t * obj;
   bg_db_file_t * file;
   bg_db_object_type_t type;
-  int added = 0;
   
   gavl_time_t duration;
-  
-  /* Make sure we have the right parent directoy */  
-  if(!(*dir = bg_db_dir_ensure_parent(db, *dir, item->path)))
-    return;
   
   obj = bg_db_object_create(db);
   bg_db_object_set_type(obj, BG_DB_OBJECT_FILE);
@@ -208,7 +200,7 @@ void bg_db_file_create(bg_db_t * db, int scan_flags,
     {
     if(!ti->num_audio_streams && (ti->num_video_streams == 1) &&
        (ti->video_streams[0].format.framerate_mode = GAVL_FRAMERATE_STILL))
-      type = BG_DB_OBJECT_PHOTO_FILE;
+      type = BG_DB_OBJECT_IMAGE_FILE;
     else
       type = BG_DB_OBJECT_VIDEO_FILE;
     }
@@ -227,9 +219,7 @@ void bg_db_file_create(bg_db_t * db, int scan_flags,
       if(!(scan_flags & BG_DB_VIDEO))
         goto fail;
       break;
-    case BG_DB_OBJECT_PHOTO_FILE:
-      if(!(scan_flags & BG_DB_PHOTO))
-        goto fail;
+    case BG_DB_OBJECT_IMAGE_FILE: // Images can also be movie poster and album covers
       break;
     default:
       break;
@@ -274,10 +264,11 @@ void bg_db_file_create(bg_db_t * db, int scan_flags,
     {
     case BG_DB_OBJECT_AUDIO_FILE:
       bg_db_audio_file_create(db, file, ti);
-      added = 1;
       break;
     case BG_DB_OBJECT_VIDEO_FILE:
-    case BG_DB_OBJECT_PHOTO_FILE:
+      break;
+    case BG_DB_OBJECT_IMAGE_FILE:
+      bg_db_image_file_create_from_ti(db, file, ti);
       break;
     default:
       break;
@@ -285,33 +276,44 @@ void bg_db_file_create(bg_db_t * db, int scan_flags,
   
   fail:
 
-  file_add(db, file);
-  bg_db_object_set_parent(db, obj, *dir);
-  bg_db_object_unref(obj);
-  
   if(plugin)
     plugin->close(h->priv);
-  
+
   if(h)
     bg_plugin_unref(h);
 
-  if(!added)
-    return;
-  
-  /* Create references */
-  switch(type)
-    {
-    case BG_DB_OBJECT_AUDIO_FILE:
-      //      bg_db_audio_file_create_refs(db, &file);
-      break;
-    case BG_DB_OBJECT_VIDEO_FILE:
-    case BG_DB_OBJECT_PHOTO_FILE:
-      break;
-    default:
-      break;
-    }
+  file_add(db, file);
+  return file; 
+  }
 
-  
+void bg_db_file_create(bg_db_t * db, int scan_flags,
+                       bg_db_scan_item_t * item,
+                       bg_db_dir_t ** dir, int64_t scan_dir_id)
+  {
+  bg_db_file_t * file;
+  /* Make sure we have the right parent directoy */
+  if(!(*dir = bg_db_dir_ensure_parent(db, *dir, item->path)))
+    return;
+
+  file = file_create(db, scan_flags, item, scan_dir_id);
+
+  bg_db_object_set_parent(db, file, *dir);
+  bg_db_object_unref(file);
+  }
+
+bg_db_file_t * bg_db_file_create_internal(bg_db_t * db, const char * path_rel)
+  {
+  bg_db_file_t * file;
+  char * path_abs;
+  bg_db_scan_item_t item;
+  memset(&item, 0, sizeof(item));
+  path_abs = bg_db_filename_to_abs(db, path_rel);
+  if(!bg_db_scan_item_set(&item, path_abs))
+    return NULL;
+  if((file = file_create(db, ~0, &item, -1)))
+    bg_db_object_set_parent_id(db, file, -1);
+  bg_db_scan_item_free(&item);
+  return file;
   }
 
 void bg_db_add_files(bg_db_t * db, bg_db_scan_item_t * files, int num,

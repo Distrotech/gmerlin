@@ -167,7 +167,15 @@ const bg_db_object_class_t * bg_db_object_get_class(bg_db_object_type_t t)
       break;
     case BG_DB_OBJECT_VIDEO_FILE:
       break;
-    case BG_DB_OBJECT_PHOTO_FILE:
+    case BG_DB_OBJECT_IMAGE_FILE:
+      return &bg_db_image_file_class;
+      break;
+    case BG_DB_OBJECT_ALBUM_COVER:
+      return &bg_db_album_cover_class;
+      break;
+    case BG_DB_OBJECT_VIDEO_PREVIEW:
+      break;
+    case BG_DB_OBJECT_MOVIE_POSTER:
       break;
     case BG_DB_OBJECT_CONTAINER:
       break;
@@ -408,6 +416,12 @@ void bg_db_object_set_label(void * obj1, const char * label)
   {
   bg_db_object_t * obj = obj1;
   obj->label = gavl_strdup(label);
+  }
+
+const char * bg_db_object_get_label(void * obj1)
+  {
+  bg_db_object_t * obj = obj1;
+  return obj->label;
   }
 
 void bg_db_object_set_parent_id(bg_db_t * db, void * obj1, int64_t parent_id)

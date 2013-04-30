@@ -20,7 +20,6 @@
  * *****************************************************************/
 
 #include <config.h>
-#include <unistd.h>
 
 #include <mediadb_private.h>
 #include <gmerlin/log.h>
@@ -41,6 +40,7 @@ static int album_query_callback(void * data, int argc, char **argv, char **azCol
     BG_DB_SET_QUERY_STRING("SEARCH_TITLE", search_title);
     BG_DB_SET_QUERY_INT("GENRE",       genre_id);
     BG_DB_SET_QUERY_DATE("DATE",       date);
+    BG_DB_SET_QUERY_INT("COVER",       cover_id);
     }
   ret->obj.found = 1;
   return 0;
@@ -83,8 +83,8 @@ static void update_audioalbum(bg_db_t * db, void * obj)
   
   bg_db_date_to_string(&a->date, date_string);
   
-  sql = sqlite3_mprintf("UPDATE AUDIO_ALBUMS SET DATE = %Q, GENRE = %"PRId64" WHERE ID = %"PRId64";",
-                        date_string, a->genre_id, bg_db_object_get_id(a));
+  sql = sqlite3_mprintf("UPDATE AUDIO_ALBUMS SET DATE = %Q, GENRE = %"PRId64", COVER = %"PRId64", WHERE ID = %"PRId64";",
+                        date_string, a->genre_id, a->cover_id, bg_db_object_get_id(a));
   result = bg_sqlite_exec(db->db, sql, NULL, NULL);
   sqlite3_free(sql);
   return;
@@ -111,10 +111,11 @@ static void free_audioalbum(void * obj)
 static void dump_audioalbum(void * obj)
   {
   bg_db_audio_album_t*a = obj;
-  gavl_diprintf(2, "Artist: %s\n", a->artist);
-  gavl_diprintf(2, "Title:  %s (%s)\n", a->title, a->search_title);
-  gavl_diprintf(2, "Year:   %d\n", a->date.year);
-  gavl_diprintf(2, "Genre:  %s\n", a->genre);
+  gavl_diprintf(2, "Artist:   %s\n", a->artist);
+  gavl_diprintf(2, "Title:    %s (%s)\n", a->title, a->search_title);
+  gavl_diprintf(2, "Year:     %d\n", a->date.year);
+  gavl_diprintf(2, "Genre:    %s\n", a->genre);
+  gavl_diprintf(2, "Cover ID: %"PRId64"\n", a->cover_id);
   }
 
 const bg_db_object_class_t bg_db_audio_album_class =

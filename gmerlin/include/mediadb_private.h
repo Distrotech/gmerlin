@@ -120,8 +120,10 @@ bg_db_get_audio_album(bg_db_t * db, bg_db_audio_file_t * file);
 
 bg_db_scan_item_t *
 bg_db_scan_directory(const char * directory, int * num);
-
 void bg_db_scan_items_free(bg_db_scan_item_t *, int num);
+
+void bg_db_scan_item_free(bg_db_scan_item_t * item);
+int bg_db_scan_item_set(bg_db_scan_item_t * ret, char * filename);
 
 /* Object */
 void * bg_db_object_create(bg_db_t * db); /* Create an object */
@@ -152,6 +154,7 @@ int64_t bg_db_object_get_id(void * obj);
 void bg_db_object_create_ref(void * obj, void * parent);
 void bg_db_object_set_label_nocpy(void * obj, char * label);
 void bg_db_object_set_label(void * obj1, const char * label);
+const char * bg_db_object_get_label(void * obj1);
 
 void bg_db_object_add_child(bg_db_t * db, void * obj1, void * child1);
 void bg_db_object_remove_child(bg_db_t * db, void * obj1, void * child1);
@@ -185,6 +188,9 @@ void bg_db_file_create(bg_db_t * db, int scan_flags,
                        bg_db_scan_item_t * item,
                        bg_db_dir_t ** parent, int64_t scan_dir_id);
 
+/* Create an internally generated files (e.g. a thumbnail) */
+bg_db_file_t * bg_db_file_create_internal(bg_db_t * db, const char * path_rel);
+
 int64_t bg_db_file_by_path(bg_db_t * db, const char * path);
 
 /* Audio file */
@@ -201,6 +207,12 @@ void bg_db_audio_file_create_refs(bg_db_t * db, void * obj);
 void bg_db_audio_file_add_to_album(bg_db_t * db, bg_db_audio_file_t * t);
 void bg_db_audio_file_remove_from_album(bg_db_t * db, bg_db_audio_file_t * t);
 extern const bg_db_object_class_t bg_db_audio_album_class;
+
+/* Image file */
+
+void bg_db_image_file_create_from_ti(bg_db_t * db, void * obj, bg_track_info_t * t);
+const bg_db_object_class_t bg_db_image_file_class;
+const bg_db_object_class_t bg_db_album_cover_class;
 
 /* Virtual folder */
 

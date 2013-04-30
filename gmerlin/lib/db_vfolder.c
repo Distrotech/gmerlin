@@ -328,12 +328,17 @@ static const char * get_artist(void * obj, int64_t * id)
     case BG_DB_OBJECT_OBJECT:
     case BG_DB_OBJECT_FILE:
     case BG_DB_OBJECT_VIDEO_FILE:
-    case BG_DB_OBJECT_PHOTO_FILE:
+    case BG_DB_OBJECT_IMAGE_FILE:
     case BG_DB_OBJECT_CONTAINER:
     case BG_DB_OBJECT_DIRECTORY: 
     case BG_DB_OBJECT_PLAYLIST:
     case BG_DB_OBJECT_VFOLDER:
     case BG_DB_OBJECT_VFOLDER_LEAF:
+    case BG_DB_OBJECT_PHOTO:
+    case BG_DB_OBJECT_ALBUM_COVER:
+    case BG_DB_OBJECT_VIDEO_PREVIEW:
+    case BG_DB_OBJECT_MOVIE_POSTER:
+    case BG_DB_OBJECT_THUMBNAIL:
       break;
     }
   *id = -1;
@@ -360,12 +365,17 @@ static const char * get_genre(void * obj, int64_t * id)
     case BG_DB_OBJECT_OBJECT:
     case BG_DB_OBJECT_FILE:
     case BG_DB_OBJECT_VIDEO_FILE:
-    case BG_DB_OBJECT_PHOTO_FILE:
+    case BG_DB_OBJECT_IMAGE_FILE:
     case BG_DB_OBJECT_CONTAINER:
     case BG_DB_OBJECT_DIRECTORY: 
     case BG_DB_OBJECT_PLAYLIST:
     case BG_DB_OBJECT_VFOLDER:
     case BG_DB_OBJECT_VFOLDER_LEAF:
+    case BG_DB_OBJECT_PHOTO:
+    case BG_DB_OBJECT_ALBUM_COVER:
+    case BG_DB_OBJECT_VIDEO_PREVIEW:
+    case BG_DB_OBJECT_MOVIE_POSTER:
+    case BG_DB_OBJECT_THUMBNAIL:
       break;
     }
   *id = -1;
@@ -390,12 +400,17 @@ static int get_year(void * obj)
     case BG_DB_OBJECT_OBJECT:
     case BG_DB_OBJECT_FILE:
     case BG_DB_OBJECT_VIDEO_FILE:
-    case BG_DB_OBJECT_PHOTO_FILE:
+    case BG_DB_OBJECT_IMAGE_FILE:
     case BG_DB_OBJECT_CONTAINER:
     case BG_DB_OBJECT_DIRECTORY: 
     case BG_DB_OBJECT_PLAYLIST:
     case BG_DB_OBJECT_VFOLDER:
     case BG_DB_OBJECT_VFOLDER_LEAF:
+    case BG_DB_OBJECT_PHOTO:
+    case BG_DB_OBJECT_ALBUM_COVER:
+    case BG_DB_OBJECT_VIDEO_PREVIEW:
+    case BG_DB_OBJECT_MOVIE_POSTER:
+    case BG_DB_OBJECT_THUMBNAIL:
       break;
     }
   return 0;

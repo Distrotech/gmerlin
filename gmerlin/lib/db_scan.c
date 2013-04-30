@@ -36,6 +36,30 @@
 
 #define LOG_DOMAIN "db.scan"
 
+int bg_db_scan_item_set(bg_db_scan_item_t * ret, char * filename)
+  {
+  struct stat st;
+  if(!stat(filename, &st) && (S_ISDIR(st.st_mode) || S_ISREG(st.st_mode)))
+    {
+    ret->path = filename;
+    /* Check for directory */
+    if(S_ISDIR(st.st_mode))
+      {
+      ret->type = BG_SCAN_TYPE_DIRECTORY;
+      }
+    else if(S_ISREG(st.st_mode))
+      {
+      ret->type = BG_SCAN_TYPE_FILE;
+      ret->size = st.st_size;
+      ret->mtime = st.st_mtime;
+      }
+    return 1;
+    }
+
+  free(filename);
+  return 0;
+  }
+
 static bg_db_scan_item_t * scan_internal(const char * directory,
                                          bg_db_scan_item_t * files,
                                          int * num_p, int * alloc_p)
@@ -43,7 +67,6 @@ static bg_db_scan_item_t * scan_internal(const char * directory,
   char * filename;
   DIR * d;
   struct dirent * e;
-  struct stat st;
   bg_db_scan_item_t * file;
   int num = *num_p;
   int alloc = *alloc_p;
@@ -61,38 +84,25 @@ static bg_db_scan_item_t * scan_internal(const char * directory,
     /* Skip hidden files and "." and ".." */
     if(e->d_name[0] == '.')
       continue;
+
+    /* Add file to list */
+    if(num + 2 > alloc)
+      {
+      alloc += 256;
+      files = realloc(files, alloc * sizeof(*files));
+      memset(files + num, 0,
+             (alloc - num) * sizeof(*files));
+      }
     
     filename = bg_sprintf("%s/%s", directory, e->d_name);
-    if(!stat(filename, &st) && (S_ISDIR(st.st_mode) || S_ISREG(st.st_mode)))
+    file = files + num;
+    
+    if(bg_db_scan_item_set(file, filename))
       {
-      /* Add file to list */
-      if(num + 2 > alloc)
-        {
-        alloc += 256;
-        files = realloc(files, alloc * sizeof(*files));
-        memset(files + num, 0,
-               (alloc - num) * sizeof(*files));
-        }
-      
-      file = files + num;
-      file->path = filename;
-      filename = NULL;
       num++;
-      /* Check for directory */
-      if(S_ISDIR(st.st_mode))
-        {
-        file->type = BG_SCAN_TYPE_DIRECTORY;
+      if(file->type == BG_SCAN_TYPE_DIRECTORY)
         files = scan_internal(file->path, files, &num, &alloc);
-        }
-      else if(S_ISREG(st.st_mode))
-        {
-        file->type = BG_SCAN_TYPE_FILE;
-        file->size = st.st_size;
-        file->mtime = st.st_mtime;
-        }
       }
-    if(filename)
-      free(filename);
     }
   
   closedir(d);
@@ -114,13 +124,18 @@ bg_db_scan_item_t * bg_db_scan_directory(const char * directory,
   return ret;
   }
 
+void bg_db_scan_item_free(bg_db_scan_item_t * item)
+  {
+  if(item->path)
+    free(item->path);
+  }
+
 void bg_db_scan_items_free(bg_db_scan_item_t * items, int num)
   {
   int i;
+  if(!items)
+    return;
   for(i = 0; i < num; i++)
-    {
-    if(items[i].path)
-      free(items[i].path);
-    }
+    bg_db_scan_item_free(&items[i]);
   free(items);
   }
