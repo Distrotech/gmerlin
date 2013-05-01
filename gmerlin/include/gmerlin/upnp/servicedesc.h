@@ -24,7 +24,16 @@
 xmlDocPtr bg_upnp_service_description_create();
 xmlNodePtr bg_upnp_service_description_add_action(xmlDocPtr doc, const char * name);
 
-void bg_upnp_service_action_add_argument(xmlDocPtr doc,
-                                         const char * name, int out,
-                                         const char * related_statevar, int retval);
+void bg_upnp_service_action_add_argument(xmlNodePtr node,
+                                         const char * name, int out, int retval,
+                                         const char * related_statevar);
 
+xmlNodePtr
+bg_upnp_service_description_add_statevar(xmlDocPtr doc,
+                                         const char * name,
+                                         int events,
+                                         char * data_type);
+
+void
+bg_upnp_service_statevar_add_allowed_value(xmlNodePtr node,
+                                           const char * name);

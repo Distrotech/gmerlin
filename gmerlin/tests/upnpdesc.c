@@ -21,10 +21,11 @@
 
 #include <gmerlin/upnp/device.h>
 #include <gmerlin/upnp/devicedesc.h>
+#include <gmerlin/upnp/servicedesc.h>
 
 #include <config.h>
 
-int main(int argc, char ** argv)
+static void test_device_desc()
   {
   uuid_t uuid;
   bg_socket_address_t * addr = bg_socket_address_create();
@@ -58,6 +59,41 @@ int main(int argc, char ** argv)
   bg_xml_save_FILE(doc, stdout);
   xmlFreeDoc(doc);
   bg_socket_address_destroy(addr);
+
+  }
+
+static void test_service_desc()
+  {
+  xmlNodePtr node;
+  xmlDocPtr doc = bg_upnp_service_description_create();
+
+  node = bg_upnp_service_description_add_action(doc, "Browse");
+  bg_upnp_service_action_add_argument(node, "ObjectID", 0, 0, "A_ARG_TYPE_ObjectID");
+  bg_upnp_service_action_add_argument(node, "BrowseFlag", 0, 0, "A_ARG_TYPE_BrowseFlag");
+  bg_upnp_service_action_add_argument(node, "Filter", 0, 0, "A_ARG_TYPE_Filter");
+  bg_upnp_service_action_add_argument(node, "StartingIndex", 0, 0, "A_ARG_TYPE_Index");
+  bg_upnp_service_action_add_argument(node, "RequestedCount", 0, 0, "A_ARG_TYPE_Count");
+  bg_upnp_service_action_add_argument(node, "SortCriteria", 0, 0, "A_ARG_TYPE_SortCriteria");
+  bg_upnp_service_action_add_argument(node, "Result", 1, 0, "A_ARG_TYPE_Result");
+  bg_upnp_service_action_add_argument(node, "NumberReturned", 1, 0, "A_ARG_TYPE_Count");
+  bg_upnp_service_action_add_argument(node, "TotalMatches", 1, 0, "A_ARG_TYPE_Count");
+  bg_upnp_service_action_add_argument(node, "UpdateID", 1, 0, "A_ARG_TYPE_UpdateID");
+
+  node = bg_upnp_service_description_add_statevar(doc, "A_ARG_TYPE_BrowseFlag", 0, "string");
+
+  bg_upnp_service_statevar_add_allowed_value(node, "BrowseMetadata");
+  bg_upnp_service_statevar_add_allowed_value(node, "BrowseDirectChildren");
+  
+  bg_xml_save_FILE(doc, stdout);
+  xmlFreeDoc(doc);
+  
+  }
+
+int main(int argc, char ** argv)
+  {
+  //  test_device_desc();
+  
+  test_service_desc();
   return 0; 
   }
 

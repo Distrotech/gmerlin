@@ -14,6 +14,7 @@ libupnp.la
 libupnp_la_SOURCES = \
 device.c \
 devicedesc.c \
+servicedesc.c \
 soap.c \
 ssdp.c
 
