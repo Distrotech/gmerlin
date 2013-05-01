@@ -19,39 +19,12 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  * *****************************************************************/
 
-#include <gmerlin/upnp/device.h>
+#include <gmerlin/xmlutils.h>
 
-typedef struct bg_upnp_service_s bg_upnp_service_t; 
+xmlDocPtr bg_upnp_service_description_create();
+xmlNodePtr bg_upnp_service_description_add_action(xmlDocPtr doc, const char * name);
 
-typedef struct
-  {
-  int (*handle_soap_request)(bg_upnp_service_t * s, xmlDocPtr request, xmlDocPtr * response);
-
-  void (*handle_event_request)(bg_upnp_service_t * s, int fd,
-                               const char * method,
-                               const char * path,
-                               const gavl_metadata_t * header);
-  
-  void (*destroy)(void*priv);
-  } bg_upnp_service_funcs_t;
-
-struct bg_upnp_service_s
-  {
-  char * name; // For finding the service from the http request
-  char * description;
-    
-  const bg_upnp_service_funcs_t * funcs;
-  void * priv;
-  };
-
-struct bg_upnp_device_s
-  {
-  char * description;
-
-  int num_services;
-  bg_upnp_service_t * services;
-  
-  void (*destroy)(void*priv);
-  void * priv;
-  };
+void bg_upnp_service_action_add_argument(xmlDocPtr doc,
+                                         const char * name, int out,
+                                         const char * related_statevar, int retval);
 

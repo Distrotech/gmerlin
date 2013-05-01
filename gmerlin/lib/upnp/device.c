@@ -22,6 +22,11 @@
 #include <upnp_device.h>
 #include <string.h>
 
+static void send_description(int fd, const char * desc)
+  {
+  gavl_metadata_t resp;
+  gavl_metadata_init(&resp);
+  }
 
 int
 bg_upnp_device_handle_request(bg_upnp_device_t * dev, int fd,
@@ -41,7 +46,8 @@ bg_upnp_device_handle_request(bg_upnp_device_t * dev, int fd,
 
   if(!strcmp(path, "desc.xml"))
     {
-    
+    send_description(fd, dev->description);
+    return 1;
     }
 
   pos = strchr(path, '/');
