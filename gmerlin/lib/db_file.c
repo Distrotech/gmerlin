@@ -304,10 +304,11 @@ void bg_db_file_create(bg_db_t * db, int scan_flags,
 bg_db_file_t * bg_db_file_create_internal(bg_db_t * db, const char * path_rel)
   {
   bg_db_file_t * file;
-  char * path_abs;
+  char * path_abs = gavl_strdup(path_rel);
   bg_db_scan_item_t item;
+  
   memset(&item, 0, sizeof(item));
-  path_abs = bg_db_filename_to_abs(db, path_rel);
+  path_abs = bg_db_filename_to_abs(db, path_abs);
   if(!bg_db_scan_item_set(&item, path_abs))
     return NULL;
   if((file = file_create(db, ~0, &item, -1)))

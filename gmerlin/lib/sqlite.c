@@ -224,3 +224,19 @@ void bg_sqlite_delete_by_id(sqlite3 * db,
   result = bg_sqlite_exec(db, sql, NULL, NULL);
   sqlite3_free(sql);
   }
+
+int bg_sqlite_select_join(sqlite3 * db, bg_sqlite_id_tab_t * tab,
+                          const char * table_1,
+                          const char * col_1,
+                          int64_t val_1,
+                          const char * table_2,
+                          const char * col_2,
+                          int64_t val_2)
+  {
+  char * sql;
+  int result;
+  sql = sqlite3_mprintf("SELECT a.ID from %s a INNER JOIN %s b on (a.ID = b.ID) & (a.%s = %"PRId64") & (b.%s = %"PRId64");", table_1, table_2, col_1, val_1, col_2, val_2);
+  result = bg_sqlite_exec(db, sql, bg_sqlite_append_id_callback, tab);
+  sqlite3_free(sql);
+  return result;
+  }

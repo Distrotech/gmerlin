@@ -78,3 +78,10 @@ int bg_sqlite_append_id_callback(void * data, int argc, char **argv, char **azCo
 int bg_sqlite_int_callback(void * data, int argc, char **argv, char **azColName);
 int bg_sqlite_string_callback(void * data, int argc, char **argv, char **azColName);
 
+int bg_sqlite_select_join(sqlite3 * db, bg_sqlite_id_tab_t * tab,
+                          const char * table_1,
+                          const char * col_1,
+                          int64_t val_1,
+                          const char * table_2,
+                          const char * col_2,
+                          int64_t val_2);

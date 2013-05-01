@@ -134,7 +134,7 @@ void bg_db_image_file_create_from_ti(bg_db_t * db, void * obj, bg_track_info_t *
   if(!gavl_metadata_get_date(&ti->metadata, GAVL_META_DATE_CREATE, &f->date.year, &f->date.month, &f->date.day))
     bg_db_date_set_invalid(&f->date);
 
-  sql = sqlite3_mprintf("INSERT INTO IMAGES ( ID, WIDTH, HEIGHT, DATE ) VALUES ( %"PRId64", %d, %d, %Q);",
+  sql = sqlite3_mprintf("INSERT INTO IMAGE_FILES ( ID, WIDTH, HEIGHT, DATE ) VALUES ( %"PRId64", %d, %d, %Q);",
                           bg_db_object_get_id(f), f->width, f->height, date_string);
   result = bg_sqlite_exec(db->db, sql, NULL, NULL);
   sqlite3_free(sql);
@@ -191,8 +191,6 @@ static int detect_album_cover(bg_db_t * db, bg_db_image_file_t * f)
 
 void bg_db_identify_images(bg_db_t * db, int64_t scan_dir_id, int scan_flags)
   {
-  char * sql;
-  int result;
   int i;
 
   bg_db_image_file_t * f;
@@ -202,12 +200,14 @@ void bg_db_identify_images(bg_db_t * db, int64_t scan_dir_id, int scan_flags)
 
   /* Get all unidentified images from the scan directory */  
 
-  sql = sqlite3_mprintf("SELECT ID FROM OBJECTS WHERE (TYPE = %"PRId64") && (SCAN_DIR_ID = %"PRId64");",
-                        BG_DB_OBJECT_IMAGE_FILE, scan_dir_id);
-  result = bg_sqlite_exec(db->db, sql, NULL, NULL);
-  sqlite3_free(sql);
-  if(!result)
-    return;  
+  if(!bg_sqlite_select_join(db->db, &tab,
+                            "OBJECTS",
+                            "TYPE",
+                            BG_DB_OBJECT_IMAGE_FILE,
+                            "FILES",
+                            "SCAN_DIR_ID",
+                            scan_dir_id))
+    return;
 
   for(i = 0; i < tab.num_val; i++)
     {

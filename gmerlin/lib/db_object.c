@@ -170,6 +170,11 @@ const bg_db_object_class_t * bg_db_object_get_class(bg_db_object_type_t t)
     case BG_DB_OBJECT_IMAGE_FILE:
       return &bg_db_image_file_class;
       break;
+    case BG_DB_OBJECT_PHOTO:
+    case BG_DB_OBJECT_THUMBNAIL:
+      //      return &bg_db_photo_file_class;
+      break;
+  
     case BG_DB_OBJECT_ALBUM_COVER:
       return &bg_db_album_cover_class;
       break;

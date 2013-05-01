@@ -83,7 +83,7 @@ static void update_audioalbum(bg_db_t * db, void * obj)
   
   bg_db_date_to_string(&a->date, date_string);
   
-  sql = sqlite3_mprintf("UPDATE AUDIO_ALBUMS SET DATE = %Q, GENRE = %"PRId64", COVER = %"PRId64", WHERE ID = %"PRId64";",
+  sql = sqlite3_mprintf("UPDATE AUDIO_ALBUMS SET DATE = %Q, GENRE = %"PRId64", COVER = %"PRId64" WHERE ID = %"PRId64";",
                         date_string, a->genre_id, a->cover_id, bg_db_object_get_id(a));
   result = bg_sqlite_exec(db->db, sql, NULL, NULL);
   sqlite3_free(sql);

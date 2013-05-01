@@ -211,6 +211,8 @@ extern const bg_db_object_class_t bg_db_audio_album_class;
 /* Image file */
 
 void bg_db_image_file_create_from_ti(bg_db_t * db, void * obj, bg_track_info_t * t);
+void bg_db_identify_images(bg_db_t * db, int64_t scan_dir_id, int scan_flags);
+
 const bg_db_object_class_t bg_db_image_file_class;
 const bg_db_object_class_t bg_db_album_cover_class;
 

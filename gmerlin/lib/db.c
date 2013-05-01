@@ -355,21 +355,25 @@ void bg_db_add_directory(bg_db_t * db, const char * d, int scan_flags)
     bg_log(BG_LOG_INFO, LOG_DOMAIN,
            "Directory %s already in database, updating", path);
     bg_db_update_files(db, files, num_files, dir->scan_flags, id);
+    scan_flags = dir->scan_flags; // Ignore old scan flags
+    id = bg_db_object_get_id(dir);
     bg_db_object_unref(dir);
     }
   else
     {
     /* Create root container */
     bg_db_scan_item_t item;
-    int64_t scan_dir_id = -1;
+    id = -1;
     memset(&item, 0, sizeof(&item));
     item.path = path;
     bg_db_dir_create(db, scan_flags,
-                     &item, NULL, &scan_dir_id);
-    
-    bg_db_add_files(db, files, num_files, scan_flags, scan_dir_id);
+                     &item, NULL, &id);
+    bg_db_add_files(db, files, num_files, scan_flags, id);
     }
   bg_db_scan_items_free(files, num_files);
+
+  /* Identify images */
+  bg_db_identify_images(db, id, scan_flags);
   }
 
 void bg_db_del_directory(bg_db_t * db, const char * d)

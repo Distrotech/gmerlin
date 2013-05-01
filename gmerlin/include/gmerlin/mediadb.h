@@ -232,16 +232,11 @@ typedef struct
 
 typedef enum
   {
-    BG_DB_CAT_YEAR              = 2,
-    BG_DB_CAT_ARTIST            = 7,
-    BG_DB_CAT_GENRE             = 9,
+    BG_DB_CAT_YEAR              = 1,
+    BG_DB_CAT_GROUP             = 2,
+    BG_DB_CAT_ARTIST            = 3,
+    BG_DB_CAT_GENRE             = 4,
   } bg_db_category_t;
-
-struct
-  {
-  bg_db_category_t cat;
-  int64_t id;
-  } bg_db_audio_vfolder_structure_t;
 
 #define BG_DB_VFOLDER_MAX_DEPTH 8
 

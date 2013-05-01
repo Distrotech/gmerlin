@@ -222,8 +222,8 @@ vfolder_set(bg_db_t * db,
   bg_sqlite_exec(db->db, sql, NULL, NULL);
   free(sql);
 
-  fprintf(stderr, "Created vfolder\n");
-  bg_db_object_dump(f);
+  //  fprintf(stderr, "Created vfolder\n");
+  //  bg_db_object_dump(f);
   
   }
 
