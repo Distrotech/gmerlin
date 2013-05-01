@@ -12,6 +12,8 @@ noinst_LTLIBRARIES = \
 libupnp.la
 
 libupnp_la_SOURCES = \
+device.c \
+devicedesc.c \
 soap.c \
 ssdp.c
 

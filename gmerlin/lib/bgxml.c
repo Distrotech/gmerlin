@@ -204,3 +204,47 @@ void bg_xml_save_file(xmlDocPtr doc, const char * filename, int lock)
     }
   fclose(f);
   }
+
+static xmlNodePtr find_children(xmlNodePtr node, const char * child)
+  {
+  while(node && (!node->name || strcmp((char*)node->name, child)))
+    node = node->next;
+  return node;
+  }
+
+xmlNodePtr bg_xml_find_node_child(xmlNodePtr parent, const char * child)
+  {
+  return find_children(parent->children, child);
+  }
+
+xmlNodePtr bg_xml_find_doc_child(xmlDocPtr parent, const char * child)
+  {
+  return find_children(parent->children, child);
+  }
+
+xmlNodePtr bg_xml_find_next_node_child(xmlNodePtr parent)
+  {
+  xmlNodePtr node = parent->children;
+  while(node && !node->name)
+    node = node->next;
+  return node;
+  }
+
+xmlNodePtr bg_xml_find_next_doc_child(xmlDocPtr parent)
+  {
+  xmlNodePtr node = parent->children;
+  while(node && !node->name)
+    node = node->next;
+  return node;
+  }
+
+
+
+xmlNodePtr bg_xml_append_child_node(xmlNodePtr parent, const char * name,
+                                    const char * content)
+  {
+  xmlNodePtr node;
+  node = xmlNewTextChild(parent, NULL, (xmlChar*)name, NULL);
+  xmlAddChild(node, BG_XML_NEW_TEXT(content));
+  return node;
+  }

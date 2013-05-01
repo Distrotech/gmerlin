@@ -236,6 +236,7 @@ typedef enum
     BG_DB_CAT_GROUP             = 2,
     BG_DB_CAT_ARTIST            = 3,
     BG_DB_CAT_GENRE             = 4,
+    BG_DB_CAT_TITLE             = 5,
   } bg_db_category_t;
 
 #define BG_DB_VFOLDER_MAX_DEPTH 8

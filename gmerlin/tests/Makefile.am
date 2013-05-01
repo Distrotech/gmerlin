@@ -42,6 +42,7 @@ thumbnail \
 visualization \
 ssdp \
 soap \
+upnpdesc \
 $(gtk_programs)
 
 bin_PROGRAMS = gmerlin_imgconvert \
@@ -74,6 +75,10 @@ ssdp_LDADD = ../lib/libgmerlin.la -ldl
 
 soap_SOURCES = soap.c
 soap_LDADD = ../lib/libgmerlin.la -ldl
+
+
+upnpdesc_SOURCES = upnpdesc.c
+upnpdesc_LDADD = ../lib/libgmerlin.la -ldl
 
 
 extractchannel_SOURCES = extractchannel.c
@@ -122,7 +127,6 @@ msgtest_LDADD = ../lib/libgmerlin.la -ldl
 
 textrenderer_SOURCES = textrenderer.c
 textrenderer_LDADD = ../lib/libgmerlin.la -ldl
-
 
 videoplayer1_SOURCES = videoplayer1.c
 videoplayer1_LDADD = ../lib/libgmerlin.la -ldl

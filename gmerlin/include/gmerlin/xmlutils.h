@@ -63,3 +63,12 @@ void bg_xml_save_io(xmlDocPtr doc, gavf_io_t* io);
 
 xmlDocPtr bg_xml_parse_file(const char * filename, int lock);
 void bg_xml_save_file(xmlDocPtr doc, const char * filename, int lock);
+
+xmlNodePtr bg_xml_find_node_child(xmlNodePtr parent, const char * child);
+xmlNodePtr bg_xml_find_doc_child(xmlDocPtr parent, const char * child);
+
+xmlNodePtr bg_xml_find_next_node_child(xmlNodePtr parent);
+xmlNodePtr bg_xml_find_next_doc_child(xmlDocPtr parent);
+
+xmlNodePtr bg_xml_append_child_node(xmlNodePtr parent, const char * name,
+                                    const char * content);

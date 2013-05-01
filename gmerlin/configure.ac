@@ -1012,6 +1012,7 @@ apps/kbd/Makefile \
 apps/thumbnailer/Makefile \
 apps/nmjedit/Makefile \
 apps/dbedit/Makefile \
+apps/mediaserver/Makefile \
 doc/Makefile \
 doc/Doxyfile \
 icons/Makefile \

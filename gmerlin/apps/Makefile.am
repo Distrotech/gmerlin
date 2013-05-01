@@ -65,6 +65,7 @@ cmdlineplayer \
 cmdlinerecorder \
 dbedit \
 gavftools \
+mediaserver \
 $(plugincfg_subdirs) \
 $(alsamixer_subdirs) \
 $(nmjedit_subdirs) \

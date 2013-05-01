@@ -1,6 +1,9 @@
 pkgincludedir=$(includedir)/gmerlin/upnp
 
 pkginclude_HEADERS = \
-ssdp.h
+ssdp.h \
+soap.h \
+device.h \
+devicedesc.h
 
 noinst_HEADERS = 

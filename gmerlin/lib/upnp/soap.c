@@ -64,27 +64,12 @@ xmlDocPtr bg_soap_create_response(const char * function,
 
 xmlNodePtr bg_soap_get_function(xmlDocPtr doc)
   {
-  xmlNodePtr node = doc->children;
+  xmlNodePtr node;
 
-  while(node && !node->name && strcmp((char*)node->name, "Envelope"))
-    node = node->next;
-
-  if(!node)
-    return 0;
-
-  node = node->children;
-
-  while(node && !node->name && strcmp((char*)node->name, "Body"))
-    node = node->next;
-
-  if(!node)
-    return 0;
-
-  node = node->children;
-
-  while(node && !node->name)
-    node = node->next;
-
+  if(!(node = bg_xml_find_doc_child(doc, "Envelope")) ||
+     !(node = bg_xml_find_node_child(node, "Body")) ||
+     !(node = bg_xml_find_next_node_child(node)))
+    return NULL;
   return node;  
   }
 

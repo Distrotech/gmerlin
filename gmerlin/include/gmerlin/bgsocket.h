@@ -41,7 +41,7 @@ void bg_socket_address_destroy(bg_socket_address_t *);
 /* Get address from hostname and port */
 
 int bg_socket_address_set(bg_socket_address_t *, const char * host,
-                        int port, int socktype);
+                          int port, int socktype);
 
 void bg_socket_address_set_port(bg_socket_address_t * addr, int port);
 int bg_socket_address_get_port(bg_socket_address_t * addr);
