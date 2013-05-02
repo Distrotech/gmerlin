@@ -31,6 +31,8 @@
 #include <gmerlin/upnp/ssdp.h>
 #include <gmerlin/bgsocket.h>
 #include <gmerlin/translation.h>
+#include <gmerlin/http.h>
+
 #include <gmerlin/log.h>
 #define LOG_DOMAIN "ssdp"
 
@@ -43,8 +45,17 @@
 
 #define UDP_BUFFER_SIZE 2048
 
-#define META_METHOD "$METHOD"
-#define META_STATUS "$STATUS"
+#define QUEUE_SIZE 10
+
+// #define META_METHOD "$METHOD"
+// #define META_STATUS "$STATUS"
+
+typedef struct
+  {
+  char * buffer;
+  bg_socket_address_t * addr;
+  gavl_time_t send_time;
+  } queue_element_t;
 
 struct bg_ssdp_s
   {
@@ -65,6 +76,8 @@ struct bg_ssdp_s
   bg_ssdp_root_device_t * remote_devs;
 
   char * server_string;
+
+  queue_element_t queue[QUEUE_SIZE];
 
 #ifdef DUMP_DEVS
   gavl_time_t last_dump_time;
@@ -228,6 +241,10 @@ static bg_ssdp_service_t * add_service(bg_ssdp_service_t ** sp, int * nump)
   return ret;  
   }
 
+static void flush_queue(bg_ssdp_t * ssdp)
+  {
+  }
+
 static bg_ssdp_service_t * device_add_service(bg_ssdp_device_t * dev)
   {
   return add_service(&dev->services, &dev->num_services);
@@ -290,7 +307,20 @@ bg_ssdp_t * bg_ssdp_create(bg_ssdp_root_device_t * local_dev,
   ret->local_addr  = bg_socket_address_create();
   ret->mcast_addr  = bg_socket_address_create();
 
-  if(!bg_socket_address_set_local(ret->local_addr, 0))
+  if(ret->local_dev)
+    {
+    /* If we advertise a device, we need to bind onto the same interface */
+    char * host = NULL;
+    bg_url_split(ret->local_dev->url,
+                 NULL,
+                 NULL,
+                 NULL,
+                 &host,
+                 NULL,
+                 NULL);
+    bg_socket_address_set(ret->local_addr, host, 0, SOCK_DGRAM);
+    }
+  else if(!bg_socket_address_set_local(ret->local_addr, 0))
     goto fail;
 
   if(!bg_socket_address_set(ret->mcast_addr, "239.255.255.250", 1900, SOCK_DGRAM))
@@ -322,6 +352,7 @@ bg_ssdp_t * bg_ssdp_create(bg_ssdp_root_device_t * local_dev,
   return NULL;
   }
 
+#if 0
 static int parse_vars(char ** str, gavl_metadata_t * m)
   {
   char * pos;
@@ -351,7 +382,6 @@ static int parse_vars(char ** str, gavl_metadata_t * m)
     }
   return 1;
   }
-
 static int parse_request(const char * buffer, gavl_metadata_t * m)
   {
   int ret = 0;
@@ -399,6 +429,7 @@ static int parse_response(const char * buffer, gavl_metadata_t * m)
   bg_strbreak_free(str);
   return ret;
   }
+#endif
 
 // TYPE:VERSION
 
@@ -552,13 +583,14 @@ static void handle_multicast(bg_ssdp_t * s, const char * buffer,
   const char * var;
   gavl_metadata_t m;
   gavl_metadata_init(&m);
-  if(!parse_request(buffer, &m))
+   
+  if(!bg_http_request_from_string(&m, buffer))
     goto fail;
 
   //  fprintf(stderr, "handle_multicast\n"); 
   //  gavl_metadata_dump(&m, 2);
 
-  var = gavl_metadata_get_i(&m, META_METHOD);
+  var = bg_http_request_get_method(&m);
   
   if(!var)
     goto fail;
@@ -651,7 +683,8 @@ static void handle_unicast(bg_ssdp_t * s, const char * buffer,
   const char * st;
   gavl_metadata_t m;
   gavl_metadata_init(&m);
-  if(!parse_response(buffer, &m))
+
+  if(!bg_http_response_from_string(&m, buffer))
     goto fail;
 
   //  fprintf(stderr, "handle_unicast\n"); 

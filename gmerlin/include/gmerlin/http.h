@@ -57,3 +57,9 @@ int bg_http_response_from_string(gavl_metadata_t * res, const char * str);
 const char * bg_http_response_get_protocol(gavl_metadata_t * res);
 const int bg_http_response_get_status_int(gavl_metadata_t * res);
 const char * bg_http_response_get_status_str(gavl_metadata_t * res);
+
+/* Generic utilities */
+
+void bg_http_header_set_empty_var(gavl_metadata_t * h, const char * name);
+
+

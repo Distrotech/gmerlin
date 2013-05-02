@@ -19,38 +19,25 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  * *****************************************************************/
 
-#include <uuid/uuid.h>
-#include <gmerlin/xmlutils.h>
-#include <gmerlin/bgsocket.h>
-#include <gmerlin/mediadb.h>
+#include <upnp_device.h>
+#include <stdlib.h>
 
-typedef struct
-  {
-  const char * mimetype;
-  int width;
-  int height;
-  int depth;
-  const char * location;
-  } 
-bg_upnp_icon_t;
-
-typedef struct bg_upnp_device_s bg_upnp_device_t;
-
-int
-bg_upnp_device_handle_request(bg_upnp_device_t * dev, int fd,
-                              const char * method,
-                              const char * path,
-                              const gavl_metadata_t * header);
-
-void
-bg_upnp_device_destroy(bg_upnp_device_t * dev);
-
-/* Creation routines for device types */
 
 bg_upnp_device_t *
 bg_upnp_create_media_server(bg_socket_address_t * addr,
                             uuid_t uuid,
                             const char * name,
                             const bg_upnp_icon_t * icons,
-                            bg_db_t * db);
+                            bg_db_t * db)
+  {
+  bg_upnp_device_t * ret;
+  ret = calloc(1, sizeof(*ret));
+
+  bg_upnp_device_init(ret, addr, uuid, name, "MediaServer", 1, 2, "Gmerlin media server", 
+                      "Gmerlin media server", icons);
+
+  bg_upnp_service_init(&ret->services[0], "cd", "ContentDirectory", 1);
+  bg_upnp_service_init(&ret->services[1], "cm", "ConnectionManager", 1);
+  return ret;
+  }
 

@@ -19,9 +19,13 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  * *****************************************************************/
 
+#include <config.h>
 #include <upnp_device.h>
 #include <string.h>
 #include <gmerlin/http.h>
+#include <gmerlin/utils.h>
+#include <gmerlin/upnp/devicedesc.h>
+
 
 static void send_description(int fd, const char * desc)
   {
@@ -98,4 +102,94 @@ bg_upnp_device_handle_request(bg_upnp_device_t * dev, int fd,
   }
 
 void
-bg_upnp_device_destroy(bg_upnp_device_t * dev);
+bg_upnp_device_destroy(bg_upnp_device_t * dev)
+  {
+  }
+
+void bg_upnp_device_init(bg_upnp_device_t * ret, bg_socket_address_t * addr,
+                         uuid_t uuid, const char * name, const char * type, 
+                         int version, int num_services,
+                         const char * model_name, const char * model_description,
+                         const bg_upnp_icon_t * icons)
+  {
+  ret->num_services = num_services;
+  ret->services = calloc(ret->num_services, sizeof(*ret->services));
+  ret->sa = addr;
+  uuid_copy(ret->uuid, uuid);
+  ret->name = gavl_strdup(name);
+  ret->type = gavl_strdup(type);
+  ret->version = version;
+  ret->icons = icons;
+
+  ret->model_name        = gavl_strdup(model_name);
+  ret->model_description = gavl_strdup(model_description);
+  }
+
+void bg_upnp_service_init(bg_upnp_service_t * ret, const char * name, const char * type, int version)
+  {
+  ret->name = gavl_strdup(name);
+  ret->type = gavl_strdup(type);
+  ret->version = version;
+  }
+
+void bg_upnp_device_create_description(bg_upnp_device_t * dev)
+  {
+  int i;
+  xmlDocPtr doc;
+  doc = bg_upnp_device_description_create(dev->sa, dev->type, dev->version);
+  bg_upnp_device_description_set_name(doc, dev->name);
+  bg_upnp_device_description_set_manufacturer(doc, "Gmerlin Project");
+  bg_upnp_device_description_set_manufacturer_url(doc, "http://gmerlin.sourceforge.net");
+  bg_upnp_device_description_set_model_description(doc, dev->model_description);
+  bg_upnp_device_description_set_model_name(doc, dev->model_name);
+  bg_upnp_device_description_set_model_number(doc, VERSION);
+  bg_upnp_device_description_set_model_url(doc, "http://gmerlin.sourceforge.net");
+  bg_upnp_device_description_set_serial_number(doc, "1");
+  bg_upnp_device_description_set_uuid(doc, dev->uuid);
+
+  if(dev->icons)
+    {
+    i = 0;
+    while(dev->icons[i].location)
+      {
+      bg_upnp_device_description_add_icon(doc, 
+                                          dev->icons[i].mimetype, 
+                                          dev->icons[i].width, dev->icons[i].height, 
+                                          dev->icons[i].depth, dev->icons[i].location);
+      i++;
+      }
+    }
+
+  for(i = 0; i < dev->num_services; i++)
+    {
+    bg_upnp_device_description_add_service(doc, dev->services[i].type, 
+                                                dev->services[i].version, 
+                                                dev->services[i].name);
+    }
+  dev->description = bg_xml_save_to_memory(doc);
+  
+  }
+
+void bg_upnp_device_create_ssdp(bg_upnp_device_t * dev)
+  {
+  int i;
+  char addr_string[BG_SOCKET_ADDR_STR_LEN];
+  /* Create ssdp device description */
+  dev->ssdp_dev.uuid = calloc(37, 1);
+  uuid_unparse_lower(dev->uuid, dev->ssdp_dev.uuid);
+   
+  bg_socket_address_to_string(dev->sa, addr_string);
+  dev->ssdp_dev.url = bg_sprintf("http://%s/upnp/desc.xml", addr_string);
+  dev->ssdp_dev.type = gavl_strdup(dev->type);
+  dev->ssdp_dev.version = dev->version;
+  
+  dev->ssdp_dev.num_services = dev->num_services;
+  dev->services = calloc(dev->ssdp_dev.num_services, sizeof(*dev->ssdp_dev.services));
+  
+  for(i = 0; i < dev->ssdp_dev.num_services; i++)
+    {
+    dev->ssdp_dev.services[i].type = gavl_strdup(dev->services[i].type);
+    dev->ssdp_dev.services[i].version = dev->services[i].version;
+    }
+  dev->ssdp = bg_ssdp_create(&dev->ssdp_dev, 0);
+  }

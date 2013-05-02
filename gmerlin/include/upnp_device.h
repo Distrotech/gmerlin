@@ -20,6 +20,8 @@
  * *****************************************************************/
 
 #include <gmerlin/upnp/device.h>
+#include <gmerlin/upnp/ssdp.h>
+
 
 typedef struct bg_upnp_service_s bg_upnp_service_t; 
 
@@ -37,21 +39,48 @@ typedef struct
 
 struct bg_upnp_service_s
   {
-  char * name; // For finding the service from the http request
-  char * description;
+  char * name;        // For finding the service from the http request
+  char * description; // xml
+  char * type;        
+  int version;
     
   const bg_upnp_service_funcs_t * funcs;
   void * priv;
+  const bg_upnp_icon_t * icons;
   };
 
 struct bg_upnp_device_s
   {
   char * description;
+  char * type;
+  int version;
 
   int num_services;
   bg_upnp_service_t * services;
   
   void (*destroy)(void*priv);
   void * priv;
+
+  bg_ssdp_root_device_t ssdp_dev;
+  bg_ssdp_t * ssdp;
+
+  bg_socket_address_t * sa;
+  uuid_t uuid;
+  char * name;
+
+  char * model_name;
+  char * model_description;
+  const bg_upnp_icon_t * icons;
+
   };
+
+void bg_upnp_device_init(bg_upnp_device_t * dev, bg_socket_address_t * addr,
+                         uuid_t uuid, const char * name, const char * type, int version, int num_services,
+                         const char * model_name, const char * model_description, const bg_upnp_icon_t * icons);
+
+void bg_upnp_service_init(bg_upnp_service_t * ret, const char * name, const char * type, int version);
+
+void bg_upnp_device_create_description(bg_upnp_device_t * dev);
+void bg_upnp_device_create_ssdp(bg_upnp_device_t * dev);
+
 

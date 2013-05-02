@@ -359,3 +359,7 @@ const char * bg_http_response_get_status_str(gavl_metadata_t * res)
   return gavl_metadata_get(res, META_STATUS_STR);
   }
 
+void bg_http_header_set_empty_var(gavl_metadata_t * h, const char * name)
+  {
+  gavl_metadata_set(h, name, META_EMPTY);
+  }

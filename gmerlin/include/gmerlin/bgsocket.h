@@ -37,6 +37,9 @@ typedef struct bg_socket_address_s bg_socket_address_t;
 bg_socket_address_t * bg_socket_address_create();
 void bg_socket_address_destroy(bg_socket_address_t *);
 
+void bg_socket_address_copy(bg_socket_address_t * dst,
+                            const bg_socket_address_t * src);
+
 
 /* Get address from hostname and port */
 

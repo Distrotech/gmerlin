@@ -85,6 +85,12 @@ bg_socket_address_t * bg_socket_address_create()
   return ret;
   }
 
+void bg_socket_address_copy(bg_socket_address_t * dst,
+                            const bg_socket_address_t * src)
+  {
+  memcpy(dst, src, sizeof(*dst));
+  }
+
 void bg_socket_address_destroy(bg_socket_address_t * a)
   {
   free(a);
