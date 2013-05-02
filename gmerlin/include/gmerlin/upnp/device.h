@@ -40,5 +40,7 @@ bg_upnp_device_destroy(bg_upnp_device_t * dev);
 
 bg_upnp_device_t *
 bg_upnp_create_media_server(bg_socket_address_t * addr,
-                            uuid_t uuid, bg_db_t * db);
+                            uuid_t uuid,
+                            const char * name,
+                            bg_db_t * db);
 

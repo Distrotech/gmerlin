@@ -21,6 +21,20 @@
 
 #include <gmerlin/xmlutils.h>
 
+typedef struct
+  {
+  const gavl_metadata_t * req_hdr;
+  gavl_metadata_t res_hdr;
+  
+  xmlDocPtr request;
+  xmlDocPtr response;
+  } bg_soap_t;
+
+void bg_soap_init(bg_soap_t*);
+void bg_soap_read_request(bg_soap_t*);
+void bg_soap_write_response(bg_soap_t*);
+void bg_soap_free(bg_soap_t*);
+
 xmlDocPtr bg_soap_create_request(const char * function, const char * service, int version);
 xmlDocPtr bg_soap_create_response(const char * function, const char * service, int version);
 
@@ -28,3 +42,9 @@ xmlDocPtr bg_soap_create_response(const char * function, const char * service, i
 xmlNodePtr bg_soap_get_function(xmlDocPtr);
 
 xmlNodePtr bg_soap_request_add_argument(xmlDocPtr doc, const char * name);
+
+char * bg_soap_request_get_arg_string(xmlDocPtr doc, const char * name);
+int bg_soap_request_get_arg_int(xmlDocPtr doc, const char * name, int * ret);
+
+void bg_soap_request_add_arg_string(xmlDocPtr doc, const char * name, const char * val);
+int bg_soap_request_add_arg_int(xmlDocPtr doc, const char * name, int * ret);
