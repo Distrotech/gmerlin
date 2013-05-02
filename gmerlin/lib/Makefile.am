@@ -105,6 +105,7 @@ formats.c \
 frametimer.c \
 gavfenc.c \
 hexdump.c \
+http.c \
 language_table.c \
 lcdproc.c \
 log.c \

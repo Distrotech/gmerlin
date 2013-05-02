@@ -80,7 +80,6 @@ static void test_service_desc()
   bg_upnp_service_action_add_argument(node, "UpdateID", 1, 0, "A_ARG_TYPE_UpdateID");
 
   node = bg_upnp_service_description_add_statevar(doc, "A_ARG_TYPE_BrowseFlag", 0, "string");
-
   bg_upnp_service_statevar_add_allowed_value(node, "BrowseMetadata");
   bg_upnp_service_statevar_add_allowed_value(node, "BrowseDirectChildren");
   

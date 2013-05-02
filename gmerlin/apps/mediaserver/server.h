@@ -26,6 +26,8 @@
 #include <gmerlin/mediadb.h>
 #include <gmerlin/cmdline.h>
 
+#include <gmerlin/upnp/device.h>
+
 #define CLIENT_STATUS_STARTING     0
 #define CLIENT_STATUS_WAIT_SYNC    1
 #define CLIENT_STATUS_RUNNING      2
@@ -70,6 +72,9 @@ typedef struct
   int clients_alloc;
 
   char * root_url;
+
+  bg_upnp_device_t * dev;
+  bg_db_t * db;
   
   } server_t;
 

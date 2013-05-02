@@ -21,11 +21,24 @@
 
 #include <upnp_device.h>
 #include <string.h>
+#include <gmerlin/http.h>
 
 static void send_description(int fd, const char * desc)
   {
-  gavl_metadata_t resp;
-  gavl_metadata_init(&resp);
+  int len;
+  gavl_metadata_t res;
+  len = strlen(desc);
+  bg_http_response_init(&res, "HTTP/1.1", 200, "OK");
+  gavl_metadata_set_int(&res, "CONTENT-LENGTH", len);
+  gavl_metadata_set(&res, "CONTENT-TYPE", "text/xml; charset=UTF-8");
+  gavl_metadata_set(&res, "CONNECTION", "close");
+
+  if(bg_http_response_write(fd, &res))
+    goto fail;
+  
+  bg_socket_write_data(fd, (const uint8_t*)desc, len);
+  fail:
+  gavl_metadata_free(&res);
   }
 
 int
@@ -66,7 +79,8 @@ bg_upnp_device_handle_request(bg_upnp_device_t * dev, int fd,
       if(!strcmp(path, "desc.xml"))
         {
         /* Send service description */
-        
+        send_description(fd, dev->services[i].description);
+        return 1;
         }
       else if(!strcmp(path, "control"))
         {

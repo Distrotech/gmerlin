@@ -19,6 +19,10 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  * *****************************************************************/
 
+#ifndef __MEDIADB_H_
+#define __MEDIADB_H_
+
+
 #include <time.h>
 #include <gmerlin/pluginregistry.h>
 
@@ -305,3 +309,4 @@ void bg_db_object_unref(void * obj);
 void
 bg_db_query_children(bg_db_t *, int64_t id, bg_db_query_callback cb, void * priv);
 
+#endif //  __MEDIADB_H_

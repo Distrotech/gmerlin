@@ -309,8 +309,9 @@ bg_ssdp_t * bg_ssdp_create(bg_ssdp_root_device_t * local_dev,
          bg_socket_address_to_string(ret->local_addr, addr_str));
   
   /* Send seach packet */
-  bg_udp_socket_send(ret->ucast_fd, (uint8_t*)search_string, strlen(search_string), ret->mcast_addr);
-
+  if(ret->discover_remote)
+    bg_udp_socket_send(ret->ucast_fd, (uint8_t*)search_string, strlen(search_string), ret->mcast_addr);
+  
   ret->timer = gavl_timer_create(ret->timer);
   gavl_timer_start(ret->timer);
   

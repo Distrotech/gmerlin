@@ -941,4 +941,3 @@ int bg_udp_socket_send(int fd, const uint8_t * data, int data_size,
   return (sendto(fd, data, data_size, 0 /* int flags */,
                  (struct sockaddr *)&addr->addr, addr->len) == data_size);
   }
-

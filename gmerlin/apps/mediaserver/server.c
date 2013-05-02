@@ -23,8 +23,13 @@
 
 #include <string.h>
 #include <gmerlin/bgsocket.h>
+#include <gmerlin/http.h>
+
+#include <unistd.h>
 
 #define LOG_DOMAIN "server"
+
+#define TIMEOUT GAVL_TIME_SCALE/2
 
 int server_init(server_t * s)
   {
@@ -55,14 +60,53 @@ int server_init(server_t * s)
 
   s->root_url = bg_sprintf("http://%s", addr_str);
 
-  /* Create UPNP devices */
+  /* Create UPNP device(s) */
   
   return 1;
   }
 
+static void handle_client_connection(server_t * s, int fd)
+  {
+  const char * method;
+  const char * path;
+  const char * protocol;
+  
+  gavl_metadata_t req;
+  gavl_metadata_init(&req);
+  if(!bg_http_request_read(fd, &req, TIMEOUT))
+    goto fail;
+
+  method = bg_http_request_get_method(&req);
+  path = bg_http_request_get_path(&req);
+  protocol = bg_http_request_get_protocol(&req);
+
+  /* Try to handle things */
+
+  
+  
+  fail:
+  if(fd >= 0)
+    close(fd);
+  gavl_metadata_free(&req);
+  }
 
 int server_iteration(server_t * s)
   {
+  int fd;
+
+  /* Remove dead clients */
+
+  /* Handle incoming connections */
+
+  while((fd = bg_listen_socket_accept(s->fd, 0)) >= 0)
+    {
+    bg_log(BG_LOG_INFO, LOG_DOMAIN, "Got client connection");
+    handle_client_connection(s, fd);
+    }
+  
+  
+  /* Ping upnp device so it can do it's ssdp stuff */
+  
   return 1;
   }
 
