@@ -32,12 +32,18 @@ bg_upnp_create_media_server(bg_socket_address_t * addr,
   {
   bg_upnp_device_t * ret;
   ret = calloc(1, sizeof(*ret));
+  
+  bg_upnp_device_init(ret, addr, uuid, name, "MediaServer", 1, 1 /* 2 */,
+                      "Gmerlin media server", 
+                      "Gmerlin media server",
+                      icons);
 
-  bg_upnp_device_init(ret, addr, uuid, name, "MediaServer", 1, 2, "Gmerlin media server", 
-                      "Gmerlin media server", icons);
-
-  bg_upnp_service_init(&ret->services[0], "cd", "ContentDirectory", 1);
-  bg_upnp_service_init(&ret->services[1], "cm", "ConnectionManager", 1);
+  bg_upnp_service_init_content_directory(&ret->services[0],
+                                         "cd", db);
+  
+  //  bg_upnp_service_init(&ret->services[1], "cm", "ConnectionManager", 1);
+  
+  bg_upnp_device_create_common(ret);
   return ret;
   }
 

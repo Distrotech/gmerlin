@@ -59,9 +59,9 @@ static void test_device_desc()
   bg_xml_save_FILE(doc, stdout);
   xmlFreeDoc(doc);
   bg_socket_address_destroy(addr);
-
   }
 
+#if 0
 static void test_service_desc()
   {
   xmlNodePtr node;
@@ -87,12 +87,13 @@ static void test_service_desc()
   xmlFreeDoc(doc);
   
   }
+#endif
 
 int main(int argc, char ** argv)
   {
-  //  test_device_desc();
+  test_device_desc();
   
-  test_service_desc();
+  //  test_service_desc();
   return 0; 
   }
 

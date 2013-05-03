@@ -48,6 +48,12 @@ bg_upnp_device_handle_request(bg_upnp_device_t * dev, int fd,
 void
 bg_upnp_device_destroy(bg_upnp_device_t * dev);
 
+/* All this regularly to keep things up to date */
+
+int
+bg_upnp_device_ping(bg_upnp_device_t * dev);
+
+
 /* Creation routines for device types */
 
 bg_upnp_device_t *

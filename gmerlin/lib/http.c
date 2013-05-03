@@ -130,11 +130,9 @@ char * bg_http_request_to_string(gavl_metadata_t * req)
   const char * protocol;
   char * line;
   
-  method = gavl_metadata_get(req, META_METHOD);
-  path = gavl_metadata_get(req, META_PATH);
-  protocol = gavl_metadata_get(req, META_PROTOCOL);
-
-  if(!method || !path || !protocol)
+  if(!(method = gavl_metadata_get(req, META_METHOD)) ||
+     !(path = gavl_metadata_get(req, META_PATH)) ||
+     !(protocol = gavl_metadata_get(req, META_PROTOCOL)))
     return NULL;
   
   line = bg_sprintf("%s %s %s\r\n", method, path, protocol);
@@ -262,8 +260,8 @@ char * bg_http_response_to_string(gavl_metadata_t * res)
   
   i = 0;
   if(!gavl_metadata_get_int(res, META_STATUS_INT, &status_int) ||
-     (status_str = gavl_metadata_get(res, META_STATUS_STR)) ||
-     (protocol = gavl_metadata_get(res, META_PROTOCOL)))
+     !(status_str = gavl_metadata_get(res, META_STATUS_STR)) ||
+     !(protocol = gavl_metadata_get(res, META_PROTOCOL)))
     return 0;
   
   line = bg_sprintf("%s %d %s\r\n", protocol, status_int, status_str);

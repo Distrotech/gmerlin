@@ -508,8 +508,9 @@ static void flush_reply(bg_ssdp_t * s, queue_element_t * q)
     }
   }
 
-static void flush_queue(bg_ssdp_t * s, gavl_time_t current_time)
+static int flush_queue(bg_ssdp_t * s, gavl_time_t current_time)
   {
+  int ret = 0;
   int i;
   for(i = 0; i < QUEUE_SIZE; i++)
     {
@@ -517,7 +518,9 @@ static void flush_queue(bg_ssdp_t * s, gavl_time_t current_time)
       continue;
 
     flush_reply(s, &s->queue[i]);
+    ret++;
     }
+  return ret;
   }
 
 
@@ -662,7 +665,7 @@ static void handle_unicast(bg_ssdp_t * s, const char * buffer,
   gavl_metadata_free(&m);
   }
 
-void bg_ssdp_update(bg_ssdp_t * s)
+int bg_ssdp_update(bg_ssdp_t * s)
   {
   int len;
   int i;
@@ -670,7 +673,8 @@ void bg_ssdp_update(bg_ssdp_t * s)
 #ifdef DUMP_UDP
   char addr_str[BG_SOCKET_ADDR_STR_LEN];
 #endif
-
+  int ret = 0;
+  
   /* Delete expired devices */
   current_time = gavl_timer_get(s->timer);
   i = 0;  
@@ -694,6 +698,7 @@ void bg_ssdp_update(bg_ssdp_t * s)
     fprintf(stderr, "Got SSDP multicast message from %s\n%s",
             bg_socket_address_to_string(s->sender_addr, addr_str), (char*)s->buf);
 #endif
+    ret++;
     }
 
   /* Read unicast messages */
@@ -708,6 +713,7 @@ void bg_ssdp_update(bg_ssdp_t * s)
     fprintf(stderr, "Got SSDP unicast message from %s\n%s",
             bg_socket_address_to_string(s->sender_addr, addr_str), (char*)s->buf);
 #endif
+    ret++;
     }
 
 #ifdef DUMP_DEVS
@@ -720,7 +726,8 @@ void bg_ssdp_update(bg_ssdp_t * s)
     }
 #endif
 
-  flush_queue(s, current_time);
+  ret += flush_queue(s, current_time);
+  return ret;
   }
 
 void bg_ssdp_destroy(bg_ssdp_t * s)

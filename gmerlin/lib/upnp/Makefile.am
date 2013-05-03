@@ -12,11 +12,13 @@ noinst_LTLIBRARIES = \
 libupnp.la
 
 libupnp_la_SOURCES = \
+contentdirectory.c \
 device.c \
 devicedesc.c \
 mediaserver.c \
 servicedesc.c \
 servicedesc_xml.c \
+service.c \
 soap.c \
 ssdp.c \
 ssdp_device.c

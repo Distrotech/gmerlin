@@ -65,6 +65,7 @@ void client_stop(client_t *);
 
 typedef struct
   {
+  bg_socket_address_t * addr;
   int fd;
 
   client_t ** clients;
@@ -75,7 +76,8 @@ typedef struct
 
   bg_upnp_device_t * dev;
   bg_db_t * db;
-  
+
+  uuid_t uuid;
   } server_t;
 
 int server_init(server_t*);

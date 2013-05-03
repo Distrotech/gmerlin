@@ -39,10 +39,14 @@ typedef struct
   int i;
   } bg_upnp_sv_val_t;
 
-char * bg_upnp_val_to_string(bg_upnp_sv_type_t type, const bg_upnp_sv_val_t * val);
-int bg_upnp_string_to_val(bg_upnp_sv_type_t type, const char * str, bg_upnp_sv_val_t * val);
+char * bg_upnp_val_to_string(bg_upnp_sv_type_t type,
+                             const bg_upnp_sv_val_t * val);
+int bg_upnp_string_to_val(bg_upnp_sv_type_t type,
+                          const char * str, bg_upnp_sv_val_t * val);
 void bg_upnp_sv_val_free(bg_upnp_sv_val_t * val);
-void bg_upnp_sv_val_copy(bg_upnp_sv_type_t type, bg_upnp_sv_val_t * dst, const bg_upnp_sv_val_t * src);
+void bg_upnp_sv_val_copy(bg_upnp_sv_type_t type,
+                         bg_upnp_sv_val_t * dst,
+                         const bg_upnp_sv_val_t * src);
 
 /* Range for a state variable */
 
@@ -90,7 +94,7 @@ typedef struct
   {
   char * name;
   char * rsv_name;         // Related state variable  
-  bg_upnp_sv_desc_t * rsv;
+  const bg_upnp_sv_desc_t * rsv;
   int flags;
   } bg_upnp_sa_arg_desc_t;
 
@@ -119,6 +123,13 @@ bg_upnp_sa_desc_add_arg_out(bg_upnp_sa_desc_t * d, const char * name,
 
 void bg_upnp_sa_desc_free(bg_upnp_sa_desc_t * d);
 
+const bg_upnp_sa_arg_desc_t *
+bg_upnp_sa_desc_in_arg_by_name(bg_upnp_sa_desc_t * d, const char * name);
+
+const bg_upnp_sa_arg_desc_t *
+bg_upnp_sa_desc_out_arg_by_name(bg_upnp_sa_desc_t * d, const char * name);
+
+
 /* Description of a service */
 typedef struct
   {
@@ -140,7 +151,12 @@ bg_upnp_service_desc_add_action(bg_upnp_service_desc_t * d, const char * name);
 
 void bg_upnp_service_desc_free(bg_upnp_service_desc_t * d);
 
+const bg_upnp_sv_desc_t *
+bg_upnp_service_desc_sv_by_name(bg_upnp_service_desc_t * d, const char * name);
+
 char * bg_upnp_service_desc_2_xml(bg_upnp_service_desc_t * d);
+
+int bg_upnp_service_desc_resolve_refs(bg_upnp_service_desc_t * d);
 
 /* */
 
@@ -186,5 +202,21 @@ struct bg_upnp_service_s
   void * priv;
   };
 
-void bg_upnp_service_init(bg_upnp_service_t * ret, const char * name, const char * type, int version);
+void bg_upnp_service_init(bg_upnp_service_t * ret,
+                          const char * name,
+                          const char * type, int version);
+
+int
+bg_upnp_service_start(bg_upnp_service_t * s);
+
+/* ContentDirectory:1 */
+
+void bg_upnp_service_init_content_directory(bg_upnp_service_t * ret,
+                                            const char * name,
+                                            bg_db_t * db);
+
+/* ConnectionManager:1 */
+
+void bg_upnp_service_init_connection_manager(bg_upnp_service_t * ret,
+                                             const char * name);
 

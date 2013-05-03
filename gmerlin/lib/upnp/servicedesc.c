@@ -19,14 +19,20 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  * *****************************************************************/
 
+#include <config.h>
 #include <upnp_service.h>
 #include <gmerlin/utils.h>
+#include <gmerlin/log.h>
+#define LOG_DOMAIN "upnp.servicedesc"
 
 #include <string.h>
 
+
+
 /* Values */
 
-char * bg_upnp_val_to_string(bg_upnp_sv_type_t type, const bg_upnp_sv_val_t * val)
+char * bg_upnp_val_to_string(bg_upnp_sv_type_t type,
+                             const bg_upnp_sv_val_t * val)
   {
   switch(type)
     {
@@ -40,7 +46,8 @@ char * bg_upnp_val_to_string(bg_upnp_sv_type_t type, const bg_upnp_sv_val_t * va
   return NULL;
   }
 
-int bg_upnp_string_to_val(bg_upnp_sv_type_t type, const char * str, bg_upnp_sv_val_t * val)
+int bg_upnp_string_to_val(bg_upnp_sv_type_t type,
+                          const char * str, bg_upnp_sv_val_t * val)
   {
   switch(type)
     {
@@ -67,7 +74,9 @@ void bg_upnp_sv_val_free(bg_upnp_sv_val_t * val)
     free(val->s);
   }
 
-void bg_upnp_sv_val_copy(bg_upnp_sv_type_t type, bg_upnp_sv_val_t * dst, const bg_upnp_sv_val_t * src)
+void bg_upnp_sv_val_copy(bg_upnp_sv_type_t type,
+                         bg_upnp_sv_val_t * dst,
+                         const bg_upnp_sv_val_t * src)
   {
    switch(type)
     {
@@ -82,14 +91,17 @@ void bg_upnp_sv_val_copy(bg_upnp_sv_type_t type, bg_upnp_sv_val_t * dst, const b
 
 /* State variable */
 
-void bg_upnp_sv_desc_set_default(bg_upnp_sv_desc_t * d, bg_upnp_sv_val_t * val)
+void bg_upnp_sv_desc_set_default(bg_upnp_sv_desc_t * d,
+                                 bg_upnp_sv_val_t * val)
   {
   bg_upnp_sv_val_copy(d->type, &d->def, val);
   d->flags |= BG_UPNP_SV_HAS_DEFAULT;
   }
 
-void bg_upnp_sv_desc_set_range(bg_upnp_sv_desc_t * d, bg_upnp_sv_val_t * min,
-                               bg_upnp_sv_val_t * max, bg_upnp_sv_val_t * step)
+void bg_upnp_sv_desc_set_range(bg_upnp_sv_desc_t * d,
+                               bg_upnp_sv_val_t * min,
+                               bg_upnp_sv_val_t * max,
+                               bg_upnp_sv_val_t * step)
   {
   bg_upnp_sv_val_copy(d->type, &d->range.min, min); 
   bg_upnp_sv_val_copy(d->type, &d->range.max, max); 
@@ -97,7 +109,8 @@ void bg_upnp_sv_desc_set_range(bg_upnp_sv_desc_t * d, bg_upnp_sv_val_t * min,
   d->flags |= BG_UPNP_SV_HAS_RANGE;
   }
 
-void bg_upnp_sv_desc_add_allowed(bg_upnp_sv_desc_t * d, bg_upnp_sv_val_t * val)
+void bg_upnp_sv_desc_add_allowed(bg_upnp_sv_desc_t * d,
+                                 bg_upnp_sv_val_t * val)
   {
   if(d->num_allowed + 1 > d->allowed_alloc)
     {
@@ -196,6 +209,31 @@ void bg_upnp_sa_desc_free(bg_upnp_sa_desc_t * d)
   free_sa_args(d->args_out, d->num_args_out);
   }
 
+static const bg_upnp_sa_arg_desc_t *
+sa_arg_by_name(bg_upnp_sa_arg_desc_t * args,
+               int num, const char * name)
+  {
+  int i;
+  for(i = 0; i < num; i++)
+    {
+    if(!strcmp(args[i].name, name))
+      return &args[i];
+    }
+  return NULL;
+  }
+
+const bg_upnp_sa_arg_desc_t *
+bg_upnp_sa_desc_in_arg_by_name(bg_upnp_sa_desc_t * d, const char * name)
+  {
+  return sa_arg_by_name(d->args_in, d->num_args_in, name);
+  }
+
+const bg_upnp_sa_arg_desc_t *
+bg_upnp_sa_desc_out_arg_by_name(bg_upnp_sa_desc_t * d, const char * name)
+  {
+  return sa_arg_by_name(d->args_out, d->num_args_out, name);
+  }
+
 /* Service description */
 
 // Add state variable
@@ -214,6 +252,7 @@ bg_upnp_service_desc_add_sv(bg_upnp_service_desc_t * d, const char * name,
   ret->name = gavl_strdup(name);
   ret->flags = flags;
   ret->type = type;
+  d->num_sv++;
   return ret;
   }
 
@@ -229,6 +268,7 @@ bg_upnp_service_desc_add_action(bg_upnp_service_desc_t * d, const char * name)
     }
   ret = d->sa + d->num_sa;
   ret->name = gavl_strdup(name);
+  d->num_sa++;
   return ret;
   }
 
@@ -249,3 +289,43 @@ void bg_upnp_service_desc_free(bg_upnp_service_desc_t * d)
     }
   }
 
+const bg_upnp_sv_desc_t *
+bg_upnp_service_desc_sv_by_name(bg_upnp_service_desc_t * d, const char * name)
+  {
+  int i;
+  for(i = 0; i < d->num_sv; i++)
+    {
+    if(!strcmp(d->sv[i].name, name))
+      return &d->sv[i];
+    }
+  return NULL;
+  }
+
+static int resolve_sv_refs(bg_upnp_service_desc_t * d,
+                           bg_upnp_sa_arg_desc_t * args, int num)
+  {
+  int i;
+  for(i = 0; i < num; i++)
+    {
+    args[i].rsv = bg_upnp_service_desc_sv_by_name(d, args[i].rsv_name);
+    if(!args[i].rsv)
+      {
+      bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Couldn't find state variable %s",
+             args[i].rsv_name);
+      return 0;
+      }
+    }
+  return 1;
+  }
+
+int bg_upnp_service_desc_resolve_refs(bg_upnp_service_desc_t * d)
+  {
+  int i;
+  for(i = 0; i < d->num_sa; i++)
+    {
+    if(!resolve_sv_refs(d, d->sa[i].args_in, d->sa[i].num_args_in) ||
+       !resolve_sv_refs(d, d->sa[i].args_out, d->sa[i].num_args_out))
+      return 0;
+    }
+  return 1;
+  }

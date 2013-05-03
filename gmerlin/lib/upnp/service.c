@@ -19,49 +19,26 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  * *****************************************************************/
 
-#include <gmerlin/upnp/device.h>
-#include <gmerlin/upnp/ssdp.h>
-
 #include <upnp_service.h>
-
-struct bg_upnp_device_s
-  {
-  char * description;
-  char * type;
-  int version;
-
-  int num_services;
-  bg_upnp_service_t * services;
-  
-  void (*destroy)(void*priv);
-  void * priv;
-
-  bg_ssdp_root_device_t ssdp_dev;
-  bg_ssdp_t * ssdp;
-
-  bg_socket_address_t * sa;
-  uuid_t uuid;
-  char * name;
-
-  char * model_name;
-  char * model_description;
-  const bg_upnp_icon_t * icons;
-
-  };
-
-void bg_upnp_device_init(bg_upnp_device_t * dev,
-                         bg_socket_address_t * addr,
-                         uuid_t uuid, const char * name,
-                         const char * type, int version, int num_services,
-                         const char * model_name,
-                         const char * model_description,
-                         const bg_upnp_icon_t * icons);
+#include <gmerlin/utils.h>
 
 int
-bg_upnp_device_create_common(bg_upnp_device_t * dev);
+bg_upnp_service_start(bg_upnp_service_t * s)
+  {
 
+  /* Get the related state variables of all action arguments */
+  if(!bg_upnp_service_desc_resolve_refs(&s->desc))
+    return 0;
+  
+  /* Create XML Description */
+  s->description = bg_upnp_service_desc_2_xml(&s->desc);
+  return 1;
+  }
 
-void bg_upnp_device_create_description(bg_upnp_device_t * dev);
-void bg_upnp_device_create_ssdp(bg_upnp_device_t * dev);
-
-
+void bg_upnp_service_init(bg_upnp_service_t * ret,
+                          const char * name, const char * type, int version)
+  {
+  ret->name = gavl_strdup(name);
+  ret->type = gavl_strdup(type);
+  ret->version = version;
+  }

@@ -31,13 +31,15 @@ static void send_description(int fd, const char * desc)
   {
   int len;
   gavl_metadata_t res;
+  fprintf(stderr, "Send desc\n%s\n", desc);
+  
   len = strlen(desc);
   bg_http_response_init(&res, "HTTP/1.1", 200, "OK");
   gavl_metadata_set_int(&res, "CONTENT-LENGTH", len);
   gavl_metadata_set(&res, "CONTENT-TYPE", "text/xml; charset=UTF-8");
   gavl_metadata_set(&res, "CONNECTION", "close");
 
-  if(bg_http_response_write(fd, &res))
+  if(!bg_http_response_write(fd, &res))
     goto fail;
   
   bg_socket_write_data(fd, (const uint8_t*)desc, len);
@@ -70,7 +72,6 @@ bg_upnp_device_handle_request(bg_upnp_device_t * dev, int fd,
   pos = strchr(path, '/');
   if(!pos)
     return 0;
-  
   
   for(i = 0; i < dev->num_services; i++)
     {
@@ -109,7 +110,8 @@ bg_upnp_device_destroy(bg_upnp_device_t * dev)
 void bg_upnp_device_init(bg_upnp_device_t * ret, bg_socket_address_t * addr,
                          uuid_t uuid, const char * name, const char * type, 
                          int version, int num_services,
-                         const char * model_name, const char * model_description,
+                         const char * model_name,
+                         const char * model_description,
                          const bg_upnp_icon_t * icons)
   {
   ret->num_services = num_services;
@@ -123,13 +125,6 @@ void bg_upnp_device_init(bg_upnp_device_t * ret, bg_socket_address_t * addr,
 
   ret->model_name        = gavl_strdup(model_name);
   ret->model_description = gavl_strdup(model_description);
-  }
-
-void bg_upnp_service_init(bg_upnp_service_t * ret, const char * name, const char * type, int version)
-  {
-  ret->name = gavl_strdup(name);
-  ret->type = gavl_strdup(type);
-  ret->version = version;
   }
 
 void bg_upnp_device_create_description(bg_upnp_device_t * dev)
@@ -184,7 +179,7 @@ void bg_upnp_device_create_ssdp(bg_upnp_device_t * dev)
   dev->ssdp_dev.version = dev->version;
   
   dev->ssdp_dev.num_services = dev->num_services;
-  dev->services = calloc(dev->ssdp_dev.num_services, sizeof(*dev->ssdp_dev.services));
+  dev->ssdp_dev.services = calloc(dev->ssdp_dev.num_services, sizeof(*dev->ssdp_dev.services));
   
   for(i = 0; i < dev->ssdp_dev.num_services; i++)
     {
@@ -192,4 +187,19 @@ void bg_upnp_device_create_ssdp(bg_upnp_device_t * dev)
     dev->ssdp_dev.services[i].version = dev->services[i].version;
     }
   dev->ssdp = bg_ssdp_create(&dev->ssdp_dev, 0);
+  }
+
+int
+bg_upnp_device_create_common(bg_upnp_device_t * dev)
+  {
+  bg_upnp_device_create_ssdp(dev);
+  bg_upnp_device_create_description(dev);
+  return 1;
+  }
+
+
+int
+bg_upnp_device_ping(bg_upnp_device_t * dev)
+  {
+  return bg_ssdp_update(dev->ssdp);
   }
