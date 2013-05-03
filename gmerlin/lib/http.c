@@ -40,6 +40,9 @@ static int parse_vars_line(gavl_metadata_t * m, char * line)
   {
   char * pos;
 
+  if(*line == '\0') // Final line
+    return 1;
+  
   pos = strchr(line, ':');
   if(!pos)
     return 0;
@@ -194,6 +197,7 @@ int bg_http_request_from_string(gavl_metadata_t * req, const char * buf)
     {
     if((pos = strchr(str[i], '\r')))
       *pos = '\0';
+    i++;
     }
 
   if(!parse_request_line(req, str[0]))
@@ -204,8 +208,9 @@ int bg_http_request_from_string(gavl_metadata_t * req, const char * buf)
     {
     if(!parse_vars_line(req, str[i]))
       goto fail;
+    i++;
     }
-
+  result = 1;
   fail:
   bg_strbreak_free(str);
   return result;
@@ -323,6 +328,7 @@ int bg_http_response_from_string(gavl_metadata_t * res, const char * buf)
     {
     if((pos = strchr(str[i], '\r')))
       *pos = '\0';
+    i++;
     }
 
   if(!parse_response_line(res, str[0]))
@@ -333,8 +339,10 @@ int bg_http_response_from_string(gavl_metadata_t * res, const char * buf)
     {
     if(!parse_vars_line(res, str[i]))
       goto fail;
+    i++;
     }
 
+  result = 1;
   fail:
   bg_strbreak_free(str);
   

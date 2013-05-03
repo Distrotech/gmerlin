@@ -43,6 +43,8 @@
 
 #define DUMP_DEVS
 
+#define DUMP_HEADERS
+
 #define UDP_BUFFER_SIZE 2048
 
 #define QUEUE_SIZE 10
@@ -52,9 +54,9 @@
 
 typedef struct
   {
-  char * buffer;
+  char * st;
   bg_socket_address_t * addr;
-  gavl_time_t send_time;
+  gavl_time_t time; // GAVL_TIME_UNDEFINED means empty
   } queue_element_t;
 
 struct bg_ssdp_s
@@ -84,89 +86,29 @@ struct bg_ssdp_s
 #endif
   };
 
-void
-bg_ssdp_root_device_dump(const bg_ssdp_root_device_t * d)
+
+// TYPE:VERSION
+
+static char * extract_type_version(const char * str, int * version)
   {
-  int i, j;
-  gavl_dprintf("Root device\n");
-  gavl_diprintf(2, "Location: %s\n", d->url);
-  gavl_diprintf(2, "UUID: %s\n", d->uuid);
-  if(d->type)
-    gavl_diprintf(2, "Type: %s.%d\n", d->type, d->version);
-  gavl_diprintf(2, "Devices: %d\n", d->num_devices);
-  for(i = 0; i < d->num_devices; i++)
+  char * ret;
+  const char * pos;
+  
+  pos = strchr(str, ':');
+  if(!pos)
+    return NULL;
+
+  ret = gavl_strndup(str, pos);
+  pos++;
+  if(*pos == '\0')
     {
-    gavl_diprintf(4, "UUID: %s\n", d->devices[i].uuid);
-    gavl_diprintf(4, "Type: %s.%d\n", d->devices[i].type, d->devices[i].version);
-    gavl_diprintf(4, "Services: %d\n", d->devices[i].num_services);
-    for(j = 0; j < d->devices[i].num_services; j++)
-      {
-      gavl_diprintf(6, "Type: %s.%d\n", d->devices[i].services[j].type, d->devices[i].services[j].version);
-      }
+    free(ret);
+    return NULL;
     }
-  gavl_diprintf(2, "Services: %d\n", d->num_services);
-  for(j = 0; j < d->num_services; j++)
-    {
-    gavl_diprintf(4, "Type: %s.%d\n", d->services[j].type,
-                  d->services[j].version);
-    }
-
-  }
-
-void
-bg_ssdp_service_free(bg_ssdp_service_t * s)
-  {
-  if(s->type)
-    free(s->type);
-  }
-
-void
-bg_ssdp_device_free(bg_ssdp_device_t * dev)
-  {
-  int i;
-  for(i = 0; i < dev->num_services; i++)
-    bg_ssdp_service_free(&dev->services[i]);
-  if(dev->services)
-    free(dev->services);
-  if(dev->type)
-    free(dev->type);
-  if(dev->uuid)
-    free(dev->uuid);
-
-  }
-
-bg_ssdp_device_t *
-bg_ssdp_device_add_device(bg_ssdp_root_device_t * dev, const char * uuid)
-  {
-  bg_ssdp_device_t * ret;
-  dev->devices = realloc(dev->devices, (dev->num_devices+1)*sizeof(*dev->devices));
-  ret = dev->devices + dev->num_devices;
-  memset(ret, 0, sizeof(*ret));
-  ret->uuid = gavl_strdup(uuid);
+  *version = atoi(pos);
   return ret;
   }
 
-void
-bg_ssdp_root_device_free(bg_ssdp_root_device_t * dev)
-  {
-  int i;
-  for(i = 0; i < dev->num_services; i++)
-    bg_ssdp_service_free(&dev->services[i]);
-  if(dev->services)
-    free(dev->services);
-
-  for(i = 0; i < dev->num_devices; i++)
-    bg_ssdp_device_free(&dev->devices[i]);
-  if(dev->devices)
-    free(dev->devices);
-
-  if(dev->uuid)
-    free(dev->uuid);
-  if(dev->url)
-    free(dev->url);
-  if(dev->type)
-    free(dev->type);
-  }
 
 static int 
 find_root_dev_by_location(bg_ssdp_t * s, const char * loc)
@@ -190,6 +132,20 @@ find_embedded_dev_by_uuid(const bg_ssdp_root_device_t * dev, const char * uuid)
       return i;
     }
   return -1;
+  }
+
+static const char * is_device_type(const char * str)
+  {
+  if(!gavl_string_starts_with_i("urn:schemas-upnp-org:device:", str))
+    return str + 28;
+  return NULL;
+  }
+
+static const char * is_service_type(const char * str)
+  {
+  if(!gavl_string_starts_with_i("urn:schemas-upnp-org:service:", str))
+    return str + 29;
+  return NULL;
   }
 
 static bg_ssdp_service_t * find_service(bg_ssdp_service_t * s, int num, const char * type)
@@ -239,10 +195,6 @@ static bg_ssdp_service_t * add_service(bg_ssdp_service_t ** sp, int * nump)
   *nump = num;
 
   return ret;  
-  }
-
-static void flush_queue(bg_ssdp_t * ssdp)
-  {
   }
 
 static bg_ssdp_service_t * device_add_service(bg_ssdp_device_t * dev)
@@ -344,113 +296,22 @@ bg_ssdp_t * bg_ssdp_create(bg_ssdp_root_device_t * local_dev,
   
   ret->timer = gavl_timer_create(ret->timer);
   gavl_timer_start(ret->timer);
-  
+
+  /* Create send queue */
+  if(ret->local_dev)
+    {
+    int i;
+    for(i = 0; i < QUEUE_SIZE; i++)
+      {
+      ret->queue[i].addr = bg_socket_address_create();
+      ret->queue[i].time = GAVL_TIME_UNDEFINED;
+      }
+    }
   return ret;
 
   fail:
   bg_ssdp_destroy(ret);
   return NULL;
-  }
-
-#if 0
-static int parse_vars(char ** str, gavl_metadata_t * m)
-  {
-  char * pos;
-  int i = 1;
-  while(str[i])
-    {
-    pos = strchr(str[i], '\r');
-    if(pos)
-      *pos = '\0';
-    
-    if(*(str[i]) == '\0') // Last empty line
-      break;
-    
-    pos = strchr(str[i], ':');
-    if(!pos)
-      return 0;
-    *pos = '\0';
-    pos++;
-
-    while(isspace(*pos) && (*pos != '\0'))
-      pos++;
-
-    if(*pos != '\0') // Pos can be '\0' for empty "EXT:" field
-      gavl_metadata_set(m, str[i], pos);
-    
-    i++;
-    }
-  return 1;
-  }
-static int parse_request(const char * buffer, gavl_metadata_t * m)
-  {
-  int ret = 0;
-  char * pos;
-  char ** str = bg_strbreak(buffer, '\n');
-
-  pos = strchr(str[0], ' ');
-  if(!pos)
-    goto fail;
-
-  *pos = '\0';
-
-  gavl_metadata_set(m, META_METHOD, str[0]);
-  
-  ret = parse_vars(str, m);
-  fail:
-  bg_strbreak_free(str);
-  return ret;
-  }
-
-static int parse_response(const char * buffer, gavl_metadata_t * m)
-  {
-  int ret = 0;
-  int status;
-  char * pos;
-  char ** str = bg_strbreak(buffer, '\n');
-
-  pos = strchr(str[0], ' ');
-  if(!pos)
-    goto fail;
-
-  while(isspace(*pos) && (*pos != '\0'))
-    pos++;
-
-  if(*pos == '\0') // Pos can be '\0' for empty "EXT:" field
-    goto fail;
-    
-  status = atoi(pos);
-
-  if(status != 200)
-    goto fail;
-  
-  ret = parse_vars(str, m);
-  fail:
-  bg_strbreak_free(str);
-  return ret;
-  }
-#endif
-
-// TYPE:VERSION
-
-static char * extract_name_version(const char * str, int * version)
-  {
-  char * ret;
-  const char * pos;
-  
-  pos = strchr(str, ':');
-  if(!pos)
-    return NULL;
-
-  ret = gavl_strndup(str, pos);
-  pos++;
-  if(*pos == '\0')
-    {
-    free(ret);
-    return NULL;
-    }
-  *version = atoi(pos);
-  return ret;
   }
 
 static char * uuid_from_usn(const char * usn)
@@ -476,7 +337,8 @@ static void update_device(bg_ssdp_t * s, const char * type,
   const char * cc; 
   const char * pos;
   char * uuid;
- 
+  const char * type_version;
+
   bg_ssdp_root_device_t * dev;
   bg_ssdp_device_t * edev;
   
@@ -542,43 +404,125 @@ static void update_device(bg_ssdp_t * s, const char * type,
       edev = bg_ssdp_device_add_device(dev, uuid);
     }
 
-  if(gavl_string_starts_with_i(type, "urn:schemas-upnp-org:device:"))
+  if((type_version = is_device_type(type)))
     {
-    type += 28;
     if(edev)
       {
       if(!edev->type)
-        edev->type = extract_name_version(type, &edev->version);
+        edev->type = extract_type_version(type_version, &edev->version);
       }
     else if(!dev->type)
-      dev->type = extract_name_version(type, &dev->version);
+      dev->type = extract_type_version(type_version, &dev->version);
     }
-  else if(gavl_string_starts_with_i(type, "urn:schemas-upnp-org:service:"))
+  else if((type_version = is_service_type(type)))
     {
     bg_ssdp_service_t * s = NULL;
-    type += 29;
-
+    
     if(edev)
       {
-      if(!device_find_service(edev, type))
+      if(!device_find_service(edev, type_version))
         s = device_add_service(edev);
       }
     else
       {
-      if(!root_device_find_service(dev, type))
+      if(!root_device_find_service(dev, type_version))
         s = root_device_add_service(dev);
       }    
     if(s)
-      s->type = extract_name_version(type, &s->version);
+      s->type = extract_type_version(type_version, &s->version);
     }
   end:
   if(uuid)
     free(uuid);  
   }
-                          
+
+static void schedule_reply(bg_ssdp_t * s, const char * st,
+                           const bg_socket_address_t * sender,
+                           gavl_time_t current_time, int mx)
+  {
+  int i, idx = -1;
+  for(i = 0; i < QUEUE_SIZE; i++)
+    {
+    if(!s->queue[i].st)
+      {
+      idx = i;
+      break;
+      }
+    }
+  if(idx == -1)
+    {
+    bg_log(BG_LOG_WARNING, LOG_DOMAIN, "Cannot schedule search reply, queue full");
+    return;
+    }
+  s->queue[idx].st = gavl_strdup(st);
+
+  s->queue[idx].time = current_time;
+  s->queue[idx].time += (int64_t)((double)rand() / (double)RAND_MAX * (double)(mx * GAVL_TIME_SCALE));
+  bg_socket_address_copy(s->queue[idx].addr, sender);
+  }
+
+// static void setup_header(bg_ssdp_root_device_t * dev, 
+
+static void set_common_vars(bg_ssdp_t * s, gavl_metadata_t * h)
+  {
+  gavl_metadata_set(h, "CACHE-CONTROL", "max-age=1800");
+  bg_http_header_set_empty_var(h, "EXT");
+  gavl_metadata_set(h, "LOCATION", s->local_dev->url);
+  gavl_metadata_set(h, "SERVER", s->server_string);
+  }
+
+static void flush_reply(bg_ssdp_t * s, queue_element_t * q)
+  {
+  const char * type_version;
+  gavl_metadata_t h;
+  gavl_metadata_init(&h);
+  bg_http_response_init(&h, "HTTP/1.1", 200, "OK");
+  set_common_vars(s, &h);
+  
+  if(!strcasecmp(q->st, "ssdp:all"))
+    {
+    /*
+     *  uuid:device-UUID::upnp:rootdevice
+     *  uuid:device-UUID (for each root- and embedded dev)
+     *  uuid:device-UUID::urn:schemas-upnp-org:device:deviceType:v (for each root- and embedded dev)
+     *  uuid:device-UUID::urn:schemas-upnp-org:service:serviceType:v  (for each service)
+     */
+    
+
+    }
+  else if(!strcasecmp(q->st, "upnp:rootdevice"))
+    {
+    
+    }
+  else if(gavl_string_starts_with_i(q->st, "uuid:"))
+    {
+    
+    }
+  else if((type_version = is_device_type(q->st)))
+    {
+    
+    }
+  else if((type_version = is_service_type(q->st)))
+    {
+    
+    }
+  }
+
+static void flush_queue(bg_ssdp_t * s, gavl_time_t current_time)
+  {
+  int i;
+  for(i = 0; i < QUEUE_SIZE; i++)
+    {
+    if(!s->queue[i].st || s->queue[i].time > current_time)
+      continue;
+
+    flush_reply(s, &s->queue[i]);
+    }
+  }
+
 
 static void handle_multicast(bg_ssdp_t * s, const char * buffer,
-                             bg_socket_address_t * sender)
+                             bg_socket_address_t * sender, gavl_time_t current_time)
   {
   const char * var;
   gavl_metadata_t m;
@@ -586,10 +530,11 @@ static void handle_multicast(bg_ssdp_t * s, const char * buffer,
    
   if(!bg_http_request_from_string(&m, buffer))
     goto fail;
-
-  //  fprintf(stderr, "handle_multicast\n"); 
-  //  gavl_metadata_dump(&m, 2);
-
+#ifdef DUMP_HEADERS
+  gavl_dprintf("handle_multicast\n"); 
+  gavl_metadata_dump(&m, 2);
+#endif
+  
   var = bg_http_request_get_method(&m);
   
   if(!var)
@@ -597,33 +542,48 @@ static void handle_multicast(bg_ssdp_t * s, const char * buffer,
 
   if(!strcasecmp(var, "M-SEARCH"))
     {
+    int mx;
+    const char * type_version;
+    
     /* Got search request */
     if(!s->local_dev)
       goto fail;
 
+    if(!gavl_metadata_get_int_i(&m, "MX", &mx))
+      goto fail;
+    
     var = gavl_metadata_get_i(&m, "ST");
-
+    
     if(!strcasecmp(var, "ssdp:all"))
       {
-      
+      schedule_reply(s, var, sender,
+                     current_time, mx);
       }
     else if(!strcasecmp(var, "upnp:rootdevice"))
       {
-      
+      schedule_reply(s, var, sender,
+                     current_time, mx);
       }
     else if(gavl_string_starts_with_i(var, "uuid:"))
       {
-      
+      if(!strcmp(var + 5, s->local_dev->uuid) ||
+         find_embedded_dev_by_uuid(s->local_dev, var + 5))
+        schedule_reply(s, var, sender,
+                       current_time, mx);
       }
-    else if(gavl_string_starts_with_i(var, "urn:schemas-upnp-org:device:"))
+    else if((type_version = is_device_type(var)))
       {
-      
+      if(bg_ssdp_has_device_str(s->local_dev, type_version, NULL))
+        schedule_reply(s, var, sender,
+                       current_time, mx);
       }
-    else if(gavl_string_starts_with_i(var, "urn:schemas-upnp-org:service:"))
+    else if((type_version = is_service_type(var)))
       {
-      
+      if(bg_ssdp_has_service_str(s->local_dev, type_version, NULL, NULL))
+        schedule_reply(s, var, sender,
+                       current_time, mx);
       }
-
+    
     /*
      *  Ignoring
      *  urn:domain-name:device:deviceType:v 
@@ -687,9 +647,11 @@ static void handle_unicast(bg_ssdp_t * s, const char * buffer,
   if(!bg_http_response_from_string(&m, buffer))
     goto fail;
 
-  //  fprintf(stderr, "handle_unicast\n"); 
-  //  gavl_metadata_dump(&m, 2);
-
+#ifdef DUMP_HEADERS
+  gavl_dprintf("handle_unicast\n");
+  gavl_metadata_dump(&m, 2);
+#endif
+  
   if(!(st = gavl_metadata_get_i(&m, "ST")))
     goto fail;
   
@@ -727,7 +689,7 @@ void bg_ssdp_update(bg_ssdp_t * s)
     if(len <= 0)
       continue;
     s->buf[len] = '\0';
-    handle_multicast(s, (const char *)s->buf, s->sender_addr);
+    handle_multicast(s, (const char *)s->buf, s->sender_addr, current_time);
 #ifdef DUMP_UDP
     fprintf(stderr, "Got SSDP multicast message from %s\n%s",
             bg_socket_address_to_string(s->sender_addr, addr_str), (char*)s->buf);
@@ -758,6 +720,7 @@ void bg_ssdp_update(bg_ssdp_t * s)
     }
 #endif
 
+  flush_queue(s, current_time);
   }
 
 void bg_ssdp_destroy(bg_ssdp_t * s)

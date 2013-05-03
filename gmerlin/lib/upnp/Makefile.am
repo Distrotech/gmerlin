@@ -17,7 +17,9 @@ devicedesc.c \
 mediaserver.c \
 servicedesc.c \
 soap.c \
-ssdp.c
+ssdp.c \
+ssdp_device.c
+
 
 libupnp_la_LIBADD =  @GMERLIN_DEP_LIBS@ @UUID_LIBS@
 

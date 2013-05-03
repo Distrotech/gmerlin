@@ -72,6 +72,35 @@ typedef struct bg_ssdp_s bg_ssdp_t;
 bg_ssdp_t *
 bg_ssdp_create(bg_ssdp_root_device_t * local_dev, int discover_remote);
 
+int
+bg_ssdp_has_device(const bg_ssdp_root_device_t *,
+                   const char * type, int version, int * dev_index);
+
+int
+bg_ssdp_has_service(const bg_ssdp_root_device_t *,
+                    const char * type, int version, int * dev_index, int * srv_index);
+
+int
+bg_ssdp_has_device_str(const bg_ssdp_root_device_t *,
+                       const char * type_version, int * dev_index);
+
+int
+bg_ssdp_has_service_str(const bg_ssdp_root_device_t *,
+                        const char * type_version, int * dev_index, int * srv_index);
+
+
+char * bg_ssdp_get_service_type_usn(const bg_ssdp_root_device_t * d, int dev, int serv);
+char * bg_ssdp_get_device_type_usn(const bg_ssdp_root_device_t * d, int dev);
+char * bg_ssdp_get_device_uuid_usn(const bg_ssdp_root_device_t * d, int dev);
+char * bg_ssdp_get_device_root_usn(const bg_ssdp_root_device_t * d);
+
+char * bg_ssdp_get_service_type_nt(const bg_ssdp_root_device_t * d, int dev, int serv);
+char * bg_ssdp_get_device_type_nt(const bg_ssdp_root_device_t * d, int dev);
+char * bg_ssdp_get_device_uuid_nt(const bg_ssdp_root_device_t * d, int dev);
+char * bg_ssdp_get_root_nt(const bg_ssdp_root_device_t * d);
+
+
+
 void bg_ssdp_update(bg_ssdp_t *);
 void bg_ssdp_destroy(bg_ssdp_t *);
 
