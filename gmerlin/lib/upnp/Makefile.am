@@ -16,6 +16,7 @@ device.c \
 devicedesc.c \
 mediaserver.c \
 servicedesc.c \
+servicedesc_xml.c \
 soap.c \
 ssdp.c \
 ssdp_device.c

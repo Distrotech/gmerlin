@@ -19,6 +19,9 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  * *****************************************************************/
 
+#ifndef __BG_UPNP_SSDP_H_
+#define __BG_UPNP_SSDP_H_
+
 typedef struct
   {
   char * type;
@@ -104,3 +107,4 @@ char * bg_ssdp_get_root_nt(const bg_ssdp_root_device_t * d);
 void bg_ssdp_update(bg_ssdp_t *);
 void bg_ssdp_destroy(bg_ssdp_t *);
 
+#endif // __BG_UPNP_SSDP_H_

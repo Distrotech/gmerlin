@@ -22,32 +22,7 @@
 #include <gmerlin/upnp/device.h>
 #include <gmerlin/upnp/ssdp.h>
 
-
-typedef struct bg_upnp_service_s bg_upnp_service_t; 
-
-typedef struct
-  {
-  int (*handle_soap_request)(bg_upnp_service_t * s, xmlDocPtr request, xmlDocPtr * response);
-
-  void (*handle_event_request)(bg_upnp_service_t * s, int fd,
-                               const char * method,
-                               const char * path,
-                               const gavl_metadata_t * header);
-  
-  void (*destroy)(void*priv);
-  } bg_upnp_service_funcs_t;
-
-struct bg_upnp_service_s
-  {
-  char * name;        // For finding the service from the http request
-  char * description; // xml
-  char * type;        
-  int version;
-    
-  const bg_upnp_service_funcs_t * funcs;
-  void * priv;
-  const bg_upnp_icon_t * icons;
-  };
+#include <upnp_service.h>
 
 struct bg_upnp_device_s
   {

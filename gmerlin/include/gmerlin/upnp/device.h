@@ -19,6 +19,9 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  * *****************************************************************/
 
+#ifndef __BG_UPNP_DEVICE_H_
+#define __BG_UPNP_DEVICE_H_
+
 #include <uuid/uuid.h>
 #include <gmerlin/xmlutils.h>
 #include <gmerlin/bgsocket.h>
@@ -54,3 +57,4 @@ bg_upnp_create_media_server(bg_socket_address_t * addr,
                             const bg_upnp_icon_t * icons,
                             bg_db_t * db);
 
+#endif // __BG_UPNP_DEVICE_H_

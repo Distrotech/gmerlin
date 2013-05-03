@@ -23,6 +23,8 @@ playerprivate.h \
 recorder_private.h \
 registry_priv.h \
 treeprivate.h \
+upnp_device.h \
+upnp_service.h \
 pluginreg_priv.h \
 visualize_priv.h
 

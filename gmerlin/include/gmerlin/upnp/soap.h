@@ -19,6 +19,10 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  * *****************************************************************/
 
+#ifndef __BG_UPNP_SOAP_H_
+#define __BG_UPNP_SOAP_H_
+
+
 #include <gmerlin/xmlutils.h>
 
 typedef struct
@@ -48,3 +52,5 @@ int bg_soap_request_get_arg_int(xmlDocPtr doc, const char * name, int * ret);
 
 void bg_soap_request_add_arg_string(xmlDocPtr doc, const char * name, const char * val);
 int bg_soap_request_add_arg_int(xmlDocPtr doc, const char * name, int * ret);
+
+#endif // __BG_UPNP_SOAP_H_

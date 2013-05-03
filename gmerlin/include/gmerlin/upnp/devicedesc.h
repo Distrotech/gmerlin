@@ -19,6 +19,9 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  * *****************************************************************/
 
+#ifndef __BG_UPNP_DEVICE_DESC_H_
+#define __BG_UPNP_DEVICE_DESC_H_
+
 #include <uuid/uuid.h>
 #include <gmerlin/xmlutils.h>
 #include <gmerlin/bgsocket.h>
@@ -116,3 +119,4 @@ void bg_upnp_device_description_add_icon(xmlDocPtr ptr,
 void bg_upnp_device_description_add_service(xmlDocPtr ptr,
                                             const char * type, int version, const char * name);
 
+#endif // __BG_UPNP_DEVICE_DESC_H_
