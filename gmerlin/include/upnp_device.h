@@ -48,6 +48,8 @@ struct bg_upnp_device_s
   const bg_upnp_icon_t * icons;
 
   char * server_string;
+
+  gavl_timer_t * timer;
   
   };
 
@@ -62,8 +64,6 @@ void bg_upnp_device_init(bg_upnp_device_t * dev,
 int
 bg_upnp_device_create_common(bg_upnp_device_t * dev);
 
-
-void bg_upnp_device_create_description(bg_upnp_device_t * dev);
-void bg_upnp_device_create_ssdp(bg_upnp_device_t * dev);
-
-
+/* Send a description */
+void bg_upnp_device_send_description(bg_upnp_device_t * dev,
+                                     int fd, const char * desc);

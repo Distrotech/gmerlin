@@ -29,8 +29,7 @@
 #include <gmerlin/log.h>
 #define LOG_DOMAIN "upnpdevice"
 
-
-static void send_description(int fd, const char * desc, const char * server_string)
+void bg_upnp_device_send_description(bg_upnp_device_t * dev, int fd, const char * desc)
   {
   int len;
   gavl_metadata_t res;
@@ -39,13 +38,14 @@ static void send_description(int fd, const char * desc, const char * server_stri
   bg_http_response_init(&res, "HTTP/1.1", 200, "OK");
   gavl_metadata_set_int(&res, "CONTENT-LENGTH", len);
   gavl_metadata_set(&res, "CONTENT-TYPE", "text/xml; charset=UTF-8");
-  gavl_metadata_set(&res, "SERVER", server_string);
+  gavl_metadata_set(&res, "SERVER", dev->server_string);
   gavl_metadata_set(&res, "CONNECTION", "close");
 
+#if 0  
   fprintf(stderr, "Send description\n");
   gavl_metadata_dump(&res, 2);
   fprintf(stderr, "%s\n", desc);
-  
+#endif
   if(!bg_http_response_write(fd, &res))
     goto fail;
   
@@ -72,7 +72,7 @@ bg_upnp_device_handle_request(bg_upnp_device_t * dev, int fd,
 
   if(!strcmp(path, "desc.xml"))
     {
-    send_description(fd, dev->description, dev->server_string);
+    bg_upnp_device_send_description(dev, fd, dev->description);
     return 1;
     }
 
@@ -88,22 +88,8 @@ bg_upnp_device_handle_request(bg_upnp_device_t * dev, int fd,
       /* Found service */
       path = pos + 1;
 
-      if(!strcmp(path, "desc.xml"))
-        {
-        /* Send service description */
-        send_description(fd, dev->services[i].description, dev->server_string);
-        return 1;
-        }
-      else if(!strcmp(path, "control"))
-        {
-        /* Service control */
-        }
-      else if(!strcmp(path, "event"))
-        {
-        /* Service events */
-        }
-      else
-        return 0; // 404
+      return bg_upnp_service_handle_request(&dev->services[i], fd,
+                                            method, path, header);
       }
     }
   return 0;
@@ -140,9 +126,12 @@ void bg_upnp_device_init(bg_upnp_device_t * ret, bg_socket_address_t * addr,
 
   bg_log(BG_LOG_INFO, LOG_DOMAIN, "Using server string: %s", ret->server_string);
 
+  ret->timer = gavl_timer_create();
+  gavl_timer_start(ret->timer);
+  
   }
 
-void bg_upnp_device_create_description(bg_upnp_device_t * dev)
+static void create_description(bg_upnp_device_t * dev)
   {
   int i;
   xmlDocPtr doc;
@@ -177,10 +166,12 @@ void bg_upnp_device_create_description(bg_upnp_device_t * dev)
                                                 dev->services[i].name);
     }
   dev->description = bg_xml_save_to_memory(doc);
+
+  //  fprintf(stderr, "Created device description:\n%s\n", dev->description);
   
   }
 
-void bg_upnp_device_create_ssdp(bg_upnp_device_t * dev)
+static void create_ssdp(bg_upnp_device_t * dev)
   {
   int i;
   char addr_string[BG_SOCKET_ADDR_STR_LEN];
@@ -207,8 +198,13 @@ void bg_upnp_device_create_ssdp(bg_upnp_device_t * dev)
 int
 bg_upnp_device_create_common(bg_upnp_device_t * dev)
   {
-  bg_upnp_device_create_ssdp(dev);
-  bg_upnp_device_create_description(dev);
+  int i;
+  /* Set the device pointers in the servives */
+  for(i = 0; i < dev->num_services; i++)
+    dev->services[i].dev = dev;
+  
+  create_ssdp(dev);
+  create_description(dev);
   return 1;
   }
 

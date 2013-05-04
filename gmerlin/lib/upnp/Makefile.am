@@ -17,6 +17,7 @@ contentdirectory.c \
 device.c \
 devicedesc.c \
 mediaserver.c \
+service_event.c \
 servicedesc.c \
 servicedesc_xml.c \
 service.c \

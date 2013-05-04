@@ -98,7 +98,7 @@ bg_upnp_service_description_add_statevar(xmlDocPtr doc,
      !(node = bg_xml_find_node_child(node, "serviceStateTable")))
     return NULL;
 
-  node = xmlNewTextChild(node, NULL, (xmlChar*)"StateVariable", NULL);
+  node = xmlNewTextChild(node, NULL, (xmlChar*)"stateVariable", NULL);
 
   BG_XML_SET_PROP(node, "sendEvents", (events ? "yes" : "no"));
 

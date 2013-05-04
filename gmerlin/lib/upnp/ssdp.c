@@ -42,7 +42,7 @@
 
 #define DUMP_DEVS
 
-#define DUMP_HEADERS
+// #define DUMP_HEADERS
 
 #define UDP_BUFFER_SIZE 2048
 
@@ -469,7 +469,7 @@ static void schedule_reply(bg_ssdp_t * s, const char * st,
 
 static void flush_reply_packet(bg_ssdp_t * s, char * str, bg_socket_address_t * sender)
   {
-  fprintf(stderr, "Sending reply:\n%s\n", str);
+  //  fprintf(stderr, "Sending reply:\n%s\n", str);
   bg_udp_socket_send(s->ucast_fd, (uint8_t*)str, strlen(str), sender);
   free(str);
   }

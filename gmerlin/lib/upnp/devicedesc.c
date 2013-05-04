@@ -46,17 +46,18 @@ xmlDocPtr bg_upnp_device_description_create(bg_socket_address_t * a,
              (xmlChar*)"urn:schemas-upnp-org:device-1-0",
              NULL);
   xmlSetNs(root, ns);
-
-  node = xmlNewTextChild(root, NULL, (xmlChar*)"specVersion", NULL);
+  xmlAddChild(root, BG_XML_NEW_TEXT("\n"));
+  
+  node = bg_xml_append_child_node(root, "specVersion", NULL);
   bg_xml_append_child_node(node, "major", "1");
   bg_xml_append_child_node(node, "minor", "0");
-
+  
   tmp_string = bg_sprintf("http://%s/", addr_string);
   bg_xml_append_child_node(root, "URLBase", tmp_string);
   free(tmp_string);
   
-  node = xmlNewTextChild(root, NULL, (xmlChar*)"device", NULL);
-
+  node = bg_xml_append_child_node(root, "device", NULL);
+  
   tmp_string = bg_sprintf("urn:schemas-upnp-org:device:%s:%d", type, version);
   bg_xml_append_child_node(node, "deviceType", tmp_string);
   free(tmp_string);
@@ -157,9 +158,9 @@ void bg_upnp_device_description_add_service(xmlDocPtr ptr,
   servicelist = bg_xml_find_node_child(node, "serviceList");
   
   if(!servicelist)
-    servicelist = xmlNewTextChild(node, NULL, (xmlChar*)"serviceList", NULL);
+    servicelist = bg_xml_append_child_node(node, "serviceList", NULL);
   
-  service = xmlNewTextChild(servicelist, NULL, (xmlChar*)"service", NULL);
+  service = bg_xml_append_child_node(servicelist, "service", NULL);
 
   tmp_string = bg_sprintf("urn:schemas-upnp-org:service:%s:%d", type, version);
   bg_xml_append_child_node(service, "serviceType", tmp_string);
@@ -178,7 +179,7 @@ void bg_upnp_device_description_add_service(xmlDocPtr ptr,
   free(tmp_string);
 
   tmp_string = bg_sprintf("/upnp/%s/event", name);
-  bg_xml_append_child_node(service, "eventURL", tmp_string);
+  bg_xml_append_child_node(service, "eventSubURL", tmp_string);
   free(tmp_string);
   
   }

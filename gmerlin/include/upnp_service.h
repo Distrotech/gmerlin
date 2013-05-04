@@ -186,7 +186,21 @@ typedef struct
   void (*destroy)(void*priv);
   } bg_upnp_service_funcs_t;
 
+/* */
 
+typedef struct
+  {
+  bg_upnp_sv_val_t val;
+  const bg_upnp_sv_desc_t * sv;
+  } bg_upnp_event_var_t;
+
+typedef struct
+  {
+  char uuid[37];
+  char * url;   // For delivering
+  uint32_t key; // Counter
+  gavl_time_t expire_time;
+  } bg_upnp_event_subscriber_t;
 
 struct bg_upnp_service_s
   {
@@ -200,6 +214,19 @@ struct bg_upnp_service_s
   int version;
     
   void * priv;
+
+  /* Pointer to the device we belong to */
+  bg_upnp_device_t * dev;
+
+  /* Evented variable */
+  bg_upnp_event_var_t * event_vars;
+  int num_event_vars;
+  
+  /* Event subscribers */
+  bg_upnp_event_subscriber_t * es;
+  int num_es;
+  int es_alloc;
+  
   };
 
 void bg_upnp_service_init(bg_upnp_service_t * ret,
@@ -208,6 +235,17 @@ void bg_upnp_service_init(bg_upnp_service_t * ret,
 
 int
 bg_upnp_service_start(bg_upnp_service_t * s);
+
+int
+bg_upnp_service_handle_request(bg_upnp_service_t * s, int fd,
+                               const char * method,
+                               const char * path,
+                               const gavl_metadata_t * header);
+
+int
+bg_upnp_service_handle_event_request(bg_upnp_service_t * s, int fd,
+                                     const char * method,
+                                     const gavl_metadata_t * header);
 
 /* ContentDirectory:1 */
 
