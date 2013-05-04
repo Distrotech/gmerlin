@@ -25,20 +25,27 @@
 #include <gmerlin/http.h>
 #include <gmerlin/utils.h>
 #include <gmerlin/upnp/devicedesc.h>
+#include <sys/utsname.h>
+#include <gmerlin/log.h>
+#define LOG_DOMAIN "upnpdevice"
 
 
-static void send_description(int fd, const char * desc)
+static void send_description(int fd, const char * desc, const char * server_string)
   {
   int len;
   gavl_metadata_t res;
-  fprintf(stderr, "Send desc\n%s\n", desc);
   
   len = strlen(desc);
   bg_http_response_init(&res, "HTTP/1.1", 200, "OK");
   gavl_metadata_set_int(&res, "CONTENT-LENGTH", len);
   gavl_metadata_set(&res, "CONTENT-TYPE", "text/xml; charset=UTF-8");
+  gavl_metadata_set(&res, "SERVER", server_string);
   gavl_metadata_set(&res, "CONNECTION", "close");
 
+  fprintf(stderr, "Send description\n");
+  gavl_metadata_dump(&res, 2);
+  fprintf(stderr, "%s\n", desc);
+  
   if(!bg_http_response_write(fd, &res))
     goto fail;
   
@@ -65,7 +72,7 @@ bg_upnp_device_handle_request(bg_upnp_device_t * dev, int fd,
 
   if(!strcmp(path, "desc.xml"))
     {
-    send_description(fd, dev->description);
+    send_description(fd, dev->description, dev->server_string);
     return 1;
     }
 
@@ -84,7 +91,7 @@ bg_upnp_device_handle_request(bg_upnp_device_t * dev, int fd,
       if(!strcmp(path, "desc.xml"))
         {
         /* Send service description */
-        send_description(fd, dev->services[i].description);
+        send_description(fd, dev->services[i].description, dev->server_string);
         return 1;
         }
       else if(!strcmp(path, "control"))
@@ -114,6 +121,7 @@ void bg_upnp_device_init(bg_upnp_device_t * ret, bg_socket_address_t * addr,
                          const char * model_description,
                          const bg_upnp_icon_t * icons)
   {
+  struct utsname os_info;
   ret->num_services = num_services;
   ret->services = calloc(ret->num_services, sizeof(*ret->services));
   ret->sa = addr;
@@ -125,6 +133,13 @@ void bg_upnp_device_init(bg_upnp_device_t * ret, bg_socket_address_t * addr,
 
   ret->model_name        = gavl_strdup(model_name);
   ret->model_description = gavl_strdup(model_description);
+
+  uname(&os_info);
+  ret->server_string = bg_sprintf("%s/%s, UPnP/1.0, "PACKAGE"/"VERSION,
+                                  os_info.sysname, os_info.release);
+
+  bg_log(BG_LOG_INFO, LOG_DOMAIN, "Using server string: %s", ret->server_string);
+
   }
 
 void bg_upnp_device_create_description(bg_upnp_device_t * dev)
@@ -186,7 +201,7 @@ void bg_upnp_device_create_ssdp(bg_upnp_device_t * dev)
     dev->ssdp_dev.services[i].type = gavl_strdup(dev->services[i].type);
     dev->ssdp_dev.services[i].version = dev->services[i].version;
     }
-  dev->ssdp = bg_ssdp_create(&dev->ssdp_dev, 0);
+  dev->ssdp = bg_ssdp_create(&dev->ssdp_dev, 0, dev->server_string);
   }
 
 int

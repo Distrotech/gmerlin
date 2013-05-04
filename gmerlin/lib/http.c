@@ -83,16 +83,16 @@ static char * write_vars(char * str, const gavl_metadata_t * m)
 
   for(i = 0; i < m->num_tags; i++)
     {
-    if(*(m->tags[i].key) != '$')
+    line = NULL;
+    if(!strcmp(m->tags[i].val, META_EMPTY))
+      line = bg_sprintf("%s:\r\n", m->tags[i].key);
+    else if(*(m->tags[i].key) != '$')
+      line = bg_sprintf("%s: %s\r\n",
+                        m->tags[i].key,
+                        m->tags[i].val);
+
+    if(line)
       {
-      if(!strcmp(m->tags[i].val, META_EMPTY))
-        line = bg_sprintf("%s:\r\n",
-                          m->tags[i].key);
-      else
-        line = bg_sprintf("%s: %s\r\n",
-                          m->tags[i].key,
-                          m->tags[i].val);
-      
       str = gavl_strcat(str, line);
       free(line);
       }

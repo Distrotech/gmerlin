@@ -61,8 +61,9 @@ int server_init(server_t * s)
 
   /* TODO: Remember UUID */
   uuid_clear(s->uuid);
-  uuid_generate(s->uuid);
-  
+  //  uuid_generate(s->uuid);
+  uuid_parse("41491152-4894-43fe-bf88-307b6aa6eb45", s->uuid);
+    
   /* TODO: Create DB */
   
   /* Create UPNP device(s) */
@@ -100,6 +101,9 @@ static void handle_client_connection(server_t * s, int fd)
   if(!bg_http_request_read(fd, &req, TIMEOUT))
     goto fail;
 
+  fprintf(stderr, "Got request\n");
+  gavl_metadata_dump(&req, 2);
+  
   method = bg_http_request_get_method(&req);
   path = bg_http_request_get_path(&req);
   protocol = bg_http_request_get_protocol(&req);
@@ -111,7 +115,10 @@ static void handle_client_connection(server_t * s, int fd)
   
   fail:
   if(fd >= 0)
+    {
+    fprintf(stderr, "Closing socket\n");
     close(fd);
+    }
   gavl_metadata_free(&req);
   }
 
@@ -119,7 +126,8 @@ int server_iteration(server_t * s)
   {
   int ret = 0;
   int fd;
-
+  gavl_time_t delay_time = GAVL_TIME_SCALE / 100; // 10 ms
+  
   /* Remove dead clients */
 
   /* Handle incoming connections */
@@ -132,7 +140,10 @@ int server_iteration(server_t * s)
     }
   
   /* Ping upnp device so it can do it's ssdp stuff */
-  
+  ret += bg_upnp_device_ping(s->dev);
+
+  if(!ret)
+    gavl_time_delay(&delay_time);
   
   return 1;
   }

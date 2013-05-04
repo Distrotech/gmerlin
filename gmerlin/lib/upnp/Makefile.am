@@ -12,6 +12,7 @@ noinst_LTLIBRARIES = \
 libupnp.la
 
 libupnp_la_SOURCES = \
+connectionmanager.c \
 contentdirectory.c \
 device.c \
 devicedesc.c \

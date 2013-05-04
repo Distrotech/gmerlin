@@ -324,7 +324,7 @@ char * bg_ssdp_get_device_uuid_usn(const bg_ssdp_root_device_t * d, int dev)
     return bg_sprintf("uuid:%s", d->devices[dev].uuid);
   }
 
-char * bg_ssdp_get_device_root_usn(const bg_ssdp_root_device_t * d)
+char * bg_ssdp_get_root_usn(const bg_ssdp_root_device_t * d)
   {
   return bg_sprintf("uuid:%s::upnp:rootdevice",
                     d->uuid);

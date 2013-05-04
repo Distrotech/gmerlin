@@ -47,6 +47,8 @@ struct bg_upnp_device_s
   char * model_description;
   const bg_upnp_icon_t * icons;
 
+  char * server_string;
+  
   };
 
 void bg_upnp_device_init(bg_upnp_device_t * dev,

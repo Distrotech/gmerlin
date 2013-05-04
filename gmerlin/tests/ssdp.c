@@ -28,7 +28,7 @@
 int main(int argc, char ** argv)
   {
   gavl_time_t delay_time = GAVL_TIME_SCALE / 100;
-  bg_ssdp_t * s = bg_ssdp_create(NULL, 1);
+  bg_ssdp_t * s = bg_ssdp_create(NULL, 1, "Linux/2.6.32-46-generic, UPnP/1.0, gmerlin/1.2.0");
   
   while(1)
     {

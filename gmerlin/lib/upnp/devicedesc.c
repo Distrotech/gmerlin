@@ -51,12 +51,8 @@ xmlDocPtr bg_upnp_device_description_create(bg_socket_address_t * a,
   bg_xml_append_child_node(node, "major", "1");
   bg_xml_append_child_node(node, "minor", "0");
 
-  tmp_string = bg_sprintf("http://%s", addr_string);
+  tmp_string = bg_sprintf("http://%s/", addr_string);
   bg_xml_append_child_node(root, "URLBase", tmp_string);
-  free(tmp_string);
-
-  tmp_string = bg_sprintf("http://%s", addr_string);
-  bg_xml_append_child_node(root, "presentationURL", tmp_string);
   free(tmp_string);
   
   node = xmlNewTextChild(root, NULL, (xmlChar*)"device", NULL);
@@ -64,7 +60,11 @@ xmlDocPtr bg_upnp_device_description_create(bg_socket_address_t * a,
   tmp_string = bg_sprintf("urn:schemas-upnp-org:device:%s:%d", type, version);
   bg_xml_append_child_node(node, "deviceType", tmp_string);
   free(tmp_string);
-  
+
+  tmp_string = bg_sprintf("http://%s/", addr_string);
+  bg_xml_append_child_node(node, "presentationURL", tmp_string);
+  free(tmp_string);
+
 
   return ret;
   }
@@ -165,7 +165,7 @@ void bg_upnp_device_description_add_service(xmlDocPtr ptr,
   bg_xml_append_child_node(service, "serviceType", tmp_string);
   free(tmp_string);
   
-  tmp_string = bg_sprintf("urn:schemas-upnp-org:serviceId:%s", type);
+  tmp_string = bg_sprintf("urn:upnp-org:serviceId:%s", type);
   bg_xml_append_child_node(service, "serviceId", tmp_string);
   free(tmp_string);
 

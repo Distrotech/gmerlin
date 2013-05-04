@@ -23,7 +23,6 @@
 #include <stdlib.h>
 #include <string.h>
 #include <ctype.h>
-#include <sys/utsname.h>
 
 #include <gavl/gavl.h>
 #include <gavl/metadata.h>
@@ -52,6 +51,8 @@
 // #define META_METHOD "$METHOD"
 // #define META_STATUS "$STATUS"
 
+#define NOTIFY_INTERVAL (900*GAVL_TIME_SCALE) // max-age / 2
+
 typedef struct
   {
   char * st;
@@ -77,13 +78,15 @@ struct bg_ssdp_s
 
   bg_ssdp_root_device_t * remote_devs;
 
-  char * server_string;
+  const char * server_string;
 
   queue_element_t queue[QUEUE_SIZE];
 
 #ifdef DUMP_DEVS
   gavl_time_t last_dump_time;
 #endif
+
+  gavl_time_t last_notify_time;
   };
 
 
@@ -244,16 +247,23 @@ static char * search_string =
 "MX:3\r\n\r\n";
 
 bg_ssdp_t * bg_ssdp_create(bg_ssdp_root_device_t * local_dev,
-                           int discover_remote)
+                           int discover_remote, const char * server_string)
   {
-  struct utsname os_info;
-  
   char addr_str[BG_SOCKET_ADDR_STR_LEN];
-
   bg_ssdp_t * ret = calloc(1, sizeof(*ret));
-
+  
   ret->discover_remote = discover_remote;
   ret->local_dev = local_dev;
+  ret->server_string = server_string;
+  ret->last_notify_time = GAVL_TIME_UNDEFINED;
+  
+#ifdef DUMP_DEVS
+  if(ret->local_dev)
+    {
+    gavl_dprintf("Local root device:\n");
+    bg_ssdp_root_device_dump(ret->local_dev);
+    }
+#endif
   
   ret->sender_addr = bg_socket_address_create();
   ret->local_addr  = bg_socket_address_create();
@@ -280,12 +290,6 @@ bg_ssdp_t * bg_ssdp_create(bg_ssdp_root_device_t * local_dev,
 
   ret->mcast_fd = bg_udp_socket_create_multicast(ret->mcast_addr);
   ret->ucast_fd = bg_udp_socket_create(ret->local_addr);
-
-  uname(&os_info);
-  ret->server_string = bg_sprintf("%s/%s, UPnP/1.0, "PACKAGE"/"VERSION,
-                                  os_info.sysname, os_info.release);
-
-  bg_log(BG_LOG_INFO, LOG_DOMAIN, "Using server string: %s", ret->server_string);
   
   bg_log(BG_LOG_INFO, LOG_DOMAIN, "Unicast socket bound at %s", 
          bg_socket_address_to_string(ret->local_addr, addr_str));
@@ -463,21 +467,25 @@ static void schedule_reply(bg_ssdp_t * s, const char * st,
 
 // static void setup_header(bg_ssdp_root_device_t * dev, 
 
-static void set_common_vars(bg_ssdp_t * s, gavl_metadata_t * h)
+static void flush_reply_packet(bg_ssdp_t * s, char * str, bg_socket_address_t * sender)
   {
-  gavl_metadata_set(h, "CACHE-CONTROL", "max-age=1800");
-  bg_http_header_set_empty_var(h, "EXT");
-  gavl_metadata_set(h, "LOCATION", s->local_dev->url);
-  gavl_metadata_set(h, "SERVER", s->server_string);
+  fprintf(stderr, "Sending reply:\n%s\n", str);
+  bg_udp_socket_send(s->ucast_fd, (uint8_t*)str, strlen(str), sender);
+  free(str);
   }
-
+                               
 static void flush_reply(bg_ssdp_t * s, queue_element_t * q)
   {
+  char * str;
   const char * type_version;
   gavl_metadata_t h;
+  int i;
   gavl_metadata_init(&h);
   bg_http_response_init(&h, "HTTP/1.1", 200, "OK");
-  set_common_vars(s, &h);
+  gavl_metadata_set(&h, "CACHE-CONTROL", "max-age=1800");
+  bg_http_header_set_empty_var(&h, "EXT");
+  gavl_metadata_set(&h, "LOCATION", s->local_dev->url);
+  gavl_metadata_set(&h, "SERVER", s->server_string);
   
   if(!strcasecmp(q->st, "ssdp:all"))
     {
@@ -487,8 +495,35 @@ static void flush_reply(bg_ssdp_t * s, queue_element_t * q)
      *  uuid:device-UUID::urn:schemas-upnp-org:device:deviceType:v (for each root- and embedded dev)
      *  uuid:device-UUID::urn:schemas-upnp-org:service:serviceType:v  (for each service)
      */
-    
+      /* Root device */
+    gavl_metadata_set_nocpy(&h, "USN", bg_ssdp_get_root_usn(s->local_dev));
+    gavl_metadata_set_nocpy(&h, "ST",  bg_ssdp_get_root_nt(s->local_dev));
+    str = bg_http_response_to_string(&h);
+    flush_reply_packet(s, str, q->addr);
+  
+    /* Device UUID */
+    gavl_metadata_set_nocpy(&h, "USN", bg_ssdp_get_device_uuid_usn(s->local_dev, -1));
+    gavl_metadata_set_nocpy(&h, "ST",  bg_ssdp_get_device_uuid_nt(s->local_dev, -1));
+    str = bg_http_response_to_string(&h);
+    flush_reply_packet(s, str, q->addr);
+  
+    /* TODO: Embedded devices would come here */
 
+    /* Device Type */
+    gavl_metadata_set_nocpy(&h, "USN", bg_ssdp_get_device_type_usn(s->local_dev, -1));
+    gavl_metadata_set_nocpy(&h, "ST",  bg_ssdp_get_device_type_nt(s->local_dev, -1));
+    str = bg_http_response_to_string(&h);
+    flush_reply_packet(s, str, q->addr);
+    /* TODO: Embedded devices would come here */
+
+    for(i = 0; i < s->local_dev->num_services; i++)
+      {
+      gavl_metadata_set_nocpy(&h, "USN", bg_ssdp_get_service_type_usn(s->local_dev, -1, i));
+      gavl_metadata_set_nocpy(&h, "ST",  bg_ssdp_get_service_type_nt(s->local_dev, -1, i));
+      str = bg_http_response_to_string(&h);
+      flush_reply_packet(s, str, q->addr);
+      }
+    gavl_metadata_free(&h);
     }
   else if(!strcasecmp(q->st, "upnp:rootdevice"))
     {
@@ -506,6 +541,9 @@ static void flush_reply(bg_ssdp_t * s, queue_element_t * q)
     {
     
     }
+  free(q->st);
+  q->st = NULL;
+  gavl_metadata_free(&h);
   }
 
 static int flush_queue(bg_ssdp_t * s, gavl_time_t current_time)
@@ -514,7 +552,7 @@ static int flush_queue(bg_ssdp_t * s, gavl_time_t current_time)
   int i;
   for(i = 0; i < QUEUE_SIZE; i++)
     {
-    if(!s->queue[i].st || s->queue[i].time > current_time)
+    if(!s->queue[i].st || (s->queue[i].time > current_time))
       continue;
 
     flush_reply(s, &s->queue[i]);
@@ -665,6 +703,59 @@ static void handle_unicast(bg_ssdp_t * s, const char * buffer,
   gavl_metadata_free(&m);
   }
 
+static void flush_notify(bg_ssdp_t * s, char * str)
+  {
+  bg_udp_socket_send(s->ucast_fd, (uint8_t*)str, strlen(str), s->mcast_addr);
+  fprintf(stderr, "Notify:\n%s", str);
+  free(str);
+  }
+
+static void notify(bg_ssdp_t * s)
+  {
+  int i;
+  char * str;
+  gavl_metadata_t m;
+  gavl_metadata_init(&m);
+
+  /* Common fields */
+  bg_http_request_init(&m, "NOTIFY", "*", "HTTP/1.1");
+  gavl_metadata_set(&m, "HOST", "239.255.255.250:1900");
+  gavl_metadata_set(&m, "CACHE-CONTROL", "max-age=1800");
+  gavl_metadata_set(&m, "NTS", "ssdp:alive");
+  gavl_metadata_set(&m, "SERVER", s->server_string);
+  gavl_metadata_set(&m, "LOCATION", s->local_dev->url);
+  
+  /* Root device */
+  gavl_metadata_set_nocpy(&m, "USN", bg_ssdp_get_root_usn(s->local_dev));
+  gavl_metadata_set_nocpy(&m, "NT",  bg_ssdp_get_root_nt(s->local_dev));
+  str = bg_http_request_to_string(&m);
+  flush_notify(s, str);
+  
+  /* Device UUID */
+  gavl_metadata_set_nocpy(&m, "USN", bg_ssdp_get_device_uuid_usn(s->local_dev, -1));
+  gavl_metadata_set_nocpy(&m, "NT",  bg_ssdp_get_device_uuid_nt(s->local_dev, -1));
+  str = bg_http_request_to_string(&m);
+  flush_notify(s, str);
+  
+  /* TODO: Embedded devices would come here */
+
+  /* Device Type */
+  gavl_metadata_set_nocpy(&m, "USN", bg_ssdp_get_device_type_usn(s->local_dev, -1));
+  gavl_metadata_set_nocpy(&m, "NT",  bg_ssdp_get_device_type_nt(s->local_dev, -1));
+  str = bg_http_request_to_string(&m);
+  flush_notify(s, str);
+  /* TODO: Embedded devices would come here */
+
+  for(i = 0; i < s->local_dev->num_services; i++)
+    {
+    gavl_metadata_set_nocpy(&m, "USN", bg_ssdp_get_service_type_usn(s->local_dev, -1, i));
+    gavl_metadata_set_nocpy(&m, "NT",  bg_ssdp_get_service_type_nt(s->local_dev, -1, i));
+    str = bg_http_request_to_string(&m);
+    flush_notify(s, str);
+    }
+  gavl_metadata_free(&m);
+  }
+
 int bg_ssdp_update(bg_ssdp_t * s)
   {
   int len;
@@ -717,7 +808,7 @@ int bg_ssdp_update(bg_ssdp_t * s)
     }
 
 #ifdef DUMP_DEVS
-  if(current_time - s->last_dump_time > 10 * GAVL_TIME_SCALE)
+  if((current_time - s->last_dump_time > 10 * GAVL_TIME_SCALE) && s->discover_remote)
     {
     gavl_dprintf("Root devices: %d\n", s->num_remote_devs);
     for(i = 0; i < s->num_remote_devs; i++)
@@ -727,6 +818,15 @@ int bg_ssdp_update(bg_ssdp_t * s)
 #endif
 
   ret += flush_queue(s, current_time);
+
+  if(s->local_dev &&
+     ((s->last_notify_time == GAVL_TIME_UNDEFINED) ||
+      (current_time - s->last_notify_time > NOTIFY_INTERVAL)))
+    {
+    notify(s);
+    s->last_notify_time = current_time;
+    }
+  
   return ret;
   }
 
