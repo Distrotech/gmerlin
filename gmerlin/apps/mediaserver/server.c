@@ -150,5 +150,6 @@ int server_iteration(server_t * s)
 
 void server_cleanup(server_t * s)
   {
-  
+  if(s->dev)
+    bg_upnp_device_destroy(s->dev);
   }

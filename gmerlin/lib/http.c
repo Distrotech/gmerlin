@@ -123,7 +123,7 @@ int bg_http_request_write(int fd, gavl_metadata_t * req)
   }
 
 
-char * bg_http_request_to_string(gavl_metadata_t * req)
+char * bg_http_request_to_string(const gavl_metadata_t * req)
   {
   const char * method;
   const char * path;
@@ -251,7 +251,7 @@ int bg_http_response_write(int fd, gavl_metadata_t * res)
   return result;
   }
 
-char * bg_http_response_to_string(gavl_metadata_t * res)
+char * bg_http_response_to_string(const gavl_metadata_t * res)
   {
   char * line;
   int status_int, i;

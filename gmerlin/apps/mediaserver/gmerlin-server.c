@@ -21,7 +21,43 @@
 
 #include "server.h"
 
+#include <signal.h>
+
 #define LOG_DOMAIN "gmerlin-server"
+
+static int got_sigint = 0;
+struct sigaction old_int_sigaction;
+struct sigaction old_term_sigaction;
+
+static void sigint_handler(int sig)
+  {
+  got_sigint = 1;
+  sigaction(SIGINT, &old_int_sigaction, 0);
+  sigaction(SIGTERM, &old_term_sigaction, 0);
+  
+  switch(sig)
+    {
+    case SIGINT:
+      bg_log(BG_LOG_INFO, LOG_DOMAIN, "Caught SIGINT, terminating");
+      break;
+    case SIGTERM:
+      bg_log(BG_LOG_INFO, LOG_DOMAIN, "Caught SIGTERM, terminating");
+      break;
+    }
+  }
+
+static void set_sigint_handler()
+  {
+  struct sigaction sa;
+  sa.sa_flags = 0;
+  sigemptyset(&sa.sa_mask);
+  sa.sa_handler = sigint_handler;
+  if (sigaction(SIGINT, &sa, &old_int_sigaction) == -1)
+    fprintf(stderr, "sigaction failed\n");
+  if (sigaction(SIGTERM, &sa, &old_term_sigaction) == -1)
+    fprintf(stderr, "sigaction failed\n");
+  }
+
 
 static bg_cmdline_arg_t global_options[] =
   {
@@ -52,12 +88,17 @@ int main(int argc, char ** argv)
   {
   server_t s;
   int ret = EXIT_FAILURE;
+
+  set_sigint_handler();
   
   if(!server_init(&s))
     goto fail;
   
   while(server_iteration(&s))
-    ;
+    {
+    if(got_sigint)
+      break;
+    }
 
   ret = EXIT_SUCCESS;  
   fail:

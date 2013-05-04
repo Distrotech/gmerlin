@@ -98,6 +98,8 @@ bg_upnp_device_handle_request(bg_upnp_device_t * dev, int fd,
 void
 bg_upnp_device_destroy(bg_upnp_device_t * dev)
   {
+  if(dev->ssdp)
+    bg_ssdp_destroy(dev->ssdp);
   }
 
 void bg_upnp_device_init(bg_upnp_device_t * ret, bg_socket_address_t * addr,
