@@ -23,6 +23,39 @@
 #include <upnp_service.h>
 #include <string.h>
 
+/* Service actions */
+
+#define ARG_Source                1
+#define ARG_Sink                  2
+#define ARG_ConnectionIDs         3
+#define ARG_ConnectionID          4
+
+#define ARG_RcsID                 5
+#define ARG_AVTransportID         6
+#define ARG_ProtocolInfo          7
+#define ARG_PeerConnectionManager 8
+#define ARG_PeerConnectionID      9
+#define ARG_Direction             10
+#define ARG_Status                11
+
+static int GetProtocolInfo(bg_upnp_service_t * s)
+  {
+  return 0;
+  }
+
+
+static int GetCurrentConnectionIDs(bg_upnp_service_t * s)
+  {
+  return 0;
+  }
+
+
+static int GetCurrentConnectionInfo(bg_upnp_service_t * s)
+  {
+  return 0;
+  }
+
+
 /* Initialize service description */
 
 static void init_service_desc(bg_upnp_service_desc_t * d)
@@ -84,38 +117,56 @@ static void init_service_desc(bg_upnp_service_desc_t * d)
 
   /* Actions */
 
-  sa = bg_upnp_service_desc_add_action(d, "GetProtocolInfo");
+  sa = bg_upnp_service_desc_add_action(d, "GetProtocolInfo", GetProtocolInfo);
   bg_upnp_sa_desc_add_arg_out(sa, "Source",
-                              "SourceProtocolInfo", 0);
+                              "SourceProtocolInfo", 0, ARG_Source);
   bg_upnp_sa_desc_add_arg_out(sa, "Sink",
-                              "SinkProtocolInfo", 0);
-
+                              "SinkProtocolInfo", 0, ARG_Sink);
+  
   /*
   sa = bg_upnp_service_desc_add_action(d, "PrepareForConnection");
   sa = bg_upnp_service_desc_add_action(d, "ConnectionComplete");
   */
 
-  sa = bg_upnp_service_desc_add_action(d, "GetCurrentConnectionIDs");
+  sa = bg_upnp_service_desc_add_action(d, "GetCurrentConnectionIDs",
+                                       GetCurrentConnectionIDs);
   bg_upnp_sa_desc_add_arg_out(sa, "ConnectionIDs",
-                              "CurrentConnectionIDs", 0);
-
-  sa = bg_upnp_service_desc_add_action(d, "GetCurrentConnectionInfo");
+                              "CurrentConnectionIDs", 0,
+                              ARG_ConnectionIDs);
+  
+  sa = bg_upnp_service_desc_add_action(d, "GetCurrentConnectionInfo",
+                                       GetCurrentConnectionInfo);
   bg_upnp_sa_desc_add_arg_in(sa, "ConnectionID",
-                              "A_ARG_TYPE_ConnectionID", 0);
+                             "A_ARG_TYPE_ConnectionID", 0,
+                             ARG_ConnectionID);
+
   bg_upnp_sa_desc_add_arg_out(sa, "RcsID",
-                              "A_ARG_TYPE_RcsID", 0);
+                              "A_ARG_TYPE_RcsID", 0,
+                              ARG_RcsID);
+  
   bg_upnp_sa_desc_add_arg_out(sa, "AVTransportID",
-                              "A_ARG_TYPE_AVTransportID", 0);
+                              "A_ARG_TYPE_AVTransportID", 0,
+                              ARG_AVTransportID);
+  
   bg_upnp_sa_desc_add_arg_out(sa, "ProtocolInfo",
-                              "A_ARG_TYPE_ProtocolInfo", 0);
+                              "A_ARG_TYPE_ProtocolInfo", 0,
+                              ARG_ProtocolInfo);
+
   bg_upnp_sa_desc_add_arg_out(sa, "PeerConnectionManager",
-                              "A_ARG_TYPE_ConnectionManager", 0);
+                              "A_ARG_TYPE_ConnectionManager", 0,
+                              ARG_PeerConnectionManager);
+  
   bg_upnp_sa_desc_add_arg_out(sa, "PeerConnectionID",
-                              "A_ARG_TYPE_ConnectionID", 0);
+                              "A_ARG_TYPE_ConnectionID", 0,
+                              ARG_PeerConnectionID);
+
   bg_upnp_sa_desc_add_arg_out(sa, "Direction",
-                              "A_ARG_TYPE_Direction", 0);
+                              "A_ARG_TYPE_Direction", 0,
+                              ARG_Direction);
+
   bg_upnp_sa_desc_add_arg_out(sa, "Status",
-                              "A_ARG_TYPE_ConnectionStatus", 0);
+                              "A_ARG_TYPE_ConnectionStatus", 0,
+                              ARG_Status);
   }
 
 void bg_upnp_service_init_connection_manager(bg_upnp_service_t * ret,

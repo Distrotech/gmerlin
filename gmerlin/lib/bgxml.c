@@ -222,17 +222,24 @@ xmlNodePtr bg_xml_find_doc_child(xmlDocPtr parent, const char * child)
   return find_children(parent->children, child);
   }
 
-xmlNodePtr bg_xml_find_next_node_child(xmlNodePtr parent)
+xmlNodePtr bg_xml_find_next_node_child(xmlNodePtr parent, xmlNodePtr node)
   {
-  xmlNodePtr node = parent->children;
+  if(!node)
+    node = parent->children;
+  else
+    node = node->next;
+
   while(node && !node->name)
     node = node->next;
   return node;
   }
 
-xmlNodePtr bg_xml_find_next_doc_child(xmlDocPtr parent)
+xmlNodePtr bg_xml_find_next_doc_child(xmlDocPtr parent, xmlNodePtr node)
   {
-  xmlNodePtr node = parent->children;
+  if(!node)
+    node = parent->children;
+  else
+    node = node->next;
   while(node && !node->name)
     node = node->next;
   return node;
@@ -251,4 +258,18 @@ xmlNodePtr bg_xml_append_child_node(xmlNodePtr parent, const char * name,
     xmlAddChild(node, BG_XML_NEW_TEXT("\n"));
   xmlAddChild(parent, BG_XML_NEW_TEXT("\n"));
   return node;
+  }
+
+const char empty_string = '\0';
+
+const char * bg_xml_node_get_text_content(xmlNodePtr parent)
+  {
+  xmlNodePtr node = parent->children;
+
+  if(!node)
+    return &empty_string;
+  
+  if((node->type != XML_TEXT_NODE) || node->next)
+    return NULL;
+  return (char*)node->content;
   }

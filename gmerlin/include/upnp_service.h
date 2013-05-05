@@ -96,13 +96,19 @@ typedef struct
   char * rsv_name;         // Related state variable  
   const bg_upnp_sv_desc_t * rsv;
   int flags;
+  int id; // For lookup without second strcmp
   } bg_upnp_sa_arg_desc_t;
 
 void bg_upnp_arg_desc_free(bg_upnp_sa_arg_desc_t * d);
 
 /* Description of a service action */
+
+typedef int (*bg_upnp_service_func)(bg_upnp_service_t * s);
+
 typedef struct
   {
+  bg_upnp_service_func func;
+  
   char * name;
   int num_args_in;
   int args_in_alloc;
@@ -115,19 +121,19 @@ typedef struct
 
 void
 bg_upnp_sa_desc_add_arg_in(bg_upnp_sa_desc_t * d, const char * name,
-                           const char * rsv_name, int flags);
+                           const char * rsv_name, int flags, int id);
 
 void
 bg_upnp_sa_desc_add_arg_out(bg_upnp_sa_desc_t * d, const char * name,
-                            const char * rsv_name, int flags);
+                            const char * rsv_name, int flags, int id);
 
 void bg_upnp_sa_desc_free(bg_upnp_sa_desc_t * d);
 
 const bg_upnp_sa_arg_desc_t *
-bg_upnp_sa_desc_in_arg_by_name(bg_upnp_sa_desc_t * d, const char * name);
+bg_upnp_sa_desc_in_arg_by_name(const bg_upnp_sa_desc_t * d, const char * name);
 
 const bg_upnp_sa_arg_desc_t *
-bg_upnp_sa_desc_out_arg_by_name(bg_upnp_sa_desc_t * d, const char * name);
+bg_upnp_sa_desc_out_arg_by_name(const bg_upnp_sa_desc_t * d, const char * name);
 
 
 /* Description of a service */
@@ -147,12 +153,16 @@ bg_upnp_service_desc_add_sv(bg_upnp_service_desc_t * d, const char * name,
                             int flags, bg_upnp_sv_type_t type);
 
 bg_upnp_sa_desc_t *
-bg_upnp_service_desc_add_action(bg_upnp_service_desc_t * d, const char * name);
+bg_upnp_service_desc_add_action(bg_upnp_service_desc_t * d,
+                                const char * name, bg_upnp_service_func func);
 
 void bg_upnp_service_desc_free(bg_upnp_service_desc_t * d);
 
 const bg_upnp_sv_desc_t *
 bg_upnp_service_desc_sv_by_name(bg_upnp_service_desc_t * d, const char * name);
+
+const bg_upnp_sa_desc_t *
+bg_upnp_service_desc_sa_by_name(bg_upnp_service_desc_t * d, const char * name);
 
 char * bg_upnp_service_desc_2_xml(bg_upnp_service_desc_t * d);
 
@@ -168,21 +178,45 @@ typedef struct
 
 typedef struct
   {
-  bg_upnp_soap_arg_t * in_args;
-  int num_in_args;
-  int in_args_alloc;
+  bg_upnp_soap_arg_t * args_in;
+  int num_args_in;
+  int args_in_alloc;
 
-  bg_upnp_soap_arg_t * out_args;
-  int num_out_args;
-  int out_args_alloc;
-
+  bg_upnp_soap_arg_t * args_out;
+  int num_args_out;
+  int args_out_alloc;
+  
   const bg_upnp_sa_desc_t * action;
+  
+  xmlDocPtr result; // Result (or fault description) goes here
   } bg_upnp_soap_request_t;
+
+int
+bg_upnp_soap_request_from_xml(bg_upnp_service_t * s,
+                              const char * xml, int len);
+
+char *
+bg_upnp_soap_response_to_xml(bg_upnp_service_t * s, int * len);
+
+
+/* Functions called by the service actions */
+
+int
+bg_upnp_service_get_arg_in_int(bg_upnp_soap_request_t * req,
+                               int id);
+const char *
+bg_upnp_service_get_arg_in_string(bg_upnp_soap_request_t * req,
+                                  int id);
+
+void
+bg_upnp_service_set_arg_out_int(bg_upnp_soap_request_t * req,
+                                int id, int val);
+void
+bg_upnp_service_get_arg_out_string(bg_upnp_soap_request_t * req,
+                                   int id, char * val);
 
 typedef struct
   {
-  int (*handle_soap_request)(bg_upnp_service_t * s, bg_upnp_soap_request_t * req);
-  
   void (*destroy)(void*priv);
   } bg_upnp_service_funcs_t;
 
@@ -212,9 +246,7 @@ struct bg_upnp_service_s
   char * description; // xml
   char * type;        
   int version;
-    
-  void * priv;
-
+  
   /* Pointer to the device we belong to */
   bg_upnp_device_t * dev;
 
@@ -226,6 +258,9 @@ struct bg_upnp_service_s
   bg_upnp_event_subscriber_t * es;
   int num_es;
   int es_alloc;
+
+  /* Request: Allocted once and used for all actions */
+  bg_upnp_soap_request_t req;
   
   };
 
@@ -246,6 +281,11 @@ int
 bg_upnp_service_handle_event_request(bg_upnp_service_t * s, int fd,
                                      const char * method,
                                      const gavl_metadata_t * header);
+
+int
+bg_upnp_service_handle_action_request(bg_upnp_service_t * s, int fd,
+                                      const char * method,
+                                      const gavl_metadata_t * header);
 
 /* ContentDirectory:1 */
 

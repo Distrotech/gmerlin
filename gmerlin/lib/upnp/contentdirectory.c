@@ -23,6 +23,45 @@
 #include <upnp_service.h>
 #include <string.h>
 
+/* Service actions */
+
+#define ARG_SearchCaps        1
+#define ARG_SortCaps          2
+#define ARG_Id                3
+#define ARG_ObjectID          4
+#define ARG_BrowseFlag        5
+#define ARG_Filter            6
+#define ARG_StartingIndex     7
+#define ARG_RequestedCount    8
+#define ARG_SortCriteria      9
+#define ARG_Result            10
+#define ARG_NumberReturned    11
+#define ARG_TotalMatches      12
+
+static int GetSearchCapabilities(bg_upnp_service_t * s)
+  {
+  return 0;
+  }
+
+
+static int GetSortCapabilities(bg_upnp_service_t * s)
+  {
+  return 0;
+  }
+
+
+static int GetSystemUpdateID(bg_upnp_service_t * s)
+  {
+  return 0;
+  }
+
+
+static int Browse(bg_upnp_service_t * s)
+  {
+  return 0;
+  }
+
+
 /* Initialize service description */
 
 static void init_service_desc(bg_upnp_service_desc_t * d)
@@ -107,37 +146,55 @@ static void init_service_desc(bg_upnp_service_desc_t * d)
 
   /* Actions */
 
-  sa = bg_upnp_service_desc_add_action(d, "GetSearchCapabilities");
-  bg_upnp_sa_desc_add_arg_out(sa, "SearchCaps",
-                              "SearchCapabilities", 0);
+  sa = bg_upnp_service_desc_add_action(d, "GetSearchCapabilities",
+                                       GetSearchCapabilities);
 
-  sa = bg_upnp_service_desc_add_action(d, "GetSortCapabilities");
+  bg_upnp_sa_desc_add_arg_out(sa, "SearchCaps",
+                              "SearchCapabilities", 0,
+                              ARG_SearchCaps);
+
+  sa = bg_upnp_service_desc_add_action(d, "GetSortCapabilities",
+                                       GetSortCapabilities);
   bg_upnp_sa_desc_add_arg_out(sa, "SortCaps",
-                              "SortCapabilities", 0);
+                              "SortCapabilities", 0,
+                              ARG_SortCaps);
   
-  sa = bg_upnp_service_desc_add_action(d, "GetSystemUpdateID");
+  sa = bg_upnp_service_desc_add_action(d, "GetSystemUpdateID",
+                                       GetSystemUpdateID);
+
   bg_upnp_sa_desc_add_arg_out(sa, "Id",
-                              "SystemUpdateID", 0);
-  
-  sa = bg_upnp_service_desc_add_action(d, "Browse");
+                              "SystemUpdateID", 0,
+                              ARG_Id);
+
+  sa = bg_upnp_service_desc_add_action(d, "Browse", Browse);
   bg_upnp_sa_desc_add_arg_in(sa, "ObjectID",
-                              "A_ARG_TYPE_ObjectID", 0);
+                             "A_ARG_TYPE_ObjectID", 0,
+                             ARG_ObjectID);
   bg_upnp_sa_desc_add_arg_in(sa, "BrowseFlag",
-                              "A_ARG_TYPE_BrowseFlag", 0);
+                             "A_ARG_TYPE_BrowseFlag", 0,
+                             ARG_BrowseFlag);
   bg_upnp_sa_desc_add_arg_in(sa, "Filter",
-                              "A_ARG_TYPE_Filter", 0);
+                             "A_ARG_TYPE_Filter", 0,
+                             ARG_Filter);
   bg_upnp_sa_desc_add_arg_in(sa, "StartingIndex",
-                              "A_ARG_TYPE_Index", 0);
+                             "A_ARG_TYPE_Index", 0,
+                             ARG_StartingIndex);
   bg_upnp_sa_desc_add_arg_in(sa, "RequestedCount",
-                              "A_ARG_TYPE_Count", 0);
+                             "A_ARG_TYPE_Count", 0,
+                             ARG_RequestedCount);
   bg_upnp_sa_desc_add_arg_in(sa, "SortCriteria",
-                              "A_ARG_TYPE_SortCriteria", 0);
+                             "A_ARG_TYPE_SortCriteria", 0,
+                             ARG_SortCriteria);
+  
   bg_upnp_sa_desc_add_arg_out(sa, "Result",
-                              "A_ARG_TYPE_Result", 0);
+                              "A_ARG_TYPE_Result", 0,
+                              ARG_Result);
   bg_upnp_sa_desc_add_arg_out(sa, "NumberReturned",
-                              "A_ARG_TYPE_Count", 0);
+                              "A_ARG_TYPE_Count", 0,
+                              ARG_NumberReturned);
   bg_upnp_sa_desc_add_arg_out(sa, "TotalMatches",
-                              "A_ARG_TYPE_Count", 0);
+                              "A_ARG_TYPE_Count", 0,
+                              ARG_TotalMatches);
   
   /*
 

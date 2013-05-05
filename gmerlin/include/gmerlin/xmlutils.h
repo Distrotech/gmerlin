@@ -67,8 +67,15 @@ void bg_xml_save_file(xmlDocPtr doc, const char * filename, int lock);
 xmlNodePtr bg_xml_find_node_child(xmlNodePtr parent, const char * child);
 xmlNodePtr bg_xml_find_doc_child(xmlDocPtr parent, const char * child);
 
-xmlNodePtr bg_xml_find_next_node_child(xmlNodePtr parent);
-xmlNodePtr bg_xml_find_next_doc_child(xmlDocPtr parent);
+xmlNodePtr bg_xml_find_next_node_child(xmlNodePtr parent, xmlNodePtr child);
+xmlNodePtr bg_xml_find_next_doc_child(xmlDocPtr parent, xmlNodePtr child);
 
 xmlNodePtr bg_xml_append_child_node(xmlNodePtr parent, const char * name,
                                     const char * content);
+
+/* Get the contents of node like <node>content</node>.
+   Returns an empty string if the node has no children or
+   NULL
+ */
+
+const char * bg_xml_node_get_text_content(xmlNodePtr parent);

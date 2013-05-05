@@ -151,7 +151,8 @@ void bg_upnp_arg_desc_free(bg_upnp_sa_arg_desc_t * d)
 /* Description of a service action */
 
 static void add_sa_arg(bg_upnp_sa_arg_desc_t ** argp, int * nump, int * allocp,
-                       const char * name, const char * rsv_name, int flags)
+                       const char * name,
+                       const char * rsv_name, int flags, int id)
   {
   int num = *nump;
   int alloc = *allocp;
@@ -166,6 +167,8 @@ static void add_sa_arg(bg_upnp_sa_arg_desc_t ** argp, int * nump, int * allocp,
   arg[num].name = gavl_strdup(name);
   arg[num].rsv_name = gavl_strdup(rsv_name);
   arg[num].flags = flags;
+  arg[num].id = id;
+  
   num++;
 
   *nump = num;
@@ -186,19 +189,18 @@ static void free_sa_args(bg_upnp_sa_arg_desc_t * arg, int num)
 
 void
 bg_upnp_sa_desc_add_arg_in(bg_upnp_sa_desc_t * d, const char * name,
-                           const char * rsv_name, int flags)
+                           const char * rsv_name, int flags, int id)
   {
   add_sa_arg(&d->args_in, &d->num_args_in, &d->args_in_alloc,
-             name, rsv_name, flags);
+             name, rsv_name, flags, id);
   }
 
 void
 bg_upnp_sa_desc_add_arg_out(bg_upnp_sa_desc_t * d, const char * name,
-                            const char * rsv_name, int flags)
+                            const char * rsv_name, int flags, int id)
   {
   add_sa_arg(&d->args_out, &d->num_args_out, &d->args_out_alloc,
-             name, rsv_name, flags);
-
+             name, rsv_name, flags, id);
   }
 
 void bg_upnp_sa_desc_free(bg_upnp_sa_desc_t * d)
@@ -210,7 +212,7 @@ void bg_upnp_sa_desc_free(bg_upnp_sa_desc_t * d)
   }
 
 static const bg_upnp_sa_arg_desc_t *
-sa_arg_by_name(bg_upnp_sa_arg_desc_t * args,
+sa_arg_by_name(const bg_upnp_sa_arg_desc_t * args,
                int num, const char * name)
   {
   int i;
@@ -223,13 +225,13 @@ sa_arg_by_name(bg_upnp_sa_arg_desc_t * args,
   }
 
 const bg_upnp_sa_arg_desc_t *
-bg_upnp_sa_desc_in_arg_by_name(bg_upnp_sa_desc_t * d, const char * name)
+bg_upnp_sa_desc_in_arg_by_name(const bg_upnp_sa_desc_t * d, const char * name)
   {
   return sa_arg_by_name(d->args_in, d->num_args_in, name);
   }
 
 const bg_upnp_sa_arg_desc_t *
-bg_upnp_sa_desc_out_arg_by_name(bg_upnp_sa_desc_t * d, const char * name)
+bg_upnp_sa_desc_out_arg_by_name(const bg_upnp_sa_desc_t * d, const char * name)
   {
   return sa_arg_by_name(d->args_out, d->num_args_out, name);
   }
@@ -257,7 +259,8 @@ bg_upnp_service_desc_add_sv(bg_upnp_service_desc_t * d, const char * name,
   }
 
 bg_upnp_sa_desc_t *
-bg_upnp_service_desc_add_action(bg_upnp_service_desc_t * d, const char * name)
+bg_upnp_service_desc_add_action(bg_upnp_service_desc_t * d, const char * name,
+                                bg_upnp_service_func func)
   {
   bg_upnp_sa_desc_t * ret;
   if(d->num_sa + 1 > d->sa_alloc)
@@ -268,6 +271,7 @@ bg_upnp_service_desc_add_action(bg_upnp_service_desc_t * d, const char * name)
     }
   ret = d->sa + d->num_sa;
   ret->name = gavl_strdup(name);
+  ret->func = func;  
   d->num_sa++;
   return ret;
   }
@@ -297,6 +301,18 @@ bg_upnp_service_desc_sv_by_name(bg_upnp_service_desc_t * d, const char * name)
     {
     if(!strcmp(d->sv[i].name, name))
       return &d->sv[i];
+    }
+  return NULL;
+  }
+
+const bg_upnp_sa_desc_t *
+bg_upnp_service_desc_sa_by_name(bg_upnp_service_desc_t * d, const char * name)
+  {
+  int i;
+  for(i = 0; i < d->num_sa; i++)
+    {
+    if(!strcmp(d->sa[i].name, name))
+      return &d->sa[i];
     }
   return NULL;
   }

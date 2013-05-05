@@ -50,7 +50,12 @@ xmlNodePtr bg_soap_request_add_argument(xmlDocPtr doc, const char * name);
 char * bg_soap_request_get_arg_string(xmlDocPtr doc, const char * name);
 int bg_soap_request_get_arg_int(xmlDocPtr doc, const char * name, int * ret);
 
+xmlNodePtr bg_soap_request_next_argument(xmlNodePtr function, xmlNodePtr arg);
+
+
 void bg_soap_request_add_arg_string(xmlDocPtr doc, const char * name, const char * val);
 int bg_soap_request_add_arg_int(xmlDocPtr doc, const char * name, int * ret);
+
+
 
 #endif // __BG_UPNP_SOAP_H_

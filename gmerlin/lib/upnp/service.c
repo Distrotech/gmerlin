@@ -54,7 +54,21 @@ bg_upnp_service_start(bg_upnp_service_t * s)
       idx++;
       }
     }
+
+  /* Get the maximum number of input- and output args so we can
+     allocate our request structure */
+
+  for(i = 0; i < s->desc.num_sa; i++)
+    {
+    if(s->req.args_in_alloc < s->desc.sa[i].num_args_in)
+      s->req.args_in_alloc = s->desc.sa[i].num_args_in;
+    
+    if(s->req.args_out_alloc < s->desc.sa[i].num_args_out)
+      s->req.args_out_alloc = s->desc.sa[i].num_args_out;
+    }
   
+  s->req.args_in  = calloc(s->req.args_in_alloc, sizeof(*s->req.args_in));
+  s->req.args_out = calloc(s->req.args_out_alloc, sizeof(*s->req.args_out));
   
   return 1;
   }
@@ -82,6 +96,7 @@ bg_upnp_service_handle_request(bg_upnp_service_t * s, int fd,
   else if(!strcmp(path, "control"))
     {
     /* Service control */
+    bg_upnp_service_handle_action_request(s, fd, method, header);
     }
   else if(!strcmp(path, "event"))
     {
