@@ -65,23 +65,48 @@ char * def_result =
   "<DIDL-Lite xmlns:dc=\"http://purl.org/dc/elements/1.1/\""
   " xmlns:upnp=\"urn:schemas-upnp-org:metadata-1-0/upnp/\""
   " xmlns=\"urn:schemas-upnp-org:metadata-1-0/DIDL-Lite/\">"
-  "<container id=\"1\" parentID=\"0\" childCount=\"2\" restricted=\"true\">\n"
+  "<container id=\"1\" parentID=\"0\" childCount=\"2\" restricted=\"1\">\n"
   "<dc:title>My Music</dc:title>\n"
-  "<dc:class>object.container.storageFolder</dc:class>\n"
+  "<upnp:class>object.container.storageFolder</upnp:class>\n"
   "<dc:storageUsed>100000000</dc:storageUsed>\n"
   "<upnp:writeStatus>PROTECTED</upnp:writeStatus>\n"
+  "</container>\n"
+  "</DIDL-Lite>";
+
+char * def_root =
+  "<DIDL-Lite xmlns:dc=\"http://purl.org/dc/elements/1.1/\""
+  " xmlns:upnp=\"urn:schemas-upnp-org:metadata-1-0/upnp/\""
+  " xmlns=\"urn:schemas-upnp-org:metadata-1-0/DIDL-Lite/\">"
+  "<container id=\"0\" parentID=\"-1\" childCount=\"1\" restricted=\"1\">\n"
+  "<dc:title>Root</dc:title>\n"
+  "<upnp:class>object.container</upnp:class>\n"
   "</container>\n"
   "</DIDL-Lite>";
 
 
 static int Browse(bg_upnp_service_t * s)
   {
+  const char * ObjectID = bg_upnp_service_get_arg_in_string(&s->req, ARG_ObjectID);
+  const char * BrowseFlag = bg_upnp_service_get_arg_in_string(&s->req, ARG_BrowseFlag);
+  const char * Filter = bg_upnp_service_get_arg_in_string(&s->req, ARG_Filter);
+  int StartingIndex = bg_upnp_service_get_arg_in_int(&s->req, ARG_StartingIndex);
+  int RequestedCount = bg_upnp_service_get_arg_in_int(&s->req, ARG_RequestedCount);
+  
+  fprintf(stderr, "Browse: Id: %s, Flag: %s, Filter: %s, Start: %d, Num: %d\n",
+          ObjectID, BrowseFlag, Filter, StartingIndex, RequestedCount);
+
   bg_upnp_service_set_arg_out_int(&s->req, ARG_NumberReturned, 1);
   bg_upnp_service_set_arg_out_int(&s->req, ARG_TotalMatches, 1);
 
+  
+  if(!strcmp(BrowseFlag, "BrowseMetadata"))
+    bg_upnp_service_set_arg_out_string(&s->req, ARG_Result, gavl_strdup(def_root));
+  else
+    bg_upnp_service_set_arg_out_string(&s->req, ARG_Result, gavl_strdup(def_result));
+    
   fprintf(stderr, "didl:\n%s\n", def_result);
 
-  bg_upnp_service_set_arg_out_string(&s->req, ARG_Result, gavl_strdup(def_result));
+  //  bg_upnp_service_set_arg_out_string(&s->req, ARG_Result, gavl_strdup(def_result));
   return 1;
   }
 

@@ -144,8 +144,8 @@ bg_upnp_soap_request_from_xml(bg_upnp_service_t * s,
     if(s->req.num_args_in == s->req.action->num_args_in)
       break;
     
-    fprintf(stderr, "Got arg: %s, value: %s\n", arg->name,
-            bg_xml_node_get_text_content(arg));
+    //    fprintf(stderr, "Got arg: %s, value: %s\n", arg->name,
+    //            bg_xml_node_get_text_content(arg));
     
     s->req.args_in[s->req.num_args_in].desc = 
       bg_upnp_sa_desc_in_arg_by_name(s->req.action, (char*)arg->name);
@@ -205,4 +205,17 @@ bg_upnp_soap_response_to_xml(bg_upnp_service_t * s, int * len)
   *len = strlen(ret);
   xmlFreeDoc(doc);
   return ret;
+  }
+
+void bg_upnp_soap_request_cleanup(bg_upnp_soap_request_t * req)
+  {
+  int i;
+  for(i = 0; i < req->num_args_in; i++)
+    bg_upnp_sv_val_free(&req->args_in[i].val);
+  req->num_args_in = 0;
+
+  for(i = 0; i < req->num_args_out; i++)
+    bg_upnp_sv_val_free(&req->args_out[i].val);
+  req->num_args_out = 0;
+  req->action = NULL;
   }

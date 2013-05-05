@@ -122,7 +122,11 @@ bg_upnp_service_handle_action_request(bg_upnp_service_t * s, int fd,
       {
       /* Error */
       }
-
+    buf[content_length] = '\0';
+    fprintf(stderr, "Got SOAP request\n");
+    //    gavl_metadata_dump(&res, 0);
+    fprintf(stderr, "%s\n", buf);
+    
     if(!bg_upnp_soap_request_from_xml(s, buf, content_length))
       {
       /* Error */
@@ -142,12 +146,14 @@ bg_upnp_service_handle_action_request(bg_upnp_service_t * s, int fd,
     bg_http_header_set_empty_var(&res, "EXT");
     gavl_metadata_set(&res, "SERVER", s->dev->server_string);
 
-    fprintf(stderr, "Sending SOAP response\n");
-    gavl_metadata_dump(&res, 0);
-    fprintf(stderr, "%s\n", buf);
+    //    fprintf(stderr, "Sending SOAP response\n");
+    //    gavl_metadata_dump(&res, 0);
+    //    fprintf(stderr, "%s\n", buf);
     
     if(bg_http_response_write(fd, &res))
       bg_socket_write_data(fd, (uint8_t*)buf, content_length);
+
+    bg_upnp_soap_request_cleanup(&s->req);
     
     }
   else

@@ -71,7 +71,10 @@ int bg_upnp_string_to_val(bg_upnp_sv_type_t type,
 void bg_upnp_sv_val_free(bg_upnp_sv_val_t * val)
   {
   if(val->s)
+    {
     free(val->s);
+    val->s = NULL;
+    }
   }
 
 void bg_upnp_sv_val_copy(bg_upnp_sv_type_t type,

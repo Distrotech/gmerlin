@@ -198,6 +198,7 @@ bg_upnp_soap_request_from_xml(bg_upnp_service_t * s,
 char *
 bg_upnp_soap_response_to_xml(bg_upnp_service_t * s, int * len);
 
+void bg_upnp_soap_request_cleanup(bg_upnp_soap_request_t * req);
 
 /* Functions called by the service actions */
 
