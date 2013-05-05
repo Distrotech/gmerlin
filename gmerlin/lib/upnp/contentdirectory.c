@@ -23,6 +23,8 @@
 #include <upnp_service.h>
 #include <string.h>
 
+#include <gmerlin/utils.h>
+
 /* Service actions */
 
 #define ARG_SearchCaps        1
@@ -40,25 +42,47 @@
 
 static int GetSearchCapabilities(bg_upnp_service_t * s)
   {
+  char * ret = calloc(1, 1);
+  bg_upnp_service_set_arg_out_string(&s->req, ARG_SearchCaps, ret);
   return 0;
   }
 
-
 static int GetSortCapabilities(bg_upnp_service_t * s)
   {
+  char * ret = calloc(1, 1);
+  bg_upnp_service_set_arg_out_string(&s->req, ARG_SearchCaps, ret);
   return 0;
   }
 
 
 static int GetSystemUpdateID(bg_upnp_service_t * s)
   {
+  bg_upnp_service_set_arg_out_int(&s->req, ARG_Id, 1);
   return 0;
   }
+
+char * def_result =
+  "<DIDL-Lite xmlns:dc=\"http://purl.org/dc/elements/1.1/\""
+  " xmlns:upnp=\"urn:schemas-upnp-org:metadata-1-0/upnp/\""
+  " xmlns=\"urn:schemas-upnp-org:metadata-1-0/DIDL-Lite/\">"
+  "<container id=\"1\" parentID=\"0\" childCount=\"2\" restricted=\"true\">\n"
+  "<dc:title>My Music</dc:title>\n"
+  "<dc:class>object.container.storageFolder</dc:class>\n"
+  "<dc:storageUsed>100000000</dc:storageUsed>\n"
+  "<upnp:writeStatus>PROTECTED</upnp:writeStatus>\n"
+  "</container>\n"
+  "</DIDL-Lite>";
 
 
 static int Browse(bg_upnp_service_t * s)
   {
-  return 0;
+  bg_upnp_service_set_arg_out_int(&s->req, ARG_NumberReturned, 1);
+  bg_upnp_service_set_arg_out_int(&s->req, ARG_TotalMatches, 1);
+
+  fprintf(stderr, "didl:\n%s\n", def_result);
+
+  bg_upnp_service_set_arg_out_string(&s->req, ARG_Result, gavl_strdup(def_result));
+  return 1;
   }
 
 

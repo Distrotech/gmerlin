@@ -45,7 +45,8 @@ xmlDocPtr bg_soap_create_response(const char * function, const char * service, i
 /* return the first named node within the Body element */
 xmlNodePtr bg_soap_get_function(xmlDocPtr);
 
-xmlNodePtr bg_soap_request_add_argument(xmlDocPtr doc, const char * name);
+xmlNodePtr bg_soap_request_add_argument(xmlDocPtr doc, const char * name,
+                                        const char * value);
 
 char * bg_soap_request_get_arg_string(xmlDocPtr doc, const char * name);
 int bg_soap_request_get_arg_int(xmlDocPtr doc, const char * name, int * ret);

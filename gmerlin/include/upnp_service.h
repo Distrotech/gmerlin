@@ -212,7 +212,7 @@ void
 bg_upnp_service_set_arg_out_int(bg_upnp_soap_request_t * req,
                                 int id, int val);
 void
-bg_upnp_service_get_arg_out_string(bg_upnp_soap_request_t * req,
+bg_upnp_service_set_arg_out_string(bg_upnp_soap_request_t * req,
                                    int id, char * val);
 
 typedef struct

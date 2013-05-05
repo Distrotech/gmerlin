@@ -4,19 +4,16 @@
 #include <string.h>
 #include <upnp_service.h>
 
+#define TYPE_REQUEST  0
+#define TYPE_RESPONSE 1
+#define TYPE_FAULT    2
 
-static xmlDocPtr soap_create(const char * function, const char * service,
-                             int version, int response)
+static xmlDocPtr soap_create_common()
   {
-  char * tmp_string;
+  xmlNsPtr soap_ns;
   xmlDocPtr  xml_doc;
   xmlNodePtr xml_env;
-  xmlNodePtr xml_body;
-  xmlNodePtr xml_action;
-
-  xmlNsPtr soap_ns;
-  xmlNsPtr upnp_ns;
-
+  
   xml_doc = xmlNewDoc((xmlChar*)"1.0");
   xml_env = xmlNewDocRawNode(xml_doc, NULL, (xmlChar*)"Envelope", NULL);
   xmlDocSetRootElement(xml_doc, xml_env);
@@ -29,8 +26,34 @@ static xmlDocPtr soap_create(const char * function, const char * service,
   xmlSetNsProp(xml_env, soap_ns, (xmlChar*)"encodingStyle", 
                (xmlChar*)"http://schemas.xmlsoap.org/soap/encoding/");
 
-  xml_body = xmlNewChild(xml_env, soap_ns, (xmlChar*)"Body", NULL);
+  xmlNewChild(xml_env, soap_ns, (xmlChar*)"Body", NULL);
+  return xml_doc;
+  }
 
+static xmlNodePtr get_body(xmlDocPtr doc)
+  {
+  xmlNodePtr node;
+
+  if(!(node = bg_xml_find_doc_child(doc, "Envelope")) ||
+     !(node = bg_xml_find_node_child(node, "Body")))
+    return NULL;
+  return node;  
+  }
+
+
+static xmlDocPtr soap_create(const char * function, const char * service,
+                             int version, int response)
+  {
+  char * tmp_string;
+  xmlDocPtr  xml_doc;
+  xmlNodePtr xml_body;
+  xmlNodePtr xml_action;
+
+  xmlNsPtr upnp_ns;
+
+  xml_doc = soap_create_common();
+  xml_body = get_body(xml_doc);
+    
   if(response)
     {
     tmp_string = bg_sprintf("%sResponse", function);
@@ -74,11 +97,12 @@ xmlNodePtr bg_soap_get_function(xmlDocPtr doc)
   return node;  
   }
 
-xmlNodePtr bg_soap_request_add_argument(xmlDocPtr doc, const char * name)
+xmlNodePtr bg_soap_request_add_argument(xmlDocPtr doc, const char * name,
+                                        const char * value)
   {
   xmlNodePtr ret;
   xmlNodePtr node = bg_soap_get_function(doc);
-  ret = xmlNewChild(node, NULL, (xmlChar*)name, NULL);
+  ret = bg_xml_append_child_node(node, name, value);
   xmlSetNs(ret, NULL);
   return ret;
   }
@@ -147,7 +171,7 @@ bg_upnp_soap_request_from_xml(bg_upnp_service_t * s,
   /* Prepare output arguments */
   for(i = 0; i < s->req.action->num_args_out; i++)
     s->req.args_out[i].desc = &s->req.action->args_out[i];
-  
+  s->req.num_args_out = s->req.action->num_args_out;
   
   return 1;
   }
@@ -155,7 +179,30 @@ bg_upnp_soap_request_from_xml(bg_upnp_service_t * s,
 char *
 bg_upnp_soap_response_to_xml(bg_upnp_service_t * s, int * len)
   {
+  int i;
+  char buf[32];
+  const char * value;
+  char * ret;  
   xmlDocPtr doc = soap_create(s->req.action->name,
                               s->type, s->version, 1);
-  
+
+  for(i = 0; i < s->req.num_args_out; i++)
+    {
+    switch(s->req.args_out[i].desc->rsv->type)
+      {
+      case BG_UPNP_SV_INT4:
+        snprintf(buf, 32, "%d", s->req.args_out[i].val.i);
+        value = buf;
+        break;
+      case BG_UPNP_SV_STRING:
+        value = s->req.args_out[i].val.s;
+        break;
+      }
+    bg_soap_request_add_argument(doc, s->req.args_out[i].desc->name,
+                                 value);
+    }
+  ret = bg_xml_save_to_memory(doc);
+  *len = strlen(ret);
+  xmlFreeDoc(doc);
+  return ret;
   }
