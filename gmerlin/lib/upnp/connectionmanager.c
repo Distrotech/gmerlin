@@ -20,7 +20,7 @@
  * *****************************************************************/
 
 #include <config.h>
-#include <upnp_service.h>
+#include <upnp/servicepriv.h>
 #include <string.h>
 
 /* Service actions */

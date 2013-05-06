@@ -22,7 +22,7 @@
 #include <gmerlin/upnp/device.h>
 #include <gmerlin/upnp/ssdp.h>
 
-#include <upnp_service.h>
+#include <upnp/servicepriv.h>
 
 struct bg_upnp_device_s
   {

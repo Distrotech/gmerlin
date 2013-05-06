@@ -2,7 +2,7 @@
 #include <gmerlin/utils.h>
 
 #include <string.h>
-#include <upnp_service.h>
+#include <upnp/servicepriv.h>
 
 #define TYPE_REQUEST  0
 #define TYPE_RESPONSE 1

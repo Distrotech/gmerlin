@@ -4,7 +4,7 @@ else
 x11_subdirs =
 endif
 
-SUBDIRS=gmerlin gui_gtk $(x11_subdirs)
+SUBDIRS=gmerlin gui_gtk upnp $(x11_subdirs)
 
 noinst_HEADERS = \
 bgfreetype.h \
@@ -23,8 +23,6 @@ playerprivate.h \
 recorder_private.h \
 registry_priv.h \
 treeprivate.h \
-upnp_device.h \
-upnp_service.h \
 pluginreg_priv.h \
 visualize_priv.h
 

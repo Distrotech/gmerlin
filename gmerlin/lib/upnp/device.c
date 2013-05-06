@@ -20,7 +20,7 @@
  * *****************************************************************/
 
 #include <config.h>
-#include <upnp_device.h>
+#include <upnp/devicepriv.h>
 #include <string.h>
 #include <gmerlin/http.h>
 #include <gmerlin/utils.h>

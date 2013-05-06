@@ -19,7 +19,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  * *****************************************************************/
 
-#include <upnp_device.h>
+#include <upnp/devicepriv.h>
 #include <stdlib.h>
 
 

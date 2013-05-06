@@ -20,7 +20,7 @@
  * *****************************************************************/
 
 #include <config.h>
-#include <upnp_service.h>
+#include <upnp/servicepriv.h>
 #include <gmerlin/utils.h>
 #include <gmerlin/log.h>
 #define LOG_DOMAIN "upnp.servicedesc"

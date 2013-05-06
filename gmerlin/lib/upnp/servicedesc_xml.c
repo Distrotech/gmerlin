@@ -19,7 +19,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  * *****************************************************************/
 
-#include <upnp_service.h>
+#include <upnp/servicepriv.h>
 #include <gmerlin/utils.h>
 
 

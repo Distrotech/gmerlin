@@ -1024,6 +1024,7 @@ include/gmerlin/Makefile \
 include/gmerlin/bg_version.h \
 include/gmerlin/upnp/Makefile
 include/gui_gtk/Makefile \
+include/upnp/Makefile \
 include/x11/Makefile \
 lib/Makefile \
 lib/gtk/Makefile \

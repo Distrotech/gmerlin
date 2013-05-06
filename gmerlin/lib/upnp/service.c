@@ -20,7 +20,7 @@
  * *****************************************************************/
 
 //#include <upnp_service.h>
-#include <upnp_device.h>
+#include <upnp/devicepriv.h>
 
 #include <gmerlin/utils.h>
 #include <string.h>
