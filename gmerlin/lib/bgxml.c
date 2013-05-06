@@ -251,6 +251,7 @@ xmlNodePtr bg_xml_append_child_node(xmlNodePtr parent, const char * name,
                                     const char * content)
   {
   xmlNodePtr node;
+
   node = xmlNewTextChild(parent, NULL, (xmlChar*)name, NULL);
   if(content)
     xmlAddChild(node, BG_XML_NEW_TEXT(content));

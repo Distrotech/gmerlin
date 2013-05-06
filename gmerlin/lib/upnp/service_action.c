@@ -149,6 +149,8 @@ bg_upnp_service_handle_action_request(bg_upnp_service_t * s, int fd,
     //    fprintf(stderr, "Sending SOAP response\n");
     //    gavl_metadata_dump(&res, 0);
     //    fprintf(stderr, "%s\n", buf);
+
+    
     
     if(bg_http_response_write(fd, &res))
       bg_socket_write_data(fd, (uint8_t*)buf, content_length);

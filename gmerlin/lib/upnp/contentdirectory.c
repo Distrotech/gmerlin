@@ -61,6 +61,74 @@ static int GetSystemUpdateID(bg_upnp_service_t * s)
   return 0;
   }
 
+/* DIDL stuff */
+
+static xmlDocPtr didl_create()
+  {
+  
+  xmlNsPtr upnp_ns;
+  xmlNsPtr didl_ns;
+  xmlNsPtr dc_ns;
+  
+  xmlDocPtr doc;  
+  xmlNodePtr didl;
+  
+  doc = xmlNewDoc((xmlChar*)"1.0");
+  didl = xmlNewDocRawNode(doc, NULL, (xmlChar*)"DIDL-Lite", NULL);
+  xmlDocSetRootElement(doc, didl);
+
+  dc_ns =
+    xmlNewNs(didl,
+             (xmlChar*)"http://purl.org/dc/elements/1.1/",
+             (xmlChar*)"dc");
+
+  upnp_ns =
+    xmlNewNs(didl,
+             (xmlChar*)"urn:schemas-upnp-org:metadata-1-0/upnp/",
+             (xmlChar*)"upnp");
+  didl_ns =
+    xmlNewNs(didl,
+             (xmlChar*)"urn:schemas-upnp-org:metadata-1-0/DIDL-Lite/",
+             NULL);
+  
+  return doc;
+  }
+
+static xmlNodePtr didl_add_item(xmlDocPtr doc)
+  {
+  xmlNodePtr parent = bg_xml_find_next_doc_child(doc, NULL);
+  xmlNodePtr node = xmlNewTextChild(parent, NULL, (xmlChar*)"item", NULL);
+  return node;
+  }
+
+static xmlNodePtr didl_add_container(xmlDocPtr doc)
+  {
+  xmlNodePtr parent = bg_xml_find_next_doc_child(doc, NULL);
+  xmlNodePtr node = xmlNewTextChild(parent, NULL, (xmlChar*)"container", NULL);
+  return node;
+  }
+
+static void didl_add_property(xmlDocPtr doc,
+                              xmlNodePtr node,
+                              const char * ns,
+                              const char * name,
+                              const char * value)
+  {
+  xmlNsPtr xmlns = xmlSearchNs(doc, node, (const xmlChar *)ns);
+
+  xmlNewTextChild(node, xmlns, (const xmlChar*)name,
+                  (const xmlChar*)value);
+  }
+
+
+static xmlNodePtr didl_add_object(xmlDocPtr doc, bg_db_object_t * obj)
+  {
+  bg_db_object_type_t type;
+  type = bg_db_object_get_type(obj);
+  return NULL;
+  }
+  
+
 char * def_result =
   "<DIDL-Lite xmlns:dc=\"http://purl.org/dc/elements/1.1/\""
   " xmlns:upnp=\"urn:schemas-upnp-org:metadata-1-0/upnp/\""
@@ -86,6 +154,10 @@ char * def_root =
 
 static int Browse(bg_upnp_service_t * s)
   {
+  xmlDocPtr didl;
+  xmlNodePtr node;
+  char * ret;  
+  
   const char * ObjectID = bg_upnp_service_get_arg_in_string(&s->req, ARG_ObjectID);
   const char * BrowseFlag = bg_upnp_service_get_arg_in_string(&s->req, ARG_BrowseFlag);
   const char * Filter = bg_upnp_service_get_arg_in_string(&s->req, ARG_Filter);
@@ -98,7 +170,19 @@ static int Browse(bg_upnp_service_t * s)
   bg_upnp_service_set_arg_out_int(&s->req, ARG_NumberReturned, 1);
   bg_upnp_service_set_arg_out_int(&s->req, ARG_TotalMatches, 1);
 
+  didl = didl_create();
+
+  node = didl_add_container(didl);
+  didl_add_property(didl, node, "dc", "title", "My Music");
+  didl_add_property(didl, node, "upnp", "class", "object.container.storageFolder");
   
+  ret = bg_xml_save_to_memory(didl);
+
+  fprintf(stderr, "didl-test:\n%s\n", ret);
+  
+  free(ret);
+  xmlFreeDoc(didl);
+    
   if(!strcmp(BrowseFlag, "BrowseMetadata"))
     bg_upnp_service_set_arg_out_string(&s->req, ARG_Result, gavl_strdup(def_root));
   else
