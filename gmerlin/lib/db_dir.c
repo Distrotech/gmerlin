@@ -171,15 +171,19 @@ void bg_db_dir_create(bg_db_t * db, int scan_flags,
   int result;
   
   /* Make sure we have the right parent directoy */  
-  if(parent &&
-     !(*parent = bg_db_dir_ensure_parent(db, *parent, item->path)))
-    return;
-  
+  if(parent)
+    {
+    if(!(*parent = bg_db_dir_ensure_parent(db, *parent, item->path)))
+      return;
+    }
+
   obj = bg_db_object_create(db);
   bg_db_object_set_type(obj, BG_DB_OBJECT_DIRECTORY);
   
   if(parent)
     bg_db_object_set_parent(db, obj, *parent);
+  else
+    bg_db_object_set_parent_id(db, obj, 0);    
   
   dir = (bg_db_dir_t *)obj;
 

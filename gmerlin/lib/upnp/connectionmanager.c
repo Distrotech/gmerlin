@@ -21,6 +21,7 @@
 
 #include <config.h>
 #include <upnp/servicepriv.h>
+#include <upnp/mediaserver.h>
 #include <string.h>
 
 /* Service actions */

@@ -127,8 +127,7 @@ int bg_db_scan_item_set(bg_db_scan_item_t * ret, char * filename);
 
 /* Object */
 void * bg_db_object_create(bg_db_t * db); /* Create an object */
-
-
+void * bg_db_object_create_root(bg_db_t * db);
 
 void bg_db_object_add(bg_db_t * db, bg_db_object_t * obj);    /* Add to DB      */
 void bg_db_object_update(bg_db_t * db, void * obj, int children, int parent); /* Update in DB   */
@@ -154,13 +153,13 @@ int64_t bg_db_object_get_id(void * obj);
 void bg_db_object_create_ref(void * obj, void * parent);
 void bg_db_object_set_label_nocpy(void * obj, char * label);
 void bg_db_object_set_label(void * obj1, const char * label);
-const char * bg_db_object_get_label(void * obj1);
 
 void bg_db_object_add_child(bg_db_t * db, void * obj1, void * child1);
 void bg_db_object_remove_child(bg_db_t * db, void * obj1, void * child1);
 
 void bg_db_object_init(void * obj1);
 
+extern const bg_db_object_class_t bg_db_root_class;
 
 /* Directory */
 

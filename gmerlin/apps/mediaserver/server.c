@@ -31,12 +31,54 @@
 
 #define TIMEOUT GAVL_TIME_SCALE/2
 
-int server_init(server_t * s)
+static const bg_parameter_info_t parameters[] =
+  {
+    {
+      .name =      "db",
+      .long_name = TRS("Database path"),
+      .type = BG_PARAMETER_DIRECTORY,
+      .val_default = { .val_str = "." },
+    },
+    { /* End */ },
+  };
+
+const bg_parameter_info_t * server_get_parameters()
+  {
+  return parameters;
+  }
+
+void server_set_parameter(void * priv, const char * name, const bg_parameter_value_t * val)
+  {
+  server_t * s = priv;
+  if(!name)
+    return;
+  if(!strcmp(name, "db"))
+    s->dbpath = gavl_strrep(s->dbpath, val->val_str);
+  }
+
+void server_init(server_t * s)
+  {
+  memset(s, 0, sizeof(*s));
+  }
+
+int server_start(server_t * s)
   {
   char addr_str[BG_SOCKET_ADDR_STR_LEN];
-  
-  memset(s, 0, sizeof(*s));
+  char * tmp_path;
+  bg_cfg_registry_t * cfg_reg;
+  bg_cfg_section_t * cfg_section;
 
+  /* Create plugin registry */
+
+  cfg_reg = bg_cfg_registry_create();
+  tmp_path =  bg_search_file_read("generic", "config.xml");
+  bg_cfg_registry_load(cfg_reg, tmp_path);
+  if(tmp_path)
+    free(tmp_path);
+
+  cfg_section = bg_cfg_registry_find_section(cfg_reg, "plugins");
+  s->plugin_reg = bg_plugin_registry_create(cfg_section);
+  
   /* Create listen socket: After that we'll have the root URL we can
      advertise */
   
@@ -65,9 +107,13 @@ int server_init(server_t * s)
   uuid_parse("41491152-4894-43fe-bf88-307b6aa6eb45", s->uuid);
     
   /* TODO: Create DB */
-  
+  s->db = bg_db_create(s->dbpath,
+                       s->plugin_reg, 0);
+  if(!s->db)
+    {
+    bg_log(BG_LOG_INFO, LOG_DOMAIN, "No database found");
+    }
   /* Create UPNP device(s) */
-
   s->dev = bg_upnp_create_media_server(s->addr,
                                        s->uuid,
                                        "Gmerlin media server",

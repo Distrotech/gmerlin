@@ -109,25 +109,29 @@ typedef enum
   BG_DB_OBJECT_IMAGE_FILE   = (4<<16) | DB_DB_FLAG_FILE | DB_DB_FLAG_IMAGE,
   // Several image types follow
   BG_DB_OBJECT_PHOTO         = (5<<16) | DB_DB_FLAG_FILE | DB_DB_FLAG_IMAGE,
-  BG_DB_OBJECT_ALBUM_COVER   = (5<<17) | DB_DB_FLAG_FILE | DB_DB_FLAG_IMAGE,
-  BG_DB_OBJECT_VIDEO_PREVIEW = (6<<18) | DB_DB_FLAG_FILE | DB_DB_FLAG_IMAGE,
-  BG_DB_OBJECT_MOVIE_POSTER  = (6<<19) | DB_DB_FLAG_FILE | DB_DB_FLAG_IMAGE,
-  BG_DB_OBJECT_THUMBNAIL     = (7<<20) | DB_DB_FLAG_FILE | DB_DB_FLAG_IMAGE,
+  BG_DB_OBJECT_ALBUM_COVER   = (6<<16) | DB_DB_FLAG_FILE | DB_DB_FLAG_IMAGE,
+  BG_DB_OBJECT_VIDEO_PREVIEW = (7<<16) | DB_DB_FLAG_FILE | DB_DB_FLAG_IMAGE,
+  BG_DB_OBJECT_MOVIE_POSTER  = (8<<16) | DB_DB_FLAG_FILE | DB_DB_FLAG_IMAGE,
+  BG_DB_OBJECT_THUMBNAIL     = (9<<16) | DB_DB_FLAG_FILE | DB_DB_FLAG_IMAGE,
+
+  // Root container: Object ID 0, has all toplevel containers as children
+
+  BG_DB_OBJECT_ROOT          = (50<<16) | BG_DB_FLAG_VCONTAINER,
 
   // object.container.album.musicAlbum
   // Audio albums are *no* containers for the internal database
   // because they are referenced by their children not by the parent_id
   // but by the album
-  BG_DB_OBJECT_AUDIO_ALBUM =  (256<<16) | BG_DB_FLAG_VCONTAINER,
+  BG_DB_OBJECT_AUDIO_ALBUM =  (51<<16) | BG_DB_FLAG_VCONTAINER,
 
-  BG_DB_OBJECT_CONTAINER   =  (257<<16) | BG_DB_FLAG_CONTAINER,
+  BG_DB_OBJECT_CONTAINER   =  (52<<16) | BG_DB_FLAG_CONTAINER,
   // object.container.storageFolder
-  BG_DB_OBJECT_DIRECTORY   =  (258<<16) | BG_DB_FLAG_CONTAINER, 
-  BG_DB_OBJECT_PLAYLIST    =  (259<<16) | BG_DB_FLAG_CONTAINER,
+  BG_DB_OBJECT_DIRECTORY   =  (53<<16) | BG_DB_FLAG_CONTAINER, 
+  BG_DB_OBJECT_PLAYLIST    =  (54<<16) | BG_DB_FLAG_CONTAINER,
 
   // Virtual Folder */
-  BG_DB_OBJECT_VFOLDER      =  (260<<16)  | BG_DB_FLAG_CONTAINER | BG_DB_FLAG_NO_EMPTY,
-  BG_DB_OBJECT_VFOLDER_LEAF =  (261<<16) | BG_DB_FLAG_VCONTAINER | BG_DB_FLAG_NO_EMPTY,
+  BG_DB_OBJECT_VFOLDER      =  (55<<16)  | BG_DB_FLAG_CONTAINER | BG_DB_FLAG_NO_EMPTY,
+  BG_DB_OBJECT_VFOLDER_LEAF =  (56<<16) | BG_DB_FLAG_VCONTAINER | BG_DB_FLAG_NO_EMPTY,
   } bg_db_object_type_t;
 
 typedef struct bg_db_object_class_s bg_db_object_class_t;
@@ -303,8 +307,8 @@ typedef void (*bg_db_query_callback)(void * priv, void * obj);
 void * bg_db_object_query(bg_db_t * db, int64_t id); 
 
 void bg_db_object_dump(void * obj);
-
 void bg_db_object_unref(void * obj);
+const char * bg_db_object_get_label(void * obj);
 
 void
 bg_db_query_children(bg_db_t *, int64_t id, bg_db_query_callback cb, void * priv);

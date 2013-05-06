@@ -256,6 +256,7 @@ get_root_vfolder(bg_db_t * db, int idx)
     parent = bg_db_object_create(db);
     bg_db_object_set_type(parent, BG_DB_OBJECT_VFOLDER);
     bg_db_object_set_label(parent, "Media");
+    bg_db_object_set_parent_id(db, parent, 0);
     vfolder_set(db, parent, type, depth, path);
     }
   else

@@ -21,6 +21,7 @@
 
 #include <config.h>
 #include <upnp/servicepriv.h>
+#include <upnp/mediaserver.h>
 #include <string.h>
 
 #include <gmerlin/utils.h>
@@ -120,11 +121,100 @@ static void didl_add_property(xmlDocPtr doc,
                   (const xmlChar*)value);
   }
 
+/* 
+ *  UPNP IDs are build the following way:
+ *
+ *  object_id $ parent_id $ grandparent_id ...
+ *  This was we can map the same db objects into arbitrary locations into the
+ *  tree and they always have unique upnp IDs as required by the standard.
+ */
 
-static xmlNodePtr didl_add_object(xmlDocPtr doc, bg_db_object_t * obj)
+static xmlNodePtr didl_add_object(xmlDocPtr didl, bg_db_object_t * obj, 
+                                  const char * upnp_parent, const char * upnp_id)
   {
+  const char * pos;
+  char * tmp_string;
+  xmlNodePtr node;
   bg_db_object_type_t type;
   type = bg_db_object_get_type(obj);
+
+  if(type & BG_DB_FLAG_CONTAINER)
+    {
+    node = didl_add_container(didl);
+    tmp_string = bg_sprintf("%d", obj->children);
+    BG_XML_SET_PROP(node, "childCount", tmp_string);
+    free(tmp_string);
+    }
+  else
+    node = didl_add_item(didl);
+
+  if(upnp_id)
+    {
+    BG_XML_SET_PROP(node, "id", upnp_id);
+    pos = strchr(upnp_id, '$');
+    if(pos)
+      BG_XML_SET_PROP(node, "parentID", pos+1);
+    else
+      BG_XML_SET_PROP(node, "parentID", "0");
+    }
+  else if(upnp_parent)
+    {
+    tmp_string = bg_sprintf("%"PRId64"$%s", obj->id, upnp_parent);
+    BG_XML_SET_PROP(node, "id", tmp_string);
+    free(tmp_string);
+    BG_XML_SET_PROP(node, "parentID", upnp_parent);
+    }
+
+  switch(type)
+    {
+    case BG_DB_OBJECT_AUDIO_FILE:
+      {
+      bg_db_audio_file_t * o = (bg_db_audio_file_t *)obj;
+      if(o->title)
+        didl_add_property(didl, node, "dc", "title", o->title);
+      else
+        didl_add_property(didl, node, "dc", "title", bg_db_object_get_label(obj));
+      didl_add_property(didl, node, "upnp", "class", "object.item.audioItem.musicTrack");
+      didl_add_property(didl, node, "upnp", "artist", o->artist);
+      didl_add_property(didl, node, "upnp", "genre", o->genre);
+      didl_add_property(didl, node, "upnp", "album", o->album);
+      }
+      break;
+    case BG_DB_OBJECT_VIDEO_FILE:
+    case BG_DB_OBJECT_PHOTO:
+    case BG_DB_OBJECT_ROOT:
+      didl_add_property(didl, node, "dc", "title", bg_db_object_get_label(obj));
+      didl_add_property(didl, node, "upnp", "class", "object.container");
+      break;
+    case BG_DB_OBJECT_AUDIO_ALBUM:
+      didl_add_property(didl, node, "dc", "title", bg_db_object_get_label(obj));
+      didl_add_property(didl, node, "upnp", "class", "object.container.album.musicAlbum");
+      break;
+    case BG_DB_OBJECT_CONTAINER:
+      didl_add_property(didl, node, "dc", "title", bg_db_object_get_label(obj));
+      didl_add_property(didl, node, "upnp", "class", "object.container");
+      break;
+    case BG_DB_OBJECT_DIRECTORY:
+      didl_add_property(didl, node, "dc", "title", bg_db_object_get_label(obj));
+      didl_add_property(didl, node, "upnp", "class", "object.container.storageFolder");
+      break;
+    case BG_DB_OBJECT_PLAYLIST:
+    case BG_DB_OBJECT_VFOLDER:
+    case BG_DB_OBJECT_VFOLDER_LEAF:
+      break;
+    /* The following objects should never get returned */
+    case BG_DB_OBJECT_OBJECT: 
+    case BG_DB_OBJECT_FILE:
+    case BG_DB_OBJECT_IMAGE_FILE:
+    case BG_DB_OBJECT_ALBUM_COVER:
+    case BG_DB_OBJECT_VIDEO_PREVIEW:
+    case BG_DB_OBJECT_MOVIE_POSTER:
+    case BG_DB_OBJECT_THUMBNAIL:
+      didl_add_property(didl, node, "dc", "title", bg_db_object_get_label(obj));
+      didl_add_property(didl, node, "upnp", "class", "object.item");
+      break;
+    }
+
   return NULL;
   }
   

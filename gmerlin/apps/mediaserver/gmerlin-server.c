@@ -29,6 +29,9 @@ static int got_sigint = 0;
 struct sigaction old_int_sigaction;
 struct sigaction old_term_sigaction;
 
+const bg_parameter_info_t * s_params;
+bg_cfg_section_t * s_section;
+
 static void sigint_handler(int sig)
   {
   got_sigint = 1;
@@ -58,9 +61,32 @@ static void set_sigint_handler()
     fprintf(stderr, "sigaction failed\n");
   }
 
+static void opt_s(void * data, int * argc, char *** _argv, int arg)
+  {
+  if(arg >= *argc)
+    {
+    fprintf(stderr, "Option -s requires an argument\n");
+    exit(-1);
+    }
+
+  if(!bg_cmdline_apply_options(s_section,
+                               NULL,
+                               NULL,
+                               s_params,
+                               (*_argv)[arg]))
+    exit(-1);
+  bg_cmdline_remove_arg(argc, _argv, arg);
+  }
+
 
 static bg_cmdline_arg_t global_options[] =
   {
+    {
+      .arg =         "-s",
+      .help_arg =    "<options>",
+      .help_string = "Sever options",
+      .callback =    opt_s,
+    },
     { /* End */ }
   };
 
@@ -90,8 +116,24 @@ int main(int argc, char ** argv)
   int ret = EXIT_FAILURE;
 
   set_sigint_handler();
+
+  server_init(&s);
+
+  s_params = server_get_parameters();
+  s_section = bg_cfg_section_create_from_parameters("server", s_params);
   
-  if(!server_init(&s))
+  bg_cmdline_arg_set_parameters(global_options, "-s",
+                                s_params);
+ 
+  bg_cmdline_init(&app_data);
+  bg_cmdline_parse(global_options, &argc, &argv, NULL);
+
+  bg_cfg_section_apply(s_section,
+                       s_params,
+                       server_set_parameter,
+                       &s);
+ 
+  if(!server_start(&s))
     goto fail;
   
   while(server_iteration(&s))

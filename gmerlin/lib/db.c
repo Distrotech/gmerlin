@@ -111,6 +111,7 @@ static const char * create_commands[] =
 
 static void build_database(bg_db_t * db)
   {
+  void * obj;
   int i = 0;
   while(create_commands[i])
     {
@@ -119,6 +120,14 @@ static void build_database(bg_db_t * db)
     i++;
     }
   bg_db_create_tables_vfolders(db);
+
+  /* Create root container */
+  obj = bg_db_object_create_root(db);
+  bg_db_object_set_type(obj, BG_DB_OBJECT_ROOT);
+  bg_db_object_set_label(obj, "Root");
+  bg_db_object_set_parent_id(db, obj, -1);
+  bg_db_object_unref(obj);
+  bg_db_flush(db);
   }
 
 const char * directories[] =

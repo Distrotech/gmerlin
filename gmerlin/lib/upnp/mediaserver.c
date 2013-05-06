@@ -20,6 +20,7 @@
  * *****************************************************************/
 
 #include <upnp/devicepriv.h>
+#include <upnp/mediaserver.h>
 #include <stdlib.h>
 
 
@@ -30,9 +31,14 @@ bg_upnp_create_media_server(bg_socket_address_t * addr,
                             const bg_upnp_icon_t * icons,
                             bg_db_t * db)
   {
+  bg_mediaserver_t * priv;
   bg_upnp_device_t * ret;
   ret = calloc(1, sizeof(*ret));
-  
+
+  priv = calloc(1, sizeof(*priv));
+  ret->priv = priv;
+  priv->db = db;  
+
   bg_upnp_device_init(ret, addr, uuid, name, "MediaServer", 1, 2,
                       "Gmerlin media server", 
                       "Gmerlin media server",

@@ -159,6 +159,9 @@ const bg_db_object_class_t * bg_db_object_get_class(bg_db_object_type_t t)
     case BG_DB_OBJECT_OBJECT:
       return NULL;
       break;
+    case BG_DB_OBJECT_ROOT:
+      return &bg_db_root_class;
+      break;
     case BG_DB_OBJECT_FILE:
       return &bg_db_file_class;
       break;
@@ -208,7 +211,7 @@ void bg_db_object_update_size(bg_db_t * db, void * obj, int64_t delta_size)
   o->size += delta_size;
 
   //  fprintf(stderr, "Update size %ld %ld: %ld -> %ld\n", o->id, o->parent_id, delta_size, o->size);
-  if(o->parent_id > 0)
+  if(o->parent_id >= 0)
     {
     bg_db_object_t * parent = bg_db_object_query(db, o->parent_id);
     bg_db_object_update_size(db, parent, delta_size);
@@ -240,7 +243,7 @@ int64_t bg_db_object_get_id(void * obj)
 int bg_db_object_is_valid(void * obj)
   {
   bg_db_object_t * o = obj;
-  return (o->id > 0);
+  return (o->id >= 0);
   }
 
 void bg_db_object_create_ref(void * obj1, void * parent1)
@@ -270,15 +273,18 @@ void bg_db_object_set_type(void * obj, bg_db_object_type_t t)
   o->type = t;
   }
 
-void * bg_db_object_create(bg_db_t * db)
+static void * object_create(bg_db_t * db, int root)
   {
   int result;
   char * sql;
-  
+
   bg_db_object_t * obj = get_cache_item(db);
-  
-  obj->id = bg_sqlite_get_next_id(db->db, "OBJECTS");
-  
+
+  if(root)
+    obj->id = 0;
+  else
+    obj->id = bg_sqlite_get_next_id(db->db, "OBJECTS");
+
   sql = sqlite3_mprintf("INSERT INTO OBJECTS "
                         "( ID ) VALUES ( %"PRId64" );",
                         obj->id);
@@ -286,6 +292,17 @@ void * bg_db_object_create(bg_db_t * db)
   sqlite3_free(sql);
   return obj;
   }
+
+void * bg_db_object_create(bg_db_t * db)
+  {
+  return object_create(db, 0);
+  }
+
+void * bg_db_object_create_root(bg_db_t * db)
+  {
+  return object_create(db, 1);
+  }
+
 
 static int
 object_query_callback(void * data, int argc, char **argv, char **azColName)
@@ -390,7 +407,7 @@ void bg_db_object_update(bg_db_t * db, void * obj1, int children, int parent)
   const bg_db_object_class_t * c;
   bg_db_object_t * obj = obj1;
 
-  if(obj->id <= 0)
+  if(obj->id < 0)
     return;
 
   //  fprintf(stderr, "Update Object %ld\n", obj->id);
@@ -431,7 +448,7 @@ const char * bg_db_object_get_label(void * obj1)
 
 void bg_db_object_set_parent_id(bg_db_t * db, void * obj1, int64_t parent_id)
   {
-  if(parent_id <= 0)
+  if(parent_id < 0)
     {
     bg_db_object_t * obj = obj1;
     obj->parent_id = parent_id;

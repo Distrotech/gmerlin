@@ -65,6 +65,10 @@ void client_stop(client_t *);
 
 typedef struct
   {
+  /* Config stuff */
+  char * dbpath;
+  bg_plugin_registry_t * plugin_reg; // Must be set manually
+
   bg_socket_address_t * addr;
   int fd;
 
@@ -80,7 +84,9 @@ typedef struct
   uuid_t uuid;
   } server_t;
 
-int server_init(server_t*);
+void server_init(server_t*);
+
+int server_start(server_t*);
 
 const bg_parameter_info_t * server_get_parameters();
 void server_set_parameter(void * server, const char * name,
