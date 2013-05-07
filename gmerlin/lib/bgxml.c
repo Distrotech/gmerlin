@@ -89,6 +89,19 @@ char * bg_xml_save_to_memory(xmlDocPtr doc)
   return ctx.buffer;
   }
 
+char * bg_xml_save_to_memory_opt(xmlDocPtr doc, int opt)
+  {
+  bg_xml_output_mem_t ctx;
+  xmlSaveCtxtPtr xtc;
+
+  memset(&ctx, 0, sizeof(ctx));
+  xtc = xmlSaveToIO(mem_write_callback, 
+                    mem_close_callback, 
+                    &ctx, NULL, opt);
+  xmlSaveDoc(xtc, doc);
+  xmlSaveClose(xtc);
+  }
+
 static int FILE_write_callback(void * context, const char * buffer,
                                int len)
   {

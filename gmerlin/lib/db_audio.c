@@ -55,13 +55,15 @@ static void free_audio_file(void * obj)
 static void dump_audio_file(void * obj)
   {
   bg_db_audio_file_t * file = obj;
-  gavl_diprintf(2, "Title:   %s\n", file->title);
-  gavl_diprintf(2, "Artist:  %s\n", file->artist);
-  gavl_diprintf(2, "Year:    %d\n", file->date.year);
-  gavl_diprintf(2, "Album:   %s (%"PRId64")\n", file->album, file->album_id);
-  gavl_diprintf(2, "Track:   %d\n", file->track);
-  gavl_diprintf(2, "Bitrate: %s\n", file->bitrate);
-  gavl_diprintf(2, "Genre:   %s\n", file->genre);
+  gavl_diprintf(2, "Title:      %s\n", file->title);
+  gavl_diprintf(2, "Artist:     %s\n", file->artist);
+  gavl_diprintf(2, "Year:       %d\n", file->date.year);
+  gavl_diprintf(2, "Album:      %s (%"PRId64")\n", file->album, file->album_id);
+  gavl_diprintf(2, "Track:      %d\n", file->track);
+  gavl_diprintf(2, "Bitrate:    %s\n", file->bitrate);
+  gavl_diprintf(2, "Genre:      %s\n", file->genre);
+  gavl_diprintf(2, "Samplerate: %d\n", file->samplerate);
+  gavl_diprintf(2, "Channels:   %d\n", file->channels);
   }
 
 static void del_audio_file(bg_db_t * db, bg_db_object_t * obj) // Delete from db
@@ -85,6 +87,8 @@ static int audio_query_callback(void * data, int argc, char **argv, char **azCol
     BG_DB_SET_QUERY_INT("ALBUM",       album_id);
     BG_DB_SET_QUERY_INT("TRACK",       track);
     BG_DB_SET_QUERY_STRING("BITRATE",  bitrate);
+    BG_DB_SET_QUERY_INT("SAMPLERATE", samplerate);
+    BG_DB_SET_QUERY_INT("CHANNELS", channels);
     }
   ret->file.obj.found = 1;
   return 0;
@@ -135,10 +139,11 @@ static void audio_file_add(bg_db_t * db, bg_db_audio_file_t * f)
   /* Date */
   bg_db_date_to_string(&f->date, date_string);
   
-  sql = sqlite3_mprintf("INSERT INTO AUDIO_FILES ( ID, TITLE, ARTIST, GENRE, DATE, ALBUM, TRACK, BITRATE ) "
+  sql = sqlite3_mprintf("INSERT INTO AUDIO_FILES ( ID, TITLE, ARTIST, GENRE, DATE, ALBUM, TRACK, BITRATE, SAMPLERATE, CHANNELS ) "
                         "VALUES"
-                        " ( %"PRId64", %Q, %"PRId64", %"PRId64", %Q, %"PRId64", %d, %Q );",
-                        bg_db_object_get_id(f) , f->title, f->artist_id, f->genre_id, date_string, f->album_id, f->track, f->bitrate);
+                        " ( %"PRId64", %Q, %"PRId64", %"PRId64", %Q, %"PRId64", %d, %Q, %d, %d );",
+                        bg_db_object_get_id(f) , f->title, f->artist_id, f->genre_id, date_string, f->album_id, 
+                        f->track, f->bitrate, f->samplerate, f->channels);
 
   result = bg_sqlite_exec(db->db, sql, NULL, NULL);
   sqlite3_free(sql);

@@ -367,6 +367,7 @@ static int Browse(bg_upnp_service_t * s)
                            StartingIndex, RequestedCount, &TotalMatches);
     }
   
+  
   ret = bg_xml_save_to_memory(q.doc);
   
   bg_upnp_service_set_arg_out_int(&s->req, ARG_NumberReturned, NumberReturned);

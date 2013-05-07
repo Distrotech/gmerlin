@@ -23,7 +23,7 @@
 
 #include <libxml/tree.h>
 #include <libxml/parser.h>
-
+#include <libxml/xmlsave.h>
 #include <gavl/gavf.h>
 
 
@@ -54,6 +54,19 @@ int bg_xml_close_callback(void * context);
 #endif
 
 char * bg_xml_save_to_memory(xmlDocPtr doc);
+
+/* Opt can be a combination of
+   XML_SAVE_FORMAT = 1 : format save output
+   XML_SAVE_NO_DECL = 2 : drop the xml declaration
+   XML_SAVE_NO_EMPTY = 4 : no empty tags
+   XML_SAVE_NO_XHTML = 8 : disable XHTML1 specific rules
+   XML_SAVE_XHTML = 16 : force XHTML1 specific rules
+   XML_SAVE_AS_XML = 32 : force XML serialization on HTML doc
+   XML_SAVE_AS_HTML = 64 : force HTML serialization on XML doc
+   XML_SAVE_WSNONSIG = 128 : format with non-significant whitespace
+*/
+
+char * bg_xml_save_to_memory_opt(xmlDocPtr doc, int opt);
 
 xmlDocPtr bg_xml_load_FILE(FILE * f);
 void bg_xml_save_FILE(xmlDocPtr doc, FILE * f);

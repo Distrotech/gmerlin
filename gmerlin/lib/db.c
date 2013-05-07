@@ -86,7 +86,9 @@ static const char * create_commands[] =
     "DATE TEXT, "
     "ALBUM INTEGER, "
     "TRACK INTEGER, "
-    "BITRATE TEXT"
+    "BITRATE TEXT, "
+    "SAMPLERATE INTEGER, "
+    "CHANNELS INTEGER"
     ");",
 
     "CREATE TABLE IMAGE_FILES("

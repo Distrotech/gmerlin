@@ -201,10 +201,11 @@ typedef struct
   int track;
   
   char * bitrate;    // BITRATE
+  int samplerate;
+  int channels; 
 
   char * albumartist;     // Not in db, set only while creating
-  int64_t albumartist_id; // Not in db, set only while creating
-  
+  int64_t albumartist_id; // Not in db, set only while creating  
   } bg_db_audio_file_t;
 
 /* Audio Album */
