@@ -726,7 +726,7 @@ static void flush_notify(bg_ssdp_t * s, const gavl_metadata_t * h)
   {
   char * str = bg_http_request_to_string(h);
   bg_udp_socket_send(s->ucast_fd, (uint8_t*)str, strlen(str), s->mcast_addr);
-  //   fprintf(stderr, "Notify:\n%s", str);
+  fprintf(stderr, "Notify:\n%s", str);
   free(str);
   }
 

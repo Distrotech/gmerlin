@@ -59,6 +59,7 @@ void server_set_parameter(void * priv, const char * name, const bg_parameter_val
 void server_init(server_t * s)
   {
   memset(s, 0, sizeof(*s));
+  pthread_mutex_init(&s->clients_mutex, NULL);
   }
 
 int server_start(server_t * s)
@@ -156,7 +157,8 @@ static void handle_client_connection(server_t * s, int fd)
 
   /* Try to handle things */
 
-  if(!bg_upnp_device_handle_request(s->dev, fd, method, path, &req))
+  if(!bg_upnp_device_handle_request(s->dev, fd, method, path, &req) &&
+     !server_handle_media(s, &fd, method, path, &req))
     send_404(fd);
   
   fail:
@@ -168,14 +170,56 @@ static void handle_client_connection(server_t * s, int fd)
   gavl_metadata_free(&req);
   }
 
+void server_attach_client(server_t * s, client_t*cl)
+  {
+  pthread_mutex_lock(&s->clients_mutex);
+  if(s->num_clients + 1 >= s->clients_alloc)
+    {
+    s->clients_alloc += 16;
+    s->clients = realloc(s->clients, s->clients_alloc * sizeof(*s->clients));
+    memset(s->clients + s->num_clients, 0,
+           (s->clients_alloc - s->num_clients) * sizeof(*s->clients));
+    }
+  s->clients[s->num_clients] = cl;
+  s->num_clients++;
+  pthread_mutex_unlock(&s->clients_mutex);
+  }
+
+void server_detach_client(server_t * s, client_t*cl)
+  {
+  pthread_mutex_lock(&s->clients_mutex);
+  
+  pthread_mutex_unlock(&s->clients_mutex);
+  }
+
+
 int server_iteration(server_t * s)
   {
   int ret = 0;
   int fd;
+  int i;
   gavl_time_t delay_time = GAVL_TIME_SCALE / 100; // 10 ms
   
   /* Remove dead clients */
 
+  i = 0;
+  while(i < s->num_clients)
+    {
+    if(client_get_status(s->clients[i]) == CLIENT_STATUS_DONE)
+      {
+      client_destroy(s->clients[i]);
+      if(i < s->num_clients - 1)
+        {
+        memmove(s->clients + s->num_clients,
+                s->clients + s->num_clients + 1,
+                (s->num_clients - 1 - i) * sizeof(*s->clients));
+        }
+      s->num_clients--;
+      }
+    else
+      i++;
+    }
+  
   /* Handle incoming connections */
 
   while((fd = bg_listen_socket_accept(s->fd, 0)) >= 0)
@@ -199,3 +243,4 @@ void server_cleanup(server_t * s)
   if(s->dev)
     bg_upnp_device_destroy(s->dev);
   }
+

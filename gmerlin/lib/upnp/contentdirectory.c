@@ -480,8 +480,9 @@ static int Browse(bg_upnp_service_t * s)
                            StartingIndex, RequestedCount, &TotalMatches);
     }
   
-  
-  ret = bg_xml_save_to_memory(q.doc);
+
+  ret = bg_xml_save_to_memory_opt(q.doc, XML_SAVE_NO_DECL);
+  //  ret = bg_xml_save_to_memory(q.doc);
   
   bg_upnp_service_set_arg_out_int(&s->req, ARG_NumberReturned, NumberReturned);
   bg_upnp_service_set_arg_out_int(&s->req, ARG_TotalMatches, TotalMatches);

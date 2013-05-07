@@ -100,6 +100,7 @@ char * bg_xml_save_to_memory_opt(xmlDocPtr doc, int opt)
                     &ctx, NULL, opt);
   xmlSaveDoc(xtc, doc);
   xmlSaveClose(xtc);
+  return ctx.buffer;
   }
 
 static int FILE_write_callback(void * context, const char * buffer,

@@ -158,13 +158,15 @@ bg_db_t * bg_db_create(const char * path,
 
   if(!exists && !create)
     {
-    bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Cannot open database in %s (maybe use create option)", path);
+    bg_log(BG_LOG_ERROR, LOG_DOMAIN,
+           "Cannot open database in %s (maybe use create option)", path);
     return NULL;
     }
 
   if(exists && create)
     {
-    bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Database in %s already exists", path);
+    bg_log(BG_LOG_ERROR, LOG_DOMAIN,
+           "Database in %s already exists", path);
     return NULL;
     }
 
@@ -211,6 +213,7 @@ bg_db_t * bg_db_create(const char * path,
   /* Base path */
   ret->base_dir = bg_canonical_filename(path);
   ret->base_dir = gavl_strcat(ret->base_dir, "/");
+  ret->base_len = strlen(ret->base_dir);
   return ret;
   }
 

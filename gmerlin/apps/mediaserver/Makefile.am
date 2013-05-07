@@ -13,7 +13,9 @@ INCLUDES = -I$(top_srcdir)/include
 bin_PROGRAMS = gmerlin-server
 
 gmerlin_server_SOURCES = \
+client.c \
 gmerlin-server.c \
+mediahandler.c \
 server.c
 
 # dist_man_MANS = gmerlin-dbedit.1

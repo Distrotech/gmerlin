@@ -44,7 +44,6 @@
  *
  */
 
-
 typedef struct client_s
   {
   pthread_mutex_t status_mutex;
@@ -55,13 +54,15 @@ typedef struct client_s
 
   void *data;
   void (*free_data)(void*);
+  void (*func)(struct client_s * client);
   struct client_s * source;
   } client_t;
 
-client_t * client_create(int fd, void * data, void (*free_data)(void*));
+client_t * client_create(int fd, void * data,
+                         void (*free_data)(void*), void (*func)(client_t*));
+
 int client_get_status(client_t *);
-void client_set_status(client_t *, int status);
-void client_stop(client_t *);
+void client_destroy(client_t * c);
 
 typedef struct
   {
@@ -72,6 +73,7 @@ typedef struct
   bg_socket_address_t * addr;
   int fd;
 
+  pthread_mutex_t clients_mutex;
   client_t ** clients;
   int num_clients;
   int clients_alloc;
@@ -84,6 +86,9 @@ typedef struct
   uuid_t uuid;
   } server_t;
 
+void server_attach_client(server_t*, client_t*cl);
+void server_detach_client(server_t*, client_t*cl);
+
 void server_init(server_t*);
 
 int server_start(server_t*);
@@ -95,3 +100,9 @@ void server_set_parameter(void * server, const char * name,
 int server_iteration(server_t * s);
 
 void server_cleanup(server_t * s);
+
+/* Media handler (fd will be set to -1 if we launched a
+   thread for transferring the file) */
+
+int server_handle_media(server_t * s, int * fd, const char * method, const char * path,
+                        const gavl_metadata_t * req);

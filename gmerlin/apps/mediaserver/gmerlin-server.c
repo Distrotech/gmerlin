@@ -116,6 +116,7 @@ int main(int argc, char ** argv)
   int ret = EXIT_FAILURE;
 
   set_sigint_handler();
+  signal(SIGPIPE, SIG_IGN);
 
   server_init(&s);
 
