@@ -23,6 +23,7 @@
 #include <upnp/devicepriv.h>
 #include <upnp/mediaserver.h>
 #include <string.h>
+#include <ctype.h>
 
 #include <gmerlin/utils.h>
 
@@ -110,55 +111,163 @@ static xmlNodePtr didl_add_container(xmlDocPtr doc)
   return node;
   }
 
-static void didl_add_property(xmlDocPtr doc,
-                              xmlNodePtr node,
-                              const char * ns,
-                              const char * name,
-                              const char * value)
+static void didl_add_element(xmlDocPtr doc,
+                            xmlNodePtr node,
+                            const char * name,
+                            const char * value)
   {
-  xmlNsPtr xmlns = xmlSearchNs(doc, node, (const xmlChar *)ns);
+  char * pos;
+  char buf[128];
+  strncpy(buf, value, 127);
+  buf[127] = '\0';
 
-  xmlNewTextChild(node, xmlns, (const xmlChar*)name,
+  pos = strchr(buf, ':');
+  if(pos)
+    {
+    xmlNsPtr ns;
+    *pos = '\0';
+    pos++;
+    ns = xmlSearchNs(doc, node, (const xmlChar *)buf);
+    xmlNewTextChild(node, ns, (const xmlChar*)pos,
                   (const xmlChar*)value);
+    }
+  else  
+    xmlNewTextChild(node, NULL, (const xmlChar*)name,
+                    (const xmlChar*)value);
   }
 
 static void didl_set_class(xmlDocPtr doc,
                            xmlNodePtr node,
                            const char * klass)
   {
-  didl_add_property(doc, node, "upnp", "class", klass);
+  didl_add_element(doc, node, "upnp:class", klass);
   }
 
 static void didl_set_title(xmlDocPtr doc,
                            xmlNodePtr node,
                            const char * title)
   {
-  didl_add_property(doc, node, "dc", "title", title);
+  didl_add_element(doc, node, "dc:title", title);
   }
 
+static int filter_element(const char * name, char ** filter)
+  {
+  int i = 0;
+  const char * pos;
+  if(!filter)
+    return 1;
 
-static void didl_set_res(xmlDocPtr doc,
-                         xmlNodePtr node,
-                         void * f, const char * url_base)
+  while(filter[i])
+    {
+    if(!strcmp(filter[i], name))
+      return 1;
+
+    // res@size implies res
+    if((pos = strchr(filter[i], '@')) &&
+       (pos - filter[i] == strlen(name)) &&
+       !strncmp(filter[i], name, pos - filter[i]))
+      return 1;
+     i++;
+    }
+  return 0;
+  }
+
+static int filter_attribute(const char * element, const char * attribute, char ** filter)
+  {
+  int i = 0;
+  if(!filter)
+    return 1;
+
+  if(element) // element@attr
+    {
+    int len = strlen(element);
+    
+    while(filter[i])
+      {
+      if(!strncmp(filter[i], element, len) &&
+         (*(filter[i] + len) == '@') &&
+         !strcmp(filter[i] + len + 1, attribute))
+        return 1;
+      i++;
+      }
+    }
+  else
+    {
+    while(filter[i]) // @attr (of item or container)
+      {
+      if((*(filter[i]) == '@') &&
+         !strcmp(filter[i] + 1, attribute))
+        return 1;
+      i++;
+      }
+    }
+  return 0;
+  }
+
+static void didl_add_element_string(xmlDocPtr doc,
+                                    xmlNodePtr node,
+                                    const char * name,
+                                    const char * content, char ** filter)
+  {
+  if(!filter_element(name, filter))
+    return;
+  didl_add_element(doc, node, name, content);
+  }
+
+static void didl_add_element_int(xmlDocPtr doc,
+                                 xmlNodePtr node,
+                                 const char * name,
+                                 int64_t content, char ** filter)
+  {
+  char buf[128];
+  if(!filter_element(name, filter))
+    return;
+  snprintf(buf, 127, "%"PRId64, content);
+  didl_add_element(doc, node, name, buf);
+  }
+
+/* Filtering must be done by the caller!! */
+static void didl_set_attribute_int(xmlNodePtr node, const char * name, int64_t val)
+  {
+  char buf[128];
+  snprintf(buf, 127, "%"PRId64, val);
+  BG_XML_SET_PROP(node, name, buf);
+  }
+
+static xmlNodePtr didl_create_res_file(xmlDocPtr doc,
+                                       xmlNodePtr node,
+                                       void * f, const char * url_base, 
+                                       char ** filter)
   {
   bg_db_file_t * file = f;
   char * tmp_string;
   xmlNodePtr child;
 
-  /* Location */
+  if(!filter_element("res", filter))
+    return NULL;
+  
+  /* Location (required) */
   tmp_string = bg_sprintf("%smedia?id=%"PRId64, url_base, bg_db_object_get_id(f));
   child = bg_xml_append_child_node(node, "res", tmp_string);
   free(tmp_string);
 
-  /* Protocol info */
+  /* Protocol info (required) */
   tmp_string = bg_sprintf("http-get:*:%s:*", file->mimetype);
   BG_XML_SET_PROP(child, "protocolInfo", tmp_string);
   free(tmp_string);
 
-  /* Size */
-  tmp_string = bg_sprintf("%"PRId64, file->obj.size);
-  BG_XML_SET_PROP(child, "size", tmp_string);
-  free(tmp_string);
+  /* Size (optional) */
+  if(filter_attribute("res", "size", filter))
+    didl_set_attribute_int(child, "size", file->obj.size);
+  
+  /* Duration (optional) */
+  if((file->obj.duration > 0) && filter_attribute("res", "duration", filter))
+    {
+    char buf[GAVL_TIME_STRING_LEN_MS];
+    gavl_time_prettyprint_ms(file->obj.duration, buf);
+    BG_XML_SET_PROP(child, "duration", buf);
+    }
+  return child;
   }
 
 typedef struct
@@ -185,6 +294,8 @@ static xmlNodePtr didl_add_object(xmlDocPtr didl, bg_db_object_t * obj,
   const char * pos;
   char * tmp_string;
   xmlNodePtr node;
+  xmlNodePtr res;
+
   bg_db_object_type_t type;
   type = bg_db_object_get_type(obj);
 
@@ -212,15 +323,11 @@ static xmlNodePtr didl_add_object(xmlDocPtr didl, bg_db_object_t * obj,
   /* Required */
   BG_XML_SET_PROP(node, "restricted", "1");
 
-#if 1 
-  if(type & (BG_DB_FLAG_CONTAINER|BG_DB_FLAG_VCONTAINER))
-    {
-    /* Optional */
-    tmp_string = bg_sprintf("%d", obj->children);
-    BG_XML_SET_PROP(node, "childCount", tmp_string);
-    free(tmp_string);
-    }
-#endif
+  /* Optional */
+  if((type & (BG_DB_FLAG_CONTAINER|BG_DB_FLAG_VCONTAINER)) &&
+     filter_attribute(NULL, "childCount", q->filter))
+    didl_set_attribute_int(node, "childCount", obj->children);
+
   switch(type)
     {
     case BG_DB_OBJECT_AUDIO_FILE:
@@ -232,10 +339,23 @@ static xmlNodePtr didl_add_object(xmlDocPtr didl, bg_db_object_t * obj,
         didl_set_title(didl, node,  bg_db_object_get_label(obj));
       didl_set_class(didl, node,  "object.item.audioItem.musicTrack");
 
-      didl_add_property(didl, node, "upnp", "artist", o->artist);
-      didl_add_property(didl, node, "upnp", "genre", o->genre);
-      didl_add_property(didl, node, "upnp", "album", o->album);
-      didl_set_res(didl, node, obj, q->dev->url_base);
+      if(o->artist)
+        didl_add_element_string(didl, node, "upnp:artist", o->artist, q->filter);
+      if(o->genre)
+        didl_add_element_string(didl, node, "upnp:genre", o->genre, q->filter);
+      if(o->album)
+        didl_add_element_string(didl, node, "upnp:album", o->album, q->filter);
+ 
+      if((res = didl_create_res_file(didl, node, obj, q->dev->url_base, q->filter)))
+        {
+        /* Audio attributes */
+        if(filter_attribute("res", "bitrate", q->filter) && (isdigit(o->bitrate[0])))
+          didl_set_attribute_int(res, "bitrate", atoi(o->bitrate) / 8);
+        if(filter_attribute("res", "sampleFrequency", q->filter))
+          didl_set_attribute_int(res, "sampleFrequency", o->samplerate);
+        if(filter_attribute("res", "nrAudioChannels", q->filter))
+          didl_set_attribute_int(res, "nrAudioChannels", o->channels);
+        }
       }
       break;
     case BG_DB_OBJECT_VIDEO_FILE:
@@ -257,15 +377,9 @@ static xmlNodePtr didl_add_object(xmlDocPtr didl, bg_db_object_t * obj,
       break;
     case BG_DB_OBJECT_DIRECTORY:
       didl_set_title(didl, node,  bg_db_object_get_label(obj));
-
       didl_set_class(didl, node,  "object.container.storageFolder");
-      // didl_set_class(didl, node,  "object.container");
-#if 0
       /* Optional */
-      tmp_string = bg_sprintf("%"PRId64, obj->size);
-      didl_add_property(didl, node, "upnp", "storageUsed", tmp_string);
-      free(tmp_string);
-#endif
+      didl_add_element_int(didl, node, "upnp:storageUsed", obj->size, q->filter);
       break;
     case BG_DB_OBJECT_PLAYLIST:
     case BG_DB_OBJECT_VFOLDER:
@@ -288,7 +402,6 @@ static xmlNodePtr didl_add_object(xmlDocPtr didl, bg_db_object_t * obj,
 
   return NULL;
   }
-
 
 static void query_callback(void * priv, void * obj)
   {

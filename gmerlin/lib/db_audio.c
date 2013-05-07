@@ -176,6 +176,9 @@ void bg_db_audio_file_create(bg_db_t * db, void * obj, bg_track_info_t * t)
 
   gavl_metadata_get_int(&t->audio_streams[0].m, GAVL_META_BITRATE, &bitrate);
 
+  f->samplerate = t->audio_streams[0].format.samplerate;
+  f->channels = t->audio_streams[0].format.num_channels;
+
   if(bitrate == GAVL_BITRATE_VBR)
     f->bitrate = gavl_strdup("VBR");
   else if(bitrate == GAVL_BITRATE_LOSSLESS)

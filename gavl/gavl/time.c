@@ -111,9 +111,9 @@ gavl_time_prettyprint_ms(gavl_time_t t, char str[GAVL_TIME_STRING_LEN_MS])
   t /= 60;
   
   if(hours)
-    sprintf(str, "%d:%02d:%02d.%03d", hours, minutes, seconds, milliseconds);
+    sprintf(pos, "%d:%02d:%02d.%03d", hours, minutes, seconds, milliseconds);
   else
-    sprintf(str, "%02d:%02d.%03d", minutes, seconds, milliseconds);
+    sprintf(pos, "%02d:%02d.%03d", minutes, seconds, milliseconds);
 
   }
 
