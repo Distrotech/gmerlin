@@ -28,7 +28,7 @@
 
 // #include <gmerlin/.h>
 
-xmlDocPtr bg_upnp_device_description_create(bg_socket_address_t * addr,
+xmlDocPtr bg_upnp_device_description_create(const char * url_base,
                                             const char * type, int version);
 
 /*

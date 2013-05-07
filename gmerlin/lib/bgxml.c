@@ -229,7 +229,7 @@ xmlNodePtr bg_xml_find_next_node_child(xmlNodePtr parent, xmlNodePtr node)
   else
     node = node->next;
 
-  while(node && !node->name)
+  while(node && (node->type != XML_ELEMENT_NODE))
     node = node->next;
   return node;
   }
@@ -240,7 +240,7 @@ xmlNodePtr bg_xml_find_next_doc_child(xmlDocPtr parent, xmlNodePtr node)
     node = parent->children;
   else
     node = node->next;
-  while(node && !node->name)
+  while(node && (node->type != XML_ELEMENT_NODE))
     node = node->next;
   return node;
   }

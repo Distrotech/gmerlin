@@ -456,7 +456,7 @@ void bg_db_object_set_parent_id(bg_db_t * db, void * obj1, int64_t parent_id)
   else
     {
     bg_db_object_t * parent = bg_db_object_query(db, parent_id);
-    bg_db_object_set_parent(db, obj1, &parent);
+    bg_db_object_set_parent(db, obj1, parent);
     bg_db_object_unref(parent);
     }
   }

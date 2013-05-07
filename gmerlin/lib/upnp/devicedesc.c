@@ -24,7 +24,7 @@
 
 #include <gmerlin/utils.h>
 
-xmlDocPtr bg_upnp_device_description_create(bg_socket_address_t * a,
+xmlDocPtr bg_upnp_device_description_create(const char * url_base,
                                             const char * type, int version)
   {
   xmlDocPtr ret;
@@ -32,9 +32,6 @@ xmlDocPtr bg_upnp_device_description_create(bg_socket_address_t * a,
   xmlNodePtr node;
   xmlNsPtr ns;
   char * tmp_string;
-  char addr_string[BG_SOCKET_ADDR_STR_LEN];
-
-  bg_socket_address_to_string(a, addr_string);
   
   ret = xmlNewDoc((xmlChar*)"1.0");
 
@@ -52,9 +49,7 @@ xmlDocPtr bg_upnp_device_description_create(bg_socket_address_t * a,
   bg_xml_append_child_node(node, "major", "1");
   bg_xml_append_child_node(node, "minor", "0");
   
-  tmp_string = bg_sprintf("http://%s/", addr_string);
-  bg_xml_append_child_node(root, "URLBase", tmp_string);
-  free(tmp_string);
+  bg_xml_append_child_node(root, "URLBase", url_base);
   
   node = bg_xml_append_child_node(root, "device", NULL);
   
@@ -62,9 +57,7 @@ xmlDocPtr bg_upnp_device_description_create(bg_socket_address_t * a,
   bg_xml_append_child_node(node, "deviceType", tmp_string);
   free(tmp_string);
 
-  tmp_string = bg_sprintf("http://%s/", addr_string);
-  bg_xml_append_child_node(node, "presentationURL", tmp_string);
-  free(tmp_string);
+  bg_xml_append_child_node(node, "presentationURL", url_base);
 
 
   return ret;

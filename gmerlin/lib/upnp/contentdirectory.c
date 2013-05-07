@@ -20,7 +20,7 @@
  * *****************************************************************/
 
 #include <config.h>
-#include <upnp/servicepriv.h>
+#include <upnp/devicepriv.h>
 #include <upnp/mediaserver.h>
 #include <string.h>
 
@@ -40,6 +40,7 @@
 #define ARG_Result            10
 #define ARG_NumberReturned    11
 #define ARG_TotalMatches      12
+#define ARG_UpdateID          13
 
 static int GetSearchCapabilities(bg_upnp_service_t * s)
   {
@@ -51,7 +52,7 @@ static int GetSearchCapabilities(bg_upnp_service_t * s)
 static int GetSortCapabilities(bg_upnp_service_t * s)
   {
   char * ret = calloc(1, 1);
-  bg_upnp_service_set_arg_out_string(&s->req, ARG_SearchCaps, ret);
+  bg_upnp_service_set_arg_out_string(&s->req, ARG_SortCaps, ret);
   return 0;
   }
 
@@ -121,6 +122,54 @@ static void didl_add_property(xmlDocPtr doc,
                   (const xmlChar*)value);
   }
 
+static void didl_set_class(xmlDocPtr doc,
+                           xmlNodePtr node,
+                           const char * klass)
+  {
+  didl_add_property(doc, node, "upnp", "class", klass);
+  }
+
+static void didl_set_title(xmlDocPtr doc,
+                           xmlNodePtr node,
+                           const char * title)
+  {
+  didl_add_property(doc, node, "dc", "title", title);
+  }
+
+
+static void didl_set_res(xmlDocPtr doc,
+                         xmlNodePtr node,
+                         void * f, const char * url_base)
+  {
+  bg_db_file_t * file = f;
+  char * tmp_string;
+  xmlNodePtr child;
+
+  /* Location */
+  tmp_string = bg_sprintf("%smedia?id=%"PRId64, url_base, bg_db_object_get_id(f));
+  child = bg_xml_append_child_node(node, "res", tmp_string);
+  free(tmp_string);
+
+  /* Protocol info */
+  tmp_string = bg_sprintf("http-get:*:%s:*", file->mimetype);
+  BG_XML_SET_PROP(child, "protocolInfo", tmp_string);
+  free(tmp_string);
+
+  /* Size */
+  tmp_string = bg_sprintf("%"PRId64, file->obj.size);
+  BG_XML_SET_PROP(child, "size", tmp_string);
+  free(tmp_string);
+  }
+
+typedef struct
+  {
+  const char * upnp_parent;
+  xmlDocPtr doc;
+  bg_upnp_device_t * dev;
+
+  char ** filter;
+  } query_t;
+
 /* 
  *  UPNP IDs are build the following way:
  *
@@ -130,7 +179,8 @@ static void didl_add_property(xmlDocPtr doc,
  */
 
 static xmlNodePtr didl_add_object(xmlDocPtr didl, bg_db_object_t * obj, 
-                                  const char * upnp_parent, const char * upnp_id)
+                                  const char * upnp_parent, const char * upnp_id,
+                                  query_t * q)
   {
   const char * pos;
   char * tmp_string;
@@ -138,16 +188,11 @@ static xmlNodePtr didl_add_object(xmlDocPtr didl, bg_db_object_t * obj,
   bg_db_object_type_t type;
   type = bg_db_object_get_type(obj);
 
-  if(type & BG_DB_FLAG_CONTAINER)
-    {
+  if(type & (BG_DB_FLAG_CONTAINER|BG_DB_FLAG_VCONTAINER))
     node = didl_add_container(didl);
-    tmp_string = bg_sprintf("%d", obj->children);
-    BG_XML_SET_PROP(node, "childCount", tmp_string);
-    free(tmp_string);
-    }
   else
     node = didl_add_item(didl);
-
+  
   if(upnp_id)
     {
     BG_XML_SET_PROP(node, "id", upnp_id);
@@ -155,7 +200,7 @@ static xmlNodePtr didl_add_object(xmlDocPtr didl, bg_db_object_t * obj,
     if(pos)
       BG_XML_SET_PROP(node, "parentID", pos+1);
     else
-      BG_XML_SET_PROP(node, "parentID", "0");
+      BG_XML_SET_PROP(node, "parentID", "-1");
     }
   else if(upnp_parent)
     {
@@ -164,43 +209,69 @@ static xmlNodePtr didl_add_object(xmlDocPtr didl, bg_db_object_t * obj,
     free(tmp_string);
     BG_XML_SET_PROP(node, "parentID", upnp_parent);
     }
+  /* Required */
+  BG_XML_SET_PROP(node, "restricted", "1");
 
+#if 1 
+  if(type & (BG_DB_FLAG_CONTAINER|BG_DB_FLAG_VCONTAINER))
+    {
+    /* Optional */
+    tmp_string = bg_sprintf("%d", obj->children);
+    BG_XML_SET_PROP(node, "childCount", tmp_string);
+    free(tmp_string);
+    }
+#endif
   switch(type)
     {
     case BG_DB_OBJECT_AUDIO_FILE:
       {
       bg_db_audio_file_t * o = (bg_db_audio_file_t *)obj;
       if(o->title)
-        didl_add_property(didl, node, "dc", "title", o->title);
+        didl_set_title(didl, node,  o->title);
       else
-        didl_add_property(didl, node, "dc", "title", bg_db_object_get_label(obj));
-      didl_add_property(didl, node, "upnp", "class", "object.item.audioItem.musicTrack");
+        didl_set_title(didl, node,  bg_db_object_get_label(obj));
+      didl_set_class(didl, node,  "object.item.audioItem.musicTrack");
+
       didl_add_property(didl, node, "upnp", "artist", o->artist);
       didl_add_property(didl, node, "upnp", "genre", o->genre);
       didl_add_property(didl, node, "upnp", "album", o->album);
+      didl_set_res(didl, node, obj, q->dev->url_base);
       }
       break;
     case BG_DB_OBJECT_VIDEO_FILE:
     case BG_DB_OBJECT_PHOTO:
+      didl_set_title(didl, node,  bg_db_object_get_label(obj));
+      didl_set_class(didl, node,  "object.item");
+      break;
     case BG_DB_OBJECT_ROOT:
-      didl_add_property(didl, node, "dc", "title", bg_db_object_get_label(obj));
-      didl_add_property(didl, node, "upnp", "class", "object.container");
+      didl_set_title(didl, node,  bg_db_object_get_label(obj));
+      didl_set_class(didl, node,  "object.container");
       break;
     case BG_DB_OBJECT_AUDIO_ALBUM:
-      didl_add_property(didl, node, "dc", "title", bg_db_object_get_label(obj));
-      didl_add_property(didl, node, "upnp", "class", "object.container.album.musicAlbum");
+      didl_set_title(didl, node,  bg_db_object_get_label(obj));
+      didl_set_class(didl, node,  "object.container.album.musicAlbum");
       break;
     case BG_DB_OBJECT_CONTAINER:
-      didl_add_property(didl, node, "dc", "title", bg_db_object_get_label(obj));
-      didl_add_property(didl, node, "upnp", "class", "object.container");
+      didl_set_title(didl, node,  bg_db_object_get_label(obj));
+      didl_set_class(didl, node,  "object.container");
       break;
     case BG_DB_OBJECT_DIRECTORY:
-      didl_add_property(didl, node, "dc", "title", bg_db_object_get_label(obj));
-      didl_add_property(didl, node, "upnp", "class", "object.container.storageFolder");
+      didl_set_title(didl, node,  bg_db_object_get_label(obj));
+
+      didl_set_class(didl, node,  "object.container.storageFolder");
+      // didl_set_class(didl, node,  "object.container");
+#if 0
+      /* Optional */
+      tmp_string = bg_sprintf("%"PRId64, obj->size);
+      didl_add_property(didl, node, "upnp", "storageUsed", tmp_string);
+      free(tmp_string);
+#endif
       break;
     case BG_DB_OBJECT_PLAYLIST:
     case BG_DB_OBJECT_VFOLDER:
     case BG_DB_OBJECT_VFOLDER_LEAF:
+      didl_set_title(didl, node,  bg_db_object_get_label(obj));
+      didl_set_class(didl, node,  "object.container");
       break;
     /* The following objects should never get returned */
     case BG_DB_OBJECT_OBJECT: 
@@ -210,14 +281,21 @@ static xmlNodePtr didl_add_object(xmlDocPtr didl, bg_db_object_t * obj,
     case BG_DB_OBJECT_VIDEO_PREVIEW:
     case BG_DB_OBJECT_MOVIE_POSTER:
     case BG_DB_OBJECT_THUMBNAIL:
-      didl_add_property(didl, node, "dc", "title", bg_db_object_get_label(obj));
-      didl_add_property(didl, node, "upnp", "class", "object.item");
+      didl_set_title(didl, node,  bg_db_object_get_label(obj));
+      didl_set_class(didl, node,  "object.item");
       break;
     }
 
   return NULL;
   }
-  
+
+
+static void query_callback(void * priv, void * obj)
+  {
+  query_t * q = priv;
+  didl_add_object(q->doc, obj, q->upnp_parent, NULL, q);
+  }
+
 
 char * def_result =
   "<DIDL-Lite xmlns:dc=\"http://purl.org/dc/elements/1.1/\""
@@ -244,43 +322,67 @@ char * def_root =
 
 static int Browse(bg_upnp_service_t * s)
   {
-  xmlDocPtr didl;
-  xmlNodePtr node;
+  bg_mediaserver_t * priv;
+  int64_t id;
   char * ret;  
-  
+  query_t q;
   const char * ObjectID = bg_upnp_service_get_arg_in_string(&s->req, ARG_ObjectID);
   const char * BrowseFlag = bg_upnp_service_get_arg_in_string(&s->req, ARG_BrowseFlag);
   const char * Filter = bg_upnp_service_get_arg_in_string(&s->req, ARG_Filter);
   int StartingIndex = bg_upnp_service_get_arg_in_int(&s->req, ARG_StartingIndex);
   int RequestedCount = bg_upnp_service_get_arg_in_int(&s->req, ARG_RequestedCount);
+
+  int NumberReturned;
+  int TotalMatches = 1;
+  
+  priv = s->dev->priv;
   
   fprintf(stderr, "Browse: Id: %s, Flag: %s, Filter: %s, Start: %d, Num: %d\n",
           ObjectID, BrowseFlag, Filter, StartingIndex, RequestedCount);
 
-  bg_upnp_service_set_arg_out_int(&s->req, ARG_NumberReturned, 1);
-  bg_upnp_service_set_arg_out_int(&s->req, ARG_TotalMatches, 1);
+  q.doc = didl_create();
+  q.dev = s->dev;
 
-  didl = didl_create();
-
-  node = didl_add_container(didl);
-  didl_add_property(didl, node, "dc", "title", "My Music");
-  didl_add_property(didl, node, "upnp", "class", "object.container.storageFolder");
+  if(strcmp(Filter, "*"))
+    q.filter = bg_strbreak(Filter, ',');
   
-  ret = bg_xml_save_to_memory(didl);
-
+  id = strtoll(ObjectID, NULL, 10);
+  
+  if(!strcmp(BrowseFlag, "BrowseMetadata"))
+    {
+    bg_db_object_t * obj =
+      bg_db_object_query(priv->db, id);
+    
+    didl_add_object(q.doc, obj, NULL, ObjectID, &q);
+    bg_db_object_unref(obj);
+    NumberReturned = 1;
+    TotalMatches = 1;
+    }
+  else
+    {
+    q.upnp_parent = ObjectID;
+    NumberReturned =
+      bg_db_query_children(priv->db, id,
+                           query_callback, &q,
+                           StartingIndex, RequestedCount, &TotalMatches);
+    }
+  
+  ret = bg_xml_save_to_memory(q.doc);
+  
+  bg_upnp_service_set_arg_out_int(&s->req, ARG_NumberReturned, NumberReturned);
+  bg_upnp_service_set_arg_out_int(&s->req, ARG_TotalMatches, TotalMatches);
+  
   fprintf(stderr, "didl-test:\n%s\n", ret);
   
-  free(ret);
-  xmlFreeDoc(didl);
-    
-  if(!strcmp(BrowseFlag, "BrowseMetadata"))
-    bg_upnp_service_set_arg_out_string(&s->req, ARG_Result, gavl_strdup(def_root));
-  else
-    bg_upnp_service_set_arg_out_string(&s->req, ARG_Result, gavl_strdup(def_result));
-    
-  fprintf(stderr, "didl:\n%s\n", def_result);
+  xmlFreeDoc(q.doc);
 
-  //  bg_upnp_service_set_arg_out_string(&s->req, ARG_Result, gavl_strdup(def_result));
+  if(q.filter)
+    bg_strbreak_free(q.filter);
+  
+  bg_upnp_service_set_arg_out_string(&s->req, ARG_Result, ret);
+  bg_upnp_service_set_arg_out_int(&s->req, ARG_UpdateID, 0);
+
+  //  fprintf(stderr, "didl:\n%s\n", ret);
   return 1;
   }
 
@@ -418,6 +520,9 @@ static void init_service_desc(bg_upnp_service_desc_t * d)
   bg_upnp_sa_desc_add_arg_out(sa, "TotalMatches",
                               "A_ARG_TYPE_Count", 0,
                               ARG_TotalMatches);
+  bg_upnp_sa_desc_add_arg_out(sa, "UpdateID",
+                              "A_ARG_TYPE_UpdateID", 0,
+                              ARG_UpdateID);
   
   /*
 

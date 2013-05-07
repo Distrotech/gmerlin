@@ -234,7 +234,7 @@ int main(int argc, char ** argv)
   if(dump_children)
     {
     int64_t id = strtoll(dump_children, NULL, 10);
-    bg_db_query_children(db, id, callback, NULL);
+    bg_db_query_children(db, id, callback, NULL, 0, 0, NULL);
     }
   
   bg_db_destroy(db);

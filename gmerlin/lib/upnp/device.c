@@ -109,10 +109,15 @@ void bg_upnp_device_init(bg_upnp_device_t * ret, bg_socket_address_t * addr,
                          const char * model_description,
                          const bg_upnp_icon_t * icons)
   {
+  char addr_str[BG_SOCKET_ADDR_STR_LEN];
   struct utsname os_info;
   ret->num_services = num_services;
   ret->services = calloc(ret->num_services, sizeof(*ret->services));
   ret->sa = addr;
+
+  ret->url_base = bg_sprintf("http://%s/",
+                             bg_socket_address_to_string(ret->sa, addr_str));
+  
   uuid_copy(ret->uuid, uuid);
   ret->name = gavl_strdup(name);
   ret->type = gavl_strdup(type);
@@ -137,7 +142,7 @@ static void create_description(bg_upnp_device_t * dev)
   {
   int i;
   xmlDocPtr doc;
-  doc = bg_upnp_device_description_create(dev->sa, dev->type, dev->version);
+  doc = bg_upnp_device_description_create(dev->url_base, dev->type, dev->version);
   bg_upnp_device_description_set_name(doc, dev->name);
   bg_upnp_device_description_set_manufacturer(doc, "Gmerlin Project");
   bg_upnp_device_description_set_manufacturer_url(doc, "http://gmerlin.sourceforge.net");

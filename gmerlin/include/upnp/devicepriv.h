@@ -48,7 +48,8 @@ struct bg_upnp_device_s
   const bg_upnp_icon_t * icons;
 
   char * server_string;
-
+  char * url_base;
+    
   gavl_timer_t * timer;
   
   };

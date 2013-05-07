@@ -305,12 +305,15 @@ typedef void (*bg_db_query_callback)(void * priv, void * obj);
 
 /* Query from DB  */
 void * bg_db_object_query(bg_db_t * db, int64_t id); 
+int64_t bg_db_object_get_id(void * obj);
+
 
 void bg_db_object_dump(void * obj);
 void bg_db_object_unref(void * obj);
 const char * bg_db_object_get_label(void * obj);
 
-void
-bg_db_query_children(bg_db_t *, int64_t id, bg_db_query_callback cb, void * priv);
+int
+bg_db_query_children(bg_db_t *, int64_t id, bg_db_query_callback cb, void * priv,
+                     int start, int num, int * total_matches);
 
 #endif //  __MEDIADB_H_

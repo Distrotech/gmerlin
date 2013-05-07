@@ -148,7 +148,6 @@ void bg_db_object_update_size(bg_db_t * db, void * obj, int64_t delta_size);
 void bg_db_object_update_duration(bg_db_t * db, void * obj, gavl_time_t delta_d);
 
 
-int64_t bg_db_object_get_id(void * obj);
 
 void bg_db_object_create_ref(void * obj, void * parent);
 void bg_db_object_set_label_nocpy(void * obj, char * label);

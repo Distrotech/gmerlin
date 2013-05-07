@@ -501,13 +501,15 @@ const char * bg_db_get_search_string(const char * str)
 
 /* Query children */
 
-void
-bg_db_query_children(bg_db_t * db, int64_t id, bg_db_query_callback cb, void * priv)
+int
+bg_db_query_children(bg_db_t * db, int64_t id,
+                     bg_db_query_callback cb, void * priv,
+                     int start, int num, int * total_matches)
   {
-  int i;
+  int i, ret = 0;
   char * sql;
   int result;
-  
+  int end;
   bg_sqlite_id_tab_t tab;
   bg_db_object_type_t type;
   void * obj;
@@ -516,35 +518,36 @@ bg_db_query_children(bg_db_t * db, int64_t id, bg_db_query_callback cb, void * p
   bg_sqlite_id_tab_init(&tab);
   bg_db_flush(db);
   
-  if(!id)
+  parent = bg_db_object_query(db, id);
+  if(!parent)
+    goto fail;
+  type = bg_db_object_get_type(parent);
+  
+  if(type & BG_DB_FLAG_CONTAINER)
     {
-    sql = sqlite3_mprintf("select ID from OBJECTS where PARENT_ID = 0 ORDER BY label;");
+    sql = sqlite3_mprintf("select ID from OBJECTS where PARENT_ID = %"PRId64" ORDER BY LABEL;",
+                          bg_db_object_get_id(parent));
     result = bg_sqlite_exec(db->db, sql, bg_sqlite_append_id_callback, &tab);
     sqlite3_free(sql);
     if(!result) // Error
       goto fail;
     }
+  else // Virtual folder
+    parent->klass->get_children(db, parent, &tab);
+
+  if(!num)
+    end = tab.num_val;
   else
     {
-    parent = bg_db_object_query(db, id);
-    if(!parent)
-      goto fail;
-    type = bg_db_object_get_type(parent);
-
-    if(type & BG_DB_FLAG_CONTAINER)
-      {
-      sql = sqlite3_mprintf("select ID from OBJECTS where PARENT_ID = %"PRId64" ORDER BY LABEL;",
-                            bg_db_object_get_id(parent));
-      result = bg_sqlite_exec(db->db, sql, bg_sqlite_append_id_callback, &tab);
-      sqlite3_free(sql);
-      if(!result) // Error
-        goto fail;
-      }
-    else // Virtual folder
-      parent->klass->get_children(db, parent, &tab);
+    end = start + num;
+    if(end > tab.num_val)
+      end = tab.num_val;
     }
+
+  if(total_matches)
+    *total_matches = tab.num_val;
   
-  for(i = 0; i < tab.num_val; i++)
+  for(i = start; i < end; i++)
     {
     obj = bg_db_object_query(db, tab.val[i]);
     if(!obj)
@@ -554,13 +557,14 @@ bg_db_query_children(bg_db_t * db, int64_t id, bg_db_query_callback cb, void * p
       }
     cb(priv, obj);
     bg_db_object_unref(obj);
+    ret++;
     }
-
+  
   fail:
   if(parent)
     bg_db_object_unref(parent);
   bg_sqlite_id_tab_free(&tab);
-
+  return ret;
   }
 
 /* Group management */

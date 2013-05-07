@@ -31,7 +31,7 @@ static void get_children_root(bg_db_t * db, void * obj, bg_sqlite_id_tab_t * tab
   int result;
   sql = sqlite3_mprintf("SELECT ID FROM OBJECTS WHERE PARENT_ID = %"PRId64" ORDER BY TYPE, LABEL;",
                         bg_db_object_get_id(obj));
-  result = bg_sqlite_exec(db->db, sql, bg_sqlite_append_id_callback, &tab);
+  result = bg_sqlite_exec(db->db, sql, bg_sqlite_append_id_callback, tab);
   sqlite3_free(sql);
   }
 
