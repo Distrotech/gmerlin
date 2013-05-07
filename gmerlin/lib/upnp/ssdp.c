@@ -59,6 +59,7 @@ typedef struct
   char * st;
   bg_socket_address_t * addr;
   gavl_time_t time; // GAVL_TIME_UNDEFINED means empty
+  int times_sent;
   } queue_element_t;
 
 struct bg_ssdp_s
@@ -140,14 +141,14 @@ find_embedded_dev_by_uuid(const bg_ssdp_root_device_t * dev, const char * uuid)
 
 static const char * is_device_type(const char * str)
   {
-  if(!gavl_string_starts_with_i("urn:schemas-upnp-org:device:", str))
+  if(gavl_string_starts_with_i(str, "urn:schemas-upnp-org:device:"))
     return str + 28;
   return NULL;
   }
 
 static const char * is_service_type(const char * str)
   {
-  if(!gavl_string_starts_with_i("urn:schemas-upnp-org:service:", str))
+  if(gavl_string_starts_with_i(str, "urn:schemas-upnp-org:service:"))
     return str + 29;
   return NULL;
   }
@@ -297,7 +298,8 @@ bg_ssdp_t * bg_ssdp_create(bg_ssdp_root_device_t * local_dev,
   
   /* Send seach packet */
   if(ret->discover_remote)
-    bg_udp_socket_send(ret->ucast_fd, (uint8_t*)search_string, strlen(search_string), ret->mcast_addr);
+    bg_udp_socket_send(ret->ucast_fd, (uint8_t*)search_string,
+                       strlen(search_string), ret->mcast_addr);
   
   ret->timer = gavl_timer_create(ret->timer);
   gavl_timer_start(ret->timer);
@@ -470,7 +472,7 @@ static void schedule_reply(bg_ssdp_t * s, const char * st,
 
 static void flush_reply_packet(bg_ssdp_t * s, char * str, bg_socket_address_t * sender)
   {
-  //  fprintf(stderr, "Sending reply:\n%s\n", str);
+  //  fprintf(stderr, "Sending search reply:\n%s\n", str);
   bg_udp_socket_send(s->ucast_fd, (uint8_t*)str, strlen(str), sender);
   free(str);
   }
@@ -609,6 +611,9 @@ static void handle_multicast(bg_ssdp_t * s, const char * buffer,
     if(!s->local_dev)
       goto fail;
 
+    //    fprintf(stderr, "Got search request\n");
+    //    gavl_metadata_dump(&m, 0);
+    
     if(!gavl_metadata_get_int_i(&m, "MX", &mx))
       goto fail;
     
@@ -639,6 +644,7 @@ static void handle_multicast(bg_ssdp_t * s, const char * buffer,
       }
     else if((type_version = is_service_type(var)))
       {
+      //      fprintf(stderr, "Got service search\n");
       if(bg_ssdp_has_service_str(s->local_dev, type_version, NULL, NULL))
         schedule_reply(s, var, sender,
                        current_time, mx);
@@ -726,7 +732,7 @@ static void flush_notify(bg_ssdp_t * s, const gavl_metadata_t * h)
   {
   char * str = bg_http_request_to_string(h);
   bg_udp_socket_send(s->ucast_fd, (uint8_t*)str, strlen(str), s->mcast_addr);
-  fprintf(stderr, "Notify:\n%s", str);
+  //  fprintf(stderr, "Notify:\n%s", str);
   free(str);
   }
 
@@ -738,19 +744,20 @@ static void notify(bg_ssdp_t * s, int alive)
 
   /* Common fields */
   bg_http_request_init(&m, "NOTIFY", "*", "HTTP/1.1");
+  gavl_metadata_set(&m, "HOST", "239.255.255.250:1900");
 
   if(alive)
     {
-    gavl_metadata_set(&m, "HOST", "239.255.255.250:1900");
     gavl_metadata_set(&m, "CACHE-CONTROL", "max-age=1800");
     gavl_metadata_set(&m, "NTS", "ssdp:alive");
-    gavl_metadata_set(&m, "SERVER", s->server_string);
-    gavl_metadata_set(&m, "LOCATION", s->local_dev->url);
     }
   else
     {
     gavl_metadata_set(&m, "NTS", "ssdp:byebye");
     }
+  
+  gavl_metadata_set(&m, "SERVER", s->server_string);
+  gavl_metadata_set(&m, "LOCATION", s->local_dev->url);
   
   /* Root device */
   gavl_metadata_set_nocpy(&m, "USN", bg_ssdp_get_root_usn(s->local_dev));
@@ -858,8 +865,10 @@ void bg_ssdp_destroy(bg_ssdp_t * s)
   int i;
   /* If we advertised a local device, unadvertise it */
   if(s->local_dev)
+    {
+    // notify(s, 0);
     notify(s, 0);
-
+    }
   for(i = 0; i < QUEUE_SIZE; i++)
     {
     if(s->queue[i].addr)

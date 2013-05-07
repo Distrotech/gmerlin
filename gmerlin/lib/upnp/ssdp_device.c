@@ -126,7 +126,8 @@ static int lookup_service_str(bg_ssdp_service_t * s, int num, const char * type_
   }
 
 int
-bg_ssdp_has_service(const bg_ssdp_root_device_t * dev, const char * type, int version, int * dev_index, int * srv_index)
+bg_ssdp_has_service(const bg_ssdp_root_device_t * dev, const char * type,
+                    int version, int * dev_index, int * srv_index)
   {
   int idx, i;
 
@@ -160,7 +161,8 @@ bg_ssdp_has_service(const bg_ssdp_root_device_t * dev, const char * type, int ve
   }
 
 int
-bg_ssdp_has_service_str(const bg_ssdp_root_device_t * dev, const char * type_version, int * dev_index, int * srv_index)
+bg_ssdp_has_service_str(const bg_ssdp_root_device_t * dev,
+                        const char * type_version, int * dev_index, int * srv_index)
   {
   int idx, i;
 

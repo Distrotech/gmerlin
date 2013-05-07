@@ -175,31 +175,29 @@ static int filter_element(const char * name, char ** filter)
 static int filter_attribute(const char * element, const char * attribute, char ** filter)
   {
   int i = 0;
+  int allow_empty = 0;
+  int len = strlen(element);
+  
   if(!filter)
     return 1;
 
-  if(element) // element@attr
+  if(!strcmp(element, "item") ||
+     !strcmp(element, "container"))
+    allow_empty = 1;
+  
+  while(filter[i])
     {
-    int len = strlen(element);
-    
-    while(filter[i])
-      {
-      if(!strncmp(filter[i], element, len) &&
-         (*(filter[i] + len) == '@') &&
-         !strcmp(filter[i] + len + 1, attribute))
-        return 1;
-      i++;
-      }
-    }
-  else
-    {
-    while(filter[i]) // @attr (of item or container)
-      {
-      if((*(filter[i]) == '@') &&
-         !strcmp(filter[i] + 1, attribute))
-        return 1;
-      i++;
-      }
+    if(!strncmp(filter[i], element, len) &&
+       (*(filter[i] + len) == '@') &&
+       !strcmp(filter[i] + len + 1, attribute))
+      return 1;
+
+    if(allow_empty &&
+       (*(filter[i]) == '@') &&
+       !strcmp(filter[i] + 1, attribute))
+      return 1;
+      
+    i++;
     }
   return 0;
   }
@@ -325,7 +323,7 @@ static xmlNodePtr didl_add_object(xmlDocPtr didl, bg_db_object_t * obj,
 
   /* Optional */
   if((type & (BG_DB_FLAG_CONTAINER|BG_DB_FLAG_VCONTAINER)) &&
-     filter_attribute(NULL, "childCount", q->filter))
+     filter_attribute("container", "childCount", q->filter))
     didl_set_attribute_int(node, "childCount", obj->children);
 
   switch(type)
