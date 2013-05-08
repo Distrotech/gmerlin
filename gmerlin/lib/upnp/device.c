@@ -98,8 +98,31 @@ bg_upnp_device_handle_request(bg_upnp_device_t * dev, int fd,
 void
 bg_upnp_device_destroy(bg_upnp_device_t * dev)
   {
+  int i;
   if(dev->ssdp)
     bg_ssdp_destroy(dev->ssdp);
+
+  for(i = 0; i < dev->num_services; i++)
+    bg_upnp_service_free(&dev->services[i]);
+  if(dev->services)
+    free(dev->services);
+
+  if(dev->url_base)
+    free(dev->url_base);
+  if(dev->type)
+    free(dev->type);
+  if(dev->name)
+    free(dev->name);
+  if(dev->model_name)
+    free(dev->model_name);
+  if(dev->model_description)
+    free(dev->model_description);
+  if(dev->server_string)
+    free(dev->server_string);
+  if(dev->timer)
+    gavl_timer_destroy(dev->timer);
+  if(dev->description)
+    free(dev->description);
   }
 
 void bg_upnp_device_init(bg_upnp_device_t * ret, bg_socket_address_t * addr,

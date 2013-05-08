@@ -34,6 +34,10 @@
 #define CLIENT_STATUS_DONE         3
 #define CLIENT_STATUS_STOP         4
 
+#define CLIENT_TYPE_MEDIA          0 // Media file for upnp devices
+#define CLIENT_TYPE_BGPLUG_SOURCE  1 // Upstream source (bgplug)
+#define CLIENT_TYPE_BGPLUG_SINK    2 // Sink (bgplug or filtered)
+
 /*
  *  URL structure:
  *  http://<root>/                      -> http interface
@@ -46,6 +50,7 @@
 
 typedef struct client_s
   {
+  int type;
   pthread_mutex_t status_mutex;
   int status;
   
@@ -58,7 +63,7 @@ typedef struct client_s
   struct client_s * source;
   } client_t;
 
-client_t * client_create(int fd, void * data,
+client_t * client_create(int type, int fd, void * data,
                          void (*free_data)(void*), void (*func)(client_t*));
 
 int client_get_status(client_t *);
@@ -69,6 +74,7 @@ typedef struct
   /* Config stuff */
   char * dbpath;
   bg_plugin_registry_t * plugin_reg; // Must be set manually
+  bg_cfg_registry_t * cfg_reg;
 
   bg_socket_address_t * addr;
   int fd;

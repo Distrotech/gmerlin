@@ -107,7 +107,14 @@ static const char * create_commands[] =
     "COVER INTEGER, " 
     "DATE TEXT"
     ");",
-    
+   
+    "CREATE TABLE PLAYLISTS("
+    "ID INTEGER PRIMARY KEY, "
+    "PLAYLIST_ID INTEGER, "
+    "ITEM_ID INTEGER, "
+    "INDEX INTEGER"
+    ");",
+
     NULL,
   };
 

@@ -76,31 +76,42 @@ static int read_vars(int fd, char ** line, int * line_alloc,
   return 1;
   }
 
-static char * write_vars(char * str, const gavl_metadata_t * m)
+static void write_vars(char * str, const gavl_metadata_t * m)
   {
   int i;
-  char * line;
 
   for(i = 0; i < m->num_tags; i++)
     {
-    line = NULL;
     if(!strcmp(m->tags[i].val, META_EMPTY))
-      line = bg_sprintf("%s:\r\n", m->tags[i].key);
-    else if(*(m->tags[i].key) != '$')
-      line = bg_sprintf("%s: %s\r\n",
-                        m->tags[i].key,
-                        m->tags[i].val);
-
-    if(line)
       {
-      str = gavl_strcat(str, line);
-      free(line);
+      strcat(str, m->tags[i].key);
+      strcat(str, ":\r\n");
+      }
+    else if(*(m->tags[i].key) != '$')
+      {
+      strcat(str, m->tags[i].key);
+      strcat(str, ": ");
+      strcat(str, m->tags[i].val);
+      strcat(str, "\r\n");
       }
     }
-  str = gavl_strcat(str, "\r\n");
-  return str;
+  strcat(str, "\r\n");
   }
 
+static int vars_len(const gavl_metadata_t * m)
+  {
+  int ret = 0;
+  int i;
+  for(i = 0; i < m->num_tags; i++)
+    {
+    if(!strcmp(m->tags[i].val, META_EMPTY))
+      ret += strlen(m->tags[i].key) + 3; // :\r\n
+    else if(*(m->tags[i].key) != '$')
+      ret += strlen(m->tags[i].key) + 2 + strlen(m->tags[i].val) + 2;
+    }
+  ret += 2;
+  return ret;
+  }
 
 void bg_http_request_init(gavl_metadata_t * req,
                           const char * method,
@@ -115,16 +126,17 @@ void bg_http_request_init(gavl_metadata_t * req,
 
 int bg_http_request_write(int fd, gavl_metadata_t * req)
   {
-  int result;
-  char * line = bg_http_request_to_string(req);
-  result = bg_socket_write_data(fd, (const uint8_t*)line, strlen(line));
+  int result, len = 0;
+  char * line = bg_http_request_to_string(req, &len);
+  result = bg_socket_write_data(fd, (const uint8_t*)line, len);
   free(line);
   return result;
   }
 
 
-char * bg_http_request_to_string(const gavl_metadata_t * req)
+char * bg_http_request_to_string(const gavl_metadata_t * req, int * lenp)
   {
+  int len;
   const char * method;
   const char * path;
   const char * protocol;
@@ -135,8 +147,13 @@ char * bg_http_request_to_string(const gavl_metadata_t * req)
      !(protocol = gavl_metadata_get(req, META_PROTOCOL)))
     return NULL;
   
-  line = bg_sprintf("%s %s %s\r\n", method, path, protocol);
-  line = write_vars(line, req);
+  len = strlen(method) + 1 + strlen(path) + 1 + strlen(protocol) + 2 + vars_len(req);
+  line = malloc(len + 1);
+  line[len] = '\0';
+  snprintf(line, len, "%s %s %s\r\n", method, path, protocol);
+  write_vars(line, req);
+  if(lenp)
+    *lenp = len;
   return line;
   }
 
@@ -244,15 +261,16 @@ void bg_http_response_init(gavl_metadata_t * res,
 
 int bg_http_response_write(int fd, gavl_metadata_t * res)
   {
-  int result;
-  char * line = bg_http_response_to_string(res);
-  result = bg_socket_write_data(fd, (const uint8_t*)line, strlen(line));
+  int result, len = 0;
+  char * line = bg_http_response_to_string(res, &len);
+  result = bg_socket_write_data(fd, (const uint8_t*)line, len);
   free(line);
   return result;
   }
 
-char * bg_http_response_to_string(const gavl_metadata_t * res)
+char * bg_http_response_to_string(const gavl_metadata_t * res, int * lenp)
   {
+  int len;
   char * line;
   int status_int, i;
   const char * status_str;
@@ -263,9 +281,15 @@ char * bg_http_response_to_string(const gavl_metadata_t * res)
      !(status_str = gavl_metadata_get(res, META_STATUS_STR)) ||
      !(protocol = gavl_metadata_get(res, META_PROTOCOL)))
     return 0;
-  
-  line = bg_sprintf("%s %d %s\r\n", protocol, status_int, status_str);
-  line = write_vars(line, res);
+
+  len = strlen(protocol) + 1 + 3 + 1 + strlen(status_str); // Maximum allowed code 999
+  len += vars_len(res);
+
+  line = malloc(len);
+  snprintf(line, len, "%s %d %s\r\n", protocol, status_int, status_str);
+  write_vars(line, res);
+  if(lenp)
+    *lenp = len;
   return line;
   }
 

@@ -39,7 +39,7 @@ static void * client_func(void * priv)
   return NULL;
   }
   
-client_t * client_create(int fd, void * data,
+client_t * client_create(int type, int fd, void * data,
                          void (*free_data)(void*), void (*func)(client_t*))
   {
   client_t * ret = calloc(1, sizeof(*ret));
@@ -48,7 +48,7 @@ client_t * client_create(int fd, void * data,
   ret->free_data = free_data;
   ret->func = func;
   ret->data = data;
-  
+  ret->type = type;
   pthread_create(&ret->thread, NULL, client_func, ret);
   return ret;
   }

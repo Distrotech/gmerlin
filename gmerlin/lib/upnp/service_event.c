@@ -28,6 +28,7 @@
 #define LOG_DOMAIN "upnp.event"
 
 #include <string.h>
+#include <unistd.h> // close
 
 static char * create_event(bg_upnp_service_t * s, int * len)
   {
@@ -80,7 +81,9 @@ static int send_event(bg_upnp_event_subscriber_t * es,
   char * path = NULL;
   char * host = NULL;
   int port;
-  int fd;
+  int fd = -1;
+  char * tmp_string;
+  int result = 0;
 
   gavl_metadata_init(&m);
   
@@ -88,16 +91,55 @@ static int send_event(bg_upnp_event_subscriber_t * es,
   if(!bg_url_split(es->url,
                    NULL, NULL, NULL,
                    &host, &port, &path))
-    return 0;
+    goto fail;
   
   addr = bg_socket_address_create();
 
   if(!bg_socket_address_set(addr, host, port, SOCK_STREAM))
-    return 0;
+    goto fail;
   
   if((fd = bg_socket_connect_inet(addr, 500)) < 0)
-    return 0;
-  return 1;
+    goto fail;
+
+  bg_http_request_init(&m, "NOTIFY", path, "HTTP/1.1");
+  tmp_string = bg_sprintf("%s:%d", host, port);
+  gavl_metadata_set(&m, "HOST", tmp_string);
+  free(tmp_string);
+  
+  gavl_metadata_set(&m, "CONTENT-TYPE", "text/xml");
+  gavl_metadata_set_int(&m, "CONTENT-LENGTH", len);
+  gavl_metadata_set(&m, "NT", "upnp:event");
+  gavl_metadata_set(&m, "NTS", "upnp:propchange");
+  tmp_string = bg_sprintf("uuid:%s", es->uuid);  
+  gavl_metadata_set(&m, "SID", tmp_string);
+  free(tmp_string);
+  gavl_metadata_set_long(&m, "SEQ", es->key++);
+  
+  if(!bg_http_request_write(fd, &m) ||
+     (bg_socket_write_data(fd, (uint8_t*)event, len) < len))
+    goto fail;
+  gavl_metadata_free(&m);
+  gavl_metadata_init(&m);
+  
+  if(bg_http_response_read(fd, &m, 500))
+    goto fail;
+  fprintf(stderr, "Got response:\n");
+  gavl_metadata_dump(&m, 0);
+
+  if(bg_http_response_get_status_int(&m) != 200)
+    goto fail;
+  result = 1;
+  fail:
+
+  gavl_metadata_free(&m);
+  if(path)
+    free(path);
+  if(host)
+    free(host);
+  if(fd >= 0)
+    close(fd);
+  
+  return result;
   }
 
 static int get_timeout_seconds(const char * timeout, int * ret)
@@ -115,8 +157,8 @@ static int get_timeout_seconds(const char * timeout, int * ret)
   return 0;
   }
 
-static void add_subscription(bg_upnp_service_t * s, int fd,
-                             const char * callback, const char * timeout)
+static int add_subscription(bg_upnp_service_t * s, int fd,
+                            const char * callback, const char * timeout)
   {
   const char * start, *end;
   uuid_t uuid;
@@ -124,7 +166,7 @@ static void add_subscription(bg_upnp_service_t * s, int fd,
   gavl_metadata_t res;
   int seconds;
   int result = 0;
-  char * event;
+  char * event = NULL;
   int len;
   
   gavl_metadata_init(&res);
@@ -173,19 +215,29 @@ static void add_subscription(bg_upnp_service_t * s, int fd,
   gavl_metadata_set_nocpy(&res, "TIMEOUT", bg_sprintf("Second-%d", seconds));
   bg_log(BG_LOG_INFO, LOG_DOMAIN, "Got new event subscription: uuid: %s, url: %s",
          es->uuid, es->url);
-  s->num_es++;
-  result = 1;
+
+  bg_http_response_write(fd, &res);  
 
   event = create_event(s, &len);
   fprintf(stderr, "%s", event);
-  free(event);
+
+  result = send_event(es, event, len);
   
   fail:
 
-  if(!result && es->url)
-    free(es->url);
-  bg_http_response_write(fd, &res);
+  if(!result)
+    {
+    if(es->url)
+      free(es->url);
+    bg_http_response_write(fd, &res);
+    }
+  else
+    s->num_es++;
+
+  if(event)
+    free(event);
   gavl_metadata_free(&res);
+  return result;
   }
 
 static int find_subscription(bg_upnp_service_t * s, const char * sid)

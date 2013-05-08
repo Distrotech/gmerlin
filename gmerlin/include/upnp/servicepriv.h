@@ -272,6 +272,8 @@ void bg_upnp_service_init(bg_upnp_service_t * ret,
 int
 bg_upnp_service_start(bg_upnp_service_t * s);
 
+void bg_upnp_service_free(bg_upnp_service_t * s);
+
 int
 bg_upnp_service_handle_request(bg_upnp_service_t * s, int fd,
                                const char * method,

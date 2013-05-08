@@ -105,3 +105,23 @@ bg_upnp_service_handle_request(bg_upnp_service_t * s, int fd,
     }
   return 0; // 404
   }
+
+void bg_upnp_service_free(bg_upnp_service_t * s)
+  {
+  int i;
+  if(s->name)
+    free(s->name);
+  if(s->type)
+    free(s->type);
+  bg_upnp_service_desc_free(&s->desc);
+  if(s->description)
+    free(s->description);
+
+  for(i = 0; i < s->num_es; i++)
+    {
+    if(s->es[i].url)
+      free(s->es[i].url);
+    }
+  if(s->es)
+    free(s->es);
+  }

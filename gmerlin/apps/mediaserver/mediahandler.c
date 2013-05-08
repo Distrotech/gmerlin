@@ -168,7 +168,7 @@ int server_handle_media(server_t * s, int * fd,
     sf->offset = 0;
     sf->length = -1;
 
-    c = client_create(*fd, sf, cleanup_func, send_file_func);
+    c = client_create(CLIENT_TYPE_MEDIA, *fd, sf, cleanup_func, send_file_func);
     server_attach_client(s, c);
     *fd = -1;
     }

@@ -29,7 +29,7 @@ void bg_http_request_init(gavl_metadata_t * req,
                           const char * protocol);
 
 int bg_http_request_write(int socket, gavl_metadata_t * req);
-char * bg_http_request_to_string(const gavl_metadata_t * req);
+char * bg_http_request_to_string(const gavl_metadata_t * req, int * len);
 
 /* Read a http request (server) */
 
@@ -47,7 +47,7 @@ void bg_http_response_init(gavl_metadata_t * res,
                            int status_int, const char * status_str);
 
 int bg_http_response_write(int socket, gavl_metadata_t * res);
-char * bg_http_response_to_string(const gavl_metadata_t * res);
+char * bg_http_response_to_string(const gavl_metadata_t * res, int * len);
 
 /* Read a response (client) */
 

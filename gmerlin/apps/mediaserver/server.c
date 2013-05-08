@@ -66,18 +66,17 @@ int server_start(server_t * s)
   {
   char addr_str[BG_SOCKET_ADDR_STR_LEN];
   char * tmp_path;
-  bg_cfg_registry_t * cfg_reg;
   bg_cfg_section_t * cfg_section;
 
   /* Create plugin registry */
 
-  cfg_reg = bg_cfg_registry_create();
+  s->cfg_reg = bg_cfg_registry_create();
   tmp_path =  bg_search_file_read("generic", "config.xml");
-  bg_cfg_registry_load(cfg_reg, tmp_path);
+  bg_cfg_registry_load(s->cfg_reg, tmp_path);
   if(tmp_path)
     free(tmp_path);
 
-  cfg_section = bg_cfg_registry_find_section(cfg_reg, "plugins");
+  cfg_section = bg_cfg_registry_find_section(s->cfg_reg, "plugins");
   s->plugin_reg = bg_plugin_registry_create(cfg_section);
   
   /* Create listen socket: After that we'll have the root URL we can
@@ -111,16 +110,16 @@ int server_start(server_t * s)
   s->db = bg_db_create(s->dbpath,
                        s->plugin_reg, 0);
   if(!s->db)
-    {
     bg_log(BG_LOG_INFO, LOG_DOMAIN, "No database found");
-    }
-  /* Create UPNP device(s) */
-  s->dev = bg_upnp_create_media_server(s->addr,
-                                       s->uuid,
-                                       "Gmerlin media server",
-                                       (const bg_upnp_icon_t *)0,
-                                       s->db);
-
+  else
+    {
+    /* Create UPNP device(s) */
+    s->dev = bg_upnp_create_media_server(s->addr,
+                                         s->uuid,
+                                         "Gmerlin media server",
+                                         (const bg_upnp_icon_t *)0,
+                                         s->db);
+    }    
   
   return 1;
   }
@@ -240,7 +239,17 @@ int server_iteration(server_t * s)
 
 void server_cleanup(server_t * s)
   {
+  int i;
   if(s->dev)
     bg_upnp_device_destroy(s->dev);
+  if(s->db)
+    bg_db_destroy(s->db);
+  
+  for(i = 0; i < s->num_clients; i++)
+    client_destroy(s->clients[i]);
+  if(s->clients)
+    free(s->clients);
+  bg_plugin_registry_destroy(s->plugin_reg);
+  bg_cfg_registry_destroy(s->cfg_reg);
   }
 

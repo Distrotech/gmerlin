@@ -470,16 +470,17 @@ static void schedule_reply(bg_ssdp_t * s, const char * st,
 
 // static void setup_header(bg_ssdp_root_device_t * dev, 
 
-static void flush_reply_packet(bg_ssdp_t * s, char * str, bg_socket_address_t * sender)
+static void flush_reply_packet(bg_ssdp_t * s, const gavl_metadata_t * h, bg_socket_address_t * sender)
   {
+  int len = 0;
+  char * str = bg_http_response_to_string(h, &len);
   //  fprintf(stderr, "Sending search reply:\n%s\n", str);
-  bg_udp_socket_send(s->ucast_fd, (uint8_t*)str, strlen(str), sender);
+  bg_udp_socket_send(s->ucast_fd, (uint8_t*)str, len, sender);
   free(str);
   }
                                
 static void flush_reply(bg_ssdp_t * s, queue_element_t * q)
   {
-  char * str;
   const char * type_version;
   gavl_metadata_t h;
   int i;
@@ -501,30 +502,26 @@ static void flush_reply(bg_ssdp_t * s, queue_element_t * q)
     /* Root device */
     gavl_metadata_set_nocpy(&h, "USN", bg_ssdp_get_root_usn(s->local_dev));
     gavl_metadata_set_nocpy(&h, "ST",  bg_ssdp_get_root_nt(s->local_dev));
-    str = bg_http_response_to_string(&h);
-    flush_reply_packet(s, str, q->addr);
+    flush_reply_packet(s, &h, q->addr);
   
     /* Device UUID */
     gavl_metadata_set_nocpy(&h, "USN", bg_ssdp_get_device_uuid_usn(s->local_dev, -1));
     gavl_metadata_set_nocpy(&h, "ST",  bg_ssdp_get_device_uuid_nt(s->local_dev, -1));
-    str = bg_http_response_to_string(&h);
-    flush_reply_packet(s, str, q->addr);
+    flush_reply_packet(s, &h, q->addr);
   
     /* TODO: Embedded devices would come here */
 
     /* Device Type */
     gavl_metadata_set_nocpy(&h, "USN", bg_ssdp_get_device_type_usn(s->local_dev, -1));
     gavl_metadata_set_nocpy(&h, "ST",  bg_ssdp_get_device_type_nt(s->local_dev, -1));
-    str = bg_http_response_to_string(&h);
-    flush_reply_packet(s, str, q->addr);
+    flush_reply_packet(s, &h, q->addr);
     /* TODO: Embedded devices would come here */
 
     for(i = 0; i < s->local_dev->num_services; i++)
       {
       gavl_metadata_set_nocpy(&h, "USN", bg_ssdp_get_service_type_usn(s->local_dev, -1, i));
       gavl_metadata_set_nocpy(&h, "ST",  bg_ssdp_get_service_type_nt(s->local_dev, -1, i));
-      str = bg_http_response_to_string(&h);
-      flush_reply_packet(s, str, q->addr);
+      flush_reply_packet(s, &h, q->addr);
       }
     gavl_metadata_free(&h);
     }
@@ -533,16 +530,14 @@ static void flush_reply(bg_ssdp_t * s, queue_element_t * q)
     /* Root device */
     gavl_metadata_set_nocpy(&h, "USN", bg_ssdp_get_root_usn(s->local_dev));
     gavl_metadata_set_nocpy(&h, "ST",  bg_ssdp_get_root_nt(s->local_dev));
-    str = bg_http_response_to_string(&h);
-    flush_reply_packet(s, str, q->addr);
+    flush_reply_packet(s, &h, q->addr);
     }
   else if(gavl_string_starts_with_i(q->st, "uuid:"))
     {
     int dev = find_embedded_dev_by_uuid(s->local_dev, q->st+5);
     gavl_metadata_set_nocpy(&h, "USN", bg_ssdp_get_device_uuid_usn(s->local_dev, dev));
     gavl_metadata_set_nocpy(&h, "ST",  bg_ssdp_get_device_uuid_nt(s->local_dev, dev));
-    str = bg_http_response_to_string(&h);
-    flush_reply_packet(s, str, q->addr);
+    flush_reply_packet(s, &h, q->addr);
     }
   else if((type_version = is_device_type(q->st)))
     {
@@ -550,8 +545,7 @@ static void flush_reply(bg_ssdp_t * s, queue_element_t * q)
     bg_ssdp_has_device_str(s->local_dev, type_version, &dev);
     gavl_metadata_set_nocpy(&h, "USN", bg_ssdp_get_device_type_usn(s->local_dev, dev));
     gavl_metadata_set_nocpy(&h, "ST",  bg_ssdp_get_device_type_nt(s->local_dev, dev));
-    str = bg_http_response_to_string(&h);
-    flush_reply_packet(s, str, q->addr);
+    flush_reply_packet(s, &h, q->addr);
     }
   else if((type_version = is_service_type(q->st)))
     {
@@ -559,8 +553,7 @@ static void flush_reply(bg_ssdp_t * s, queue_element_t * q)
     bg_ssdp_has_service_str(s->local_dev, type_version, &dev, &srv);
     gavl_metadata_set_nocpy(&h, "USN", bg_ssdp_get_service_type_usn(s->local_dev, dev, srv));
     gavl_metadata_set_nocpy(&h, "ST",  bg_ssdp_get_service_type_nt(s->local_dev, dev, srv));
-    str = bg_http_response_to_string(&h);
-    flush_reply_packet(s, str, q->addr);
+    flush_reply_packet(s, &h, q->addr);
     }
   free(q->st);
   q->st = NULL;
@@ -730,8 +723,9 @@ static void handle_unicast(bg_ssdp_t * s, const char * buffer,
 
 static void flush_notify(bg_ssdp_t * s, const gavl_metadata_t * h)
   {
-  char * str = bg_http_request_to_string(h);
-  bg_udp_socket_send(s->ucast_fd, (uint8_t*)str, strlen(str), s->mcast_addr);
+  int len = 0;
+  char * str = bg_http_request_to_string(h, &len);
+  bg_udp_socket_send(s->ucast_fd, (uint8_t*)str, len, s->mcast_addr);
   //  fprintf(stderr, "Notify:\n%s", str);
   free(str);
   }
