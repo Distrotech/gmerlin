@@ -29,6 +29,77 @@
 
 #include <string.h>
 
+static char * create_event(bg_upnp_service_t * s, int * len)
+  {
+  char * ret;
+  int i;
+  xmlNodePtr propset;
+  xmlNodePtr node;
+  
+  xmlNsPtr ns;
+  xmlDocPtr doc = xmlNewDoc((xmlChar*)"1.0");
+  propset = xmlNewDocRawNode(doc, NULL, (xmlChar*)"propertyset", NULL);
+  xmlDocSetRootElement(doc, propset);
+  ns = xmlNewNs(propset,
+                (xmlChar*)"urn:schemas-upnp-org:event-1-0",
+                (xmlChar*)"e");
+  xmlSetNs(propset, ns);
+  
+  for(i = 0; i < s->num_event_vars; i++)
+    {
+    node = xmlNewChild(propset, ns, (xmlChar*)"property", NULL);
+    switch(s->event_vars[i].sv->type)
+      {
+      case BG_UPNP_SV_INT4:
+        {
+        char buf[16];
+        snprintf(buf, 16, "%d", s->event_vars[i].val.i);
+        node = xmlNewChild(node, NULL, (xmlChar*)s->event_vars[i].sv->name, (xmlChar*)buf);
+        xmlSetNs(node, NULL);
+        }
+        break;
+      case BG_UPNP_SV_STRING:
+        node = xmlNewChild(node, NULL, (xmlChar*)s->event_vars[i].sv->name,
+                    (xmlChar*)(s->event_vars[i].val.s ?
+                               s->event_vars[i].val.s : ""));
+        xmlSetNs(node, NULL);
+        break;
+      }
+    }
+  ret = bg_xml_save_to_memory(doc);
+  *len = strlen(ret);
+  xmlFreeDoc(doc);
+  return ret;
+  }
+
+static int send_event(bg_upnp_event_subscriber_t * es,
+                      char * event, int len)
+  {
+  gavl_metadata_t m;
+  bg_socket_address_t * addr;
+  char * path = NULL;
+  char * host = NULL;
+  int port;
+  int fd;
+
+  gavl_metadata_init(&m);
+  
+  /* Parse URL */
+  if(!bg_url_split(es->url,
+                   NULL, NULL, NULL,
+                   &host, &port, &path))
+    return 0;
+  
+  addr = bg_socket_address_create();
+
+  if(!bg_socket_address_set(addr, host, port, SOCK_STREAM))
+    return 0;
+  
+  if((fd = bg_socket_connect_inet(addr, 500)) < 0)
+    return 0;
+  return 1;
+  }
+
 static int get_timeout_seconds(const char * timeout, int * ret)
   {
   if(!strncmp(timeout, "Second-", 7))
@@ -45,7 +116,7 @@ static int get_timeout_seconds(const char * timeout, int * ret)
   }
 
 static void add_subscription(bg_upnp_service_t * s, int fd,
-                            const char * callback, const char * timeout)
+                             const char * callback, const char * timeout)
   {
   const char * start, *end;
   uuid_t uuid;
@@ -53,7 +124,9 @@ static void add_subscription(bg_upnp_service_t * s, int fd,
   gavl_metadata_t res;
   int seconds;
   int result = 0;
-
+  char * event;
+  int len;
+  
   gavl_metadata_init(&res);
 
   if(s->num_es + 1 > s->es_alloc)
@@ -102,6 +175,10 @@ static void add_subscription(bg_upnp_service_t * s, int fd,
          es->uuid, es->url);
   s->num_es++;
   result = 1;
+
+  event = create_event(s, &len);
+  fprintf(stderr, "%s", event);
+  free(event);
   
   fail:
 

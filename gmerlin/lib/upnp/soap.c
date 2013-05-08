@@ -203,6 +203,9 @@ bg_upnp_soap_response_to_xml(bg_upnp_service_t * s, int * len)
     }
   ret = bg_xml_save_to_memory(doc);
   *len = strlen(ret);
+
+  fprintf(stderr, "SOAP response:\n%s\n", ret);
+
   xmlFreeDoc(doc);
   return ret;
   }
