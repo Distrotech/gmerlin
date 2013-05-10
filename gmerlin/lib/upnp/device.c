@@ -123,6 +123,13 @@ bg_upnp_device_destroy(bg_upnp_device_t * dev)
     gavl_timer_destroy(dev->timer);
   if(dev->description)
     free(dev->description);
+
+  if(dev->destroy)
+    dev->destroy(dev->priv);
+
+  bg_ssdp_root_device_free(&dev->ssdp_dev);
+
+  free(dev);
   }
 
 void bg_upnp_device_init(bg_upnp_device_t * ret, bg_socket_address_t * addr,
@@ -196,7 +203,8 @@ static void create_description(bg_upnp_device_t * dev)
                                                 dev->services[i].name);
     }
   dev->description = bg_xml_save_to_memory(doc);
-
+  xmlFreeDoc(doc);
+  
   //  fprintf(stderr, "Created device description:\n%s\n", dev->description);
   
   }

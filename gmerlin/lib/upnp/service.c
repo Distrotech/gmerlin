@@ -122,6 +122,18 @@ void bg_upnp_service_free(bg_upnp_service_t * s)
     if(s->es[i].url)
       free(s->es[i].url);
     }
+
+  for(i = 0; i < s->num_event_vars; i++)
+    bg_upnp_sv_val_free(&s->event_vars[i].val);
+  if(s->event_vars)
+    free(s->event_vars);
+  
+
   if(s->es)
     free(s->es);
+
+  if(s->req.args_in)
+    free(s->req.args_in);
+  if(s->req.args_out)
+    free(s->req.args_out);
   }

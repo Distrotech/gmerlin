@@ -61,17 +61,20 @@ int server_handle_media(server_t * s, int * fd,
   int64_t id = 0;
   char * path = NULL;
   gavl_metadata_t res;
-  gavl_metadata_t url_vars;
   int type;
   int launch_thread = 0;
+  char * pos;
+  const char * range;
+  int64_t start, end;
   
   gavl_metadata_init(&res);
-  gavl_metadata_init(&url_vars);
   
-  if(strncmp(path_orig, "/media?", 7))
+  if(strncmp(path_orig, "/media/", 7))
     return 0;
+
+  path_orig += 7;
   
-  if(strcmp(method, "GET"))
+  if(strcmp(method, "GET") && strcmp(method, "HEAD"))
     {
     /* Method not allowed */
     bg_http_response_init(&res, "HTTP/1.1", 
@@ -81,10 +84,16 @@ int server_handle_media(server_t * s, int * fd,
   
   path = gavl_strdup(path_orig);
 
-  bg_url_get_vars(path, &url_vars);
+  /* Some clients append bullshit to the path */
+  if((pos = strchr(path, '#')))
+    *pos = '\0';
 
-  if(!gavl_metadata_get_long(&url_vars, "id", &id))
+  id = strtoll(path, &pos, 10);
+  
+  if(*pos != '\0')
     {
+    fprintf(stderr, "Bad request: %s\n", path);
+
     bg_http_response_init(&res, "HTTP/1.1", 
                           400, "Bad Request");
     goto go_on;
@@ -131,6 +140,49 @@ int server_handle_media(server_t * s, int * fd,
     }
 
   /* TODO: Figure out byte range */
+
+  
+  range = gavl_metadata_get_i(req, "Range");
+  if(range)
+    {
+    if(gavl_string_starts_with(range, "bytes="))
+      {
+      range += 6;
+
+      if(sscanf(range, "%"PRId64"-%"PRId64, &start, &end) < 2)
+        {
+        if(sscanf(range, "%"PRId64"-", &start) == 1)
+          end = o->size;
+        else
+          {
+          bg_http_response_init(&res, "HTTP/1.1", 
+                                400, "Bad Request");
+          goto go_on;
+          }
+        }
+      else
+        {
+        if(end > o->size)
+          {
+          bg_http_response_init(&res, "HTTP/1.1", 
+                                416, "Requested range not satisfiable");
+          goto go_on;
+          }
+        }
+      }
+    else
+      {
+      bg_http_response_init(&res, "HTTP/1.1", 
+                            400, "Bad Request");
+      goto go_on;
+      }
+    fprintf(stderr, "Got range: %"PRId64"-%"PRId64"\n", start, end);
+    }
+  else
+    {
+    start = 0;
+    end = o->size;
+    }
   
   /* Decide whether to launch a thread */
 
@@ -147,11 +199,16 @@ int server_handle_media(server_t * s, int * fd,
   bg_http_response_init(&res, "HTTP/1.1", 
                         200, "OK");
   gavl_metadata_set(&res, "Content-Type", f->mimetype);
-  gavl_metadata_set_long(&res, "Content-Length", o->size);
-
+  gavl_metadata_set_long(&res, "Content-Length", end - start);
+  gavl_metadata_set(&res, "Connection", "close");
+  gavl_metadata_set(&res, "Cache-control", "no-cache");
+  
   fprintf(stderr, "Sending file:\n");
   gavl_metadata_dump(&res, 0);
-    
+
+  if(!strcmp(method, "HEAD"))
+    result = 0;
+  
   go_on:
 
   if(!bg_http_response_write(*fd, &res) ||
@@ -159,14 +216,14 @@ int server_handle_media(server_t * s, int * fd,
     goto cleanup;
 
   if(!launch_thread)
-    bg_socket_send_file(*fd, f->path, 0, -1);
+    bg_socket_send_file(*fd, f->path, start, end);
   else
     {
     client_t * c;
     send_file_t * sf = calloc(1, sizeof(*s));
     sf->path = gavl_strdup(f->path);
-    sf->offset = 0;
-    sf->length = -1;
+    sf->offset = start;
+    sf->length = end - start;
 
     c = client_create(CLIENT_TYPE_MEDIA, *fd, sf, cleanup_func, send_file_func);
     server_attach_client(s, c);
@@ -176,7 +233,6 @@ int server_handle_media(server_t * s, int * fd,
   cleanup:
 
   gavl_metadata_free(&res);
-  gavl_metadata_free(&url_vars);
   if(path)
     free(path);
   if(o)

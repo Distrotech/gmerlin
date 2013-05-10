@@ -508,6 +508,7 @@ static void delete_from_parent(bg_db_t * db, bg_db_object_t * obj)
 
 void bg_db_object_delete(bg_db_t * db, void * obj1)
   {
+  const bg_db_object_class_t * c;
   bg_sqlite_id_tab_t  tab;
   bg_db_object_storage_t child_s;
   bg_db_object_t * child;
@@ -549,5 +550,14 @@ void bg_db_object_delete(bg_db_t * db, void * obj1)
     delete_from_parent(db, obj);
   
   bg_sqlite_delete_by_id(db->db, "OBJECTS", obj->id);
+
+  /* Children */
+  c = obj->klass;
+  while(c)
+    {
+    if(c->del)
+      c->del(db, obj);
+    c = c->parent;
+    }
   }
 

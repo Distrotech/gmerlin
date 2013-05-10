@@ -172,6 +172,8 @@ bg_upnp_soap_request_from_xml(bg_upnp_service_t * s,
   for(i = 0; i < s->req.action->num_args_out; i++)
     s->req.args_out[i].desc = &s->req.action->args_out[i];
   s->req.num_args_out = s->req.action->num_args_out;
+
+  xmlFreeDoc(doc);
   
   return 1;
   }
@@ -204,7 +206,7 @@ bg_upnp_soap_response_to_xml(bg_upnp_service_t * s, int * len)
   ret = bg_xml_save_to_memory(doc);
   *len = strlen(ret);
 
-  fprintf(stderr, "SOAP response:\n%s\n", ret);
+  //  fprintf(stderr, "SOAP response:\n%s\n", ret);
 
   xmlFreeDoc(doc);
   return ret;

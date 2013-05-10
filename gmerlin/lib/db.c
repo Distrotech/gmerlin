@@ -81,6 +81,7 @@ static const char * create_commands[] =
     "CREATE TABLE AUDIO_FILES("
     "ID INTEGER PRIMARY KEY, "
     "TITLE TEXT, "
+    "SEARCH_TITLE TEXT, "
     "ARTIST INTEGER, "
     "GENRE INTEGER, "
     "DATE TEXT, "
@@ -112,7 +113,7 @@ static const char * create_commands[] =
     "ID INTEGER PRIMARY KEY, "
     "PLAYLIST_ID INTEGER, "
     "ITEM_ID INTEGER, "
-    "INDEX INTEGER"
+    "IDX INTEGER"
     ");",
 
     NULL,
@@ -208,7 +209,7 @@ bg_db_t * bg_db_create(const char * path,
   ret->db = db;
   ret->plugin_reg = plugin_reg;
 
-  ret->cache_size = 16;
+  ret->cache_size = 256;
   ret->cache = calloc(ret->cache_size, sizeof(*ret->cache));
 
   for(i = 0; i < ret->cache_size; i++)
@@ -394,6 +395,8 @@ void bg_db_add_directory(bg_db_t * db, const char * d, int scan_flags)
     }
   bg_db_scan_items_free(files, num_files);
 
+  bg_db_flush(db);
+  
   /* Identify images */
   bg_db_identify_images(db, id, scan_flags);
   }
@@ -590,42 +593,55 @@ static const struct
   }
 groups[] =
   {
-   { 0,  "A" },
-   { 1,  "B" },
-   { 2,  "C" },
-   { 3,  "D" },
-   { 4,  "E" },
-   { 5,  "F" },
-   { 6,  "G" },
-   { 7,  "H" },
-   { 8,  "I" },
-   { 10, "J" },
-   { 11, "K" },
-   { 12, "L" },
-   { 13, "M" },
-   { 14, "N" },
-   { 15, "O" },
-   { 16, "P" },
-   { 17, "Q" },
-   { 18, "R" },
-   { 19, "S" },
-   { 20, "T" },
-   { 21, "U" },
-   { 22, "V" },
-   { 23, "W" },
-   { 24, "X" },
-   { 25, "Y" },
-   { 26, "Z" },
-   { 27, "Others" },
+    { 1,  "0-9"    },
+    { 2,  "A"      },
+    { 3,  "B"      },
+    { 4,  "C"      },
+    { 5,  "D"      },
+    { 6,  "E"      },
+    { 7,  "F"      },
+    { 8,  "G"      },
+    { 9,  "H"      },
+    { 10, "I"      },
+    { 11, "J"      },
+    { 12, "K"      },
+    { 13, "L"      },
+    { 14, "M"      },
+    { 15, "N"      },
+    { 16, "O"      },
+    { 17, "P"      },
+    { 18, "Q"      },
+    { 19, "R"      },
+    { 20, "S"      },
+    { 21, "T"      },
+    { 22, "U"      },
+    { 23, "V"      },
+    { 24, "W"      },
+    { 25, "X"      },
+    { 26, "Y"      },
+    { 27, "Z"      },
+    { 28, "Others" },
   };
-  
-
 
 const char * bg_db_get_group(const char * str, int * id)
   {
-  *id = toupper(*str) - 'A';
-  if((*id < 0) && (*id > 26))
-    *id = 27;
-  return groups[*id].label;
+  char upper = toupper(*str);
+  
+  if((upper >= '0') && (upper <= '9'))
+    *id = 1;
+  else if((upper >= 'A') && (upper <= 'Z'))
+    *id = upper - 'A' + 2;
+  else
+    *id = 28;
+  return groups[*id - 1].label;
   }
 
+char * bg_db_get_group_condition(const char * row, int group_id)
+  {
+  if(group_id == 1)
+    return bg_sprintf("(UPPER(%s) GLOB '[0-9]*')", row);
+  else if(group_id == 28)
+    return bg_sprintf("(UPPER(%s) NOT GLOB '[A-Z0-9]*')", row);
+  else
+    return bg_sprintf("(UPPER(%s) GLOB '%c*')", row, 'A' + group_id-2);
+  }

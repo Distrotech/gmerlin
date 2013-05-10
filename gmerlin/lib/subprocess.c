@@ -138,6 +138,7 @@ bg_subprocess_t * bg_subprocess_create(const char * command, int do_stdin,
   pid = fork();
   if(pid == (pid_t) 0)
     {
+    setsid();
     /*  Child */
     connect_pipe_child(&ret_priv->stdin_fd, STDIN_FILENO);
     connect_pipe_child(&ret_priv->stdout_fd, STDOUT_FILENO);
@@ -183,7 +184,7 @@ bg_subprocess_t * bg_subprocess_create(const char * command, int do_stdin,
 void bg_subprocess_kill(bg_subprocess_t * p, int sig)
   {
   subprocess_priv_t * priv = (subprocess_priv_t*)(p->priv);
-  kill(priv->pid, sig);
+  kill(-priv->pid, sig);
   
   }
 

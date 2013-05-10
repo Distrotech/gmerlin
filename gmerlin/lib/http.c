@@ -128,6 +128,7 @@ int bg_http_request_write(int fd, gavl_metadata_t * req)
   {
   int result, len = 0;
   char * line = bg_http_request_to_string(req, &len);
+
   result = bg_socket_write_data(fd, (const uint8_t*)line, len);
   free(line);
   return result;
@@ -147,7 +148,8 @@ char * bg_http_request_to_string(const gavl_metadata_t * req, int * lenp)
      !(protocol = gavl_metadata_get(req, META_PROTOCOL)))
     return NULL;
   
-  len = strlen(method) + 1 + strlen(path) + 1 + strlen(protocol) + 2 + vars_len(req);
+  len = strlen(method) + 1 + strlen(path) + 1 + strlen(protocol) + 2 +
+    vars_len(req);
   line = malloc(len + 1);
   line[len] = '\0';
   snprintf(line, len, "%s %s %s\r\n", method, path, protocol);
@@ -180,24 +182,26 @@ static int parse_request_line(gavl_metadata_t * req, char * line)
 
 int bg_http_request_read(int fd, gavl_metadata_t * req, int timeout)
   {
-  int result;
+  int result = 0;
   char * line = NULL;
   int line_alloc = 0;
   
   if(!bg_socket_read_line(fd, &line, &line_alloc, timeout))
-    return 0;
+    goto fail;
 
   //  fprintf(stderr, "Got line: %s\n", line);
   
   if(!parse_request_line(req, line))
-    return 0;
+    goto fail;
   
   result = read_vars(fd, &line, &line_alloc, req, timeout);
+
+  fail:
   
   if(line)
     free(line);
 
-  return 1;
+  return result;
   }
 
 int bg_http_request_from_string(gavl_metadata_t * req, const char * buf)
@@ -259,15 +263,6 @@ void bg_http_response_init(gavl_metadata_t * res,
   gavl_metadata_set(res, META_STATUS_STR, status_str);
   }
 
-int bg_http_response_write(int fd, gavl_metadata_t * res)
-  {
-  int result, len = 0;
-  char * line = bg_http_response_to_string(res, &len);
-  result = bg_socket_write_data(fd, (const uint8_t*)line, len);
-  free(line);
-  return result;
-  }
-
 char * bg_http_response_to_string(const gavl_metadata_t * res, int * lenp)
   {
   int len;
@@ -282,16 +277,27 @@ char * bg_http_response_to_string(const gavl_metadata_t * res, int * lenp)
      !(protocol = gavl_metadata_get(res, META_PROTOCOL)))
     return 0;
 
-  len = strlen(protocol) + 1 + 3 + 1 + strlen(status_str); // Maximum allowed code 999
+  // Maximum allowed code 999
+  len = strlen(protocol) + 1 + 3 + 1 + strlen(status_str) + 2; 
   len += vars_len(res);
 
-  line = malloc(len);
+  line = malloc(len + 1);
   snprintf(line, len, "%s %d %s\r\n", protocol, status_int, status_str);
   write_vars(line, res);
   if(lenp)
     *lenp = len;
   return line;
   }
+
+int bg_http_response_write(int fd, gavl_metadata_t * res)
+  {
+  int result, len = 0;
+  char * line = bg_http_response_to_string(res, &len);
+  result = bg_socket_write_data(fd, (const uint8_t*)line, len);
+  free(line);
+  return result;
+  }
+
 
 /* Read a response (client) */
 

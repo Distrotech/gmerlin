@@ -23,6 +23,11 @@
 #include <upnp/mediaserver.h>
 #include <stdlib.h>
 
+static void destroy_func(void * data)
+  {
+  bg_mediaserver_t * priv = data;
+  free(priv);
+  }
 
 bg_upnp_device_t *
 bg_upnp_create_media_server(bg_socket_address_t * addr,
@@ -36,6 +41,8 @@ bg_upnp_create_media_server(bg_socket_address_t * addr,
   ret = calloc(1, sizeof(*ret));
 
   priv = calloc(1, sizeof(*priv));
+
+  ret->destroy = destroy_func;
   ret->priv = priv;
   priv->db = db;  
 

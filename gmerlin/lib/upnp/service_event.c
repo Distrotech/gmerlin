@@ -84,7 +84,7 @@ static int send_event(bg_upnp_event_subscriber_t * es,
   int fd = -1;
   char * tmp_string;
   int result = 0;
-
+  
   gavl_metadata_init(&m);
   
   /* Parse URL */
@@ -101,7 +101,11 @@ static int send_event(bg_upnp_event_subscriber_t * es,
   if((fd = bg_socket_connect_inet(addr, 500)) < 0)
     goto fail;
 
-  bg_http_request_init(&m, "NOTIFY", path, "HTTP/1.1");
+  if(path)
+    bg_http_request_init(&m, "NOTIFY", path, "HTTP/1.1");
+  else
+    bg_http_request_init(&m, "NOTIFY", "/", "HTTP/1.1");
+    
   tmp_string = bg_sprintf("%s:%d", host, port);
   gavl_metadata_set(&m, "HOST", tmp_string);
   free(tmp_string);
@@ -114,14 +118,25 @@ static int send_event(bg_upnp_event_subscriber_t * es,
   gavl_metadata_set(&m, "SID", tmp_string);
   free(tmp_string);
   gavl_metadata_set_long(&m, "SEQ", es->key++);
+
+  //  fprintf(stderr, "Sending event: %s (%d %d)\n", es->url, len, strlen(event));
+  gavl_metadata_dump(&m, 0);
+  fprintf(stderr, "%s\n", event);
   
-  if(!bg_http_request_write(fd, &m) ||
-     (bg_socket_write_data(fd, (uint8_t*)event, len) < len))
+  if(!bg_http_request_write(fd, &m))
+    {
+    fprintf(stderr, "Writing header failed\n");
     goto fail;
+    }
+  if(!bg_socket_write_data(fd, (uint8_t*)event, len))
+    {
+    fprintf(stderr, "Writing event failed\n");
+    goto fail;
+    }
   gavl_metadata_free(&m);
   gavl_metadata_init(&m);
   
-  if(bg_http_response_read(fd, &m, 500))
+  if(!bg_http_response_read(fd, &m, 10000))
     goto fail;
   fprintf(stderr, "Got response:\n");
   gavl_metadata_dump(&m, 0);

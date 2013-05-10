@@ -94,6 +94,7 @@ db_image.c \
 db_object.c \
 db_root.c \
 db_scan.c \
+db_thumbnail.c \
 db_vfolder.c \
 device.c \
 edl.c \

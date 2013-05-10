@@ -157,7 +157,8 @@ static void handle_client_connection(server_t * s, int fd)
   /* Try to handle things */
 
   if(!bg_upnp_device_handle_request(s->dev, fd, method, path, &req) &&
-     !server_handle_media(s, &fd, method, path, &req))
+     !server_handle_media(s, &fd, method, path, &req) &&
+     !server_handle_transcode(s, &fd, method, path, &req))
     send_404(fd);
   
   fail:
@@ -244,11 +245,20 @@ void server_cleanup(server_t * s)
     bg_upnp_device_destroy(s->dev);
   if(s->db)
     bg_db_destroy(s->db);
+  if(s->dbpath)
+    free(s->dbpath);
+  if(s->root_url)
+    free(s->root_url);
+
+  if(s->addr)
+    bg_socket_address_destroy(s->addr);
   
   for(i = 0; i < s->num_clients; i++)
     client_destroy(s->clients[i]);
   if(s->clients)
     free(s->clients);
+
+
   bg_plugin_registry_destroy(s->plugin_reg);
   bg_cfg_registry_destroy(s->cfg_reg);
   }

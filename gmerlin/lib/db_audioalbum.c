@@ -70,7 +70,7 @@ static void get_children_audioalbum(bg_db_t * db, void * obj, bg_sqlite_id_tab_t
   int result;
   sql = sqlite3_mprintf("SELECT ID FROM AUDIO_FILES WHERE ALBUM = %"PRId64" ORDER BY TRACK;",
                         bg_db_object_get_id(obj));
-  result = bg_sqlite_exec(db->db, sql, bg_sqlite_append_id_callback, &tab);
+  result = bg_sqlite_exec(db->db, sql, bg_sqlite_append_id_callback, tab);
   sqlite3_free(sql);
   }
 
@@ -208,6 +208,7 @@ void bg_db_audio_file_add_to_album(bg_db_t * db, bg_db_audio_file_t * f)
     bg_db_object_set_type(a, BG_DB_OBJECT_AUDIO_ALBUM);
     bg_db_object_set_parent_id(db, a, -1);
     a->genre_id = f->genre_id;
+    
     /* Remove title completely? */
     a->title = gavl_strdup(f->album);
     a->search_title = gavl_strdup(bg_db_get_search_string(a->title));

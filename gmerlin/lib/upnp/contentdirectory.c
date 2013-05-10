@@ -118,7 +118,7 @@ static void didl_add_element(xmlDocPtr doc,
   {
   char * pos;
   char buf[128];
-  strncpy(buf, value, 127);
+  strncpy(buf, name, 127);
   buf[127] = '\0';
 
   pos = strchr(buf, ':');
@@ -245,15 +245,38 @@ static xmlNodePtr didl_create_res_file(xmlDocPtr doc,
     return NULL;
   
   /* Location (required) */
-  tmp_string = bg_sprintf("%smedia?id=%"PRId64, url_base, bg_db_object_get_id(f));
-  child = bg_xml_append_child_node(node, "res", tmp_string);
+#if 0
+  if(!strcmp(file->mimetype, "audio/mpeg"))
+    {
+    tmp_string = bg_sprintf("%smedia/%"PRId64, url_base, bg_db_object_get_id(f));
+    child = bg_xml_append_child_node(node, "res", tmp_string);
+    free(tmp_string);
+    }
+  else
+    {
+    tmp_string = bg_sprintf("%stranscode/%"PRId64"/mp3-320", url_base, bg_db_object_get_id(f));
+    child = bg_xml_append_child_node(node, "res", tmp_string);
+    free(tmp_string);
+    }
+  /* Protocol info (required) */
+  tmp_string = bg_sprintf("http-get:*:audio/mpeg:*");
+  BG_XML_SET_PROP(child, "protocolInfo", tmp_string);
   free(tmp_string);
 
+#else
+  tmp_string = bg_sprintf("%smedia/%"PRId64, url_base, bg_db_object_get_id(f));
+  child = bg_xml_append_child_node(node, "res", tmp_string);
+  free(tmp_string);
+  
   /* Protocol info (required) */
   tmp_string = bg_sprintf("http-get:*:%s:*", file->mimetype);
   BG_XML_SET_PROP(child, "protocolInfo", tmp_string);
   free(tmp_string);
+  
+#endif
 
+
+  
   /* Size (optional) */
   if(filter_attribute("res", "size", filter))
     didl_set_attribute_int(child, "size", file->obj.size);
@@ -268,13 +291,36 @@ static xmlNodePtr didl_create_res_file(xmlDocPtr doc,
   return child;
   }
 
+static void didl_set_date(xmlDocPtr didl, xmlNodePtr node,
+                          const bg_db_date_t * date_c, char ** filter)
+  {
+  bg_db_date_t date;
+  char date_string[BG_DB_DATE_STRING_LEN];
+  
+  if(date_c->year == 9999)
+    return;
+  
+  if(!filter_element("dc:date", filter))
+    return;
+  
+  memcpy(&date, date_c, sizeof(date));
+  if(!date.day)
+    date.day = 1;
+  if(!date.month)
+    date.month = 1;
+
+  bg_db_date_to_string(&date, date_string);
+  
+  didl_add_element(didl, node, "dc:date", date_string);
+  }
+  
 typedef struct
   {
   const char * upnp_parent;
   xmlDocPtr doc;
   bg_upnp_device_t * dev;
-
   char ** filter;
+  bg_db_t * db;
   } query_t;
 
 /* 
@@ -338,12 +384,17 @@ static xmlNodePtr didl_add_object(xmlDocPtr didl, bg_db_object_t * obj,
       didl_set_class(didl, node,  "object.item.audioItem.musicTrack");
 
       if(o->artist)
+        {
         didl_add_element_string(didl, node, "upnp:artist", o->artist, q->filter);
+        didl_add_element_string(didl, node, "dc:creator", o->artist, q->filter);
+        }
       if(o->genre)
         didl_add_element_string(didl, node, "upnp:genre", o->genre, q->filter);
       if(o->album)
         didl_add_element_string(didl, node, "upnp:album", o->album, q->filter);
- 
+
+      didl_set_date(didl, node, &o->date, q->filter);
+      
       if((res = didl_create_res_file(didl, node, obj, q->dev->url_base, q->filter)))
         {
         /* Audio attributes */
@@ -354,6 +405,23 @@ static xmlNodePtr didl_add_object(xmlDocPtr didl, bg_db_object_t * obj,
         if(filter_attribute("res", "nrAudioChannels", q->filter))
           didl_set_attribute_int(res, "nrAudioChannels", o->channels);
         }
+
+      /* Album art */
+      if(o->album && filter_element("upnp:albumArtURI", q->filter))
+        {
+        bg_db_audio_album_t * album = bg_db_object_query(q->db, o->album_id);
+        if(album)
+          {
+          if(album->cover_id > 0)
+            {
+            tmp_string = bg_sprintf("%smedia/%"PRId64, q->dev->url_base, album->cover_id);
+            didl_add_element_string(didl, node, "upnp:albumArtURI", tmp_string, NULL);
+            free(tmp_string);
+            }
+          bg_db_object_unref(album);
+          }
+        }
+
       }
       break;
     case BG_DB_OBJECT_VIDEO_FILE:
@@ -366,8 +434,27 @@ static xmlNodePtr didl_add_object(xmlDocPtr didl, bg_db_object_t * obj,
       didl_set_class(didl, node,  "object.container");
       break;
     case BG_DB_OBJECT_AUDIO_ALBUM:
+      {
+      bg_db_audio_album_t * o = (bg_db_audio_album_t *)obj;
       didl_set_title(didl, node,  bg_db_object_get_label(obj));
       didl_set_class(didl, node,  "object.container.album.musicAlbum");
+      didl_set_date(didl, node, &o->date, q->filter);
+      if(o->artist)
+        {
+        didl_add_element_string(didl, node, "upnp:artist", o->artist, q->filter);
+        didl_add_element_string(didl, node, "dc:creator", o->artist, q->filter);
+        }
+      if(o->genre)
+        didl_add_element_string(didl, node, "upnp:genre", o->genre, q->filter);
+
+      if(o->cover_id > 0)
+        {
+        tmp_string = bg_sprintf("%smedia/%"PRId64, q->dev->url_base, o->cover_id);
+        didl_add_element_string(didl, node, "upnp:albumArtURI", tmp_string, q->filter);
+        free(tmp_string);
+        }
+
+      }
       break;
     case BG_DB_OBJECT_CONTAINER:
       didl_set_title(didl, node,  bg_db_object_get_label(obj));
@@ -456,6 +543,10 @@ static int Browse(bg_upnp_service_t * s)
 
   if(strcmp(Filter, "*"))
     q.filter = bg_strbreak(Filter, ',');
+  else
+    q.filter = NULL;
+
+  q.db = priv->db;
   
   id = strtoll(ObjectID, NULL, 10);
   
@@ -486,6 +577,9 @@ static int Browse(bg_upnp_service_t * s)
   bg_upnp_service_set_arg_out_int(&s->req, ARG_TotalMatches, TotalMatches);
   
   fprintf(stderr, "didl-test:\n%s\n", ret);
+  // Remove trailing linebreak
+  if(ret[strlen(ret)-1] == '\n')
+    ret[strlen(ret)-1] = '\0';
   
   xmlFreeDoc(q.doc);
 

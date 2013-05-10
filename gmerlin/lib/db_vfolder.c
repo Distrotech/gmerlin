@@ -39,20 +39,35 @@ vfolder_types[] =
   {
     {
       .type = BG_DB_OBJECT_AUDIO_ALBUM,
-      .name = "By Genre - Artist",
+      .name = "Genre/Artist",
       .cats = { BG_DB_CAT_GENRE,
+                BG_DB_CAT_GROUP,
+                BG_DB_CAT_ARTIST,
+              },
+    },
+    {
+      .type = BG_DB_OBJECT_AUDIO_ALBUM,
+      .name = "Genre/Year",
+      .cats = { BG_DB_CAT_GENRE,
+                BG_DB_CAT_YEAR,
+              },
+    },
+    {
+      .type = BG_DB_OBJECT_AUDIO_ALBUM,
+      .name = "Artist",
+      .cats = { BG_DB_CAT_GROUP,
                 BG_DB_CAT_ARTIST,
               },
     },
     {
       .type = BG_DB_OBJECT_AUDIO_FILE,
-      .name = "By Genre - Artist",
-      .cats = { BG_DB_CAT_GENRE, BG_DB_CAT_ARTIST },
+      .name = "Genre/Artist",
+      .cats = { BG_DB_CAT_GENRE, BG_DB_CAT_GROUP, BG_DB_CAT_ARTIST },
     },
     {
       .type = BG_DB_OBJECT_AUDIO_FILE,
-      .name = "By Genre - Artist - Year",
-      .cats = { BG_DB_CAT_GENRE, BG_DB_CAT_ARTIST },
+      .name = "Artist",
+      .cats = { BG_DB_CAT_GROUP, BG_DB_CAT_ARTIST },
     },
     { /* End */ }
   };
@@ -77,7 +92,8 @@ static void del_vfolder(bg_db_t * db, bg_db_object_t * obj) // Delete from db
   bg_sqlite_delete_by_id(db->db, "VFOLDERS", obj->id);
   }
 
-static int vfolder_query_callback(void * data, int argc, char **argv, char **azColName)
+static int vfolder_query_callback(void * data, int argc,
+                                  char **argv, char **azColName)
   {
   int i;
   bg_db_vfolder_t * ret = data;
@@ -104,7 +120,8 @@ static int query_vfolder(bg_db_t * db, void * obj, int full)
   
   f->obj.found = 0;
   sql =
-    sqlite3_mprintf("select * from VFOLDERS where ID = %"PRId64";", bg_db_object_get_id(f));
+    sqlite3_mprintf("select * from VFOLDERS where ID = %"PRId64";",
+                    bg_db_object_get_id(f));
   result = bg_sqlite_exec(db->db, sql, vfolder_query_callback, f);
   sqlite3_free(sql);
   if(!result || !f->obj.found)
@@ -121,12 +138,143 @@ const bg_db_object_class_t bg_db_vfolder_class =
   .parent = NULL,
   };
 
+/*
+ *  Query children of a vfolder leaf
+ */
+
+/*
+ *  Song: Artist, Genre, Title, Year
+ *  Album: Artist, Genre, Title, Year
+ */
+
+/* We assume that columns for the same category are names identically
+   in different tables */
+
+static char * get_sql_condition(bg_db_category_t cat, int64_t val, int last)
+  {
+  switch(cat)
+    {
+    case BG_DB_CAT_YEAR:
+      return bg_sprintf("(SUBSTR(DATE, 1, 4) = '%"PRId64"')", val);
+      break;
+    case BG_DB_CAT_GENRE:
+      return bg_sprintf("(GENRE = %"PRId64")", val);
+      break;
+    case BG_DB_CAT_ARTIST:
+      return bg_sprintf("(ARTIST = %"PRId64")", val);
+      break;
+    case BG_DB_CAT_GROUP:
+      if(last)
+        return bg_db_get_group_condition("SEARCH_TITLE", val);
+      else
+        return NULL;
+      break;
+    default:
+      // BG_DB_CAT_GROUP,
+      // BG_DB_CAT_TITLE,
+      break;
+    }
+  return NULL;
+  }
+
+static int has_cat(bg_db_vfolder_t * f, bg_db_category_t cat)
+  {
+  int i = 0;
+  for(i = 0; i < BG_DB_VFOLDER_MAX_DEPTH; i++)
+    {
+    if(!f->path[i].cat)
+      return 0;
+    if(f->path[i].cat == cat)
+      return 1;
+    }
+  return 0;
+  }
+
+static void get_children_vfolder_leaf(bg_db_t * db, void * obj, bg_sqlite_id_tab_t * tab)
+  {
+  char * sql = NULL;
+  int result;
+  bg_db_vfolder_t * f = obj;
+  int i;
+  const char * table;
+  char * condition;
+  int num;
+  int last;
+  
+  switch(f->type)
+    {
+    case BG_DB_OBJECT_AUDIO_FILE:
+      table = "AUDIO_FILES";
+      break;
+    case BG_DB_OBJECT_AUDIO_ALBUM:
+      table = "AUDIO_ALBUMS";
+      break;
+    default:
+      goto fail;
+      break;
+    }
+  sql = bg_sprintf("SELECT ID FROM %s WHERE ", table );
+
+  /* Go through conditions */
+  num = 0;
+  i = 0;
+  while(f->path[i].cat)
+    {
+    if((i == BG_DB_VFOLDER_MAX_DEPTH-1) ||
+       !f->path[i+1].cat)
+      last = 1;
+    else
+      last = 0;
+    
+    condition = get_sql_condition(f->path[i].cat, f->path[i].val, last);
+
+    if(condition)
+      {
+      if(num)
+        sql = gavl_strcat(sql, " & ");
+      sql = gavl_strcat(sql, condition);
+      num++;
+      free(condition);
+      }
+    i++;
+    }
+
+  /* Figure out the sort string */
+  switch(f->type)
+    {
+    case BG_DB_OBJECT_AUDIO_FILE:
+      sql = gavl_strcat(sql, " ORDER BY SEARCH_TITLE");
+      break;
+    case BG_DB_OBJECT_AUDIO_ALBUM:
+      if(has_cat(f, BG_DB_CAT_ARTIST))
+        sql = gavl_strcat(sql, " ORDER BY DATE, SEARCH_TITLE");
+      else
+        sql = gavl_strcat(sql, " ORDER BY SEARCH_TITLE");
+      break;
+    default:
+      goto fail;
+      break;
+    }
+  
+  sql = gavl_strcat(sql, ";");
+  
+  fprintf(stderr, "SQL: %s\n", sql);
+  
+  result = bg_sqlite_exec(db->db, sql, bg_sqlite_append_id_callback, tab);
+
+  fail:
+  if(sql)
+    free(sql);
+  }
+
+
 const bg_db_object_class_t bg_db_vfolder_leaf_class =
   {
   .name = "Virtual folder (leaf)",
-  .del = del_vfolder,
+  .del =   del_vfolder,
   .query = query_vfolder,
-  .dump = &dump_vfolder,
+  .dump =  dump_vfolder,
+  .get_children = get_children_vfolder_leaf,
   .parent = NULL,
   };
 
@@ -278,7 +426,7 @@ get_root_vfolder(bg_db_t * db, int idx)
         bg_db_object_set_label(child, "Songs");
         break;
       case BG_DB_OBJECT_AUDIO_ALBUM:
-        bg_db_object_set_label(child, "Music albums");
+        bg_db_object_set_label(child, "Albums");
         break;
       }
     bg_db_object_set_parent(db, child, parent);
@@ -316,8 +464,11 @@ get_root_vfolder(bg_db_t * db, int idx)
   return child;
   }
 
-static char * get_cat_value(void * obj, bg_db_category_t cat, int64_t * val_i)
+static char * get_cat_value(bg_db_t * db,
+                            void * obj, bg_db_category_t cat, int64_t * val_i)
   {
+  int group_index;
+  char * ret;
   switch(bg_db_object_get_type(obj))
     {
     case BG_DB_OBJECT_AUDIO_FILE:
@@ -328,7 +479,10 @@ static char * get_cat_value(void * obj, bg_db_category_t cat, int64_t * val_i)
         {
         case BG_DB_CAT_YEAR:
           *val_i = f->date.year;
-          return bg_sprintf("%04d", f->date.year);
+          if(f->date.year == 9999)
+            return gavl_strdup("Unknown");
+          else
+            return bg_sprintf("%04d", f->date.year);
           break;
         case BG_DB_CAT_ARTIST:
           *val_i = f->artist_id;
@@ -337,12 +491,10 @@ static char * get_cat_value(void * obj, bg_db_category_t cat, int64_t * val_i)
         case BG_DB_CAT_GENRE:
           *val_i = f->genre_id;
           return gavl_strdup(f->genre);
-        case BG_DB_CAT_TITLE:
-          *val_i = -1;
-          return gavl_strdup(f->title);
         case BG_DB_CAT_GROUP:
-          *val_i = -1;
-          return NULL;
+          ret = gavl_strdup(bg_db_get_group(f->search_title, &group_index));
+          *val_i = group_index;
+          return ret;
         }
       }
       break;
@@ -354,21 +506,23 @@ static char * get_cat_value(void * obj, bg_db_category_t cat, int64_t * val_i)
         {
         case BG_DB_CAT_YEAR:
           *val_i = f->date.year;
-          return bg_sprintf("%04d", f->date.year);
+          if(f->date.year == 9999)
+            return gavl_strdup("Unknown");
+          else
+            return bg_sprintf("%04d", f->date.year);
           break;
         case BG_DB_CAT_ARTIST:
           *val_i = f->artist_id;
-          return gavl_strdup(f->artist);
+          return bg_sqlite_id_to_string(db->db, "AUDIO_ARTISTS", "NAME", "ID", f->artist_id);
           break;
         case BG_DB_CAT_GENRE:
           *val_i = f->genre_id;
-          return gavl_strdup(f->genre);
-        case BG_DB_CAT_TITLE:
-          *val_i = -1;
-          return gavl_strdup(f->title);
+          return bg_sqlite_id_to_string(db->db, "AUDIO_GENRES", "NAME", "ID", f->genre_id);
+          break;
         case BG_DB_CAT_GROUP:
-          *val_i = -1;
-          return NULL;
+          ret = gavl_strdup(bg_db_get_group(f->search_title, &group_index));
+          *val_i = group_index;
+          return ret;
         }
       }
     case BG_DB_OBJECT_OBJECT:
@@ -385,6 +539,7 @@ static char * get_cat_value(void * obj, bg_db_category_t cat, int64_t * val_i)
     case BG_DB_OBJECT_VIDEO_PREVIEW:
     case BG_DB_OBJECT_MOVIE_POSTER:
     case BG_DB_OBJECT_THUMBNAIL:
+    case BG_DB_OBJECT_ROOT:
       break;
     }
   return 0;
@@ -399,8 +554,7 @@ get_vfolder_child(bg_db_t * db, bg_db_object_t * parent,
   {
   bg_db_object_t * child;
   int64_t id = vfolder_by_path(db, object_type, depth, path);
-  
-  
+    
   if(id < 0)
     {
     bg_db_object_type_t folder_type;
@@ -412,13 +566,13 @@ get_vfolder_child(bg_db_t * db, bg_db_object_t * parent,
  
     bg_db_object_set_type(child, folder_type);
     vfolder_set(db, (bg_db_vfolder_t*)child, object_type, depth, path);
+    bg_db_object_set_parent(db, child, parent);
     }
   else
     {
     free(name);
     child = bg_db_object_query(db, id);
     }
-  bg_db_object_set_parent(db, child, parent);
   bg_db_object_unref(parent);
   return child;
   }
@@ -446,7 +600,8 @@ bg_db_create_vfolders(bg_db_t * db, void * obj)
       i++;
       continue;
       }
- 
+
+    last = 0;
     num_cats = 0;
     while(vfolder_types[i].cats[num_cats])
       num_cats++;
@@ -463,13 +618,13 @@ bg_db_create_vfolders(bg_db_t * db, void * obj)
       if(j == num_cats-1)
         last = 1;
       
-      if(path[j].cat == BG_DB_CAT_GROUP)
+      if((path[j].cat == BG_DB_CAT_GROUP) && !last)
         {
         do_group = 1;
         continue;
         }
 
-      name = get_cat_value(obj, path[j].cat, &val_i);
+      name = get_cat_value(db, obj, path[j].cat, &val_i);
 
       if(do_group)
         {
@@ -478,7 +633,7 @@ bg_db_create_vfolders(bg_db_t * db, void * obj)
         char * group_name = gavl_strdup(bg_db_get_group(name, &group_index));
         path[j-1].val = group_index;
         parent = get_vfolder_child(db, parent, path, 
-                                   last, type, j, group_name);
+                                   0, type, j, group_name);
         do_group = 0;
         }
       path[j].val = val_i;

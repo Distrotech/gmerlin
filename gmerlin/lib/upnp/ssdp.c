@@ -283,6 +283,7 @@ bg_ssdp_t * bg_ssdp_create(bg_ssdp_root_device_t * local_dev,
                  NULL,
                  NULL);
     bg_socket_address_set(ret->local_addr, host, 0, SOCK_DGRAM);
+    free(host);
     }
   else if(!bg_socket_address_set_local(ret->local_addr, 0))
     goto fail;
@@ -470,7 +471,8 @@ static void schedule_reply(bg_ssdp_t * s, const char * st,
 
 // static void setup_header(bg_ssdp_root_device_t * dev, 
 
-static void flush_reply_packet(bg_ssdp_t * s, const gavl_metadata_t * h, bg_socket_address_t * sender)
+static void flush_reply_packet(bg_ssdp_t * s, const gavl_metadata_t * h,
+                               bg_socket_address_t * sender)
   {
   int len = 0;
   char * str = bg_http_response_to_string(h, &len);
@@ -887,5 +889,9 @@ void bg_ssdp_destroy(bg_ssdp_t * s)
     bg_socket_address_destroy(s->mcast_addr);
   if(s->sender_addr) 
     bg_socket_address_destroy(s->sender_addr);
+
+  if(s->timer)
+    gavl_timer_destroy(s->timer);
+  free(s);
   }
 

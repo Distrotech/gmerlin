@@ -112,3 +112,8 @@ void server_cleanup(server_t * s);
 
 int server_handle_media(server_t * s, int * fd, const char * method, const char * path,
                         const gavl_metadata_t * req);
+
+int server_handle_transcode(server_t * s, int * fd,
+                            const char * method,
+                            const char * path_orig,
+                            const gavl_metadata_t * req);

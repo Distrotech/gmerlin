@@ -40,6 +40,8 @@ static void free_audio_file(void * obj)
   bg_db_audio_file_t * file = obj;
   if(file->title)
     free(file->title);
+  if(file->search_title)
+    free(file->search_title);
   if(file->bitrate)
     free(file->bitrate);
   if(file->genre)
@@ -55,20 +57,20 @@ static void free_audio_file(void * obj)
 static void dump_audio_file(void * obj)
   {
   bg_db_audio_file_t * file = obj;
-  gavl_diprintf(2, "Title:      %s\n", file->title);
-  gavl_diprintf(2, "Artist:     %s\n", file->artist);
-  gavl_diprintf(2, "Year:       %d\n", file->date.year);
-  gavl_diprintf(2, "Album:      %s (%"PRId64")\n", file->album, file->album_id);
-  gavl_diprintf(2, "Track:      %d\n", file->track);
-  gavl_diprintf(2, "Bitrate:    %s\n", file->bitrate);
-  gavl_diprintf(2, "Genre:      %s\n", file->genre);
-  gavl_diprintf(2, "Samplerate: %d\n", file->samplerate);
-  gavl_diprintf(2, "Channels:   %d\n", file->channels);
+  gavl_diprintf(2, "Title:       %s\n", file->title);
+  gavl_diprintf(2, "SearchTitle: %s\n", file->title);
+  gavl_diprintf(2, "Artist:      %s\n", file->artist);
+  gavl_diprintf(2, "Year:        %d\n", file->date.year);
+  gavl_diprintf(2, "Album:       %s (%"PRId64")\n", file->album, file->album_id);
+  gavl_diprintf(2, "Track:       %d\n", file->track);
+  gavl_diprintf(2, "Bitrate:     %s\n", file->bitrate);
+  gavl_diprintf(2, "Genre:       %s\n", file->genre);
+  gavl_diprintf(2, "Samplerate:  %d\n", file->samplerate);
+  gavl_diprintf(2, "Channels:    %d\n", file->channels);
   }
 
 static void del_audio_file(bg_db_t * db, bg_db_object_t * obj) // Delete from db
   {
-  bg_sqlite_delete_by_id(db->db, "FILES", obj->id);
   bg_sqlite_delete_by_id(db->db, "AUDIO_FILES", obj->id);
   bg_db_audio_file_remove_from_album(db, (bg_db_audio_file_t*)obj);
   }
@@ -81,6 +83,7 @@ static int audio_query_callback(void * data, int argc, char **argv, char **azCol
   for(i = 0; i < argc; i++)
     {
     BG_DB_SET_QUERY_STRING("TITLE",    title);
+    BG_DB_SET_QUERY_STRING("SEARCH_TITLE", search_title);
     BG_DB_SET_QUERY_INT("ARTIST",      artist_id);
     BG_DB_SET_QUERY_INT("GENRE",       genre_id);
     BG_DB_SET_QUERY_DATE("DATE",       date);
@@ -139,10 +142,11 @@ static void audio_file_add(bg_db_t * db, bg_db_audio_file_t * f)
   /* Date */
   bg_db_date_to_string(&f->date, date_string);
   
-  sql = sqlite3_mprintf("INSERT INTO AUDIO_FILES ( ID, TITLE, ARTIST, GENRE, DATE, ALBUM, TRACK, BITRATE, SAMPLERATE, CHANNELS ) "
+  sql = sqlite3_mprintf("INSERT INTO AUDIO_FILES ( ID, TITLE, SEARCH_TITLE, ARTIST, GENRE, DATE, ALBUM, TRACK, BITRATE, SAMPLERATE, CHANNELS ) "
                         "VALUES"
-                        " ( %"PRId64", %Q, %"PRId64", %"PRId64", %Q, %"PRId64", %d, %Q, %d, %d );",
-                        bg_db_object_get_id(f) , f->title, f->artist_id, f->genre_id, date_string, f->album_id, 
+                        " ( %"PRId64", %Q, %Q, %"PRId64", %"PRId64", %Q, %"PRId64", %d, %Q, %d, %d );",
+                        bg_db_object_get_id(f) , f->title, f->search_title, f->artist_id, f->genre_id,
+                        date_string, f->album_id, 
                         f->track, f->bitrate, f->samplerate, f->channels);
 
   result = bg_sqlite_exec(db->db, sql, NULL, NULL);
@@ -158,7 +162,11 @@ void bg_db_audio_file_create(bg_db_t * db, void * obj, bg_track_info_t * t)
   bg_db_object_set_type(obj, BG_DB_OBJECT_AUDIO_FILE);
   
   if((var = gavl_metadata_get(&t->metadata, GAVL_META_TITLE)))
+    {
     f->title = gavl_strdup(var);
+    f->search_title = gavl_strdup(bg_db_get_search_string(f->title));
+    }
+  
   if((var = gavl_metadata_get(&t->metadata, GAVL_META_ARTIST)))
     f->artist = gavl_strdup(var);
   if((var = gavl_metadata_get(&t->metadata, GAVL_META_ALBUMARTIST)))

@@ -16,7 +16,8 @@ gmerlin_server_SOURCES = \
 client.c \
 gmerlin-server.c \
 mediahandler.c \
-server.c
+server.c \
+transcode.c 
 
 # dist_man_MANS = gmerlin-dbedit.1
 
