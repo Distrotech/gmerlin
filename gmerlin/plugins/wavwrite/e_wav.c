@@ -64,6 +64,9 @@
 #define RIFF_SIZE_OFFSET 4
 // #define DATA_SIZE_OFFSET 40
 
+#define FORMAT_WAV 0
+#define FORMAT_RAW 1
+
 typedef struct wav_s
   {
   // int bytes_per_sample;
@@ -71,7 +74,9 @@ typedef struct wav_s
   int block_align;
   int bits;
 
-  FILE * output;
+  int file_format;
+  
+  gavf_io_t * output;
   int data_size_offset;
   gavl_audio_format_t format;
 
@@ -80,35 +85,43 @@ typedef struct wav_s
   char * filename;
   uint32_t channel_mask;
 
+  gavl_audio_frame_t * frame;
+  
   uint8_t * buffer;
   int buffer_alloc;
   void (*convert_func)(struct wav_s*, uint8_t * samples, int num_samples);
   bg_encoder_callbacks_t * cb;
-  
   gavl_audio_sink_t * sink;
+
+  int be;
+  int swap_endian;
+  gavl_dsp_context_t * dsp;
+
+  
   } wav_t;
 
-static int write_8(FILE * output, uint32_t val)
+static int write_8(gavf_io_t * output, uint32_t val)
   {
   uint8_t c = val;
-  if(fwrite(&c, 1, 1, output) < 1)
+  if(gavf_io_write_data(output, &c, 1) < 1)
     return 0;
   return 1;
   }
 
-static int write_16(FILE * output, uint32_t val)
+static int write_16(gavf_io_t * output, uint32_t val)
   {
   uint8_t c[2];
   
   c[0] = val & 0xff;
   c[1] = (val >> 8) & 0xff;
   
-  if(fwrite(c, 1, 2, output) < 2)
+  if(gavf_io_write_data(output, c, 2) < 2)
     return 0;
+  
   return 1;
   }
 
-static int write_32(FILE * output, uint32_t val)
+static int write_32(gavf_io_t* output, uint32_t val)
   {
   uint8_t c[4];
   
@@ -116,12 +129,12 @@ static int write_32(FILE * output, uint32_t val)
   c[1] = (val >> 8) & 0xff;
   c[2] = (val >> 16) & 0xff;
   c[3] = (val >> 24) & 0xff;
-  if(fwrite(c, 1, 4, output) < 4)
+  if(gavf_io_write_data(output, c, 4) < 4)
     return 0;
   return 1;
   }
 
-static int write_fourcc(FILE * output, char c1, char c2, char c3, char c4)
+static int write_fourcc(gavf_io_t* output, char c1, char c2, char c3, char c4)
   {
   char c[4];
 
@@ -129,7 +142,7 @@ static int write_fourcc(FILE * output, char c1, char c2, char c3, char c4)
   c[1] = c2;
   c[2] = c3;
   c[3] = c4;
-  if(fwrite(c, 1, 4, output) < 4)
+  if(gavf_io_write_data(output, (uint8_t*)c, 4) < 4)
     return 0;
   return 1;
   }
@@ -169,7 +182,7 @@ static void convert_32_be(struct wav_s*w, uint8_t * samples, int num_samples)
   }
 #endif
 
-static void convert_24(struct wav_s*w, uint8_t * samples, int num_samples)
+static void convert_24_le(struct wav_s*w, uint8_t * samples, int num_samples)
   {
   int i;
   uint32_t * src = (uint32_t*)samples;
@@ -180,6 +193,22 @@ static void convert_24(struct wav_s*w, uint8_t * samples, int num_samples)
     dst[0] = (src[0] >> 8) & 0xff;
     dst[1] = (src[0] >> 16) & 0xff;
     dst[2] = (src[0] >> 24) & 0xff;
+    src++;
+    dst+=3;
+    }
+  }
+
+static void convert_24_be(struct wav_s*w, uint8_t * samples, int num_samples)
+  {
+  int i;
+  uint32_t * src = (uint32_t*)samples;
+  uint8_t * dst = w->buffer;
+
+  for(i = 0; i < num_samples; i++)
+    {
+    dst[0] = (src[0] >> 24) & 0xff;
+    dst[1] = (src[0] >> 16) & 0xff;
+    dst[2] = (src[0] >> 8) & 0xff;
     src++;
     dst+=3;
     }
@@ -215,10 +244,10 @@ typedef struct
     len = strlen(info.tag)+1; \
     if(len > 1) \
       { \
-      if(fwrite(#tag, 1, 4, output) < 4)\
+      if(gavf_io_write_data(output, (const uint8_t*)#tag, 4) < 4)        \
         return 0; \
       write_32(output, len); \
-      if(fwrite(info.tag, 1, len, output) < len) \
+      if(gavf_io_write_data(output, (const uint8_t*)info.tag, len) < len)     \
         return 0; \
       if(len % 2) \
         { \
@@ -230,7 +259,7 @@ typedef struct
 
 #define BUFFER_SIZE 256
 
-static int write_info_chunk(FILE * output, gavl_metadata_t * m)
+static int write_info_chunk(gavf_io_t * output, gavl_metadata_t * m)
   {
   int len;
   int total_len;
@@ -309,7 +338,7 @@ static void destroy_wav(void * priv)
   wav = priv;
 
   if(wav->output)
-    fclose(wav->output);
+    gavf_io_destroy(wav->output);
 
   if(wav->sink)
     gavl_audio_sink_destroy(wav->sink);
@@ -326,11 +355,25 @@ static const bg_parameter_info_t audio_parameters[] =
       .val_default = { .val_str = "16" },
       .multi_names =     (char const *[]){ "8", "16", "24", "32", NULL },
     },
+    {
+      .name =        "be",
+      .long_name =   TRS("Output big endian (Raw only)"),
+      .type =        BG_PARAMETER_CHECKBUTTON,
+      .val_default = { .val_i = 0 },
+    },
     { /* End of parameters */ }
   };
 
 static const bg_parameter_info_t parameters[] =
   {
+    {
+      .name =        "format",
+      .long_name =   TRS("Format"),
+      .type =        BG_PARAMETER_STRINGLIST,
+      .val_default = { .val_str = "waw" },
+      .multi_names = (char const*[]){ "wav", "raw", NULL},
+      .multi_labels = (char const*[]){ "WAV", "Raw", NULL},
+    },
     {
       .name =        "write_info_chunk",
       .long_name =   TRS("Write info chunk"),
@@ -424,7 +467,7 @@ static int write_WAVEFORMATEXTENSIBLE(wav_t * wav)
   /* Write channel mask */
 
          write_32(wav->output, wav->channel_mask) &&         /* dwChannelMask */
-         (fwrite(guid, 1, 16, wav->output) == 16));
+         (gavf_io_write_data(wav->output, guid, 16) == 16));
     }
 
 static void set_audio_parameter_wav(void * data, int stream,
@@ -442,7 +485,9 @@ static void set_audio_parameter_wav(void * data, int stream,
   
   if(!strcmp(name, "bits"))
     wav->bits = atoi(v->val_str);
-  }
+  else if(!strcmp(name, "be"))
+    wav->be = v->val_i;
+}
 
 static void set_parameter_wav(void * data, const char * name,
                               const bg_parameter_value_t * v)
@@ -454,36 +499,65 @@ static void set_parameter_wav(void * data, const char * name,
     return;
   if(!strcmp(name, "write_info_chunk"))
     wav->write_info_chunk = v->val_i;
+  if(!strcmp(name, "format"))
+    {
+    if(!strcmp(v->val_str, "wav"))
+      wav->file_format = FORMAT_WAV;
+    if(!strcmp(v->val_str, "raw"))
+      wav->file_format = FORMAT_RAW;
+    }
+  }
+
+static int open_io_wav(void * data, gavf_io_t * io,
+                       const gavl_metadata_t * metadata,
+                       const gavl_chapter_list_t * chapter_list)
+  {
+  wav_t * wav;
+  wav = data;
+  wav->output = io;
+
+  if(metadata)
+    gavl_metadata_copy(&wav->metadata, metadata);
+
+  return 1;
   }
 
 static int open_wav(void * data, const char * filename,
                     const gavl_metadata_t * metadata,
                     const gavl_chapter_list_t * chapter_list)
   {
-  int result;
   wav_t * wav;
+  gavf_io_t * io;
   wav = data;
-  
-  wav->filename = bg_filename_ensure_extension(filename, "wav");
 
-  if(!bg_encoder_cb_create_output_file(wav->cb, wav->filename))
-    return 0;
-  
-  wav->output = fopen(wav->filename, "wb");
-
-  if(!wav->output)
+  if(!strcmp(filename, "-"))
     {
-    bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Cannot open output file: %s",
-           strerror(errno));
-    result = 0;
+    if(!(wav->file_format != FORMAT_RAW))
+      {
+      bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Only raw audio can be written to a pipe");
+      return 0;
+      }
+    io = gavf_io_create_file(stdout, 1, 0, 0);
     }
   else
-    result = 1;
+    {
+    FILE * f;
+    wav->filename = bg_filename_ensure_extension(filename, "wav");
 
-  if(metadata)
-    gavl_metadata_copy(&wav->metadata, metadata);
-  
-  return result;
+    if(!bg_encoder_cb_create_output_file(wav->cb, wav->filename))
+      return 0;
+
+    f = fopen(wav->filename, "wb");
+    if(!f)
+      {
+      bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Cannot open %s: %s",
+             wav->filename, strerror(errno));
+      return 0;
+      }
+    io = gavf_io_create_file(f, 1, 1, 1);
+    }
+
+  return open_io_wav(data, io, metadata, chapter_list);
   }
 
 
@@ -517,25 +591,32 @@ static gavl_sink_status_t write_func_wav(void * data, gavl_audio_frame_t * frame
       wav->buffer = realloc(wav->buffer, wav->buffer_alloc);
       }
     wav->convert_func(wav, frame->samples.u_8, frame->valid_samples * wav->format.samples_per_frame);
-    if(fwrite(wav->buffer, 1, num_bytes, wav->output) < num_bytes)
+    if(gavf_io_write_data(wav->output, wav->buffer, num_bytes) < num_bytes)
       return GAVL_SINK_ERROR;
     }
   else
     {
-    if(fwrite(frame->samples.s_8, 1, num_bytes, wav->output) < num_bytes)
+    if(wav->swap_endian)
+      gavl_dsp_audio_frame_swap_endian(wav->dsp,
+                                       wav->frame,
+                                       &wav->format);
+    
+    if(gavf_io_write_data(wav->output, frame->samples.u_8, num_bytes) < num_bytes)
       return GAVL_SINK_ERROR;
     }
   return GAVL_SINK_OK;
   }
 
-
-static int start_wav(void * data)
+static gavl_audio_frame_t * get_func_wav(void * data)
   {
-  wav_t * wav;
-  wav = data;
+  wav_t * wav = data;
+  return wav->frame;
+  }
 
+static int write_wav_header(wav_t * wav)
+  {
   /* Write the header and adjust format */
-
+  
   if(!write_fourcc(wav->output, 'R', 'I', 'F', 'F') || /* "RIFF" */
      !write_32(wav->output, 0x00000000) ||             /*  size  */
      !write_fourcc(wav->output, 'W', 'A', 'V', 'E') || /* "WAVE" */
@@ -544,7 +625,6 @@ static int start_wav(void * data)
   
   /* Build channel mask and adjust channel locations */
   wav->channel_mask = format_2_channel_mask(&wav->format);
-  wav->block_align = (wav->bits / 8) * wav->format.num_channels;
   
   if(wav->format.num_channels <= 2)
     {
@@ -560,8 +640,21 @@ static int start_wav(void * data)
   
   write_fourcc(wav->output, 'd', 'a', 't', 'a'); /* "data" */
   
-  wav->data_size_offset = ftell(wav->output);
+  wav->data_size_offset = gavf_io_position(wav->output);
   write_32(wav->output, 0x00000000);             /*  size  */
+  return 1;
+  }
+
+static int start_wav(void * data)
+  {
+  wav_t * wav;
+  wav = data;
+
+  wav->block_align = (wav->bits / 8) * wav->format.num_channels;
+  
+  if((wav->file_format == FORMAT_WAV) &&
+     !write_wav_header(wav))
+    return 0;
   
   /* Adjust format */
   
@@ -573,22 +666,41 @@ static int start_wav(void * data)
     case 16:
       wav->format.sample_format = GAVL_SAMPLE_S16;
 #ifdef WORDS_BIGENDIAN
-      wav->convert_func = convert_16_be;
+      if(!wav->be)
+        wav->swap_endian = 1;
+#else
+      if(wav->be)
+        wav->swap_endian = 1;
 #endif
       break;
     case 24:
-      wav->convert_func = convert_24;
+      if(wav->be)
+        wav->convert_func = convert_24_be;
+      else
+        wav->convert_func = convert_24_le;
+      
       wav->format.sample_format = GAVL_SAMPLE_S32;
       break;
     case 32:
 #ifdef WORDS_BIGENDIAN
-      wav->convert_func = convert_32_be;
+      if(!wav->be)
+        wav->swap_endian = 1;
+#else
+      if(wav->be)
+        wav->swap_endian = 1;
 #endif
       wav->format.sample_format = GAVL_SAMPLE_S32;
       break;
     }
-  
-  wav->sink = gavl_audio_sink_create(NULL, write_func_wav, wav,
+
+  if(wav->swap_endian)
+    {
+    wav->dsp = gavl_dsp_context_create();
+    wav->format.samples_per_frame = 1024;
+    wav->frame = gavl_audio_frame_create(&wav->format);
+    }
+  wav->sink = gavl_audio_sink_create(wav->frame ? get_func_wav : NULL,
+                                     write_func_wav, wav,
                                      &wav->format);
   
   return 1;
@@ -603,34 +715,49 @@ static int close_wav(void * data, int do_delete)
 
   if(!do_delete)
     {
-    total_bytes = ftell(wav->output);
-    /* Finalize data section */
-    fseek(wav->output, wav->data_size_offset, SEEK_SET);
-    write_32(wav->output, total_bytes - wav->data_size_offset - 4);
-    /* Finalize RIFF */
-    fseek(wav->output, RIFF_SIZE_OFFSET, SEEK_SET);
-    write_32(wav->output, total_bytes - RIFF_SIZE_OFFSET - 4);
-
-    /* Write info chunk */
-    if(wav->write_info_chunk)
+    if(wav->file_format == FORMAT_WAV)
       {
-      fseek(wav->output, total_bytes, SEEK_SET);
-      ret = write_info_chunk(wav->output, &wav->metadata);
-      total_bytes = ftell(wav->output);
+      total_bytes = gavf_io_position(wav->output);
+      /* Finalize data section */
+      gavf_io_seek(wav->output, wav->data_size_offset, SEEK_SET);
+      write_32(wav->output, total_bytes - wav->data_size_offset - 4);
+      /* Finalize RIFF */
+      gavf_io_seek(wav->output, RIFF_SIZE_OFFSET, SEEK_SET);
+      write_32(wav->output, total_bytes - RIFF_SIZE_OFFSET - 4);
+    
+      /* Write info chunk */
+      if(wav->write_info_chunk)
+        {
+        gavf_io_seek(wav->output, total_bytes, SEEK_SET);
+        ret = write_info_chunk(wav->output, &wav->metadata);
+        total_bytes = gavf_io_position(wav->output);
+        }
       }
     }
   if(wav->output)
-    fclose(wav->output);
+    gavf_io_destroy(wav->output);
   
-  if(do_delete)
+  if(do_delete && wav->filename)
     remove(wav->filename);
-
+  
   gavl_metadata_free(&wav->metadata);
   
   if(wav->sink)
     {
     gavl_audio_sink_destroy(wav->sink);
     wav->sink = NULL;
+    }
+
+  if(wav->dsp)
+    {
+    gavl_dsp_context_destroy(wav->dsp);
+    wav->dsp = NULL;
+    }
+
+  if(wav->frame)
+    {
+    gavl_audio_frame_destroy(wav->frame);
+    wav->frame = NULL;
     }
   
   wav->output = NULL;
@@ -652,7 +779,7 @@ const bg_encoder_plugin_t the_plugin =
       .long_name =         TRS("Wave writer"),
       .description =       TRS("Simple writer for wave files, supports 8, 16, 24 and 32 bit PCM"),
       .type =              BG_PLUGIN_ENCODER_AUDIO,
-      .flags =             BG_PLUGIN_FILE,
+      .flags =             BG_PLUGIN_FILE | BG_PLUGIN_PIPE | BG_PLUGIN_GAVF_IO,
       .priority =          BG_PLUGIN_PRIORITY_MAX,
       .create =            create_wav,
       .destroy =           destroy_wav,
@@ -665,6 +792,7 @@ const bg_encoder_plugin_t the_plugin =
     .set_callbacks =       set_callbacks_wav,
     
     .open =                open_wav,
+    .open_io =             open_io_wav,
     
     .get_audio_parameters =    get_audio_parameters_wav,
 

@@ -360,6 +360,42 @@ const bg_plugin_info_t * bg_plugin_find_by_filename(bg_plugin_registry_t * reg,
   return ret;
   }
 
+const bg_plugin_info_t * bg_plugin_find_by_mimetype(bg_plugin_registry_t * reg,
+                                                    const char * mimetype,
+                                                    int typemask)
+  {
+  char * extension;
+  bg_plugin_info_t * info, *ret = NULL;
+  int max_priority = BG_PLUGIN_PRIORITY_MIN - 1;
+
+  if(!mimetype)
+    return NULL;
+  
+  info = reg->entries;
+  
+  while(info)
+    {
+    if(!(info->type & typemask) ||
+       !info->mimetypes)
+      {
+      info = info->next;
+      continue;
+      }
+    if(bg_string_match(mimetype, info->mimetypes))
+      {
+      if(max_priority < info->priority)
+        {
+        max_priority = info->priority;
+        ret = info;
+        }
+      // return info;
+      }
+    info = info->next;
+    }
+  return ret;
+  }
+
+
 const bg_plugin_info_t *
 bg_plugin_find_by_compression(bg_plugin_registry_t * reg,
                               gavl_codec_id_t id,
@@ -617,7 +653,7 @@ static bg_plugin_info_t * plugin_info_create(const bg_plugin_common_t * plugin,
 
     if(input->get_mimetypes)
       new_info->mimetypes =  gavl_strrep(new_info->mimetypes,
-                                       input->get_mimetypes(plugin_priv));
+                                         input->get_mimetypes(plugin_priv));
 
     if(input->get_extensions)
       new_info->extensions = gavl_strrep(new_info->extensions,
@@ -633,7 +669,9 @@ static bg_plugin_info_t * plugin_info_create(const bg_plugin_common_t * plugin,
     bg_image_reader_plugin_t  * ir;
     ir = (bg_image_reader_plugin_t*)plugin;
     new_info->extensions = gavl_strrep(new_info->extensions,
-                                     ir->extensions);
+                                       ir->extensions);
+    new_info->mimetypes = gavl_strrep(new_info->mimetypes,
+                                       ir->mimetypes);
     }
   if(plugin->type & BG_PLUGIN_IMAGE_WRITER)
     {
@@ -641,6 +679,8 @@ static bg_plugin_info_t * plugin_info_create(const bg_plugin_common_t * plugin,
     iw = (bg_image_writer_plugin_t*)plugin;
     new_info->extensions = gavl_strrep(new_info->extensions,
                                      iw->extensions);
+    new_info->mimetypes = gavl_strrep(new_info->mimetypes,
+                                      iw->mimetypes);
     }
   if(plugin->type & BG_PLUGIN_CODEC)
     {

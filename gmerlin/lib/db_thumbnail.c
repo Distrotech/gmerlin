@@ -29,148 +29,60 @@
 
 #define LOG_DOMAIN "db.thumbnail"
 
-int bg_nmj_make_thumbnail(bg_plugin_registry_t * plugin_reg,
-                          const char * in_file,
-                          const char * out_file,
-                          int thumb_size, int force_scale)
+typedef struct
   {
-  int ret = 0;
-  /* Formats */
-  
-  gavl_video_format_t input_format;
-  gavl_video_format_t output_format;
-  
-  /* Frames */
-  
-  gavl_video_frame_t * input_frame = NULL;
-  gavl_video_frame_t * output_frame = NULL;
+  char * filename;
+  } iw_t;
 
-  gavl_video_converter_t * cnv = 0;
+static int create_file(void * data, const char * filename)
+  {
+  iw_t * iw = data;
+  iw->filename = gavl_strdup(filename);
+  return 1;
+  }
+
+static char * save_image(bg_db_t * db,
+                         gavl_video_frame_t * in_frame,
+                         gavl_video_format_t * in_format,
+                         gavl_video_format_t * out_format,
+                         gavl_video_converter_t * cnv,
+                         int64_t id, const char * mimetype)
+  {
+  int result = 0;
   int do_convert;
+  gavl_video_frame_t * output_frame = NULL;
   bg_image_writer_plugin_t * output_plugin;
   bg_plugin_handle_t * output_handle = NULL;
   const bg_plugin_info_t * plugin_info;
-  const char * extension;
-  uint8_t * file_buf = NULL;
-  int file_len;
+  iw_t iw;
+  bg_iw_callbacks_t cb;
 
-  extension = strrchr(in_file, '.');
-  if(!extension)
-    return 0;
-  extension++;
+  char * out_file_base = bg_sprintf("gmerlin-db/thumbnails/%016"PRId64, id);
 
-  input_frame = bg_plugin_registry_load_image(plugin_reg,
-                                              in_file,
-                                              &input_format, NULL);
+  out_file_base = bg_db_filename_to_abs(db, out_file_base);
+  memset(&iw, 0, sizeof(iw));
+  memset(&cb, 0, sizeof(cb));
   
-  /* Return early for copying */
-  if(!force_scale &&
-     bg_string_match(extension, "jpg jpeg") &&
-     (input_format.image_width <= thumb_size) &&
-     (input_format.image_height <= thumb_size))
-    {
-    file_buf = bg_read_file(in_file, &file_len);
-    if(!file_buf || !bg_write_file(out_file, file_buf, file_len))
-      goto end;
-    else
-      {
-      ret = 1;
-      goto end;
-      }
-    }
+  cb.create_output_file = create_file;
+  cb.data = &iw;
   
-  gavl_video_format_copy(&output_format, &input_format);
-  
-  if(force_scale)
-    {
-    /* Scale the image to square pixels */
-    output_format.image_width *= output_format.pixel_width;
-    output_format.image_height *= output_format.pixel_height;
-  
-    if(output_format.image_width > input_format.image_height)
-      {
-      output_format.image_height = (thumb_size * output_format.image_height) /
-        output_format.image_width;
-      output_format.image_width = thumb_size;
-      }
-    else
-      {
-      output_format.image_width      = (thumb_size * output_format.image_width) /
-        output_format.image_height;
-      output_format.image_height = thumb_size;
-      }
-    }
-  /* Scale to max size */
-  else
-    {
-    double w, h;
-    double x;
-    double par = (double)(output_format.pixel_width) / (double)(output_format.pixel_height);
-    
-    /* Enlarge vertically */
-    if(par > 1.0)
-      {
-      w = (double)(output_format.image_width);
-      h = (double)(output_format.image_height) / par;
-      }
-    /* Enlarge horizontally */
-    else
-      {
-      w = (double)(output_format.image_width) * par;
-      h = (double)(output_format.image_height);
-      }
-    
-    if(w > h)
-      {
-      if(w > (double)thumb_size)
-        {
-        output_format.image_width = thumb_size;
-        x = (double)thumb_size * h/w;
-        output_format.image_height = (int)(x+0.5);
-        bg_log(BG_LOG_INFO, LOG_DOMAIN, "Downscaling image %s to %dx%d",
-               in_file, output_format.image_width, output_format.image_height);
-        }
-      else
-        {
-        output_format.image_width = (int)(w+0.5);
-        output_format.image_height = (int)(h+0.5);
-        }
-      }
-    else
-      {
-      if(h > (double)thumb_size)
-        {
-        output_format.image_height = thumb_size;
-        x = (double)thumb_size * w / h;
-        output_format.image_width = (int)(x+0.5);
-        bg_log(BG_LOG_INFO, LOG_DOMAIN, "Downscaling image %s to %dx%d",
-               in_file, output_format.image_width, output_format.image_height);
-        }
-      else
-        {
-        output_format.image_width = (int)(w+0.5);
-        output_format.image_height = (int)(h+0.5);
-        }
-      }
-    }
+  out_format->pixel_width = 1;
+  out_format->pixel_height = 1;
+  out_format->interlace_mode = GAVL_INTERLACE_NONE;
 
-  output_format.pixel_width = 1;
-  output_format.pixel_height = 1;
-  output_format.interlace_mode = GAVL_INTERLACE_NONE;
-
-  output_format.frame_width = output_format.image_width;
-  output_format.frame_height = output_format.image_height;
+  out_format->frame_width = out_format->image_width;
+  out_format->frame_height = out_format->image_height;
 
   plugin_info =
-    bg_plugin_find_by_name(plugin_reg, "iw_jpeg");
-
+    bg_plugin_find_by_mimetype(db->plugin_reg, mimetype, BG_PLUGIN_IMAGE_WRITER);
+  
   if(!plugin_info)
     {
-    bg_log(BG_LOG_ERROR, LOG_DOMAIN, "No plugin for %s", out_file);
+    bg_log(BG_LOG_ERROR, LOG_DOMAIN, "No plugin for %s", mimetype);
     goto end;
     }
 
-  output_handle = bg_plugin_load(plugin_reg, plugin_info);
+  output_handle = bg_plugin_load(db->plugin_reg, plugin_info);
 
   if(!output_handle)
     {
@@ -180,21 +92,23 @@ int bg_nmj_make_thumbnail(bg_plugin_registry_t * plugin_reg,
   
   output_plugin = (bg_image_writer_plugin_t*)output_handle->plugin;
 
+  output_plugin->set_callbacks(output_handle->priv, &cb);
+  
   if(!output_plugin->write_header(output_handle->priv,
-                                  out_file, &output_format, NULL))
+                                  out_file_base, out_format, NULL))
     {
     bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Writing image header failed");
     goto end;
     }
 
   /* Initialize video converter */
-  cnv = gavl_video_converter_create();
-  do_convert = gavl_video_converter_init(cnv, &input_format, &output_format);
+  do_convert = gavl_video_converter_init(cnv, in_format, out_format);
 
   if(do_convert)
     {
-    output_frame = gavl_video_frame_create(&output_format);
-    gavl_video_convert(cnv, input_frame, output_frame);
+    output_frame = gavl_video_frame_create(out_format);
+    gavl_video_frame_clear(output_frame, out_format);
+    gavl_video_convert(cnv, in_frame, output_frame);
     if(!output_plugin->write_image(output_handle->priv,
                                    output_frame))
       {
@@ -205,37 +119,270 @@ int bg_nmj_make_thumbnail(bg_plugin_registry_t * plugin_reg,
   else
     {
     if(!output_plugin->write_image(output_handle->priv,
-                                   input_frame))
+                                   in_frame))
       {
       bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Writing image failed");
       goto end;
       }
     }
+  result = 1;
   
-  ret = 1;
   end:
 
-  if(file_buf)
-    free(file_buf);
-  if(input_frame)
-    gavl_video_frame_destroy(input_frame);
   if(output_frame)
     gavl_video_frame_destroy(output_frame);
   if(output_handle)
     bg_plugin_unref(output_handle);
+  if(out_file_base)
+    free(out_file_base);
+  
+  if(result)
+    return iw.filename;
+  
+  if(iw.filename)
+    free(iw.filename);
+  return NULL;
+  
+  }
+                         
+
+static void *
+make_thumbnail(bg_db_t * db,
+               bg_db_object_t * obj,
+               int max_width, int max_height, int force_scale,
+               const char * mimetype)
+  {
+  bg_db_file_t * thumb;
+  int ret = 0;
+  /* Formats */
+  gavl_video_format_t input_format;
+  gavl_video_format_t output_format;
+  
+  /* Frames */
+  gavl_video_frame_t * input_frame = NULL;
+
+  gavl_video_converter_t * cnv = 0;
+  const char * src_ext;
+  bg_db_image_file_t * image = (bg_db_image_file_t *)obj;
+
+  char * path_abs;
+  
+  bg_db_scan_item_t item;
+  
+  src_ext = strrchr(image->file.path, '.');
+  if(src_ext)
+    src_ext++;
+  
+  /* Return early */
+  if(!force_scale &&
+     image->file.mimetype &&
+     !strcasecmp(image->file.mimetype, mimetype) &&
+     (image->width <= max_width) &&
+     (image->height <= max_height))
+    {
+    bg_db_object_ref(image);
+    return obj;
+    }
+
+  memset(&input_format, 0, sizeof(input_format));
+  
+  cnv = gavl_video_converter_create();
+  input_frame = bg_plugin_registry_load_image(db->plugin_reg,
+                                              image->file.path,
+                                              &input_format, NULL);
+ 
+  gavl_video_format_copy(&output_format, &input_format);
+  
+  if(force_scale)
+    {
+    gavl_rectangle_f_t src_rect;
+    gavl_rectangle_i_t dst_rect;
+    gavl_rectangle_f_set_all(&src_rect, &input_format);
+    
+    output_format.image_width = max_width;
+    output_format.image_height = max_height;
+    output_format.pixel_width = 1;
+    output_format.pixel_height = 1;
+    
+    gavl_rectangle_fit_aspect(&dst_rect,
+                              &input_format,
+                              &src_rect,
+                              &output_format,
+                              1.0, 0.0);
+    gavl_video_options_set_rectangles(gavl_video_converter_get_options(cnv), 
+                                      &src_rect, &dst_rect);
+    }
+  /* Scale to max size */
+  else
+    {
+    double ext_x, ext_y;
+    double ar = (double)input_format.image_width /
+      (double)input_format.image_height;
+    
+    ext_x = (double)input_format.image_width / (double)max_width;
+    ext_y = (double)input_format.image_height / (double)max_height;
+
+    
+    if((ext_x > 1.0) || (ext_y > 1.0))
+      {
+      if(ext_x > ext_y) // Fit to max_width
+        {
+        output_format.image_width  = max_width;
+        output_format.image_height = (int)((double)max_width / ar + 0.5);
+        }
+      else // Fit to max_height
+        {
+        output_format.image_height  = max_height;
+        output_format.image_width = (int)((double)max_height * ar + 0.5);
+        }
+      }
+    }
+
+  /* Save image */
+
+  thumb = bg_db_object_create(db);
+  
+  path_abs = save_image(db, input_frame, &input_format, &output_format,
+                        cnv, bg_db_object_get_id(thumb), mimetype);
+  if(!path_abs)
+    goto end;
+  
+  /* Create a new image object */
+
+  memset(&item, 0, sizeof(item));
+  if(!bg_db_scan_item_set(&item, path_abs))
+    goto end;
+
+  bg_log(BG_LOG_INFO, LOG_DOMAIN, "Made thumbnail %dx%d in %s",
+         output_format.image_width,
+         output_format.image_height, path_abs);
+  
+  
+  thumb = bg_db_file_create_from_object(db, (bg_db_object_t*)thumb,
+                                        ~0, &item, image->file.scan_dir_id);
+  if(!thumb)
+    goto end;
+  
+  bg_db_object_set_type(thumb, BG_DB_OBJECT_THUMBNAIL);
+  thumb->obj.ref_id = bg_db_object_get_id(image);
+  bg_db_object_set_parent_id(db, thumb, -1);
+  
+  
+  bg_db_scan_item_free(&item);
+  
+  ret = 1;
+  
+  end:
+
+  if(input_frame)
+    gavl_video_frame_destroy(input_frame);
   if(cnv)
     gavl_video_converter_destroy(cnv);
-  return ret;
+
+  if(!ret)
+    {
+    bg_db_object_delete(db, thumb);
+    return NULL;
+    }
+  return thumb;
   }
 
-
-bg_db_object_t * bg_db_get_thumbnail(bg_db_t * db, int64_t id, int max_width, int max_height)
-  {
-
-  }
-
-void bg_db_browse_thumbnails(bg_db_t * db, int64_t parent_id, 
+void bg_db_browse_thumbnails(bg_db_t * db, int64_t id, 
                              bg_db_query_callback cb, void * data)
   {
+  char * sql;
+  int result;
+  int i;
+  bg_db_object_t * image;
+  bg_sqlite_id_tab_t tab;
+  bg_sqlite_id_tab_init(&tab);
+  
+  image = bg_db_object_query(db, id);
+  cb(data, image);
+  bg_db_object_unref(image);
+  
+  sql = sqlite3_mprintf("SELECT ID FROM OBJECTS WHERE (TYPE = %"PRId64") & (REF_ID = %"PRId64");",
+                        BG_DB_OBJECT_THUMBNAIL, id);
+  result = bg_sqlite_exec(db->db, sql, bg_sqlite_append_id_callback, &tab);
+  sqlite3_free(sql);
 
+  for(i = 0; i < tab.num_val; i++)
+    {
+    image = bg_db_object_query(db, tab.val[i]);
+    cb(data, image);
+    bg_db_object_unref(image);
+    }
+
+  bg_sqlite_id_tab_free(&tab);
+  
   }
+
+typedef struct
+  {
+  int max_width;
+  int max_height;
+  int force;
+  const char * mimetype;
+  bg_db_image_file_t * ret;
+  } browse_t;
+
+static void browse_callback(void * data, void * obj)
+  {
+  browse_t * b = data;
+  bg_db_image_file_t * image = obj;
+
+  if(b->force)
+    {
+    if((image->width == b->max_width) &&
+       (image->height == b->max_height) &&
+       (!b->mimetype || !strcmp(image->file.mimetype, b->mimetype)))
+      {
+      b->ret = image;
+      bg_db_object_ref(b->ret);
+      }
+    }
+  else /* Take the largest version not larger than max */
+    {
+    if(b->mimetype && strcmp(image->file.mimetype, b->mimetype))
+      return;
+
+    if((image->width > b->max_width) || (image->height > b->max_height))
+      return;
+    
+    if(!b->ret || (b->ret->width < image->width))
+      {
+      if(b->ret)
+        bg_db_object_unref(b->ret);
+      b->ret = image;
+      bg_db_object_ref(b->ret);
+      }
+    }
+  
+  }
+
+void * bg_db_get_thumbnail(bg_db_t * db, int64_t id,
+                           int max_width, int max_height, int force,
+                           const char * mimetype)
+  {
+  browse_t b;
+  memset(&b, 0, sizeof(b));
+  b.max_width = max_width;
+  b.max_height = max_height;
+  b.force = force;
+  b.mimetype = mimetype;
+
+  bg_db_browse_thumbnails(db, id, browse_callback, &b);
+  
+  if(b.ret)
+    return b.ret;
+
+  else
+    {
+    bg_db_object_t * img = bg_db_object_query(db, id);
+    b.ret = make_thumbnail(db,
+                           img, max_width, max_height, force, mimetype);
+    bg_db_object_unref(img);
+    return b.ret;
+    }
+  }
+

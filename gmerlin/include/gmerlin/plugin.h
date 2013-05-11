@@ -267,7 +267,7 @@ struct bg_plugin_common_s
   int              flags;  //!< Flags (see defines)
   
   char             * description; //!< Textual description 
-  
+
   /*
    *  If there might be more than one plugin for the same
    *  job, there is a priority (0..10) which is used for the
@@ -1997,6 +1997,7 @@ struct bg_image_reader_plugin_s
   {
   bg_plugin_common_t common; //!< Infos and functions common to all plugin types
   const char * extensions; //!< Supported file extensions (space separated)
+  const char * mimetypes;  //!< Supported mimetypes
   
   /** \brief Read the file header
    *  \param priv The handle returned by the create() method
@@ -2075,7 +2076,8 @@ struct bg_image_writer_plugin_s
   {
   bg_plugin_common_t common; //!< Infos and functions common to all plugin types
   const char * extensions; //!< File extensions (space separated)
-  
+  const char * mimetypes;  //!< Supported mimetypes
+
   /** \brief Set callbacks
    *  \param priv The handle returned by the create() method
    *  \param cb Callback structure

@@ -145,6 +145,7 @@ char * bg_sqlite_id_to_string(sqlite3 * db,
   buf = sqlite3_mprintf("select %s from %s where %s = %"PRId64";",
                         string_row, table, id_row, id);
   result = bg_sqlite_exec(db, buf, bg_sqlite_string_callback, &ret);
+  sqlite3_free(buf);
   return result ? ret : NULL;
   }
 

@@ -312,10 +312,22 @@ int64_t bg_db_object_get_id(void * obj);
 
 void bg_db_object_dump(void * obj);
 void bg_db_object_unref(void * obj);
+void bg_db_object_ref(void * obj);
+
 const char * bg_db_object_get_label(void * obj);
 
 int
 bg_db_query_children(bg_db_t *, int64_t id, bg_db_query_callback cb, void * priv,
                      int start, int num, int * total_matches);
+
+/* Get thumbnails */
+
+void bg_db_browse_thumbnails(bg_db_t * db, int64_t id, 
+                             bg_db_query_callback cb, void * data);
+
+void * bg_db_get_thumbnail(bg_db_t * db, int64_t id,
+                           int max_width, int max_height, int force,
+                           const char * mimetype);
+
 
 #endif //  __MEDIADB_H_

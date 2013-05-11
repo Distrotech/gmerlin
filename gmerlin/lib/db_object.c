@@ -128,6 +128,13 @@ bg_db_object_unref(void * obj)
   s->refcount--;
   }
 
+void
+bg_db_object_ref(void * obj)
+  {
+  bg_db_cache_t * s = (bg_db_cache_t *)obj;
+  s->refcount++;
+  }
+
 void bg_db_object_dump(void * obj1)
   {
   const bg_db_object_class_t * c;
@@ -174,7 +181,9 @@ const bg_db_object_class_t * bg_db_object_get_class(bg_db_object_type_t t)
       return &bg_db_image_file_class;
       break;
     case BG_DB_OBJECT_PHOTO:
+      break;
     case BG_DB_OBJECT_THUMBNAIL:
+      return &bg_db_thumbnail_class;
       //      return &bg_db_photo_file_class;
       break;
   

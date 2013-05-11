@@ -333,6 +333,7 @@ const bg_image_writer_plugin_t the_plugin =
       .set_parameter =  set_parameter_jpeg
     },
     .extensions = "jpg",
+    .mimetypes = "image/jpeg",
     .set_callbacks = set_callbacks_jpeg,
     .write_header = write_header_jpeg,
     .write_image =  write_image_jpeg,

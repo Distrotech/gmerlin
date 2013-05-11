@@ -156,21 +156,20 @@ int64_t bg_db_file_by_path(bg_db_t * db, const char * path)
   }
 
 /* Open the file, load metadata and so on */
-static bg_db_file_t * file_create(bg_db_t * db, int scan_flags,
-                                  bg_db_scan_item_t * item,
-                                  int64_t scan_dir_id)
+bg_db_file_t *
+bg_db_file_create_from_object(bg_db_t * db, bg_db_object_t * obj, int scan_flags,
+                              bg_db_scan_item_t * item,
+                              int64_t scan_dir_id)
   {
   int i;
   bg_track_info_t * ti;
   bg_plugin_handle_t * h = NULL;
   bg_input_plugin_t * plugin = NULL;
-  bg_db_object_t * obj;
   bg_db_file_t * file;
   bg_db_object_type_t type;
   
   gavl_time_t duration;
   
-  obj = bg_db_object_create(db);
   bg_db_object_set_type(obj, BG_DB_OBJECT_FILE);
 
   file = (bg_db_file_t *)obj;
@@ -290,12 +289,14 @@ void bg_db_file_create(bg_db_t * db, int scan_flags,
                        bg_db_scan_item_t * item,
                        bg_db_dir_t ** dir, int64_t scan_dir_id)
   {
+  bg_db_object_t * obj;
   bg_db_file_t * file;
   /* Make sure we have the right parent directoy */
   if(!(*dir = bg_db_dir_ensure_parent(db, *dir, item->path)))
     return;
 
-  file = file_create(db, scan_flags, item, scan_dir_id);
+  obj = bg_db_object_create(db);
+  file = bg_db_file_create_from_object(db, obj, scan_flags, item, scan_dir_id);
 
   bg_db_object_set_parent(db, file, *dir);
   bg_db_object_unref(file);
@@ -304,6 +305,8 @@ void bg_db_file_create(bg_db_t * db, int scan_flags,
 bg_db_file_t * bg_db_file_create_internal(bg_db_t * db, const char * path_rel)
   {
   bg_db_file_t * file;
+  bg_db_object_t * obj;
+
   char * path_abs = gavl_strdup(path_rel);
   bg_db_scan_item_t item;
   
@@ -311,7 +314,8 @@ bg_db_file_t * bg_db_file_create_internal(bg_db_t * db, const char * path_rel)
   path_abs = bg_db_filename_to_abs(db, path_abs);
   if(!bg_db_scan_item_set(&item, path_abs))
     return NULL;
-  if((file = file_create(db, ~0, &item, -1)))
+  obj = bg_db_object_create(db);
+  if((file = bg_db_file_create_from_object(db, obj, ~0, &item, -1)))
     bg_db_object_set_parent_id(db, file, -1);
   bg_db_scan_item_free(&item);
   return file;

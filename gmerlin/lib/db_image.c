@@ -103,6 +103,13 @@ const bg_db_object_class_t bg_db_image_file_class =
     .parent = &bg_db_file_class, // Object
   };
 
+const bg_db_object_class_t bg_db_thumbnail_class =
+  {
+    .name = "Thumbnail",
+    .parent = &bg_db_image_file_class, // Object
+  };
+
+
 const bg_db_object_class_t bg_db_album_cover_class =
   {
     .name = "Album cover",
@@ -177,10 +184,16 @@ static int detect_album_cover(bg_db_t * db, bg_db_image_file_t * f)
 
   if(found)
     {
+    bg_db_object_t * thumb;
+    
     bg_log(BG_LOG_INFO, LOG_DOMAIN, "Using %s as cover for album %s",
            f->file.path, album->title);
     album->cover_id = bg_db_object_get_id(f);
     bg_db_object_set_type(f, BG_DB_OBJECT_ALBUM_COVER);
+    
+    thumb = bg_db_get_thumbnail(db, album->cover_id, 160, 160, 1, "image/jpeg");
+    bg_db_object_unref(thumb);
+    
     }
   if(song)
     bg_db_object_unref(song);

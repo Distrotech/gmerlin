@@ -139,6 +139,7 @@ const bg_image_writer_plugin_t the_plugin =
       .set_parameter =  bg_pngwriter_set_parameter
     },
     .extensions = "png",
+    .mimetypes = "image/png",
     .set_callbacks = set_callbacks_png,
     .write_header =  write_header_png,
     .write_image =   bg_pngwriter_write_image,

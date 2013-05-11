@@ -279,6 +279,22 @@ bg_plugin_find_by_filename(bg_plugin_registry_t * reg,
                            const char * filename, int type_mask);
 
 /** \ingroup plugin_registry
+ *  \brief Find a plugin by the mime type
+ *  \param reg A plugin registry
+ *  \param mimetype Mimetype
+ *  \param type_mask Mask of plugin types to be returned
+ *  \returns A plugin info or NULL
+ *
+ *  This function returns the first plugin matching type_mask,
+ *  whose extensions match filename.
+ */
+const bg_plugin_info_t *
+bg_plugin_find_by_mimetype(bg_plugin_registry_t * reg,
+                           const char * mimetype, int type_mask);
+
+
+
+/** \ingroup plugin_registry
  *  \brief Find a plugin by the compression ID
  *  \param reg A plugin registry
  *  \param typemask Mask of plugin types to be returned

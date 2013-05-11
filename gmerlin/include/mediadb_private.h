@@ -186,6 +186,12 @@ void bg_db_file_create(bg_db_t * db, int scan_flags,
                        bg_db_scan_item_t * item,
                        bg_db_dir_t ** parent, int64_t scan_dir_id);
 
+bg_db_file_t *
+bg_db_file_create_from_object(bg_db_t * db, bg_db_object_t * obj, int scan_flags,
+                              bg_db_scan_item_t * item,
+                              int64_t scan_dir_id);
+
+
 /* Create an internally generated files (e.g. a thumbnail) */
 bg_db_file_t * bg_db_file_create_internal(bg_db_t * db, const char * path_rel);
 
@@ -213,7 +219,7 @@ void bg_db_identify_images(bg_db_t * db, int64_t scan_dir_id, int scan_flags);
 
 const bg_db_object_class_t bg_db_image_file_class;
 const bg_db_object_class_t bg_db_album_cover_class;
-
+const bg_db_object_class_t bg_db_thumbnail_class;
 /* Virtual folder */
 
 void
