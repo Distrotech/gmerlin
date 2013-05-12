@@ -1,5 +1,5 @@
 /*****************************************************************
- * gmerlin - a general purpose multimedia framework and applications
+ * Gmerlin - a general purpose multimedia framework and applications
  *
  * Copyright (c) 2001 - 2012 Members of the Gmerlin project
  * gmerlin-general@lists.sourceforge.net

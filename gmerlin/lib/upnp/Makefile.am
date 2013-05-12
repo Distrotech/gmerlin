@@ -24,7 +24,8 @@ servicedesc_xml.c \
 service.c \
 soap.c \
 ssdp.c \
-ssdp_device.c
+ssdp_device.c \
+transcoder.c
 
 
 libupnp_la_LIBADD =  @GMERLIN_DEP_LIBS@ @UUID_LIBS@

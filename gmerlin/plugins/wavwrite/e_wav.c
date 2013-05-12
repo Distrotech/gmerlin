@@ -532,7 +532,7 @@ static int open_wav(void * data, const char * filename,
 
   if(!strcmp(filename, "-"))
     {
-    if(!(wav->file_format != FORMAT_RAW))
+    if(wav->file_format != FORMAT_RAW)
       {
       bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Only raw audio can be written to a pipe");
       return 0;

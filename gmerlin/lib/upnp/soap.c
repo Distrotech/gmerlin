@@ -114,7 +114,7 @@ xmlNodePtr bg_soap_request_next_argument(xmlNodePtr function, xmlNodePtr arg)
 
 int
 bg_upnp_soap_request_from_xml(bg_upnp_service_t * s,
-                              const char * xml, int len)
+                              const char * xml, int len, const gavl_metadata_t * req)
   {
   xmlDocPtr doc;
   xmlNodePtr function;
@@ -127,6 +127,8 @@ bg_upnp_soap_request_from_xml(bg_upnp_service_t * s,
     /* Error */
     }
 
+  s->req.req = req;
+  
   s->req.action =
     bg_upnp_service_desc_sa_by_name(&s->desc, (char*)function->name);
 

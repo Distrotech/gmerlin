@@ -279,7 +279,14 @@ static int io_cb_write(void * priv, int type, const void * data)
   struct timespec timeout;
 
   clock_gettime(CLOCK_REALTIME, &timeout);
-  timeout.tv_sec += 4;
+
+  timeout.tv_nsec += (p->timeout % 1000) * 1000000;
+  if(timeout.tv_nsec > 1000000000)
+    {
+    timeout.tv_sec++;
+    timeout.tv_nsec -= 1000000000;
+    }
+  timeout.tv_sec += p->timeout / 1000;
   
   /* Read confirmation */
   
@@ -516,6 +523,15 @@ static const bg_parameter_info_t output_parameters[] =
       .type = BG_PARAMETER_INT,
       .val_default = { .val_i = 1024 },
       .help_string = TRS("Select the minimum packet size for using shared memory for a stream. Non-positive values disable shared memory completely"),
+    },
+    {
+      .name = "timeout",
+      .opt = "t",
+      .type = BG_PARAMETER_INT,
+      .val_default = { .val_i = 5000 },
+      .val_min =     { .val_i =  500 },
+      .val_max =     { .val_i = 100000 },
+      .long_name = TRS("Timeout (milliseconds)"),
     },
     {
       .name = "dp",

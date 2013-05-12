@@ -26,30 +26,6 @@
 #include <string.h>
 #include <signal.h>
 
-
-struct
-  {
-  const char * name;
-  const char * program;
-  const char * mimetype;
-  }
-transcode_programs[] =
-  {
-    { .name = "mp3-320",
-      .program = "gavf-decode -vs m -ts m -os m -as d -i \"%s\" | "
-      "gavf-encode -enc \"a2v=0:ae=e_lame{do_id3v1=0:do_id3v2=0}\" -ac cbr_bitrate=320 -o -",
-      .mimetype = "audio/mpeg",
-    },
-
-#if 0
-    {
-      .name = "wav",
-      .program = "gavf-decode -i %s | gavf-encode -enc a2v=0:ae=e_wav -o out.wav"
-    },
-#endif
-    { /* End */ },
-  };
-
 typedef struct
   {
   bg_subprocess_t * proc;
@@ -98,12 +74,12 @@ int server_handle_transcode(server_t * s, int * fd,
   char * path = NULL;
   gavl_metadata_t res;
   int type;
-  int idx;
   client_t * c;
   char * command;
   bg_subprocess_t * sp;
   transcode_t * t;
   char * pos;
+  const bg_upnp_transcoder_t * transcoder;
   
   gavl_metadata_init(&res);
   
@@ -135,19 +111,13 @@ int server_handle_transcode(server_t * s, int * fd,
     goto go_on;
     }
   pos++;
-  
-  idx = 0;
-  while(transcode_programs[idx].name)
-    {
-    if(!strcmp(transcode_programs[idx].name, pos))
-      break;
-    idx++;
-    }
-  
-  if(!transcode_programs[idx].name)
+
+  transcoder = bg_upnp_transcoder_by_name(pos);
+
+  if(!transcoder)
     {
     bg_http_response_init(&res, "HTTP/1.1", 
-                          400, "Bad Request");
+                          404, "Not Found");
     goto go_on;
     }
   
@@ -172,7 +142,7 @@ int server_handle_transcode(server_t * s, int * fd,
 
   f = (bg_db_file_t*)o;
 
-  command = bg_sprintf(transcode_programs[idx].program, f->path);
+  command = transcoder->make_command(f->path);
   fprintf(stderr, "Command: %s\n", command);
   sp = bg_subprocess_create(command, 0, 1, 0);
   
@@ -187,7 +157,9 @@ int server_handle_transcode(server_t * s, int * fd,
   /* Set up header for transmission */
   bg_http_response_init(&res, "HTTP/1.1", 
                         200, "OK");
-  gavl_metadata_set(&res, "Content-Type", transcode_programs[idx].mimetype);
+
+  transcoder->set_header(o, req, &res);
+  
   gavl_metadata_set(&res, "Connection", "close");
   gavl_metadata_set(&res, "Cache-control", "no-cache");
   gavl_metadata_set(&res, "Accept-Ranges", "none");

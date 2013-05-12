@@ -128,7 +128,7 @@ bg_upnp_service_handle_action_request(bg_upnp_service_t * s, int fd,
     //    gavl_metadata_dump(&res, 0);
     fprintf(stderr, "%s\n", buf);
     
-    if(!bg_upnp_soap_request_from_xml(s, buf, content_length))
+    if(!bg_upnp_soap_request_from_xml(s, buf, content_length, header))
       {
       /* Error */
       }

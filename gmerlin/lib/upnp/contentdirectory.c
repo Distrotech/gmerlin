@@ -27,6 +27,44 @@
 
 #include <gmerlin/utils.h>
 
+/* Client stuff:
+ */
+
+typedef struct
+  {
+  int (*check)(const gavl_metadata_t * m);
+  const char ** mimetypes;
+  }
+  client_t;
+
+static int check_client_generic(const gavl_metadata_t * m)
+  {
+  return 1;
+  }
+
+client_t clients[] =
+  {
+    {
+      .check = check_client_generic,
+      .mimetypes = (const char*[]) { "audio/L16",
+                                     "audio/mpeg", NULL },
+    },
+    { /* End */ },
+  };
+
+static const client_t * detect_client(const gavl_metadata_t * m)
+  {
+  int i = 0;
+  while(clients[i].check)
+    {
+    if(clients[i].check(m))
+      return &clients[i];
+    i++;
+    }
+  return NULL;
+  }
+
+
 /* Service actions */
 
 #define ARG_SearchCaps        1
@@ -235,50 +273,75 @@ static void didl_set_attribute_int(xmlNodePtr node, const char * name, int64_t v
 static xmlNodePtr didl_create_res_file(xmlDocPtr doc,
                                        xmlNodePtr node,
                                        void * f, const char * url_base, 
-                                       char ** filter)
+                                       char ** filter,
+                                       const client_t * cl)
   {
   bg_db_file_t * file = f;
   char * tmp_string;
   xmlNodePtr child;
-
+  int i;
+  int done = 0;
+  const bg_upnp_transcoder_t * transcoder = NULL;
+  
   if(!filter_element("res", filter))
     return NULL;
   
   /* Location (required) */
-#if 0
-  if(!strcmp(file->mimetype, "audio/mpeg"))
+
+  i = 0;
+  while(cl->mimetypes[i])
+    {
+    /* Directly supported */
+    if(!strcmp(cl->mimetypes[i], file->mimetype))
+      {
+      tmp_string = bg_sprintf("%smedia/%"PRId64, url_base, bg_db_object_get_id(f));
+      child = bg_xml_append_child_node(node, "res", tmp_string);
+      free(tmp_string);
+      done = 1;
+
+      /* Protocol info (required) */
+      tmp_string = bg_sprintf("http-get:*:%s:*", file->mimetype);
+      BG_XML_SET_PROP(child, "protocolInfo", tmp_string);
+      free(tmp_string);
+      }
+    i++;
+    }
+
+  if(!done) // Try transcoding
+    {
+    transcoder = bg_upnp_transcoder_find(cl->mimetypes, file->mimetype);
+    if(transcoder)
+      {
+      tmp_string = bg_sprintf("%stranscode/%"PRId64"/%s", url_base,
+                              bg_db_object_get_id(f), transcoder->name);
+      child = bg_xml_append_child_node(node, "res", tmp_string);
+      free(tmp_string);
+      
+      tmp_string = transcoder->make_protocol_info(f);
+      BG_XML_SET_PROP(child, "protocolInfo", tmp_string);
+      free(tmp_string);
+      
+      done = 1;
+      }
+    }
+
+  /* Output element like it is */
+  if(!done)
     {
     tmp_string = bg_sprintf("%smedia/%"PRId64, url_base, bg_db_object_get_id(f));
     child = bg_xml_append_child_node(node, "res", tmp_string);
     free(tmp_string);
-    }
-  else
-    {
-    tmp_string = bg_sprintf("%stranscode/%"PRId64"/mp3-320", url_base, bg_db_object_get_id(f));
-    child = bg_xml_append_child_node(node, "res", tmp_string);
+    done = 1;
+
+    /* Protocol info (required) */
+    tmp_string = bg_sprintf("http-get:*:%s:*", file->mimetype);
+    BG_XML_SET_PROP(child, "protocolInfo", tmp_string);
     free(tmp_string);
+    done = 1;
     }
-  /* Protocol info (required) */
-  tmp_string = bg_sprintf("http-get:*:audio/mpeg:*");
-  BG_XML_SET_PROP(child, "protocolInfo", tmp_string);
-  free(tmp_string);
-
-#else
-  tmp_string = bg_sprintf("%smedia/%"PRId64, url_base, bg_db_object_get_id(f));
-  child = bg_xml_append_child_node(node, "res", tmp_string);
-  free(tmp_string);
-  
-  /* Protocol info (required) */
-  tmp_string = bg_sprintf("http-get:*:%s:*", file->mimetype);
-  BG_XML_SET_PROP(child, "protocolInfo", tmp_string);
-  free(tmp_string);
-  
-#endif
-
-
   
   /* Size (optional) */
-  if(filter_attribute("res", "size", filter))
+  if(!transcoder && filter_attribute("res", "size", filter))
     didl_set_attribute_int(child, "size", file->obj.size);
   
   /* Duration (optional) */
@@ -321,6 +384,7 @@ typedef struct
   bg_upnp_device_t * dev;
   char ** filter;
   bg_db_t * db;
+  const client_t * cl;
   } query_t;
 
 /* 
@@ -393,19 +457,12 @@ static xmlNodePtr didl_add_object(xmlDocPtr didl, bg_db_object_t * obj,
       if(o->album)
         didl_add_element_string(didl, node, "upnp:album", o->album, q->filter);
 
-      didl_set_date(didl, node, &o->date, q->filter);
+      if(o->track > 0)
+        didl_add_element_int(didl, node, "upnp:originalTrackNumber", o->track,
+                             q->filter);
       
-      if((res = didl_create_res_file(didl, node, obj, q->dev->url_base, q->filter)))
-        {
-        /* Audio attributes */
-        if(filter_attribute("res", "bitrate", q->filter) && (isdigit(o->bitrate[0])))
-          didl_set_attribute_int(res, "bitrate", atoi(o->bitrate) / 8);
-        if(filter_attribute("res", "sampleFrequency", q->filter))
-          didl_set_attribute_int(res, "sampleFrequency", o->samplerate);
-        if(filter_attribute("res", "nrAudioChannels", q->filter))
-          didl_set_attribute_int(res, "nrAudioChannels", o->channels);
-        }
-
+      didl_set_date(didl, node, &o->date, q->filter);
+#if 0
       /* Album art */
       if(o->album && filter_element("upnp:albumArtURI", q->filter))
         {
@@ -421,6 +478,18 @@ static xmlNodePtr didl_add_object(xmlDocPtr didl, bg_db_object_t * obj,
           bg_db_object_unref(album);
           }
         }
+#endif
+      if((res = didl_create_res_file(didl, node, obj, q->dev->url_base, q->filter, q->cl)))
+        {
+        /* Audio attributes */
+        if(filter_attribute("res", "bitrate", q->filter) && (isdigit(o->bitrate[0])))
+          didl_set_attribute_int(res, "bitrate", atoi(o->bitrate) / 8);
+        if(filter_attribute("res", "sampleFrequency", q->filter))
+          didl_set_attribute_int(res, "sampleFrequency", o->samplerate);
+        if(filter_attribute("res", "nrAudioChannels", q->filter))
+          didl_set_attribute_int(res, "nrAudioChannels", o->channels);
+        }
+
 
       }
       break;
@@ -494,7 +563,7 @@ static void query_callback(void * priv, void * obj)
   didl_add_object(q->doc, obj, q->upnp_parent, NULL, q);
   }
 
-
+#if 0
 char * def_result =
   "<DIDL-Lite xmlns:dc=\"http://purl.org/dc/elements/1.1/\""
   " xmlns:upnp=\"urn:schemas-upnp-org:metadata-1-0/upnp/\""
@@ -516,7 +585,7 @@ char * def_root =
   "<upnp:class>object.container</upnp:class>\n"
   "</container>\n"
   "</DIDL-Lite>";
-
+#endif
 
 static int Browse(bg_upnp_service_t * s)
   {
@@ -547,6 +616,7 @@ static int Browse(bg_upnp_service_t * s)
     q.filter = NULL;
 
   q.db = priv->db;
+  q.cl = detect_client(s->req.req);
   
   id = strtoll(ObjectID, NULL, 10);
   

@@ -537,8 +537,15 @@ bg_db_query_children(bg_db_t * db, int64_t id,
   if(!parent)
     goto fail;
   type = bg_db_object_get_type(parent);
-  
-  if(type & BG_DB_FLAG_CONTAINER)
+
+  if(!(type & (BG_DB_FLAG_CONTAINER|
+               BG_DB_FLAG_VCONTAINER)))
+    {
+    if(total_matches)
+      *total_matches = 0;
+    return 0;
+    }
+  else if(type & BG_DB_FLAG_CONTAINER)
     {
     sql = sqlite3_mprintf("select ID from OBJECTS where PARENT_ID = %"PRId64" ORDER BY LABEL;",
                           bg_db_object_get_id(parent));

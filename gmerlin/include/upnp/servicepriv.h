@@ -178,6 +178,8 @@ typedef struct
 
 typedef struct
   {
+  const gavl_metadata_t * req;
+  
   bg_upnp_soap_arg_t * args_in;
   int num_args_in;
   int args_in_alloc;
@@ -193,7 +195,7 @@ typedef struct
 
 int
 bg_upnp_soap_request_from_xml(bg_upnp_service_t * s,
-                              const char * xml, int len);
+                              const char * xml, int len, const gavl_metadata_t * req);
 
 char *
 bg_upnp_soap_response_to_xml(bg_upnp_service_t * s, int * len);
