@@ -56,6 +56,7 @@ typedef enum
   BG_DB_PHOTO = (1<<2),
   } bg_db_type_t;
 
+#if 0
 typedef enum
   {
   BG_DB_ACCESS_FILE = 0,
@@ -63,6 +64,7 @@ typedef enum
   // BG_DB_ACCESS_DEVICE, ?
   // BG_DB_ACCESS_ONDEMAND ?
   } bg_db_access_t;
+#endif
 
 /*
  *  Date
@@ -93,8 +95,8 @@ void bg_db_date_set_invalid(bg_db_date_t * d);
  *  Object definitions
  */
 
-#define BG_DB_FLAG_CONTAINER  (1<<0)  // Real container
-#define BG_DB_FLAG_NO_EMPTY   (1<<1)  // Auto delete when empty
+#define BG_DB_FLAG_CONTAINER  (1<<0) // Real container
+#define BG_DB_FLAG_NO_EMPTY   (1<<1) // Auto delete when empty
 #define BG_DB_FLAG_VCONTAINER (1<<2) // Virtual container (needs browse_children method)
 #define DB_DB_FLAG_FILE       (1<<3) // Derived from file
 #define DB_DB_FLAG_IMAGE      (1<<4) // Derived from image
@@ -300,6 +302,8 @@ void bg_db_destroy(bg_db_t *);
 /* Edit functions */
 void bg_db_add_directory(bg_db_t *, const char * dir, int scan_type);
 void bg_db_del_directory(bg_db_t *, const char * dir);
+
+void bg_db_add_album(bg_db_t *, const char * album);
 
 /* Query functions */
 
