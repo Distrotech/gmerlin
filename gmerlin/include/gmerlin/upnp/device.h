@@ -70,6 +70,7 @@ typedef struct
                      const gavl_metadata_t * req,
                      gavl_metadata_t * res);
   
+  int (*get_bitrate)(bg_db_object_t * obj);
   } bg_upnp_transcoder_t;
 
 typedef struct bg_upnp_transcoder_ctx_s bg_upnp_transcoder_ctx_t;
@@ -80,6 +81,8 @@ bg_upnp_transcoder_find(const char ** mimetypes_supp, const char * in_mimetype);
 const bg_upnp_transcoder_t *
 bg_upnp_transcoder_by_name(const char * name);
 
+int64_t bg_upnp_transcoder_get_size(const bg_upnp_transcoder_t * t,
+                                    bg_db_object_t * obj);
 
 bg_upnp_device_t *
 bg_upnp_create_media_server(bg_socket_address_t * addr,

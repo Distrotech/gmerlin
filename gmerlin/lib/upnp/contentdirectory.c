@@ -149,10 +149,10 @@ static xmlNodePtr didl_add_container(xmlDocPtr doc)
   return node;
   }
 
-static void didl_add_element(xmlDocPtr doc,
-                            xmlNodePtr node,
-                            const char * name,
-                            const char * value)
+static xmlNodePtr didl_add_element(xmlDocPtr doc,
+                                   xmlNodePtr node,
+                                   const char * name,
+                                   const char * value)
   {
   char * pos;
   char buf[128];
@@ -166,12 +166,12 @@ static void didl_add_element(xmlDocPtr doc,
     *pos = '\0';
     pos++;
     ns = xmlSearchNs(doc, node, (const xmlChar *)buf);
-    xmlNewTextChild(node, ns, (const xmlChar*)pos,
-                  (const xmlChar*)value);
+    return xmlNewTextChild(node, ns, (const xmlChar*)pos,
+                           (const xmlChar*)value);
     }
   else  
-    xmlNewTextChild(node, NULL, (const xmlChar*)name,
-                    (const xmlChar*)value);
+    return xmlNewTextChild(node, NULL, (const xmlChar*)name,
+                           (const xmlChar*)value);
   }
 
 static void didl_set_class(xmlDocPtr doc,
@@ -240,26 +240,26 @@ static int filter_attribute(const char * element, const char * attribute, char *
   return 0;
   }
 
-static void didl_add_element_string(xmlDocPtr doc,
+static xmlNodePtr didl_add_element_string(xmlDocPtr doc,
                                     xmlNodePtr node,
                                     const char * name,
                                     const char * content, char ** filter)
   {
   if(!filter_element(name, filter))
-    return;
-  didl_add_element(doc, node, name, content);
+    return NULL;
+  return didl_add_element(doc, node, name, content);
   }
 
-static void didl_add_element_int(xmlDocPtr doc,
-                                 xmlNodePtr node,
-                                 const char * name,
-                                 int64_t content, char ** filter)
+static xmlNodePtr didl_add_element_int(xmlDocPtr doc,
+                                       xmlNodePtr node,
+                                       const char * name,
+                                       int64_t content, char ** filter)
   {
   char buf[128];
   if(!filter_element(name, filter))
-    return;
+    return NULL;
   snprintf(buf, 127, "%"PRId64, content);
-  didl_add_element(doc, node, name, buf);
+  return didl_add_element(doc, node, name, buf);
   }
 
 /* Filtering must be done by the caller!! */
@@ -278,6 +278,7 @@ static xmlNodePtr didl_create_res_file(xmlDocPtr doc,
   {
   bg_db_file_t * file = f;
   char * tmp_string;
+  char * protocol_info = NULL;
   xmlNodePtr child;
   int i;
   int done = 0;
@@ -294,15 +295,8 @@ static xmlNodePtr didl_create_res_file(xmlDocPtr doc,
     /* Directly supported */
     if(!strcmp(cl->mimetypes[i], file->mimetype))
       {
-      tmp_string = bg_sprintf("%smedia/%"PRId64, url_base, bg_db_object_get_id(f));
-      child = bg_xml_append_child_node(node, "res", tmp_string);
-      free(tmp_string);
       done = 1;
-
-      /* Protocol info (required) */
-      tmp_string = bg_sprintf("http-get:*:%s:*", file->mimetype);
-      BG_XML_SET_PROP(child, "protocolInfo", tmp_string);
-      free(tmp_string);
+      break;
       }
     i++;
     }
@@ -317,16 +311,14 @@ static xmlNodePtr didl_create_res_file(xmlDocPtr doc,
       child = bg_xml_append_child_node(node, "res", tmp_string);
       free(tmp_string);
       
-      tmp_string = transcoder->make_protocol_info(f);
-      BG_XML_SET_PROP(child, "protocolInfo", tmp_string);
-      free(tmp_string);
-      
+      protocol_info = transcoder->make_protocol_info(f);
+     
       done = 1;
       }
     }
 
   /* Output element like it is */
-  if(!done)
+  if(!transcoder)
     {
     tmp_string = bg_sprintf("%smedia/%"PRId64, url_base, bg_db_object_get_id(f));
     child = bg_xml_append_child_node(node, "res", tmp_string);
@@ -334,16 +326,24 @@ static xmlNodePtr didl_create_res_file(xmlDocPtr doc,
     done = 1;
 
     /* Protocol info (required) */
-    tmp_string = bg_sprintf("http-get:*:%s:*", file->mimetype);
-    BG_XML_SET_PROP(child, "protocolInfo", tmp_string);
-    free(tmp_string);
+    protocol_info = bg_sprintf("http-get:*:%s:*", file->mimetype);
     done = 1;
+    }
+
+  if(protocol_info)
+    {
+    BG_XML_SET_PROP(child, "protocolInfo", protocol_info);
+    free(protocol_info);
     }
   
   /* Size (optional) */
-  if(!transcoder && filter_attribute("res", "size", filter))
-    didl_set_attribute_int(child, "size", file->obj.size);
-  
+  if(filter_attribute("res", "size", filter))
+    {
+    if(!transcoder)
+      didl_set_attribute_int(child, "size", file->obj.size);
+    else
+      didl_set_attribute_int(child, "size", bg_upnp_transcoder_get_size(transcoder, f));
+    }
   /* Duration (optional) */
   if((file->obj.duration > 0) && filter_attribute("res", "duration", filter))
     {
@@ -351,6 +351,27 @@ static xmlNodePtr didl_create_res_file(xmlDocPtr doc,
     gavl_time_prettyprint_ms(file->obj.duration, buf);
     BG_XML_SET_PROP(child, "duration", buf);
     }
+
+  /* Format specific stuff */
+  if(bg_db_object_get_type(f) == BG_DB_OBJECT_AUDIO_FILE)
+    {
+    /* Audio attributes */
+
+    bg_db_audio_file_t * af = (bg_db_audio_file_t *)f;
+
+    if(filter_attribute("res", "bitrate", filter))
+      {
+      if(transcoder)
+        didl_set_attribute_int(child, "bitrate", transcoder->get_bitrate(f) / 8);
+      else if(isdigit(af->bitrate[0]))
+        didl_set_attribute_int(child, "bitrate", atoi(af->bitrate) / 8);
+      }
+    if(filter_attribute("res", "sampleFrequency", filter))
+      didl_set_attribute_int(child, "sampleFrequency", af->samplerate);
+    if(filter_attribute("res", "nrAudioChannels", filter))
+      didl_set_attribute_int(child, "nrAudioChannels", af->channels);
+    }
+  
   return child;
   }
 
@@ -402,8 +423,8 @@ static xmlNodePtr didl_add_object(xmlDocPtr didl, bg_db_object_t * obj,
   const char * pos;
   char * tmp_string;
   xmlNodePtr node;
-  xmlNodePtr res;
-
+  xmlNodePtr child;
+  
   bg_db_object_type_t type;
   type = bg_db_object_get_type(obj);
 
@@ -446,7 +467,8 @@ static xmlNodePtr didl_add_object(xmlDocPtr didl, bg_db_object_t * obj,
       else
         didl_set_title(didl, node,  bg_db_object_get_label(obj));
       didl_set_class(didl, node,  "object.item.audioItem.musicTrack");
-
+      //      didl_set_class(didl, node,  "object.item.audioItem");
+      
       if(o->artist)
         {
         didl_add_element_string(didl, node, "upnp:artist", o->artist, q->filter);
@@ -471,26 +493,31 @@ static xmlNodePtr didl_add_object(xmlDocPtr didl, bg_db_object_t * obj,
           {
           if(album->cover_id > 0)
             {
-            tmp_string = bg_sprintf("%smedia/%"PRId64, q->dev->url_base, album->cover_id);
-            didl_add_element_string(didl, node, "upnp:albumArtURI", tmp_string, NULL);
-            free(tmp_string);
+            bg_db_object_t * cover_thumb =
+              bg_db_get_thumbnail(q->db, album->cover_id,
+                                  160, 160, 1, "image/jpeg");
+
+            if(cover_thumb)
+              {
+              dlna_ns = xmlNewNs(didl,
+                                 (xmlChar*)"urn:schemas-dlna-org:metadata-1-0/",
+                                 (xmlChar*)"dlna");
+              
+              tmp_string = bg_sprintf("%smedia/%"PRId64, q->dev->url_base, bg_db_object_get_id(cover_thumb));
+
+              child = didl_add_element_string(didl, node, "upnp:albumArtURI", tmp_string, NULL);
+              if(child)
+                BG_XML_SET_PROP(child, "dlna:profileID", "JPEG_TN");
+
+              free(tmp_string);
+              bg_db_object_unref(cover_thumb);
+              }
             }
           bg_db_object_unref(album);
           }
         }
 #endif
-      if((res = didl_create_res_file(didl, node, obj, q->dev->url_base, q->filter, q->cl)))
-        {
-        /* Audio attributes */
-        if(filter_attribute("res", "bitrate", q->filter) && (isdigit(o->bitrate[0])))
-          didl_set_attribute_int(res, "bitrate", atoi(o->bitrate) / 8);
-        if(filter_attribute("res", "sampleFrequency", q->filter))
-          didl_set_attribute_int(res, "sampleFrequency", o->samplerate);
-        if(filter_attribute("res", "nrAudioChannels", q->filter))
-          didl_set_attribute_int(res, "nrAudioChannels", o->channels);
-        }
-
-
+      didl_create_res_file(didl, node, obj, q->dev->url_base, q->filter, q->cl);
       }
       break;
     case BG_DB_OBJECT_VIDEO_FILE:
@@ -523,6 +550,10 @@ static xmlNodePtr didl_add_object(xmlDocPtr didl, bg_db_object_t * obj,
         free(tmp_string);
         }
 
+      if((child = didl_add_element_string(didl, node, "upnp:searchClass",
+                                          "object.item.audioItem.musicTrack",
+                                          q->filter)))
+        BG_XML_SET_PROP(child, "includeDerived", "false");
       }
       break;
     case BG_DB_OBJECT_CONTAINER:

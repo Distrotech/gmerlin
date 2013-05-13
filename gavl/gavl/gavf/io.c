@@ -520,7 +520,14 @@ void gavf_io_set_cb(gavf_io_t * io, gavf_io_cb_func cb, void * cb_priv)
 
 int gavf_io_cb(gavf_io_t * io, int type, const void * data)
   {
+  int ret;
   if(!io->cb)
     return 1;
-  return io->cb(io->cb_priv, type, data);
+  if(io->got_error)
+    return 0;
+  ret = io->cb(io->cb_priv, type, data);
+
+  if(!ret)
+    io->got_error = 1;
+  return ret;
   }

@@ -211,10 +211,10 @@ static int open_lame(void * data,
       return 0;
   
     f = fopen(lame->filename, "wb+");
-    if(f)
+    if(!f)
       {
       bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Cannot open %s: %s",
-             filename, strerror(errno));
+             lame->filename, strerror(errno));
       return 0;
       }
     io = gavf_io_create_file(f, 1, 1, 1);
@@ -231,12 +231,13 @@ writes_compressed_audio_lame(void * data, const gavl_audio_format_t * format,
 
   if(ci->id != GAVL_CODEC_ID_MP3)
     return 0;
-  
+#if 0  
   if((ci->bitrate == GAVL_BITRATE_VBR) && (!gavf_io_can_seek(lame->output)))
     {
     bg_log(BG_LOG_WARNING, LOG_DOMAIN, "VBR mp3 cannot be written to streaming output");
     return 0;
     }
+#endif
   return 1;
   }
 

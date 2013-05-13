@@ -319,6 +319,11 @@ static int io_cb_write(void * priv, int type, const void * data)
       p->got_error = 1;
       return 0;
       }
+    if(!type_ret) // EOF
+      {
+      bg_log(BG_LOG_INFO, LOG_DOMAIN, "Shutting down (receiver said bye)");
+      return 0;
+      }
     if(type_ret != type)
       {
       bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Wrong message type: %08x != %08x",
@@ -472,7 +477,14 @@ void bg_plug_destroy(bg_plug_t * p)
 
 #if HAVE_MQ
   if(p->mq >= 0)
+    {
+    if(!p->wr)
+      {
+      int type = 0;
+      mq_send(p->mq, (const char *)&type, sizeof(type), 0);
+      }
     mq_close(p->mq);
+    }
 #endif
   
   gavl_packet_free(&p->skip_packet);

@@ -83,8 +83,8 @@ typedef enum {
   DLNA_ORG_FLAG_SN_INCREASE                = (1 << 26),
   DLNA_ORG_FLAG_RTSP_PAUSE                 = (1 << 25),
   DLNA_ORG_FLAG_STREAMING_TRANSFER_MODE    = (1 << 24),
-  DLNA_ORG_FLAG_INTERACTIVE_TRANSFERT_MODE = (1 << 23),
-  DLNA_ORG_FLAG_BACKGROUND_TRANSFERT_MODE  = (1 << 22),
+  DLNA_ORG_FLAG_INTERACTIVE_TRANSFER_MODE  = (1 << 23),
+  DLNA_ORG_FLAG_BACKGROUND_TRANSFER_MODE   = (1 << 22),
   DLNA_ORG_FLAG_CONNECTION_STALL           = (1 << 21),
   DLNA_ORG_FLAG_DLNA_V15                   = (1 << 20),
 } dlna_org_flags_t;
@@ -125,7 +125,10 @@ static char * make_protocol_info_lpcm(bg_db_object_t * obj)
 
   dlna = create_dlna_info(DLNA_ORG_CONVERSION_TRANSCODED,
                           DLNA_ORG_OPERATION_NONE,
-                          DLNA_ORG_FLAG_STREAMING_TRANSFER_MODE,
+                          DLNA_ORG_FLAG_STREAMING_TRANSFER_MODE |
+                          DLNA_ORG_FLAG_BACKGROUND_TRANSFER_MODE |
+                          DLNA_ORG_FLAG_CONNECTION_STALL |
+                          DLNA_ORG_FLAG_DLNA_V15,
                           "LPCM");
 
   ret =  bg_sprintf("http-get:*:audio/L16:rate=%d;channels=%d;%s", af->samplerate,
@@ -140,15 +143,12 @@ static void set_header_lpcm(bg_db_object_t * obj,
   {
   char * tmp_string;
   bg_db_audio_file_t * af;
-  int64_t content_length;
+  //  int64_t content_length;
 
   if(bg_db_object_get_type(obj) != BG_DB_OBJECT_AUDIO_FILE)
     return;
   af = (bg_db_audio_file_t *)obj;
 
-  content_length = gavl_time_scale(obj->duration, af->samplerate);
-  content_length *= 2 * af->channels;
-  content_length += 1024 * af->channels;
   
   tmp_string = bg_sprintf("audio/L16;rate=%d;channels=%d",
                           af->samplerate, af->channels); 
@@ -156,18 +156,33 @@ static void set_header_lpcm(bg_db_object_t * obj,
 
   gavl_metadata_set(res, "Content-Type", tmp_string);
   free(tmp_string);
-
+#if 0
+  content_length = gavl_time_scale(af->samplerate, obj->duration);
+  content_length *= 2 * af->channels;
+  content_length += 1024 * af->channels;
   tmp_string = bg_sprintf("%"PRId64, content_length); 
   gavl_metadata_set(res, "Content-Length", tmp_string);
   free(tmp_string);
-
+#endif
+  gavl_metadata_set(res, "transferMode.dlna.org", "Streaming");
+  
   tmp_string = create_dlna_info(DLNA_ORG_CONVERSION_TRANSCODED,
                                 DLNA_ORG_OPERATION_NONE,
-                                DLNA_ORG_FLAG_STREAMING_TRANSFER_MODE,
+                                DLNA_ORG_FLAG_STREAMING_TRANSFER_MODE |
+                                DLNA_ORG_FLAG_BACKGROUND_TRANSFER_MODE |
+                                DLNA_ORG_FLAG_CONNECTION_STALL |
+                                DLNA_ORG_FLAG_DLNA_V15,
                                 "LPCM");
   gavl_metadata_set(res, "contentFeatures.dlna.org", tmp_string);
+  
   free(tmp_string);
-  gavl_metadata_set(res, "TransferMode.dlna.org", "Streaming");
+  }
+
+static int get_bitrate_lpcm(bg_db_object_t * obj)
+  {
+  bg_db_audio_file_t * af;
+  af = (bg_db_audio_file_t *)obj;
+  return af->samplerate * af->channels * 2 * 8;
   }
 
 /* mp3 */
@@ -196,24 +211,33 @@ static void set_header_mp3(bg_db_object_t * obj,
   {
   gavl_metadata_set(res, "Content-Type", "audio/mpeg");
   }
- 
+
+static int get_bitrate_mp3(bg_db_object_t * obj)
+  {
+  return 320000;
+  }
+
 static bg_upnp_transcoder_t transcoders[] =
   {
+#if 1
     {
       .is_supported = is_supported_lpcm,
       .make_command = make_command_lpcm,
       .make_protocol_info = make_protocol_info_lpcm,
       .set_header = set_header_lpcm,
+      .get_bitrate = get_bitrate_lpcm,
       .name         = "lpcm-dlna",
       .in_mimetype  = "audio/*",
       .out_mimetype = "audio/L16",
       
     },
+#endif
     {
       .is_supported = is_supported_mp3,
       .make_command = make_command_mp3,
       .make_protocol_info = make_protocol_info_mp3,
       .set_header = set_header_mp3,
+      .get_bitrate = get_bitrate_mp3,
       .name         = "mp3-320",
       .in_mimetype  = "audio/*",
       .out_mimetype = "audio/mpeg",
@@ -254,4 +278,11 @@ bg_upnp_transcoder_by_name(const char * name)
     i++;
     }
   return NULL;
+  }
+
+int64_t bg_upnp_transcoder_get_size(const bg_upnp_transcoder_t * t,
+                                    bg_db_object_t * obj)
+  {
+  int bitrate = t->get_bitrate(obj);
+  return (int64_t)(bitrate / 8 * gavl_time_to_seconds(obj->duration) + 0.5);
   }
