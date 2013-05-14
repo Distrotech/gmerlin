@@ -91,4 +91,6 @@ bg_upnp_create_media_server(bg_socket_address_t * addr,
                             const bg_upnp_icon_t * icons,
                             bg_db_t * db);
 
+const char * bg_upnp_device_get_server_string(bg_upnp_device_t *);
+
 #endif // __BG_UPNP_DEVICE_H_

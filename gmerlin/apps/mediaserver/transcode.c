@@ -157,7 +157,9 @@ int server_handle_transcode(server_t * s, int * fd,
   /* Set up header for transmission */
   bg_http_response_init(&res, "HTTP/1.1", 
                         200, "OK");
-
+  if(s->server_string)
+    gavl_metadata_set(&res, "Server", s->server_string);
+  bg_http_header_set_date(&res, "Date");
   transcoder->set_header(o, req, &res);
   
   gavl_metadata_set(&res, "Connection", "close");

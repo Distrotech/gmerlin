@@ -26,6 +26,7 @@
 #include <string.h>
 #include <ctype.h>
 #include <stdlib.h>
+#include <time.h>
 
 #define META_PROTOCOL   "$PROTOCOL"
 #define META_PATH       "$PATH"
@@ -250,7 +251,6 @@ const char * bg_http_request_get_path(gavl_metadata_t * req)
   return gavl_metadata_get(req, META_PATH);
   }
 
-
 /* Prepare and write a response (server) */
 
 void bg_http_response_init(gavl_metadata_t * res,
@@ -399,3 +399,14 @@ void bg_http_header_set_empty_var(gavl_metadata_t * h, const char * name)
   {
   gavl_metadata_set(h, name, META_EMPTY);
   }
+
+void bg_http_header_set_date(gavl_metadata_t * h, const char * name)
+  {
+  char date[30];
+  time_t curtime = time(NULL);
+  struct tm tm;
+  
+  strftime(date, 30,"%a, %d %b %Y %H:%M:%S GMT", gmtime_r(&curtime, &tm));
+  gavl_metadata_set(h, name, date);
+  }
+

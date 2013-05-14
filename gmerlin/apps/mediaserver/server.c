@@ -119,7 +119,9 @@ int server_start(server_t * s)
                                          "Gmerlin media server",
                                          (const bg_upnp_icon_t *)0,
                                          s->db);
-    }    
+    s->server_string = bg_upnp_device_get_server_string(s->dev);
+    }
+
   
   return 1;
   }

@@ -117,7 +117,11 @@ void gavftools_init()
   cfg_section = bg_cfg_registry_find_section(cfg_reg, "plugins");
   plugin_reg = bg_plugin_registry_create(cfg_section);
 
-  bg_cfg_registry_save(cfg_reg, tmp_path);
+  if(bg_plugin_registry_changed(plugin_reg))
+    {     
+    bg_log(BG_LOG_INFO, LOG_DOMAIN, "Plugin registry changed");
+    bg_cfg_registry_save(cfg_reg, tmp_path);
+    }
 
   if(tmp_path)
     free(tmp_path);

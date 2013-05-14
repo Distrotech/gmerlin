@@ -104,6 +104,8 @@ struct bg_plugin_registry_s
   {
   bg_plugin_info_t * entries;
   bg_cfg_section_t * config_section;
+
+  int changed;
   };
 
 void bg_plugin_info_destroy(bg_plugin_info_t * info)
@@ -364,7 +366,6 @@ const bg_plugin_info_t * bg_plugin_find_by_mimetype(bg_plugin_registry_t * reg,
                                                     const char * mimetype,
                                                     int typemask)
   {
-  char * extension;
   bg_plugin_info_t * info, *ret = NULL;
   int max_priority = BG_PLUGIN_PRIORITY_MIN - 1;
 
@@ -824,7 +825,6 @@ scan_directory_internal(const char * directory, bg_plugin_info_t ** _file_info,
         continue;
         }
       }
-
     
     if(!(*changed))
       {
@@ -925,7 +925,7 @@ scan_directory_internal(const char * directory, bg_plugin_info_t ** _file_info,
 static bg_plugin_info_t *
 scan_directory(const char * directory, bg_plugin_info_t ** _file_info,
                bg_cfg_section_t * cfg_section, bg_plugin_api_t api,
-               const bg_plugin_registry_options_t * opt)
+               const bg_plugin_registry_options_t * opt, int * reg_changed)
   {
   int changed = 0;
   bg_plugin_info_t * file_info;
@@ -962,6 +962,8 @@ scan_directory(const char * directory, bg_plugin_info_t ** _file_info,
   if(!changed)
     return ret;
   
+  *reg_changed = 1;
+  
   free_info_list(ret);
   ret = scan_directory_internal(directory, _file_info,
                                 &changed, cfg_section, api, opt);
@@ -971,7 +973,8 @@ scan_directory(const char * directory, bg_plugin_info_t ** _file_info,
 static bg_plugin_info_t * scan_multi(const char * path,
                                      bg_plugin_info_t ** _file_info,
                                      bg_cfg_section_t * section,
-                                     bg_plugin_api_t api, const bg_plugin_registry_options_t * opt)
+                                     bg_plugin_api_t api, const bg_plugin_registry_options_t * opt,
+                                     int * reg_changed)
   {
   char ** paths;
   char ** real_paths;
@@ -1015,7 +1018,7 @@ static bg_plugin_info_t * scan_multi(const char * path,
       {
       tmp_info = scan_directory(real_paths[i],
                                 _file_info, 
-                                section, api, opt);
+                                section, api, opt, reg_changed);
       if(tmp_info)
         ret = append_to_list(ret, tmp_info);
       }
@@ -1067,7 +1070,9 @@ bg_plugin_registry_t *
     file_info = bg_plugin_registry_load(filename);
     free(filename);
     }
-
+  else
+    ret->changed = 1;
+  
   /* Native plugins */
   env = getenv("GMERLIN_PLUGIN_PATH");
   if(env)
@@ -1075,7 +1080,7 @@ bg_plugin_registry_t *
   else
     path = bg_sprintf("%s", PLUGIN_DIR);
   
-  tmp_info = scan_multi(path, &file_info, section, BG_PLUGIN_API_GMERLIN, opt);
+  tmp_info = scan_multi(path, &file_info, section, BG_PLUGIN_API_GMERLIN, opt, &ret->changed);
   if(tmp_info)
     ret->entries = append_to_list(ret->entries, tmp_info);
   free(path);
@@ -1087,7 +1092,7 @@ bg_plugin_registry_t *
   else
     path = bg_sprintf("/usr/lib64/ladspa:/usr/local/lib64/ladspa:/usr/lib/ladspa:/usr/local/lib/ladspa");
 
-  tmp_info = scan_multi(path, &file_info, section, BG_PLUGIN_API_LADSPA, opt);
+  tmp_info = scan_multi(path, &file_info, section, BG_PLUGIN_API_LADSPA, opt, &ret->changed);
   if(tmp_info)
     ret->entries = append_to_list(ret->entries, tmp_info);
   
@@ -1095,14 +1100,14 @@ bg_plugin_registry_t *
   
   /* Frei0r */
   tmp_info = scan_multi("/usr/lib64/frei0r-1:/usr/local/lib64/frei0r-1:/usr/lib/frei0r-1:/usr/local/lib/frei0r-1", &file_info, 
-                        section, BG_PLUGIN_API_FREI0R, opt);
+                        section, BG_PLUGIN_API_FREI0R, opt, &ret->changed);
   if(tmp_info)
     ret->entries = append_to_list(ret->entries, tmp_info);
     
 #ifdef HAVE_LV
   tmp_info = scan_directory(LV_PLUGIN_DIR,
                             &file_info, 
-                            section, BG_PLUGIN_API_LV, opt);
+                            section, BG_PLUGIN_API_LV, opt, &ret->changed);
   if(tmp_info)
     ret->entries = append_to_list(ret->entries, tmp_info);
 #endif
@@ -1128,7 +1133,7 @@ bg_plugin_registry_t *
     /* Sort */
     ret->entries = sort_by_priority(ret->entries);
 
-    if(!opt->dont_save)
+    if(ret->changed && !opt->dont_save)
       bg_plugin_registry_save(ret->entries);
   
     /* Remove duplicate external plugins */
@@ -1161,6 +1166,11 @@ bg_plugin_registry_t *
     }
 #endif
   return ret;
+  }
+
+int bg_plugin_registry_changed(bg_plugin_registry_t * reg)
+  {
+  return reg->changed;
   }
 
 void bg_plugin_registry_destroy(bg_plugin_registry_t * reg)

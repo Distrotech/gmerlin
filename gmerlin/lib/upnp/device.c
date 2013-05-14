@@ -252,3 +252,8 @@ bg_upnp_device_ping(bg_upnp_device_t * dev)
   {
   return bg_ssdp_update(dev->ssdp);
   }
+
+const char * bg_upnp_device_get_server_string(bg_upnp_device_t * d)
+  {
+  return d->server_string;
+  }

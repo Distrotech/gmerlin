@@ -90,6 +90,8 @@ typedef struct
   bg_db_t * db;
 
   uuid_t uuid;
+
+  const char * server_string;
   } server_t;
 
 void server_attach_client(server_t*, client_t*cl);

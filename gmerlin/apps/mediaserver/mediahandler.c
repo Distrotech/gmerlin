@@ -198,10 +198,22 @@ int server_handle_media(server_t * s, int * fd,
   /* Set up header for transmission */
   bg_http_response_init(&res, "HTTP/1.1", 
                         200, "OK");
+  if(s->server_string)
+    gavl_metadata_set(&res, "Server", s->server_string);
+  bg_http_header_set_date(&res, "Date");
   gavl_metadata_set(&res, "Content-Type", f->mimetype);
   gavl_metadata_set_long(&res, "Content-Length", end - start);
   gavl_metadata_set(&res, "Connection", "close");
   gavl_metadata_set(&res, "Cache-control", "no-cache");
+    
+  if(gavl_metadata_get(req, "transferMode.dlna.org"))
+    {
+    if(launch_thread)
+      gavl_metadata_set(&res, "transferMode.dlna.org", "Streaming");
+    else
+      gavl_metadata_set(&res, "transferMode.dlna.org", "Interactive");
+      
+    }
   
   fprintf(stderr, "Sending file:\n");
   gavl_metadata_dump(&res, 0);

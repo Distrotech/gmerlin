@@ -66,7 +66,7 @@ static xmlDocPtr soap_create(const char * function, const char * service,
   tmp_string = bg_sprintf("urn:schemas-upnp-org:service:%s:%d",
                           service, version);
 
-  upnp_ns = xmlNewNs(xml_action, (xmlChar*)tmp_string,  (xmlChar*)"u");  
+  upnp_ns = xmlNewNs(xml_action, (xmlChar*)tmp_string,  (xmlChar*)"u");
   free(tmp_string);
 
   xmlSetNs(xml_action, upnp_ns);

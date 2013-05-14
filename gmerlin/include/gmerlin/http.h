@@ -61,5 +61,4 @@ const char * bg_http_response_get_status_str(gavl_metadata_t * res);
 /* Generic utilities */
 
 void bg_http_header_set_empty_var(gavl_metadata_t * h, const char * name);
-
-
+void bg_http_header_set_date(gavl_metadata_t * h, const char * name);

@@ -986,5 +986,15 @@ bg_plugin_info_t * bg_plugin_info_create(const bg_plugin_common_t * plugin);
 
 bg_plugin_handle_t * bg_plugin_handle_create();
 
+/** \ingroup plugin_registry
+ *  \brief Check if the plugin registry was changed
+ *  \returns 1 if the registry was changed, 0 else
+ *
+ *  If this function returns 1, you should save the associated
+ *  config registry also.
+ */
+
+int bg_plugin_registry_changed(bg_plugin_registry_t * reg);
+
 
 #endif // __BG_PLUGINREGISTRY_H_
