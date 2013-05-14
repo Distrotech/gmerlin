@@ -69,6 +69,58 @@ client_t * client_create(int type, int fd, void * data,
 int client_get_status(client_t *);
 void client_destroy(client_t * c);
 
+/* Buffer: Passes data from a program source to listeners in a thread save way */
+
+#define BUFFER_TYPE_PACKET      0
+#define BUFFER_TYPE_METADATA    1
+#define BUFFER_TYPE_SYNC_HEADER 2
+
+typedef struct buffer_element_s
+  {
+  int type;
+  gavl_packet_t p;
+  gavl_metadata_t m;
+
+  int64_t seq; // Sequence number
+
+  struct buffer_element_s * next;
+  } buffer_element_t;
+
+void buffer_element_set_sync_header(buffer_element_t * el);
+
+void buffer_element_set_packet(buffer_element_t * el,
+                               const gavl_packet_t * p);
+
+void buffer_element_set_metadata(buffer_element_t * el,
+                                 const gavl_metadata_t * m);
+
+typedef struct buffer_s buffer_t;
+
+buffer_t * buffer_create(int num_elements);
+
+void buffer_destroy(buffer_t *);
+
+buffer_element_t * buffer_get_write(buffer_t *);
+void buffer_done_write(buffer_t *);
+
+int buffer_get_read(buffer_t *, int64_t * seq, buffer_element_t ** el);
+
+void buffer_wait(buffer_t * b);
+
+// void buffer_done_read(buffer_t *, buffer_element_t *);
+
+buffer_element_t * buffer_get_first(buffer_t *);
+
+int64_t buffer_get_start_seq(buffer_t *);
+
+void buffer_advance(buffer_t *);
+
+void buffer_stop(buffer_t * b);
+
+int buffer_get_free(buffer_t * b);
+
+/* Server */
+
 typedef struct
   {
   /* Config stuff */

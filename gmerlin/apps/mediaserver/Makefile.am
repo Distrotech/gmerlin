@@ -13,6 +13,7 @@ INCLUDES = -I$(top_srcdir)/include
 bin_PROGRAMS = gmerlin-server
 
 gmerlin_server_SOURCES = \
+buffer.c \
 client.c \
 gmerlin-server.c \
 mediahandler.c \
