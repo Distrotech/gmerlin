@@ -73,8 +73,6 @@ static void sink_func(client_t * cl)
 
   while(1)
     {
-    fprintf(stderr, "Client iteration %"PRId64"\n", priv->seq);
-
     el = next_element(cl);
 
     if(!el)
@@ -92,11 +90,8 @@ static void sink_func(client_t * cl)
   
   /* Got sync header */
 
-  fprintf(stderr, "Got sync header %d\n", cl->fd);
-    
   while(bg_socket_can_write(cl->fd, 1000))
     {
-    fprintf(stderr, "Client iteration %"PRId64"\n", priv->seq);
     if(!(el = next_element(cl)))
       {
       bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Could not get data");

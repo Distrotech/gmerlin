@@ -34,6 +34,9 @@ static char ** add_dirs = NULL;
 static int num_del_dirs = 0;
 static char ** del_dirs = NULL;
 
+static int num_add_albums = 0;
+static char ** add_albums = NULL;
+
 static int do_create = 0;
 
 static int scan_type_opt = 0;
@@ -48,7 +51,7 @@ opt_a(void * data, int * argc, char *** _argv, int arg)
   {
   if(arg >= *argc)
     {
-    fprintf(stderr, "Option -a requires an argument\n");
+    fprintf(stderr, "Option -add requires an argument\n");
     exit(-1);
     }
   
@@ -64,7 +67,7 @@ opt_d(void * data, int * argc, char *** _argv, int arg)
   {
   if(arg >= *argc)
     {
-    fprintf(stderr, "Option -d requires an argument\n");
+    fprintf(stderr, "Option -del requires an argument\n");
     exit(-1);
     }
   
@@ -72,6 +75,22 @@ opt_d(void * data, int * argc, char *** _argv, int arg)
                      sizeof(*del_dirs) * (num_del_dirs+1));
   del_dirs[num_del_dirs] = (*_argv)[arg];
   num_del_dirs++;
+  bg_cmdline_remove_arg(argc, _argv, arg);
+  }
+
+static void
+opt_add_album(void * data, int * argc, char *** _argv, int arg)
+  {
+  if(arg >= *argc)
+    {
+    fprintf(stderr, "Option -add-album requires an argument\n");
+    exit(-1);
+    }
+  
+  add_albums = realloc(add_albums,
+                     sizeof(*add_albums) * (num_add_albums+1));
+  add_albums[num_add_albums] = (*_argv)[arg];
+  num_add_albums++;
   bg_cmdline_remove_arg(argc, _argv, arg);
   }
 
@@ -122,6 +141,12 @@ static bg_cmdline_arg_t global_options[] =
       .help_arg =    "<directory>",
       .help_string = TRS("Delete this directory"),
       .callback =    opt_d,
+    },
+    {
+      .arg =         "-add-album",
+      .help_arg =    "<album>",
+      .help_string = TRS("Add an album as a playlist"),
+      .callback =    opt_add_album,
     },
     {
       .arg =         "-audio",
@@ -217,7 +242,9 @@ int main(int argc, char ** argv)
     bg_db_add_directory(db, add_dirs[i], scan_type);
   for(i = 0; i < num_del_dirs; i++)
     bg_db_del_directory(db, add_dirs[i]);
-
+  for(i = 0; i < num_add_albums; i++)
+    bg_db_add_album(db, add_albums[i]);
+  
   if(dump_object)
     {
     bg_db_object_t * obj;

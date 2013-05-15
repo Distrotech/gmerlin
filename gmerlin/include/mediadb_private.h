@@ -220,6 +220,7 @@ void bg_db_identify_images(bg_db_t * db, int64_t scan_dir_id, int scan_flags);
 const bg_db_object_class_t bg_db_image_file_class;
 const bg_db_object_class_t bg_db_album_cover_class;
 const bg_db_object_class_t bg_db_thumbnail_class;
+
 /* Virtual folder */
 
 void
@@ -229,6 +230,11 @@ void bg_db_create_tables_vfolders(bg_db_t * db);
 
 extern const bg_db_object_class_t bg_db_vfolder_leaf_class;
 extern const bg_db_object_class_t bg_db_vfolder_class;
+
+/* Playlists */
+
+int64_t bg_db_playlist_by_name(bg_db_t * db, const char * name);
+extern const bg_db_object_class_t bg_db_playlist_class;
 
 /* Utility functions we might want */
 

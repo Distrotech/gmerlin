@@ -69,6 +69,10 @@ vfolder_types[] =
       .name = "Artist",
       .cats = { BG_DB_CAT_GROUP, BG_DB_CAT_ARTIST },
     },
+    {
+      .type = BG_DB_OBJECT_PLAYLIST,
+      .name = "Playlist",
+    },
     { /* End */ }
   };
 
@@ -196,7 +200,6 @@ static void get_children_vfolder_leaf(bg_db_t * db, void * obj, bg_sqlite_id_tab
   int result;
   bg_db_vfolder_t * f = obj;
   int i;
-  const char * table;
   char * condition;
   int num;
   int last;
@@ -204,59 +207,69 @@ static void get_children_vfolder_leaf(bg_db_t * db, void * obj, bg_sqlite_id_tab
   switch(f->type)
     {
     case BG_DB_OBJECT_AUDIO_FILE:
-      table = "AUDIO_FILES";
+      sql = bg_sprintf("SELECT ID FROM AUDIO_FILES WHERE ");
       break;
     case BG_DB_OBJECT_AUDIO_ALBUM:
-      table = "AUDIO_ALBUMS";
+      sql = bg_sprintf("SELECT ID FROM AUDIO_ALBUMS WHERE ");
+      break;
+    case BG_DB_OBJECT_PLAYLIST:
+      sql = bg_sprintf("SELECT ID FROM OBJECTS WHERE TYPE = %d ", BG_DB_OBJECT_PLAYLIST);
       break;
     default:
       goto fail;
       break;
     }
-  sql = bg_sprintf("SELECT ID FROM %s WHERE ", table );
 
-  /* Go through conditions */
-  num = 0;
-  i = 0;
-  while(f->path[i].cat)
+  if(f->type == BG_DB_OBJECT_PLAYLIST)
     {
-    if((i == BG_DB_VFOLDER_MAX_DEPTH-1) ||
-       !f->path[i+1].cat)
-      last = 1;
-    else
-      last = 0;
-    
-    condition = get_sql_condition(f->path[i].cat, f->path[i].val, last);
-
-    if(condition)
+    condition = bg_sprintf("ORDER BY LABEL;");
+    sql = gavl_strcat(sql, condition);
+    }
+  else
+    {
+    /* Go through conditions */
+    num = 0;
+    i = 0;
+    while(f->path[i].cat)
       {
-      if(num)
-        sql = gavl_strcat(sql, " & ");
-      sql = gavl_strcat(sql, condition);
-      num++;
-      free(condition);
-      }
-    i++;
-    }
-
-  /* Figure out the sort string */
-  switch(f->type)
-    {
-    case BG_DB_OBJECT_AUDIO_FILE:
-      sql = gavl_strcat(sql, " ORDER BY SEARCH_TITLE");
-      break;
-    case BG_DB_OBJECT_AUDIO_ALBUM:
-      if(has_cat(f, BG_DB_CAT_ARTIST))
-        sql = gavl_strcat(sql, " ORDER BY DATE, SEARCH_TITLE");
+      if((i == BG_DB_VFOLDER_MAX_DEPTH-1) ||
+         !f->path[i+1].cat)
+        last = 1;
       else
+        last = 0;
+    
+      condition = get_sql_condition(f->path[i].cat, f->path[i].val, last);
+
+      if(condition)
+        {
+        if(num)
+          sql = gavl_strcat(sql, " & ");
+        sql = gavl_strcat(sql, condition);
+        num++;
+        free(condition);
+        }
+      i++;
+      }
+
+    /* Figure out the sort string */
+    switch(f->type)
+      {
+      case BG_DB_OBJECT_AUDIO_FILE:
         sql = gavl_strcat(sql, " ORDER BY SEARCH_TITLE");
-      break;
-    default:
-      goto fail;
-      break;
+        break;
+      case BG_DB_OBJECT_AUDIO_ALBUM:
+        if(has_cat(f, BG_DB_CAT_ARTIST))
+          sql = gavl_strcat(sql, " ORDER BY DATE, SEARCH_TITLE");
+        else
+          sql = gavl_strcat(sql, " ORDER BY SEARCH_TITLE");
+        break;
+      default:
+        goto fail;
+        break;
+      }
+    sql = gavl_strcat(sql, ";");
     }
   
-  sql = gavl_strcat(sql, ";");
   
   fprintf(stderr, "SQL: %s\n", sql);
   
@@ -418,15 +431,20 @@ get_root_vfolder(bg_db_t * db, int idx)
   if(id < 0)
     {
     child = bg_db_object_create(db);
-    bg_db_object_set_type(child, BG_DB_OBJECT_VFOLDER);
-
+    
     switch(type)
       {
       case BG_DB_OBJECT_AUDIO_FILE:
         bg_db_object_set_label(child, "Songs");
+        bg_db_object_set_type(child, BG_DB_OBJECT_VFOLDER);
         break;
       case BG_DB_OBJECT_AUDIO_ALBUM:
         bg_db_object_set_label(child, "Albums");
+        bg_db_object_set_type(child, BG_DB_OBJECT_VFOLDER);
+        break;
+      case BG_DB_OBJECT_PLAYLIST:
+        bg_db_object_set_label(child, "Playlists");
+        bg_db_object_set_type(child, BG_DB_OBJECT_VFOLDER_LEAF);
         break;
       }
     bg_db_object_set_parent(db, child, parent);
@@ -434,11 +452,14 @@ get_root_vfolder(bg_db_t * db, int idx)
     }
   else
     child = bg_db_object_query(db, id);
-
+  
   bg_db_object_unref(parent);
   parent = child;
   child = NULL;
 
+  if(!vfolder_types[idx].cats[0])
+    return parent;
+  
   /* Folder for this specific path */
   
   i = 0;
@@ -525,13 +546,15 @@ static char * get_cat_value(bg_db_t * db,
           return ret;
         }
       }
+    case BG_DB_OBJECT_PLAYLIST:
+      
+      break;
     case BG_DB_OBJECT_OBJECT:
     case BG_DB_OBJECT_FILE:
     case BG_DB_OBJECT_VIDEO_FILE:
     case BG_DB_OBJECT_IMAGE_FILE:
     case BG_DB_OBJECT_CONTAINER:
     case BG_DB_OBJECT_DIRECTORY: 
-    case BG_DB_OBJECT_PLAYLIST:
     case BG_DB_OBJECT_VFOLDER:
     case BG_DB_OBJECT_VFOLDER_LEAF:
     case BG_DB_OBJECT_PHOTO:

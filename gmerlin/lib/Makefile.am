@@ -92,6 +92,7 @@ db_dir.c \
 db_file.c \
 db_image.c \
 db_object.c \
+db_playlist.c \
 db_root.c \
 db_scan.c \
 db_thumbnail.c \

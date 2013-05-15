@@ -200,6 +200,7 @@ const bg_db_object_class_t * bg_db_object_get_class(bg_db_object_type_t t)
       return &bg_db_dir_class;
       break;
     case BG_DB_OBJECT_PLAYLIST:
+      return &bg_db_playlist_class;
       break;
     case BG_DB_OBJECT_VFOLDER:
       return &bg_db_vfolder_class;

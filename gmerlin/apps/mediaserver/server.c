@@ -41,6 +41,7 @@ static const bg_parameter_info_t parameters[] =
     },
     {
       .name =      "port",
+      .type = BG_PARAMETER_INT,
       .long_name =  TRS("Listen port"),
       .val_default = { .val_i = 0 },
       .val_min     = { .val_i = 0 },
@@ -61,6 +62,8 @@ void server_set_parameter(void * priv, const char * name, const bg_parameter_val
     return;
   if(!strcmp(name, "db"))
     s->dbpath = gavl_strrep(s->dbpath, val->val_str);
+  else if(!strcmp(name, "port"))
+    s->port = val->val_i;
   }
 
 void server_init(server_t * s)
