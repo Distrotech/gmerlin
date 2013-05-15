@@ -214,7 +214,7 @@ status_codes[] =
 
 #define PROTOCOL "HTTP/1.1"
 
-#define BGPLUG_MIMETYPE "application/bgplug-"VERSION
+const char * bg_plug_mimetype = "application/bgplug-"VERSION;
 const char * bg_plug_app_id = "bgplug-"VERSION;
 
 static int read_vars(int fd, char ** line, int * line_alloc,
@@ -541,7 +541,7 @@ static int server_handshake(int fd, int method, int timeout)
           status = BG_PLUG_IO_STATUS_400;
           goto fail;
           }
-        if(strcmp(var, BGPLUG_MIMETYPE))
+        if(strcmp(var, bg_plug_mimetype))
           {
           status = BG_PLUG_IO_STATUS_415;
           goto fail;
@@ -569,7 +569,7 @@ static int server_handshake(int fd, int method, int timeout)
         
         status = BG_PLUG_IO_STATUS_200;
         write_response_now = 1;
-        gavl_metadata_set(&res, "Content-Type", BGPLUG_MIMETYPE);
+        gavl_metadata_set(&res, "Content-Type", bg_plug_mimetype);
         ret = 1;
         break;
       default:
@@ -624,11 +624,11 @@ static int client_handshake(int fd, int method, const char * path, int timeout)
   if(method == BG_PLUG_IO_METHOD_WRITE)
     {
     gavl_metadata_set(&req, "Expect", "100-continue");
-    gavl_metadata_set(&req, "Content-Type", BGPLUG_MIMETYPE);
+    gavl_metadata_set(&req, "Content-Type", bg_plug_mimetype);
     }
   else if(method == BG_PLUG_IO_METHOD_READ)
     {
-    gavl_metadata_set(&req, "Accept", BGPLUG_MIMETYPE);
+    gavl_metadata_set(&req, "Accept", bg_plug_mimetype);
     }
 
   /* Set common fields */

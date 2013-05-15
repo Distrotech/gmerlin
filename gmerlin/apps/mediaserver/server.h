@@ -34,9 +34,10 @@
 #define CLIENT_STATUS_DONE         3
 #define CLIENT_STATUS_STOP         4
 
-#define CLIENT_TYPE_MEDIA          0 // Media file for upnp devices
-#define CLIENT_TYPE_BGPLUG_SOURCE  1 // Upstream source (bgplug)
-#define CLIENT_TYPE_BGPLUG_SINK    2 // Sink (bgplug or filtered)
+#define CLIENT_TYPE_MEDIA           0 // Media file for upnp devices
+#define CLIENT_TYPE_SOURCE_ONDEMAND 1 // Ondemand upstream source (bgplug)
+#define CLIENT_TYPE_SOURCE_STREAM   2 // Upstream source (bgplug)
+#define CLIENT_TYPE_SINK            3 // Sink (bgplug or filtered)
 
 /*
  *  URL structure:
@@ -53,10 +54,11 @@ typedef struct client_s
   int type;
   pthread_mutex_t status_mutex;
   int status;
-  
   pthread_t thread;
   int fd;
 
+  char * name;
+  
   void *data;
   void (*free_data)(void*);
   void (*func)(struct client_s * client);
@@ -104,6 +106,7 @@ buffer_element_t * buffer_get_write(buffer_t *);
 void buffer_done_write(buffer_t *);
 
 int buffer_get_read(buffer_t *, int64_t * seq, buffer_element_t ** el);
+void buffer_done_read(buffer_t *);
 
 void buffer_wait(buffer_t * b);
 
@@ -113,11 +116,53 @@ buffer_element_t * buffer_get_first(buffer_t *);
 
 int64_t buffer_get_start_seq(buffer_t *);
 
-void buffer_advance(buffer_t *);
-
 void buffer_stop(buffer_t * b);
 
 int buffer_get_free(buffer_t * b);
+
+
+/* Filter: Sends data to the socket */
+
+typedef struct
+  {
+  int is_supported;
+  int (*supported)();
+  
+  int (*probe)(const gavf_program_header_t * ph,
+               const gavl_metadata_t * request);
+  
+  void * (*create)(const gavf_program_header_t * ph,
+                   const gavl_metadata_t * req,
+                   const gavl_metadata_t * vars,
+                   gavl_metadata_t * res, bg_plugin_registry_t * reg);
+
+  int (*start)(void * priv,
+               const gavf_program_header_t * ph,
+               const gavl_metadata_t * req,
+               const gavl_metadata_t * inline_metadata,
+               gavf_io_t * io, int flags);
+  
+  int (*put_buffer)(void * priv, buffer_element_t *);
+  void (*destroy)(void * priv);
+  } filter_t;
+
+void filter_init();
+
+const filter_t * filter_find(const gavf_program_header_t * ph,
+                             const gavl_metadata_t * request);
+
+/* Source client */
+
+client_t * source_client_create(int * fd,
+                                const char * path, bg_plugin_registry_t * plugin_reg, int type);
+
+client_t * sink_client_create(int * fd, const gavl_metadata_t * req,
+                              bg_plugin_registry_t * plugin_reg,
+                              const gavf_program_header_t * ph,
+                              const gavl_metadata_t * inline_metadata,
+                              buffer_t * buf);
+
+/* Sink client */
 
 /* Server */
 
@@ -171,3 +216,13 @@ int server_handle_transcode(server_t * s, int * fd,
                             const char * method,
                             const char * path_orig,
                             const gavl_metadata_t * req);
+
+int server_handle_source(server_t * s, int * fd,
+                         const char * method,
+                         const char * path_orig,
+                         const gavl_metadata_t * req);
+
+int server_handle_stream(server_t * s, int * fd,
+                         const char * method,
+                         const char * path_orig,
+                         const gavl_metadata_t * req);

@@ -118,6 +118,7 @@ int main(int argc, char ** argv)
   set_sigint_handler();
   signal(SIGPIPE, SIG_IGN);
 
+  filter_init();
   server_init(&s);
 
   s_params = server_get_parameters();

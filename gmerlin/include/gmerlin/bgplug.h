@@ -193,7 +193,7 @@ bg_plug_set_compressor_config(bg_plug_t * p,
 #define BG_PLUG_MIMETYPE "application/x-gavf"
 
 extern const char * bg_plug_app_id; // User-Agent and Server
-
+extern const char * bg_plug_mimetype;
 /* Called by bg_plug_open_location */
 
 

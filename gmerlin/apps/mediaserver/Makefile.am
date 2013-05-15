@@ -15,9 +15,12 @@ bin_PROGRAMS = gmerlin-server
 gmerlin_server_SOURCES = \
 buffer.c \
 client.c \
+filter.c \
 gmerlin-server.c \
 mediahandler.c \
 server.c \
+sink.c \
+source.c \
 transcode.c 
 
 # dist_man_MANS = gmerlin-dbedit.1

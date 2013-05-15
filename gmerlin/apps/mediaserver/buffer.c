@@ -128,9 +128,12 @@ buffer_element_t * buffer_get_write(buffer_t * b)
   pthread_mutex_lock(&b->mutex);
   if(b->num_elements >= b->elements_alloc)
     {
-    bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Buffer full");
-    pthread_mutex_unlock(&b->mutex);
-    return NULL;
+    buffer_element_t * el;
+    el = b->elements[0];
+    memmove(b->elements, b->elements + 1,
+            (b->elements_alloc - 1) * sizeof(*b->elements));
+    b->elements[b->elements_alloc-1] = el;
+    b->num_elements--;
     }
   ret = b->elements[b->num_elements];
   ret->seq = b->seq++;
@@ -153,6 +156,7 @@ void buffer_done_write(buffer_t * b)
   pthread_mutex_unlock(&b->mutex);
   }
 
+#if 0
 void buffer_advance(buffer_t * b)
   {
   buffer_element_t * el;
@@ -168,6 +172,7 @@ void buffer_advance(buffer_t * b)
   b->num_elements--;
   pthread_mutex_unlock(&b->mutex);
   }
+#endif
 
 int buffer_get_free(buffer_t * b)
   {
@@ -200,35 +205,42 @@ int buffer_get_read(buffer_t * b, int64_t * seq, buffer_element_t ** el)
   
   if(!b->elements)
     return 0;
-    
+
+  /* Initialize to the middle of the buffer */
+  if(*seq < 0)
+    *seq = b->elements[b->num_elements/2]->seq;
+  
   if(*seq < b->elements[0]->seq)
     {
-    bg_log(BG_LOG_ERROR, LOG_DOMAIN,
-           "Tried to read expired buffer element");
-    *seq = b->elements[0]->seq;
+    bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Buffer underflow for client");
+    return 0;
     }
-
+  
   idx = *seq - b->elements[0]->seq;
   
   if(idx < b->num_elements)
     {
     if(b->elements[idx]->seq != *seq)
+      {
       bg_log(BG_LOG_ERROR, LOG_DOMAIN,
              "Got wrong buffer element: Wanted %"PRId64", got %"PRId64,
              *seq, b->elements[idx]->seq);
-    
+      return 0;
+      }
     //    fprintf(stderr, "get_read %d %"PRId64"\n", idx,
     //            b->elements[idx]->seq);
     *el = b->elements[idx];
     (*seq)++;
-    pthread_mutex_unlock(&b->mutex);
-
     return 1;
     }
-  
   pthread_mutex_unlock(&b->mutex);
   
   return 1;
+  }
+
+void buffer_done_read(buffer_t * b)
+  {
+  pthread_mutex_unlock(&b->mutex);
   }
 
 void buffer_wait(buffer_t * b)

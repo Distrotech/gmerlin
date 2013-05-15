@@ -121,7 +121,6 @@ int server_start(server_t * s)
                                          s->db);
     s->server_string = bg_upnp_device_get_server_string(s->dev);
     }
-
   
   return 1;
   }
@@ -160,7 +159,9 @@ static void handle_client_connection(server_t * s, int fd)
 
   if(!bg_upnp_device_handle_request(s->dev, fd, method, path, &req) &&
      !server_handle_media(s, &fd, method, path, &req) &&
-     !server_handle_transcode(s, &fd, method, path, &req))
+     !server_handle_transcode(s, &fd, method, path, &req) &&
+     !server_handle_source(s, &fd, method, path, &req) &&
+     !server_handle_stream(s, &fd, method, path, &req))
     send_404(fd);
   
   fail:
