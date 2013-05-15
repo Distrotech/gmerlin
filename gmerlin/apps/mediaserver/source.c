@@ -289,6 +289,7 @@ int server_handle_source(server_t * s, int * fd,
                          const gavl_metadata_t * req)
   {
   const char * var;
+  int i;
   gavl_metadata_t res;
   client_t * cl;
   
@@ -297,6 +298,8 @@ int server_handle_source(server_t * s, int * fd,
      strcmp(var, bg_plug_mimetype))
     return 0;
 
+  /* Check if a stream of that name already exists */
+  
   gavl_metadata_init(&res);
   
   if(!strcmp(path_orig, "/") || (path_orig[0] != '/'))
@@ -304,6 +307,16 @@ int server_handle_source(server_t * s, int * fd,
     bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Invalid path \"%s\"", path_orig);
     bg_http_response_init(&res, "HTTP/1.1", 404, "Not Found");
     goto fail;
+    }
+
+  for(i = 0; i < s->num_clients; i++)
+    {
+    if((s->clients[i]->type == CLIENT_TYPE_SOURCE_STREAM) &&
+       !strcmp(s->clients[i]->name, path_orig + 1))
+      {
+      bg_http_response_init(&res, "HTTP/1.1", 423, "Locked");
+      goto fail;
+      }
     }
   
   /* Send ok if everything is fine */

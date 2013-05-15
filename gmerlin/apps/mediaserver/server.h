@@ -175,6 +175,7 @@ typedef struct
 
   bg_socket_address_t * addr;
   int fd;
+  int port;
 
   pthread_mutex_t clients_mutex;
   client_t ** clients;

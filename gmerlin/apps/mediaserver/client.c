@@ -72,6 +72,9 @@ void client_destroy(client_t * c)
 
   if(c->free_data)
     c->free_data(c->data);
+  if(c->name)
+    free(c->name);
+
   pthread_mutex_destroy(&c->status_mutex);
   close(c->fd);
   free(c);

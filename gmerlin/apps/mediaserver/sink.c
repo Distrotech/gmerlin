@@ -37,7 +37,9 @@ typedef struct
 
 static void sink_destroy(void * data)
   {
-  
+  sink_t * s = data;
+  if(s->f->destroy)
+    s->f->destroy(s->filter_priv);  
   }
 
 static buffer_element_t * next_element(client_t * cl)
@@ -138,17 +140,17 @@ client_t * sink_client_create(int * fd, const gavl_metadata_t * req,
     goto fail;
     }
 
+  bg_http_response_init(&res, "HTTP/1.1", 200, "OK");
   if(!(priv->filter_priv = priv->f->create(ph, req, inline_metadata, &res, plugin_reg)))
     {
     bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Setting up filter failed");
+    gavl_metadata_free(&res);
     bg_http_response_init(&res, "HTTP/1.1", 406, "Not Acceptable");
     write_response = 1;
     goto fail;
     }
 
-  bg_http_response_init(&res, "HTTP/1.1", 200, "OK");
-
-  fprintf(stderr, "Sening response:\n");
+  fprintf(stderr, "Sending response:\n");
   gavl_metadata_dump(&res, 0);
   
   if(!bg_http_response_write(*fd, &res))
@@ -167,7 +169,6 @@ client_t * sink_client_create(int * fd, const gavl_metadata_t * req,
   if(!priv->f->start(priv->filter_priv, ph, req, inline_metadata, io, flags))
     {
     bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Starting filter failed");
-    write_response = 1;
     goto fail;
     }
   io = NULL;

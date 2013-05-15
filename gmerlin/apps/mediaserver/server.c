@@ -39,6 +39,13 @@ static const bg_parameter_info_t parameters[] =
       .type = BG_PARAMETER_DIRECTORY,
       .val_default = { .val_str = "." },
     },
+    {
+      .name =      "port",
+      .long_name =  TRS("Listen port"),
+      .val_default = { .val_i = 0 },
+      .val_min     = { .val_i = 0 },
+      .val_max     = { .val_i = 65535 },
+    },
     { /* End */ },
   };
 
@@ -84,7 +91,7 @@ int server_start(server_t * s)
   
   s->addr = bg_socket_address_create();
 
-  if(!bg_socket_address_set_local(s->addr, 0))
+  if(!bg_socket_address_set_local(s->addr, s->port))
     return 0;
 
   s->fd = bg_listen_socket_create_inet(s->addr, 0 /* Port */, 10 /* queue_size */,
@@ -195,6 +202,26 @@ void server_detach_client(server_t * s, client_t*cl)
   pthread_mutex_unlock(&s->clients_mutex);
   }
 
+static void server_destroy_client(server_t * s, int idx)
+  {
+  int i = idx+1;
+  while(i < s->num_clients) // We assume that sinks always come after their source
+    {
+    if(s->clients[i]->source == s->clients[idx])
+      server_destroy_client(s, i);
+    else
+      i++;
+    }
+  client_destroy(s->clients[idx]);
+
+  if(idx < s->num_clients - 1)
+    {
+    memmove(s->clients + idx,
+            s->clients + idx + 1,
+           (s->num_clients - 1 - idx) * sizeof(*s->clients));
+    }
+  s->num_clients--;
+  }
 
 int server_iteration(server_t * s)
   {
@@ -209,19 +236,12 @@ int server_iteration(server_t * s)
   while(i < s->num_clients)
     {
     if(client_get_status(s->clients[i]) == CLIENT_STATUS_DONE)
-      {
-      client_destroy(s->clients[i]);
-      if(i < s->num_clients - 1)
-        {
-        memmove(s->clients + s->num_clients,
-                s->clients + s->num_clients + 1,
-                (s->num_clients - 1 - i) * sizeof(*s->clients));
-        }
-      s->num_clients--;
-      }
+      server_destroy_client(s, i);
     else
       i++;
     }
+
+  /* TODO: Remove on-demand sources with zero sinks */
   
   /* Handle incoming connections */
 
