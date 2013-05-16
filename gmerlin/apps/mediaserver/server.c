@@ -30,6 +30,7 @@
 #define LOG_DOMAIN "server"
 
 #define TIMEOUT GAVL_TIME_SCALE/2
+#define ID3_CACHE_SIZE 50
 
 static const bg_parameter_info_t parameters[] =
   {
@@ -70,6 +71,7 @@ void server_init(server_t * s)
   {
   memset(s, 0, sizeof(*s));
   pthread_mutex_init(&s->clients_mutex, NULL);
+  s->timer = gavl_timer_create();
   }
 
 int server_start(server_t * s)
@@ -77,6 +79,7 @@ int server_start(server_t * s)
   char addr_str[BG_SOCKET_ADDR_STR_LEN];
   char * tmp_path;
   bg_cfg_section_t * cfg_section;
+  int i;
 
   /* Create plugin registry */
 
@@ -130,8 +133,17 @@ int server_start(server_t * s)
                                          (const bg_upnp_icon_t *)0,
                                          s->db);
     s->server_string = bg_upnp_device_get_server_string(s->dev);
+    s->id3_cache = calloc(ID3_CACHE_SIZE, sizeof(*s->id3_cache));
+    s->id3_cache_size = ID3_CACHE_SIZE;
+
+    for(i = 0; i < ID3_CACHE_SIZE; i++)
+      {
+      s->id3_cache[i].last_used = GAVL_TIME_UNDEFINED;
+      s->id3_cache[i].id = -1;
+      }
     }
   
+  gavl_timer_start(s->timer);
   return 1;
   }
 
@@ -232,7 +244,8 @@ int server_iteration(server_t * s)
   int fd;
   int i;
   gavl_time_t delay_time = GAVL_TIME_SCALE / 100; // 10 ms
-  
+
+  s->current_time = gavl_timer_get(s->timer);  
   /* Remove dead clients */
 
   i = 0;
@@ -283,7 +296,8 @@ void server_cleanup(server_t * s)
     client_destroy(s->clients[i]);
   if(s->clients)
     free(s->clients);
-
+  if(s->timer)
+    gavl_timer_destroy(s->timer);
 
   bg_plugin_registry_destroy(s->plugin_reg);
   bg_cfg_registry_destroy(s->cfg_reg);

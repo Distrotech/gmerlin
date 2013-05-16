@@ -17,6 +17,7 @@ buffer.c \
 client.c \
 filter.c \
 gmerlin-server.c \
+id3gen.c \
 mediahandler.c \
 server.c \
 sink.c \

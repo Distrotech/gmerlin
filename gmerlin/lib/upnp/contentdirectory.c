@@ -582,6 +582,11 @@ static xmlNodePtr didl_add_object(xmlDocPtr didl, bg_db_object_t * obj,
       didl_add_element_int(didl, node, "upnp:storageUsed", obj->size, q->filter);
       break;
     case BG_DB_OBJECT_PLAYLIST:
+      didl_set_title(didl, node,  bg_db_object_get_label(obj));
+      didl_set_class(didl, node,  "object.container.playlistContainer");
+      /* Res */
+      
+      break;
     case BG_DB_OBJECT_VFOLDER:
     case BG_DB_OBJECT_VFOLDER_LEAF:
       didl_set_title(didl, node,  bg_db_object_get_label(obj));

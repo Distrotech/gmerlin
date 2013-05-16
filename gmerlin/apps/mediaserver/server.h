@@ -120,6 +120,18 @@ void buffer_stop(buffer_t * b);
 
 int buffer_get_free(buffer_t * b);
 
+/* On the fly ID3V2 generation for the more stupid clients */
+
+typedef struct
+  {
+  int64_t id;
+  int len;
+  int alloc;
+  uint8_t * data;
+  gavl_time_t last_used;
+  } id3v2_t;
+
+int id3v2_generate(bg_db_t * db, int64_t id, id3v2_t * ret);
 
 /* Filter: Sends data to the socket */
 
@@ -151,7 +163,7 @@ void filter_init();
 const filter_t * filter_find(const gavf_program_header_t * ph,
                              const gavl_metadata_t * request);
 
-/* Source client */
+/* Client */
 
 client_t * source_client_create(int * fd,
                                 const char * path, bg_plugin_registry_t * plugin_reg, int type);
@@ -162,8 +174,6 @@ client_t * sink_client_create(int * fd, const gavl_metadata_t * req,
                               const gavl_metadata_t * inline_metadata,
                               buffer_t * buf);
 
-/* Sink client */
-
 /* Server */
 
 typedef struct
@@ -172,10 +182,12 @@ typedef struct
   char * dbpath;
   bg_plugin_registry_t * plugin_reg; // Must be set manually
   bg_cfg_registry_t * cfg_reg;
-
   bg_socket_address_t * addr;
   int fd;
   int port;
+
+  gavl_timer_t * timer;
+  gavl_time_t current_time;
 
   pthread_mutex_t clients_mutex;
   client_t ** clients;
@@ -190,6 +202,9 @@ typedef struct
   uuid_t uuid;
 
   const char * server_string;
+
+  id3v2_t * id3_cache;
+  int id3_cache_size;
   } server_t;
 
 void server_attach_client(server_t*, client_t*cl);
@@ -198,6 +213,8 @@ void server_detach_client(server_t*, client_t*cl);
 void server_init(server_t*);
 
 int server_start(server_t*);
+
+id3v2_t * server_get_id3(server_t * s, int64_t id);
 
 const bg_parameter_info_t * server_get_parameters();
 void server_set_parameter(void * server, const char * name,
