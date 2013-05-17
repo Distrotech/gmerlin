@@ -119,7 +119,7 @@ int server_start(server_t * s)
   //  uuid_generate(s->uuid);
   uuid_parse("41491152-4894-43fe-bf88-307b6aa6eb45", s->uuid);
     
-  /* TODO: Create DB */
+  /* Create DB */
   s->db = bg_db_create(s->dbpath,
                        s->plugin_reg, 0);
   if(!s->db)
@@ -298,6 +298,16 @@ void server_cleanup(server_t * s)
     free(s->clients);
   if(s->timer)
     gavl_timer_destroy(s->timer);
+
+  if(s->id3_cache)
+    {
+    for(i = 0; i < s->id3_cache_size; i++)
+      {
+      if(s->id3_cache[i].data)
+        free(s->id3_cache[i].data);
+      }
+    free(s->id3_cache);
+    }
 
   bg_plugin_registry_destroy(s->plugin_reg);
   bg_cfg_registry_destroy(s->cfg_reg);
