@@ -24,6 +24,7 @@
 #include <gavl/numptr.h>
 
 #include <string.h>
+#include <stdio.h>
 
 #if 0
 #define CHARSET "UTF-16"
@@ -128,20 +129,14 @@ static void add_cover(id3v2_t * ret, const char * image_file)
 
 #define SIZE_OFFSET 6
 
-int id3v2_generate(bg_db_t * db, int64_t id, id3v2_t * ret)
+static int id3v2_generate_by_file(bg_db_t * db, bg_db_audio_file_t * song, id3v2_t * ret)
   {
   // Sig (3) + version (2) + flags (1) + size(4)
   uint8_t header[10] = { 'I', 'D', '3', 0x03, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00 };  
 
-  bg_db_audio_file_t * song = NULL;
   bg_db_audio_album_t * album = NULL;
   bg_db_file_t * cover = NULL;
   bg_charset_converter_t * cnv;
-  
-  /* Query objects */
-  song = bg_db_object_query(db, id);
-  if(!song)
-    return 0;
 
   if(bg_db_object_get_type(song) != BG_DB_OBJECT_AUDIO_FILE)
     return 0;
@@ -183,11 +178,9 @@ int id3v2_generate(bg_db_t * db, int64_t id, id3v2_t * ret)
 
   /* Write size */
   write_32_syncsave(ret->data + SIZE_OFFSET, ret->len - 10);
-  ret->id = id;
-
+  ret->id = bg_db_object_get_id(song);
+  
   /* Unref objects */
-  if(song)
-    bg_db_object_unref(song);
   if(album)
     bg_db_object_unref(album);
   if(cover)
@@ -195,13 +188,26 @@ int id3v2_generate(bg_db_t * db, int64_t id, id3v2_t * ret)
   return 1;
   }
 
+static int id3v2_generate_by_id(bg_db_t * db, int64_t id, id3v2_t * ret)
+  {
+  int result;
+  // Sig (3) + version (2) + flags (1) + size(4)
+  
+  bg_db_audio_file_t * song = NULL;
+  
+  /* Query objects */
+  song = bg_db_object_query(db, id);
+  if(!song)
+    return 0;
 
-id3v2_t * server_get_id3(server_t * s, int64_t id)
-  { 
+  result = id3v2_generate_by_file(db, song, ret);
+  bg_db_object_unref(song);
+  return result;
+  }
+
+static id3v2_t * lookup_cache(server_t * s, int64_t id)
+  {
   int i;
-  gavl_time_t min_time = GAVL_TIME_UNDEFINED;
-  int min_index;
-
   /* Check for cached value */
   for(i = 0; i < s->id3_cache_size; i++)
     {
@@ -211,7 +217,15 @@ id3v2_t * server_get_id3(server_t * s, int64_t id)
       return &s->id3_cache[i];
       }
     }
+  return NULL;
+  }
 
+static id3v2_t * get_cache_slot(server_t * s)
+  {
+  int i;
+  gavl_time_t min_time = GAVL_TIME_UNDEFINED;
+  int min_index;
+  
   /* Check for empty slot */
   for(i = 0; i < s->id3_cache_size; i++)
     {
@@ -227,11 +241,70 @@ id3v2_t * server_get_id3(server_t * s, int64_t id)
       min_time = s->id3_cache[i].last_used;
       }
     }
-
-  if(!id3v2_generate(s->db, id, &s->id3_cache[min_index]))
-    return NULL;
-  
-  s->id3_cache[min_index].last_used = s->current_time;
   return &s->id3_cache[min_index];
   }
 
+id3v2_t * server_get_id3(server_t * s, int64_t id)
+  { 
+  id3v2_t * ret;
+
+  if((ret = lookup_cache(s, id)))
+    return ret;
+  
+  ret = get_cache_slot(s);
+  
+  if(!id3v2_generate_by_id(s->db, id, ret))
+    return NULL;
+  
+  ret->last_used = s->current_time;
+  return ret;
+  }
+
+
+
+id3v2_t * server_get_id3_for_file(server_t * s, bg_db_file_t * f,
+                                  int * offset)
+  {
+  id3v2_t * ret;
+  uint8_t buf[10];
+  FILE * file;
+  
+  /* Check if the file is an mp3 */
+
+  if(strcmp(f->mimetype, "audio/mpeg"))
+    return NULL;
+
+  if(!(ret = lookup_cache(s, bg_db_object_get_id(f))))
+    {
+    ret = get_cache_slot(s);
+    if(!id3v2_generate_by_file(s->db, (bg_db_audio_file_t*)f, ret))
+      return NULL;
+    }
+  /* Check whether to skip an ID3 tag already in the file */
+
+  file = fopen(f->path, "rb");
+  if(!file)
+    return NULL;
+  if(fread(buf, 1, 10, file) < 10)
+    {
+    fclose(file);
+    return NULL;
+    }
+
+  *offset = 0;
+  if((buf[0] == 'I') &&
+     (buf[1] == 'D') &&
+     (buf[2] == '3'))
+    {
+    *offset = (uint32_t)buf[6] << 24;
+    *offset >>= 1;
+    *offset |= (uint32_t)buf[7] << 16;
+    *offset >>= 1;
+    *offset |= (uint32_t)buf[8] << 8;
+    *offset >>= 1;
+    *offset |= (uint32_t)buf[9];
+    *offset += 10;
+    }
+  fclose(file);
+  return ret;
+  }

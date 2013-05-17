@@ -215,10 +215,15 @@ void server_init(server_t*);
 int server_start(server_t*);
 
 id3v2_t * server_get_id3(server_t * s, int64_t id);
+id3v2_t * server_get_id3_for_file(server_t * s,
+                                  bg_db_file_t * f,
+                                  int * offset);
+
 
 const bg_parameter_info_t * server_get_parameters();
 void server_set_parameter(void * server, const char * name,
                           const bg_parameter_value_t * val);
+
 
 int server_iteration(server_t * s);
 

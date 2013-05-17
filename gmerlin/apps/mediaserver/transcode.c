@@ -29,10 +29,6 @@
 typedef struct
   {
   bg_subprocess_t * proc;
-  server_t * s;
-  const bg_upnp_transcoder_t * transcoder;
-  int64_t id;
-   
   } transcode_t;
 
 static void transcode_func(client_t * c)
@@ -41,13 +37,7 @@ static void transcode_func(client_t * c)
   uint8_t buf[1024];
   
   transcode_t * s = c->data;
-
-  if(!strncmp(s->transcoder->out_mimetype, "audio/", 6))
-    {
-    /* Send ID3 tag */
-    
-    }
-
+  
   while(1)
     {
     len = bg_subprocess_read_data(s->proc->stdout_fd, buf, 1024);
@@ -190,13 +180,24 @@ int server_handle_transcode(server_t * s, int * fd,
 
   t = calloc(1, sizeof(*t));
   t->proc = sp;
-  t->id = id;
-  t->transcoder = transcoder;
-  t->server = server;
-      
+  
+  if(!strncmp(transcoder->out_mimetype, "audio/", 6))
+    {
+    /* Send ID3 tag */
+    id3v2_t * id3 = server_get_id3(s, id);
+    if(id3)
+      {
+      if(!bg_socket_write_data(*fd, id3->data, id3->len))
+        goto cleanup;
+      }
+    }
+
+  
   c = client_create(CLIENT_TYPE_MEDIA, *fd, t, cleanup_func, transcode_func);
   server_attach_client(s, c);
   *fd = -1;
+
+
   
   cleanup:
 

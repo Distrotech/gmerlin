@@ -66,6 +66,9 @@ int server_handle_media(server_t * s, int * fd,
   char * pos;
   const char * range;
   int64_t start, end;
+  id3v2_t * id3;
+  int id3_offset = 0;
+  int64_t file_size;
   
   gavl_metadata_init(&res);
   
@@ -139,8 +142,20 @@ int server_handle_media(server_t * s, int * fd,
       }
     }
 
-  /* TODO: Figure out byte range */
+  /* Decide whether to send an ID3 tag */
+  
+  id3 = server_get_id3_for_file(s, f, &id3_offset);
 
+  if(id3)
+    {
+    fprintf(stderr, "Size: %"PRId64", id3_offset: %d, id3_len: %d\n",
+            o->size, id3_offset, id3->len);
+    file_size = o->size - id3_offset + id3->len;
+    }
+  else
+    file_size = o->size;
+  
+  /* Figure out byte range */
   
   range = gavl_metadata_get_i(req, "Range");
   if(range)
@@ -152,7 +167,7 @@ int server_handle_media(server_t * s, int * fd,
       if(sscanf(range, "%"PRId64"-%"PRId64, &start, &end) < 2)
         {
         if(sscanf(range, "%"PRId64"-", &start) == 1)
-          end = o->size;
+          end = file_size - 1;
         else
           {
           bg_http_response_init(&res, "HTTP/1.1", 
@@ -162,7 +177,7 @@ int server_handle_media(server_t * s, int * fd,
         }
       else
         {
-        if(end > o->size)
+        if(end >= file_size)
           {
           bg_http_response_init(&res, "HTTP/1.1", 
                                 416, "Requested range not satisfiable");
@@ -181,7 +196,7 @@ int server_handle_media(server_t * s, int * fd,
   else
     {
     start = 0;
-    end = o->size;
+    end = file_size - 1;
     }
   
   /* Decide whether to launch a thread */
@@ -194,15 +209,31 @@ int server_handle_media(server_t * s, int * fd,
     }
   
   result = 1;
-
+  
   /* Set up header for transmission */
-  bg_http_response_init(&res, "HTTP/1.1", 
-                        200, "OK");
+
+  if(range)
+    bg_http_response_init(&res, "HTTP/1.1", 206, "Partial Content");
+  else
+    bg_http_response_init(&res, "HTTP/1.1", 200, "OK");
+  
   if(s->server_string)
     gavl_metadata_set(&res, "Server", s->server_string);
   bg_http_header_set_date(&res, "Date");
   gavl_metadata_set(&res, "Content-Type", f->mimetype);
-  gavl_metadata_set_long(&res, "Content-Length", end - start);
+  
+  if(range)
+    {
+    char * tmp_string;
+    gavl_metadata_set_long(&res, "Content-Length", end - start + 1);
+    tmp_string = bg_sprintf("bytes %"PRId64"-%"PRId64"/%"PRId64, start, end, file_size);
+    gavl_metadata_set(&res, "Content-Range", tmp_string);
+    free(tmp_string);
+    }
+  else
+    gavl_metadata_set_long(&res, "Content-Length", file_size);
+  
+  
   gavl_metadata_set(&res, "Connection", "close");
   gavl_metadata_set(&res, "Cache-control", "no-cache");
     
@@ -227,6 +258,29 @@ int server_handle_media(server_t * s, int * fd,
      !result)
     goto cleanup;
 
+  /* Send ID3 tag */
+
+  end++; // http -> C
+  
+  if(id3)
+    {
+    int delta = id3->len - start;
+    end -= (id3->len - id3_offset);
+    if(delta > 0) // | ID3   |<-delta->||                MP3    |
+      {
+      if(!bg_socket_write_data(*fd, id3->data + start, delta))
+        goto cleanup;
+      start = id3_offset;
+      }
+    else          // | ID3             ||<- -delta-> |   MP3    |
+      {
+      start -= delta;
+      start += id3_offset;
+      }
+    }
+
+  
+  
   if(!launch_thread)
     bg_socket_send_file(*fd, f->path, start, end);
   else

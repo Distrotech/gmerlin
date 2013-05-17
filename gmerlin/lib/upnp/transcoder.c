@@ -219,7 +219,7 @@ static int get_bitrate_mp3(bg_db_object_t * obj)
 
 static bg_upnp_transcoder_t transcoders[] =
   {
-#if 1
+#if 0
     {
       .is_supported = is_supported_lpcm,
       .make_command = make_command_lpcm,
