@@ -473,7 +473,7 @@ bg_plug_response_set_status(gavl_metadata_t * res, int status)
   gavl_metadata_set_int(res, META_STATUS, status);
   }
 
-static int server_handshake(int fd, int method, int timeout)
+int bg_plug_io_server_handshake(int fd, int method, int timeout)
   {
   int ret = 0;
   int status = 0;
@@ -862,7 +862,7 @@ static gavf_io_t * open_tcpserv(const char * addr,
     bg_log(BG_LOG_INFO, LOG_DOMAIN,
            "Got connection");
     
-    if(server_handshake(fd, method, timeout))
+    if(bg_plug_io_server_handshake(fd, method, timeout))
       break;
 
     bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Handshake failed");
@@ -929,7 +929,7 @@ static gavf_io_t * open_unixserv(const char * addr, int method, int timeout)
     bg_log(BG_LOG_INFO, LOG_DOMAIN,
            "Got connection");
     
-    if(server_handshake(fd, method, timeout))
+    if(bg_plug_io_server_handshake(fd, method, timeout))
       break;
 
     bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Handshake failed");

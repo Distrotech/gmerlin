@@ -201,6 +201,8 @@ gavf_io_t *
 bg_plug_io_open_location(const char * location,
                          int method, int * flags, int timeout);
 
+int bg_plug_io_server_handshake(int fd, int method, int timeout);
+
 gavf_io_t *
 bg_plug_io_open_socket(int fd,
                        int method, int * flags, int timeout);

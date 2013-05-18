@@ -20,10 +20,10 @@
  * *****************************************************************/
 
 #include <string.h>
+#include <signal.h>
 
 
 #include <server.h>
-#include <gmerlin/bgplug.h>
 #include <gmerlin/http.h>
 
 #define CLIENT_TIMEOUT 1000
@@ -50,6 +50,8 @@ typedef struct
   gavl_timer_t * timer;
 
   gavf_program_header_t ph;
+
+  bg_subprocess_t * proc;
   } source_t;
 
 static void enable_streams(bg_plug_t * plug, gavf_stream_type_t type)
@@ -178,6 +180,11 @@ static void source_destroy(void * data)
 
   gavl_metadata_free(&p->m);
 
+  if(p->proc)
+    {
+    bg_subprocess_kill(p->proc, SIGTERM);
+    bg_subprocess_close(p->proc);
+    }
   pthread_mutex_destroy(&p->metadata_mutex);
   free(p);
   }
@@ -209,31 +216,22 @@ static void source_func(client_t * cl)
     }
   }
 
-client_t * source_client_create(int * fd, const char * path, bg_plugin_registry_t * plugin_reg,
-                                int type)
+client_t * source_client_create(int * fd,
+                                bg_plugin_registry_t * plugin_reg,
+                                bg_plug_t * plug, int type,
+                                bg_subprocess_t * proc)
   {
   gavf_io_t * io = NULL; 
-  int flags;
   source_t * priv;
   client_t * ret;
   
   priv = calloc(1, sizeof(*priv));
 
   pthread_mutex_init(&priv->metadata_mutex, NULL);
-  
-  io = bg_plug_io_open_socket(*fd, BG_PLUG_IO_METHOD_READ, &flags, CLIENT_TIMEOUT);
-  if(!io)
-    goto fail;
-  
-  priv->in_plug = bg_plug_create_reader(plugin_reg);
 
-  if(!priv->in_plug)
-    goto fail;
+  priv->in_plug = plug;
+  priv->proc = proc;
   
-  if(!bg_plug_open(priv->in_plug, io,
-                   NULL, NULL, flags))
-    goto fail;
-
   enable_streams(priv->in_plug, GAVF_STREAM_AUDIO);
   enable_streams(priv->in_plug, GAVF_STREAM_VIDEO);
   enable_streams(priv->in_plug, GAVF_STREAM_TEXT);
@@ -290,8 +288,11 @@ int server_handle_source(server_t * s, int * fd,
   {
   const char * var;
   int i;
+  int flags;
   gavl_metadata_t res;
   client_t * cl;
+  gavf_io_t * io = NULL; 
+  bg_plug_t * plug = NULL;
   
   if(strcmp(method, "PUT") ||
      !(var = gavl_metadata_get(req, "Content-Type")) ||
@@ -328,14 +329,53 @@ int server_handle_source(server_t * s, int * fd,
     if(!bg_http_response_write(*fd, &res))
       goto fail;
     }
-  cl = source_client_create(fd, path_orig, s->plugin_reg, CLIENT_TYPE_SOURCE_STREAM);
+
+  io = bg_plug_io_open_socket(*fd, BG_PLUG_IO_METHOD_READ, &flags, CLIENT_TIMEOUT);
+  if(!io)
+    goto fail;
+  
+  plug = bg_plug_create_reader(s->plugin_reg);
+
+  if(!plug)
+    goto fail;
+  
+  if(!bg_plug_open(plug, io, NULL, NULL, flags))
+    goto fail;
+  io = NULL;
+  
+  cl = source_client_create(fd, s->plugin_reg, plug, CLIENT_TYPE_SOURCE_STREAM, NULL);
   cl->name = gavl_strdup(path_orig + 1);
   
   server_attach_client(s, cl);
+  return 1;
   
   fail:
+
+  if(plug)
+    bg_plug_destroy(plug);
+
+  if(io)
+    gavf_io_destroy(io);
   
   return 1;
+  }
+
+client_t * sink_create_from_source(server_t * s,
+                                   int * fd, client_t * source,
+                                   const gavl_metadata_t * req)
+  {
+  source_t * sp;
+  client_t * sink;
+  
+  sp = source->data;
+  pthread_mutex_lock(&sp->metadata_mutex);
+  sink = sink_client_create(fd, req, s->plugin_reg,
+                            &sp->ph,
+                            &sp->m,
+                            sp->buf);
+  sink->source = source;
+  pthread_mutex_unlock(&sp->metadata_mutex);
+  return sink;
   }
 
 int server_handle_stream(server_t * s, int * fd,
@@ -344,8 +384,6 @@ int server_handle_stream(server_t * s, int * fd,
                          const gavl_metadata_t * req)
   {
   int i;
-
-  source_t * sp;
   
   client_t * source = NULL;
   client_t * sink;
@@ -369,15 +407,8 @@ int server_handle_stream(server_t * s, int * fd,
   if(!source)
     return 0; // 404
 
-  sp = source->data;
-
-  pthread_mutex_lock(&sp->metadata_mutex);
-  sink = sink_client_create(fd, req, s->plugin_reg,
-                            &sp->ph,
-                            &sp->m,
-                            sp->buf);
-  pthread_mutex_unlock(&sp->metadata_mutex);
-
+  sink = sink_create_from_source(s, fd, source, req);
+  
   if(sink)
     server_attach_client(s, sink);
   return 1;

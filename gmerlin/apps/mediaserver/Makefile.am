@@ -19,6 +19,7 @@ filter.c \
 gmerlin-server.c \
 id3gen.c \
 mediahandler.c \
+ondemand.c \
 server.c \
 sink.c \
 source.c \

@@ -40,6 +40,7 @@ static void sink_destroy(void * data)
   sink_t * s = data;
   if(s->f->destroy)
     s->f->destroy(s->filter_priv);  
+  free(s);
   }
 
 static buffer_element_t * next_element(client_t * cl)
@@ -117,7 +118,7 @@ client_t * sink_client_create(int * fd, const gavl_metadata_t * req,
   {
   gavl_metadata_t res;
   int write_response = 0;
-  client_t * ret;
+  client_t * ret = NULL;
   gavf_io_t * io;
   int flags;
   sink_t * priv = calloc(1, sizeof(*ret));
@@ -174,10 +175,11 @@ client_t * sink_client_create(int * fd, const gavl_metadata_t * req,
 
   *fd = -1;
   
-  return ret;
-
   fail:
-  sink_destroy(priv);
-  return NULL;
+  
+  gavl_metadata_free(&res);
+  if(!ret)
+    sink_destroy(priv);
+  return ret;
   }
 

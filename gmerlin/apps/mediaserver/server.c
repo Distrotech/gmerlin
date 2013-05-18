@@ -32,6 +32,8 @@
 #define TIMEOUT GAVL_TIME_SCALE/2
 #define ID3_CACHE_SIZE 50
 
+#define ONDEMAND_IDLE_TIME (30*GAVL_TIME_SCALE)
+
 static const bg_parameter_info_t parameters[] =
   {
     {
@@ -183,7 +185,8 @@ static void handle_client_connection(server_t * s, int fd)
      !server_handle_media(s, &fd, method, path, &req) &&
      !server_handle_transcode(s, &fd, method, path, &req) &&
      !server_handle_source(s, &fd, method, path, &req) &&
-     !server_handle_stream(s, &fd, method, path, &req))
+     !server_handle_stream(s, &fd, method, path, &req) &&
+     !server_handle_ondemand(s, &fd, method, path, &req))
     send_404(fd);
   
   fail:
@@ -242,7 +245,7 @@ int server_iteration(server_t * s)
   {
   int ret = 0;
   int fd;
-  int i;
+  int i, j;
   gavl_time_t delay_time = GAVL_TIME_SCALE / 100; // 10 ms
 
   s->current_time = gavl_timer_get(s->timer);  
@@ -257,7 +260,42 @@ int server_iteration(server_t * s)
       i++;
     }
 
-  /* TODO: Remove on-demand sources with zero sinks */
+  /* Remove on-demand sources with zero sinks */
+
+  i = 0;
+  while(i < s->num_clients)
+    {
+    if(s->clients[i]->type == CLIENT_TYPE_SOURCE_ONDEMAND)
+      {
+      int have_clients = 0;
+      j = 0;
+      
+      while(j < s->num_clients)
+        {
+        if(s->clients[j]->source == s->clients[i])
+          {
+          have_clients = 1;
+          break;
+          }
+        j++;
+        }
+      if(!have_clients)
+        {
+        if(s->clients[i]->idle_time == GAVL_TIME_UNDEFINED)
+          s->clients[i]->idle_time = s->current_time;
+        else if(s->current_time - s->clients[i]->idle_time > ONDEMAND_IDLE_TIME)
+          {
+          bg_log(BG_LOG_INFO, LOG_DOMAIN, "Shutting down ondemand stream (idle timeout)");
+          server_destroy_client(s, i);
+          continue;
+          }
+        }
+      else
+        s->clients[i]->idle_time = GAVL_TIME_UNDEFINED;
+      }
+    i++;
+    }
+
   
   /* Handle incoming connections */
 

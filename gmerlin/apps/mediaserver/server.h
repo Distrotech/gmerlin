@@ -25,6 +25,8 @@
 #include <gmerlin/translation.h>
 #include <gmerlin/mediadb.h>
 #include <gmerlin/cmdline.h>
+#include <gmerlin/bgplug.h>
+#include <gmerlin/subprocess.h>
 
 #include <gmerlin/upnp/device.h>
 
@@ -38,6 +40,8 @@
 #define CLIENT_TYPE_SOURCE_ONDEMAND 1 // Ondemand upstream source (bgplug)
 #define CLIENT_TYPE_SOURCE_STREAM   2 // Upstream source (bgplug)
 #define CLIENT_TYPE_SINK            3 // Sink (bgplug or filtered)
+
+typedef struct server_s server_t;
 
 /*
  *  URL structure:
@@ -58,10 +62,13 @@ typedef struct client_s
   int fd;
 
   char * name;
+  int64_t id;
+  gavl_time_t idle_time;
   
   void *data;
   void (*free_data)(void*);
   void (*func)(struct client_s * client);
+
   struct client_s * source;
   } client_t;
 
@@ -166,7 +173,9 @@ const filter_t * filter_find(const gavf_program_header_t * ph,
 /* Client */
 
 client_t * source_client_create(int * fd,
-                                const char * path, bg_plugin_registry_t * plugin_reg, int type);
+                                bg_plugin_registry_t * plugin_reg,
+                                bg_plug_t * plug, int type,
+                                bg_subprocess_t * proc);
 
 client_t * sink_client_create(int * fd, const gavl_metadata_t * req,
                               bg_plugin_registry_t * plugin_reg,
@@ -174,9 +183,13 @@ client_t * sink_client_create(int * fd, const gavl_metadata_t * req,
                               const gavl_metadata_t * inline_metadata,
                               buffer_t * buf);
 
+client_t * sink_create_from_source(server_t * s,
+                                   int * fd, client_t * source,
+                                   const gavl_metadata_t * req);
+
 /* Server */
 
-typedef struct
+struct server_s
   {
   /* Config stuff */
   char * dbpath;
@@ -205,7 +218,7 @@ typedef struct
 
   id3v2_t * id3_cache;
   int id3_cache_size;
-  } server_t;
+  };
 
 void server_attach_client(server_t*, client_t*cl);
 void server_detach_client(server_t*, client_t*cl);
@@ -232,7 +245,8 @@ void server_cleanup(server_t * s);
 /* Media handler (fd will be set to -1 if we launched a
    thread for transferring the file) */
 
-int server_handle_media(server_t * s, int * fd, const char * method, const char * path,
+int server_handle_media(server_t * s, int * fd,
+                        const char * method, const char * path,
                         const gavl_metadata_t * req);
 
 int server_handle_transcode(server_t * s, int * fd,
@@ -249,3 +263,8 @@ int server_handle_stream(server_t * s, int * fd,
                          const char * method,
                          const char * path_orig,
                          const gavl_metadata_t * req);
+
+int server_handle_ondemand(server_t * s, int * fd,
+                           const char * method,
+                           const char * path_orig,
+                           const gavl_metadata_t * req);

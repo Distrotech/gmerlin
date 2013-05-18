@@ -20,7 +20,6 @@
  * *****************************************************************/
 
 #include "server.h"
-#include <gmerlin/subprocess.h>
 #include <gmerlin/http.h>
 
 #include <string.h>
