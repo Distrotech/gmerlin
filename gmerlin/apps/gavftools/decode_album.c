@@ -28,6 +28,8 @@
 #include <sys/stat.h>
 #include <unistd.h>
 
+#include <ctype.h>
+
 #define LOG_DOMAIN "gavf-decode.album"
 
 void album_init(album_t * a)
@@ -49,35 +51,127 @@ void album_free(album_t * a)
   gavl_metadata_free(&a->m);
   }
 
-static int get_mtime(const char * file, time_t * ret)
-  {
-  struct stat st;
-  if(stat(file, &st))
-    return 0;
-  *ret = st.st_mtime;
-  return 1;
-  }
 
-static int album_load(album_t * a)
+static bg_album_entry_t * load_gmerlin_album(const char * filename)
   {
-  int i;
   char * album_xml;
-  bg_album_entry_t * e;
-  
-  if(!get_mtime(album_file, &a->mtime))
-    return 0;
-  
-  album_xml = bg_read_file(album_file, NULL);
+  bg_album_entry_t * ret;
+
+  album_xml = bg_read_file(filename, NULL);
 
   if(!album_xml)
     {
     bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Album file %s could not be opened",
            album_file);
-    return 0;
+    return NULL;
     }
 
-  a->first = bg_album_entries_new_from_xml(album_xml);
+  ret = bg_album_entries_new_from_xml(album_xml);
   free(album_xml);
+  return ret;
+  }
+
+static bg_album_entry_t * load_m3u(const char * filename)
+  {
+  int seconds;
+  int idx;
+  char * pos;
+  char * m3u;
+  char ** lines;
+  bg_album_entry_t * ret = NULL;
+  bg_album_entry_t * end = NULL;
+  bg_album_entry_t * new_entry;
+
+  m3u = bg_read_file(filename, NULL);
+
+  if(!m3u)
+    {
+    bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Playlist file %s could not be opened",
+           filename);
+    return NULL;
+    }
+
+  lines = bg_strbreak(m3u, '\n');
+
+  idx = 0;
+  while(lines[idx])
+    {
+    if((pos = strchr(lines[idx], '\r')))
+      *pos = '\0';
+    idx++;
+    }
+
+  idx = 0;
+
+  /* Create entries */
+  while(lines[idx])
+    {
+    if(!strncmp(lines[idx], "#EXTM3U", 7))
+      {
+      idx++;
+      continue;
+      }
+
+    /* Create entry */
+
+    if(!strncmp(lines[idx], "#EXTINF:", 8))
+      {
+      new_entry = calloc(1, sizeof(*new_entry));
+      
+      /* Get duration (approximate) */
+      pos = lines[idx] + 8;
+      seconds = atoi(lines[idx]);
+      new_entry->duration = (int64_t)seconds * GAVL_TIME_SCALE;
+      pos = strchr(pos, ',');
+      if(pos)
+        {
+        pos++;
+        while(isspace(*pos) && (*pos != '\0'))
+          pos++;
+        if(*pos != '\0')
+          new_entry->name = gavl_strdup(pos);
+        }
+      idx++;
+      }
+    else if(*(lines[idx]) != '#')
+      {
+      if(!new_entry)
+        new_entry = calloc(1, sizeof(*new_entry));
+      new_entry->location = gavl_strdup(lines[idx]);
+
+      if(!end)
+        {
+        ret = new_entry;
+        end = ret;
+        }
+      else
+        {
+        end->next = new_entry;
+        end = end->next;
+        }
+      idx++;
+      new_entry = NULL;
+      }
+    else
+      idx++;
+    }
+
+  free(m3u);
+  bg_strbreak_free(lines);
+  return ret;
+  
+  }
+
+static int album_load(album_t * a)
+  {
+  int i;
+  bg_album_entry_t * e;
+
+  if(album_file)
+    a->first = load_gmerlin_album(album_file);
+  else if(m3u_file)
+    a->first = load_m3u(m3u_file);
+    
   
   if(!a->first)
     {
@@ -121,23 +215,7 @@ static int album_load(album_t * a)
 
 static bg_album_entry_t * album_next(album_t * a)
   {
-  time_t mtime;
   bg_album_entry_t * ret;
-
-  if(!get_mtime(album_file, &mtime))
-    return NULL;
-
-  if(mtime != a->mtime)
-    {
-    bg_log(BG_LOG_ERROR, LOG_DOMAIN,
-           "Album file %s changed on disk, reloading",
-           album_file);
-    album_free(a);
-    album_init(a);
-
-    if(!album_load(a))
-      return NULL;
-    }
   
   if(a->current_entry == a->num_entries)
     {

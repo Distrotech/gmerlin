@@ -30,6 +30,7 @@ extern bg_stream_action_t * text_actions;
 extern bg_stream_action_t * overlay_actions;
 
 extern char * album_file;
+extern char * m3u_file;
 
 extern int shuffle;
 extern int loop;
@@ -53,9 +54,7 @@ typedef struct
   int current_entry;
   bg_album_entry_t ** entries;
   bg_album_entry_t * first;
-
-  time_t mtime;
- 
+  
   bg_plugin_handle_t * h;
   gavl_metadata_t m;
 

@@ -30,6 +30,7 @@
 static char * input_file   = "-";
 
 char * album_file   = NULL;
+char * m3u_file   = NULL;
 
 static char * input_plugin = NULL;
 static bg_plug_t * out_plug = NULL;
@@ -83,6 +84,12 @@ static bg_cmdline_arg_t global_options[] =
       .help_arg =    "<album>",
       .help_string = TRS("Album file"),
       .argv     =    &album_file,
+    },
+    {
+      .arg =         "-m3u",
+      .help_arg =    "<file>",
+      .help_string = TRS("m3u playlist"),
+      .argv     =    &m3u_file,
     },
     {
       .arg =         "-loop",
@@ -203,11 +210,12 @@ int main(int argc, char ** argv)
   
   
   /* Open location */
-  if(album_file)
+  if(album_file || m3u_file)
     {
     if(input_file && strcmp(input_file, "-"))
       {
-      bg_log(BG_LOG_ERROR, LOG_DOMAIN, "-i <location> and -a <album> cannot be used together");
+      bg_log(BG_LOG_ERROR, LOG_DOMAIN,
+             "-i <location> cannot be used with -a <album> or -m3u <playlist>");
       return ret;
       }
     /* Initialize from album */
