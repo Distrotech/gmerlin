@@ -89,6 +89,7 @@ typedef enum {
   DLNA_ORG_FLAG_DLNA_V15                   = (1 << 20),
 } dlna_org_flags_t;
 
+#if 0
 static char * create_dlna_info(dlna_org_conversion_t ci,
                                dlna_org_operation_t op,
                                dlna_org_flags_t flags, const char * type)
@@ -100,7 +101,6 @@ static char * create_dlna_info(dlna_org_conversion_t ci,
 
 
 /* LPCM */
-
 static int is_supported_lpcm(bg_plugin_registry_t * plugin_reg)
   {
   return 1;
@@ -184,6 +184,7 @@ static int get_bitrate_lpcm(bg_db_object_t * obj)
   af = (bg_db_audio_file_t *)obj;
   return af->samplerate * af->channels * 2 * 8;
   }
+#endif
 
 /* mp3 */
 

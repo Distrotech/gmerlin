@@ -51,20 +51,10 @@ typedef struct bg_db_s bg_db_t;
 
 typedef enum
   {
-  BG_DB_AUDIO = (1<<0),
-  BG_DB_VIDEO = (1<<1),
-  BG_DB_PHOTO = (1<<2),
-  } bg_db_type_t;
-
-#if 0
-typedef enum
-  {
-  BG_DB_ACCESS_FILE = 0,
-  BG_DB_ACCESS_URL  = 1,
-  // BG_DB_ACCESS_DEVICE, ?
-  // BG_DB_ACCESS_ONDEMAND ?
-  } bg_db_access_t;
-#endif
+  BG_DB_SCAN_AUDIO = (1<<0),
+  BG_DB_SCAN_VIDEO = (1<<1),
+  BG_DB_SCAN_PHOTO = (1<<2),
+  } bg_db_scan_type_t;
 
 /*
  *  Date

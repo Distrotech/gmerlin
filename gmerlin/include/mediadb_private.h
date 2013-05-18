@@ -98,13 +98,13 @@ struct bg_db_s
 
 typedef enum
   {
-  BG_SCAN_TYPE_FILE,
-  BG_SCAN_TYPE_DIRECTORY,
-  } bg_db_scan_type_t;
+  BG_DB_DIRENT_FILE,
+  BG_DB_DIRENT_DIRECTORY,
+  } bg_db_dirent_type_t;
 
 typedef struct
   {
-  bg_db_scan_type_t type;
+  bg_db_dirent_type_t type;
   char * path;
   int parent_index;
   

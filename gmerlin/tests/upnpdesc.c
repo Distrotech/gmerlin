@@ -28,12 +28,10 @@
 static void test_device_desc()
   {
   uuid_t uuid;
-  bg_socket_address_t * addr = bg_socket_address_create();
   xmlDocPtr doc;
 
-  bg_socket_address_set(addr, "127.0.0.1", 5555, SOCK_STREAM);
 
-  doc = bg_upnp_device_description_create(addr, "MediaServer", 1);
+  doc = bg_upnp_device_description_create("127.0.0.1:5555", "MediaServer", 1);
   uuid_clear(uuid);
   uuid_generate(uuid);
   
@@ -58,7 +56,6 @@ static void test_device_desc()
   
   bg_xml_save_FILE(doc, stdout);
   xmlFreeDoc(doc);
-  bg_socket_address_destroy(addr);
   }
 
 #if 0

@@ -226,7 +226,7 @@ void bg_db_identify_images(bg_db_t * db, int64_t scan_dir_id, int scan_flags)
     {
     f = bg_db_object_query(db, tab.val[i]);
  
-    if((scan_flags & BG_DB_AUDIO) && detect_album_cover(db, f))
+    if((scan_flags & BG_DB_SCAN_AUDIO) && detect_album_cover(db, f))
       {
       bg_db_object_unref(f);
       continue;

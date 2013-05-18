@@ -45,11 +45,11 @@ int bg_db_scan_item_set(bg_db_scan_item_t * ret, char * filename)
     /* Check for directory */
     if(S_ISDIR(st.st_mode))
       {
-      ret->type = BG_SCAN_TYPE_DIRECTORY;
+      ret->type = BG_DB_DIRENT_DIRECTORY;
       }
     else if(S_ISREG(st.st_mode))
       {
-      ret->type = BG_SCAN_TYPE_FILE;
+      ret->type = BG_DB_DIRENT_FILE;
       ret->size = st.st_size;
       ret->mtime = st.st_mtime;
       }
@@ -100,7 +100,7 @@ static bg_db_scan_item_t * scan_internal(const char * directory,
     if(bg_db_scan_item_set(file, filename))
       {
       num++;
-      if(file->type == BG_SCAN_TYPE_DIRECTORY)
+      if(file->type == BG_DB_DIRENT_DIRECTORY)
         files = scan_internal(file->path, files, &num, &alloc);
       }
     }

@@ -103,19 +103,19 @@ opt_create(void * data, int * argc, char *** _argv, int arg)
 static void
 opt_audio(void * data, int * argc, char *** _argv, int arg)
   {
-  scan_type_opt |= BG_DB_AUDIO;
+  scan_type_opt |= BG_DB_SCAN_AUDIO;
   }
 
 static void
 opt_video(void * data, int * argc, char *** _argv, int arg)
   {
-  scan_type_opt |= BG_DB_VIDEO;
+  scan_type_opt |= BG_DB_SCAN_VIDEO;
   }
 
 static void
 opt_photo(void * data, int * argc, char *** _argv, int arg)
   {
-  scan_type_opt |= BG_DB_PHOTO;
+  scan_type_opt |= BG_DB_SCAN_PHOTO;
   }
 
 static bg_cmdline_arg_t global_options[] =
@@ -236,7 +236,7 @@ int main(int argc, char ** argv)
   if(scan_type_opt)
     scan_type = scan_type_opt;
   else
-    scan_type = BG_DB_AUDIO | BG_DB_VIDEO | BG_DB_PHOTO;
+    scan_type = BG_DB_SCAN_AUDIO | BG_DB_SCAN_VIDEO | BG_DB_SCAN_PHOTO;
 
   for(i = 0; i < num_add_dirs; i++)
     bg_db_add_directory(db, add_dirs[i], scan_type);

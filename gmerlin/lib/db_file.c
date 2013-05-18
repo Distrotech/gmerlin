@@ -211,11 +211,11 @@ bg_db_file_create_from_object(bg_db_t * db, bg_db_object_t * obj, int scan_flags
   switch(type)
     {
     case BG_DB_OBJECT_AUDIO_FILE:
-      if(!(scan_flags & BG_DB_AUDIO))
+      if(!(scan_flags & BG_DB_SCAN_AUDIO))
         goto fail;
       break;
     case BG_DB_OBJECT_VIDEO_FILE:
-      if(!(scan_flags & BG_DB_VIDEO))
+      if(!(scan_flags & BG_DB_SCAN_VIDEO))
         goto fail;
       break;
     case BG_DB_OBJECT_IMAGE_FILE: // Images can also be movie poster and album covers
@@ -335,13 +335,13 @@ void bg_db_add_files(bg_db_t * db, bg_db_scan_item_t * files, int num,
     
     switch(files[i].type)
       {
-      case BG_SCAN_TYPE_DIRECTORY:
+      case BG_DB_DIRENT_DIRECTORY:
         {
         bg_db_dir_create(db, scan_flags, &files[i],
                          &dir, &scan_dir_id);
         }
         break;
-      case BG_SCAN_TYPE_FILE:
+      case BG_DB_DIRENT_FILE:
         {
         bg_db_file_create(db, scan_flags, &files[i],
                           &dir, scan_dir_id);
@@ -353,7 +353,7 @@ void bg_db_add_files(bg_db_t * db, bg_db_scan_item_t * files, int num,
   }
 
 static bg_db_scan_item_t * find_by_path(bg_db_scan_item_t * files, int num, 
-                                        char * path, bg_db_scan_type_t type)
+                                        char * path, bg_db_dirent_type_t type)
   {
   int i;
   for(i = 0; i < num; i++)
@@ -390,7 +390,7 @@ void bg_db_update_files(bg_db_t * db, bg_db_scan_item_t * files, int num, int sc
     {
     dir = bg_db_object_query(db, tab.val[i]);
     
-    si = find_by_path(files, num, dir->path, BG_SCAN_TYPE_DIRECTORY);
+    si = find_by_path(files, num, dir->path, BG_DB_DIRENT_DIRECTORY);
     if(!si)
       {
       bg_log(BG_LOG_INFO, LOG_DOMAIN,
@@ -421,7 +421,7 @@ void bg_db_update_files(bg_db_t * db, bg_db_scan_item_t * files, int num, int sc
     {
     file = bg_db_object_query(db, tab.val[i]);
     
-    si = find_by_path(files, num, file->path, BG_SCAN_TYPE_FILE);
+    si = find_by_path(files, num, file->path, BG_DB_DIRENT_FILE);
     if(!si)
       {
       bg_log(BG_LOG_INFO, LOG_DOMAIN,
