@@ -58,8 +58,12 @@ static int query_audioalbum(bg_db_t * db, void * a1, int full)
   if(!result || !a->obj.found)
     return 0;
 
-  a->artist = bg_sqlite_id_to_string(db->db, "AUDIO_ARTISTS", "NAME", "ID", a->artist_id);
-  a->genre  = bg_sqlite_id_to_string(db->db, "AUDIO_GENRES",  "NAME", "ID", a->genre_id);
+  a->artist = bg_sqlite_id_to_string(db->db,
+                                     "AUDIO_ARTISTS", "NAME", "ID",
+                                     a->artist_id);
+  a->genre  = bg_sqlite_id_to_string(db->db,
+                                     "AUDIO_GENRES",  "NAME", "ID",
+                                     a->genre_id);
 
   return 1;
   }
@@ -105,6 +109,8 @@ static void free_audioalbum(void * obj)
     free(a->title);
   if(a->search_title)
     free(a->search_title);
+  if(a->genre)
+    free(a->genre);
 
   }
 

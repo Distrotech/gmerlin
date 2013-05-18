@@ -48,7 +48,7 @@ void bg_db_object_init(void * obj1)
   {
   bg_db_object_storage_t * obj = obj1;
   memset(obj, 0, sizeof(*obj));
-  obj->obj.id   = -1;
+  obj->obj.id = -1;
   }
 
 static bg_db_object_t * get_cache_item(bg_db_t * db)
@@ -345,7 +345,7 @@ void * bg_db_object_query(bg_db_t * db, int64_t id)
   
   bg_db_cache_t * cache;
   bg_db_object_t * obj;
-
+  
   /* Check if the object is in the cache */
   for(i = 0; i < db->cache_size; i++)
     {
@@ -390,7 +390,7 @@ void bg_db_object_free(void * obj1)
   {
   bg_db_object_t * obj = obj1;
   const bg_db_object_class_t * c = obj->klass;
-  
+  //  fprintf(stderr, "bg_db_object_free\n");
   if(obj->label)
     free(obj->label);
 

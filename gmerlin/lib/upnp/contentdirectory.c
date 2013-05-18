@@ -644,11 +644,16 @@ static int Browse(bg_upnp_service_t * s)
   int64_t id;
   char * ret;  
   query_t q;
-  const char * ObjectID = bg_upnp_service_get_arg_in_string(&s->req, ARG_ObjectID);
-  const char * BrowseFlag = bg_upnp_service_get_arg_in_string(&s->req, ARG_BrowseFlag);
-  const char * Filter = bg_upnp_service_get_arg_in_string(&s->req, ARG_Filter);
-  int StartingIndex = bg_upnp_service_get_arg_in_int(&s->req, ARG_StartingIndex);
-  int RequestedCount = bg_upnp_service_get_arg_in_int(&s->req, ARG_RequestedCount);
+  const char * ObjectID =
+    bg_upnp_service_get_arg_in_string(&s->req, ARG_ObjectID);
+  const char * BrowseFlag =
+    bg_upnp_service_get_arg_in_string(&s->req, ARG_BrowseFlag);
+  const char * Filter =
+    bg_upnp_service_get_arg_in_string(&s->req, ARG_Filter);
+  int StartingIndex =
+    bg_upnp_service_get_arg_in_int(&s->req, ARG_StartingIndex);
+  int RequestedCount =
+    bg_upnp_service_get_arg_in_int(&s->req, ARG_RequestedCount);
 
   int NumberReturned;
   int TotalMatches = 1;

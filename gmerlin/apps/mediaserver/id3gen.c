@@ -68,8 +68,6 @@ static void add_text_frame(id3v2_t * ret, char * fourcc, const char * string, bg
   write_data(ret, fourcc, 4);
   write_data(ret, buf, 4); // Size (not syncsave)
   write_data(ret, buf, 2); // Flags
-
-  buf[0] = 0x00;
   write_data(ret, buf, 1); // Encoding
   write_data(ret, converted, converted_len+1); // text + '\0'
  
@@ -86,10 +84,11 @@ static void add_int_frame(id3v2_t * ret, char * fourcc, int64_t val)
   if(!val || (val == 9999))
     return;
 
+  memset(buf, 0, 4);
+  
   write_data(ret, fourcc, 4);
   write_data(ret, buf, 4); // Size (not syncsave)
   write_data(ret, buf, 2); // Flags
-  buf[0] = 0x00;
   write_data(ret, buf, 1); // Encoding
 
   sprintf(buf, "%"PRId64, val);
@@ -100,7 +99,7 @@ static void add_int_frame(id3v2_t * ret, char * fourcc, int64_t val)
 
 static void add_cover(id3v2_t * ret, const char * image_file)
   {
-  char buf[4];
+  char buf[4] = { 0, 0, 0, 0 };
   int file_len;
   int frame_len;
   int old_len = ret->len;

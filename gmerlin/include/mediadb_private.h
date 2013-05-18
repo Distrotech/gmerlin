@@ -80,6 +80,7 @@ typedef struct
   bg_db_object_storage_t obj; // Must be first
   bg_db_object_storage_t orig;
   int refcount;
+  int sync;
   } bg_db_cache_t;
 
 struct bg_db_s

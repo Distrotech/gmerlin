@@ -77,7 +77,7 @@ static int send_event(bg_upnp_event_subscriber_t * es,
                       char * event, int len)
   {
   gavl_metadata_t m;
-  bg_socket_address_t * addr;
+  bg_socket_address_t * addr = NULL;
   char * path = NULL;
   char * host = NULL;
   int port;
@@ -153,6 +153,8 @@ static int send_event(bg_upnp_event_subscriber_t * es,
     free(host);
   if(fd >= 0)
     close(fd);
+  if(addr)
+    bg_socket_address_destroy(addr);
   
   return result;
   }

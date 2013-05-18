@@ -257,15 +257,15 @@ void bg_db_time_to_string(time_t time, char * str)
   strftime(str, BG_DB_TIME_STRING_LEN, TIME_FORMAT, &tm);
   }
 
-static int flush_object(bg_db_t * db, int i)
+static int flush_object(bg_db_t * db, void * obj)
   {
-  if(memcmp(&db->cache[i].obj, &db->cache[i].orig,
-            sizeof(db->cache[i].obj)))
+  bg_db_cache_t * st = obj;
+  st->sync = 1;
+  if(memcmp(&st->obj, &st->orig, sizeof(&st->obj)))
     {
     //    fprintf(stderr, "Flush %ld\n", db->cache[i].obj.obj.id);
-    bg_db_object_update(db, &db->cache[i].obj, 1, 1);
-    memcpy(&db->cache[i].orig, &db->cache[i].obj,
-           sizeof(db->cache[i].obj));
+    bg_db_object_update(db, &st->obj, 1, 1);
+    memcpy(&st->orig, &st->obj, sizeof(st->obj));
     return 1;
     }
   return 0;
@@ -280,9 +280,13 @@ static int children_in_cache(bg_db_t * db, int i)
     {
     if(j != i)
       {
-      if(bg_db_object_is_valid(&db->cache[j]) &&
+      if(!db->cache[j].sync &&
          (db->cache[j].obj.obj.parent_id == id))
+        {
+        // fprintf(stderr, "%"PRId64" is child of %"PRId64" in cache\n",
+        //         db->cache[j].obj.obj.id, id);
         return 1;
+        }
       }
     }
   return 0;
@@ -292,23 +296,30 @@ static void db_flush(bg_db_t * db, int do_free)
   {
   int i;
   int done = 0;
-
+  int dead_refs = 0;
+  
   /* Pass 1: Flush all leaf objects */
   for(i = 0; i < db->cache_size; i++)
     {
     if(!bg_db_object_is_valid(&db->cache[i]))
+      {
+      db->cache[i].sync = 1;
       continue;
-    
+      }
     if(!(bg_db_object_get_type(&db->cache[i]) &
          (BG_DB_FLAG_CONTAINER|BG_DB_FLAG_VCONTAINER)))
       {
-      flush_object(db, i);
+      flush_object(db, &db->cache[i]);
       if(do_free)
         {
+        if(db->cache[i].refcount)
+          dead_refs++;
         bg_db_object_free(&db->cache[i].obj);
         bg_db_object_init(&db->cache[i].obj);
         }
       }
+    else
+      db->cache[i].sync = 0;
     }
   
   while(!done)
@@ -316,22 +327,45 @@ static void db_flush(bg_db_t * db, int do_free)
     done = 1;
     for(i = 0; i < db->cache_size; i++)
       {
-      if(!bg_db_object_is_valid(&db->cache[i]))
+      if(db->cache[i].sync)
         continue;
+      
+      done = 0;
       
       if(!children_in_cache(db, i))
         {
-        if(flush_object(db, i))
-          done = 0;
-
+        flush_object(db, &db->cache[i]);
         if(do_free)
           {
+          if(db->cache[i].refcount)
+            dead_refs++;
           bg_db_object_free(&db->cache[i].obj);
           bg_db_object_init(&db->cache[i].obj);
           }
         }
       }
     }
+
+  if(do_free)
+    {
+    bg_log(BG_LOG_INFO, LOG_DOMAIN, "Cleaned up cache, %d dead references",
+           dead_refs);
+
+    dead_refs = 0;
+    for(i = 0; i < db->cache_size; i++)
+      {
+      if(bg_db_object_is_valid(&db->cache[i].obj))
+        {
+        //   fprintf(stderr, "Object not freed:\n");
+        //   bg_db_object_dump(&db->cache[i].obj);
+        dead_refs++;
+        }
+      }
+    bg_log(BG_LOG_INFO, LOG_DOMAIN, "%d objects leaked",
+           dead_refs);
+    
+    }
+
   
   }
 

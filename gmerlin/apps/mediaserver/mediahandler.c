@@ -268,6 +268,9 @@ int server_handle_media(server_t * s, int * fd,
     end -= (id3->len - id3_offset);
     if(delta > 0) // | ID3   |<-delta->||                MP3    |
       {
+      fprintf(stderr, "Sending data\n");
+      // gavl_hexdump(id3->data + start, 176, 16);
+      
       if(!bg_socket_write_data(*fd, id3->data + start, delta))
         goto cleanup;
       start = id3_offset;
