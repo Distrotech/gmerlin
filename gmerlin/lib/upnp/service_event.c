@@ -136,10 +136,10 @@ static int send_event(bg_upnp_event_subscriber_t * es,
   gavl_metadata_free(&m);
   gavl_metadata_init(&m);
   
-  if(!bg_http_response_read(fd, &m, 10000))
+  if(!bg_http_response_read(fd, &m, 500))
     goto fail;
-  fprintf(stderr, "Got response:\n");
-  gavl_metadata_dump(&m, 0);
+  //  fprintf(stderr, "Got response:\n");
+  //  gavl_metadata_dump(&m, 0);
 
   if(bg_http_response_get_status_int(&m) != 200)
     goto fail;
@@ -230,8 +230,8 @@ static int add_subscription(bg_upnp_service_t * s, int fd,
   gavl_metadata_set(&res, "SERVER", s->dev->server_string);
   gavl_metadata_set_nocpy(&res, "SID", bg_sprintf("uuid:%s", es->uuid));
   gavl_metadata_set_nocpy(&res, "TIMEOUT", bg_sprintf("Second-%d", seconds));
-  bg_log(BG_LOG_INFO, LOG_DOMAIN, "Got new event subscription: uuid: %s, url: %s",
-         es->uuid, es->url);
+  bg_log(BG_LOG_INFO, LOG_DOMAIN, "Got new event subscription: uuid: %s, url: %s, timeout: %d",
+         es->uuid, es->url, seconds);
 
   bg_http_response_write(fd, &res);  
 
@@ -355,4 +355,28 @@ bg_upnp_service_handle_event_request(bg_upnp_service_t * s, int fd,
   bg_http_response_write(fd, &res);
   gavl_metadata_free(&res);
   return 1;
+  }
+
+int
+bg_upnp_service_remove_expired_subsriptions(bg_upnp_service_t * s,
+                                            gavl_time_t current_time)
+  {
+  int i = 0;
+  int ret = 0;
+  
+  while(i < s->num_es)
+    {
+    //    fprintf(stderr, "Checking subscription: %"PRId64" %"PRId64"\n",
+    //            s->es[i].expire_time, current_time);
+    if(s->es[i].expire_time < current_time)
+      {
+      bg_log(BG_LOG_INFO, LOG_DOMAIN, "Removing expired subscription %s",
+             s->es[i].uuid);
+      delete_subscription(s, i);    
+      ret++;
+      }
+    else
+      i++;
+    }
+  return ret;
   }

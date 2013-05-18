@@ -288,6 +288,11 @@ bg_upnp_service_handle_event_request(bg_upnp_service_t * s, int fd,
                                      const gavl_metadata_t * header);
 
 int
+bg_upnp_service_remove_expired_subsriptions(bg_upnp_service_t * s,
+                                            gavl_time_t current_time);
+
+
+int
 bg_upnp_service_handle_action_request(bg_upnp_service_t * s, int fd,
                                       const char * method,
                                       const gavl_metadata_t * header);

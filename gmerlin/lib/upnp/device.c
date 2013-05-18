@@ -250,7 +250,16 @@ bg_upnp_device_create_common(bg_upnp_device_t * dev)
 int
 bg_upnp_device_ping(bg_upnp_device_t * dev)
   {
-  return bg_ssdp_update(dev->ssdp);
+  int i;
+  int ret = 0;
+  gavl_time_t current_time = gavl_timer_get(dev->timer);
+  ret += bg_ssdp_update(dev->ssdp);
+
+  for(i = 0; i < dev->num_services; i++)
+    {
+    ret += bg_upnp_service_remove_expired_subsriptions(&dev->services[i], current_time);
+    }
+  return ret;
   }
 
 const char * bg_upnp_device_get_server_string(bg_upnp_device_t * d)

@@ -585,6 +585,15 @@ static xmlNodePtr didl_add_object(xmlDocPtr didl, bg_db_object_t * obj,
       didl_set_title(didl, node,  bg_db_object_get_label(obj));
       didl_set_class(didl, node,  "object.container.playlistContainer");
       /* Res */
+      if(filter_element("res", q->filter))
+        {
+        char * tmp_string;
+        tmp_string = bg_sprintf("%sondemand/%"PRId64, q->dev->url_base, bg_db_object_get_id(obj));
+        child = bg_xml_append_child_node(node, "res", tmp_string);
+        free(tmp_string);
+        BG_XML_SET_PROP(child, "protocolInfo", "http-get:*:audio/mpeg:*");
+        }
+      
       
       break;
     case BG_DB_OBJECT_VFOLDER:
