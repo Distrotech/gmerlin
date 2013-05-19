@@ -66,7 +66,6 @@ static const client_t * detect_client(const gavl_metadata_t * m)
   return NULL;
   }
 
-
 /* Service actions */
 
 #define ARG_SearchCaps        1
@@ -214,37 +213,18 @@ static xmlNodePtr bg_didl_create_res_file(xmlDocPtr doc,
   return child;
   }
 
-static void bg_didl_set_date(xmlDocPtr didl, xmlNodePtr node,
-                          const bg_db_date_t * date_c, char ** filter)
-  {
-  bg_db_date_t date;
-  char date_string[BG_DB_DATE_STRING_LEN];
-  
-  if(date_c->year == 9999)
-    return;
-  
-  if(!bg_didl_filter_element("dc:date", filter))
-    return;
-  
-  memcpy(&date, date_c, sizeof(date));
-  if(!date.day)
-    date.day = 1;
-  if(!date.month)
-    date.month = 1;
+#define QUERY_PLS_AS_STREAM (1<<0)
 
-  bg_db_date_to_string(&date, date_string);
-  
-  bg_didl_add_element(didl, node, "dc:date", date_string);
-  }
   
 typedef struct
   {
   const char * upnp_parent;
-  xmlDocPtr doc;
+  xmlDocPtr didl;
   bg_upnp_device_t * dev;
   char ** filter;
   bg_db_t * db;
   const client_t * cl;
+  int flags;
   } query_t;
 
 /* 
@@ -255,9 +235,8 @@ typedef struct
  *  tree and they always have unique upnp IDs as required by the standard.
  */
 
-static xmlNodePtr bg_didl_add_object(xmlDocPtr didl, bg_db_object_t * obj, 
-                                  const char * upnp_parent, const char * upnp_id,
-                                  query_t * q)
+static xmlNodePtr bg_didl_add_object(query_t * q, bg_db_object_t * obj, 
+                                     const char * upnp_parent, const char * upnp_id)
   {
   const char * pos;
   char * tmp_string;
@@ -268,9 +247,9 @@ static xmlNodePtr bg_didl_add_object(xmlDocPtr didl, bg_db_object_t * obj,
   type = bg_db_object_get_type(obj);
 
   if(type & (BG_DB_FLAG_CONTAINER|BG_DB_FLAG_VCONTAINER))
-    node = bg_didl_add_container(didl);
+    node = bg_didl_add_container(q->didl);
   else
-    node = bg_didl_add_item(didl);
+    node = bg_didl_add_item(q->didl);
   
   if(upnp_id)
     {
@@ -304,29 +283,29 @@ static xmlNodePtr bg_didl_add_object(xmlDocPtr didl, bg_db_object_t * obj,
 
       
       if(o->title)
-        bg_didl_set_title(didl, node,  o->title);
+        bg_didl_set_title(q->didl, node,  o->title);
       else
-        bg_didl_set_title(didl, node,  bg_db_object_get_label(obj));
-      bg_didl_set_class(didl, node,  "object.item.audioItem.musicTrack");
+        bg_didl_set_title(q->didl, node,  bg_db_object_get_label(obj));
+      bg_didl_set_class(q->didl, node,  "object.item.audioItem.musicTrack");
       //      bg_didl_set_class(didl, node,  "object.item.audioItem");
 
-      bg_didl_create_res_file(didl, node, obj, q->dev->url_base, q->filter, q->cl);
+      bg_didl_create_res_file(q->didl, node, obj, q->dev->url_base, q->filter, q->cl);
       
       if(o->artist)
         {
-        bg_didl_add_element_string(didl, node, "upnp:artist", o->artist, q->filter);
-        bg_didl_add_element_string(didl, node, "dc:creator", o->artist, q->filter);
+        bg_didl_add_element_string(q->didl, node, "upnp:artist", o->artist, q->filter);
+        bg_didl_add_element_string(q->didl, node, "dc:creator", o->artist, q->filter);
         }
       if(o->genre)
-        bg_didl_add_element_string(didl, node, "upnp:genre", o->genre, q->filter);
+        bg_didl_add_element_string(q->didl, node, "upnp:genre", o->genre, q->filter);
       if(o->album)
-        bg_didl_add_element_string(didl, node, "upnp:album", o->album, q->filter);
+        bg_didl_add_element_string(q->didl, node, "upnp:album", o->album, q->filter);
 
       if(o->track > 0)
-        bg_didl_add_element_int(didl, node, "upnp:originalTrackNumber", o->track,
+        bg_didl_add_element_int(q->didl, node, "upnp:originalTrackNumber", o->track,
                              q->filter);
       
-      bg_didl_set_date(didl, node, &o->date, q->filter);
+      bg_didl_set_date(q->didl, node, &o->date, q->filter);
 #if 1
       /* Album art */
       if(o->album && bg_didl_filter_element("upnp:albumArtURI", q->filter))
@@ -343,7 +322,7 @@ static xmlNodePtr bg_didl_add_object(xmlDocPtr didl, bg_db_object_t * obj,
             if(cover_thumb)
               {
               tmp_string = bg_sprintf("%smedia/%"PRId64, q->dev->url_base, bg_db_object_get_id(cover_thumb));
-              child = bg_didl_add_element_string(didl, node, "upnp:albumArtURI", tmp_string, NULL);
+              child = bg_didl_add_element_string(q->didl, node, "upnp:albumArtURI", tmp_string, NULL);
               free(tmp_string);
               
               if(child)
@@ -366,53 +345,53 @@ static xmlNodePtr bg_didl_add_object(xmlDocPtr didl, bg_db_object_t * obj,
       break;
     case BG_DB_OBJECT_VIDEO_FILE:
     case BG_DB_OBJECT_PHOTO:
-      bg_didl_set_title(didl, node,  bg_db_object_get_label(obj));
-      bg_didl_set_class(didl, node,  "object.item");
+      bg_didl_set_title(q->didl, node,  bg_db_object_get_label(obj));
+      bg_didl_set_class(q->didl, node,  "object.item");
       break;
     case BG_DB_OBJECT_ROOT:
-      bg_didl_set_title(didl, node,  bg_db_object_get_label(obj));
-      bg_didl_set_class(didl, node,  "object.container");
+      bg_didl_set_title(q->didl, node,  bg_db_object_get_label(obj));
+      bg_didl_set_class(q->didl, node,  "object.container");
       break;
     case BG_DB_OBJECT_AUDIO_ALBUM:
       {
       bg_db_audio_album_t * o = (bg_db_audio_album_t *)obj;
-      bg_didl_set_title(didl, node,  bg_db_object_get_label(obj));
-      bg_didl_set_class(didl, node,  "object.container.album.musicAlbum");
-      bg_didl_set_date(didl, node, &o->date, q->filter);
+      bg_didl_set_title(q->didl, node,  bg_db_object_get_label(obj));
+      bg_didl_set_class(q->didl, node,  "object.container.album.musicAlbum");
+      bg_didl_set_date(q->didl, node, &o->date, q->filter);
       if(o->artist)
         {
-        bg_didl_add_element_string(didl, node, "upnp:artist", o->artist, q->filter);
-        bg_didl_add_element_string(didl, node, "dc:creator", o->artist, q->filter);
+        bg_didl_add_element_string(q->didl, node, "upnp:artist", o->artist, q->filter);
+        bg_didl_add_element_string(q->didl, node, "dc:creator", o->artist, q->filter);
         }
       if(o->genre)
-        bg_didl_add_element_string(didl, node, "upnp:genre", o->genre, q->filter);
+        bg_didl_add_element_string(q->didl, node, "upnp:genre", o->genre, q->filter);
 
       if(o->cover_id > 0)
         {
         tmp_string = bg_sprintf("%smedia/%"PRId64, q->dev->url_base, o->cover_id);
-        bg_didl_add_element_string(didl, node, "upnp:albumArtURI", tmp_string, q->filter);
+        bg_didl_add_element_string(q->didl, node, "upnp:albumArtURI", tmp_string, q->filter);
         free(tmp_string);
         }
 
-      if((child = bg_didl_add_element_string(didl, node, "upnp:searchClass",
+      if((child = bg_didl_add_element_string(q->didl, node, "upnp:searchClass",
                                           "object.item.audioItem.musicTrack",
                                           q->filter)))
         BG_XML_SET_PROP(child, "includeDerived", "false");
       }
       break;
     case BG_DB_OBJECT_CONTAINER:
-      bg_didl_set_title(didl, node,  bg_db_object_get_label(obj));
-      bg_didl_set_class(didl, node,  "object.container");
+      bg_didl_set_title(q->didl, node,  bg_db_object_get_label(obj));
+      bg_didl_set_class(q->didl, node,  "object.container");
       break;
     case BG_DB_OBJECT_DIRECTORY:
-      bg_didl_set_title(didl, node,  bg_db_object_get_label(obj));
-      bg_didl_set_class(didl, node,  "object.container.storageFolder");
+      bg_didl_set_title(q->didl, node,  bg_db_object_get_label(obj));
+      bg_didl_set_class(q->didl, node,  "object.container.storageFolder");
       /* Optional */
-      bg_didl_add_element_int(didl, node, "upnp:storageUsed", obj->size, q->filter);
+      bg_didl_add_element_int(q->didl, node, "upnp:storageUsed", obj->size, q->filter);
       break;
     case BG_DB_OBJECT_PLAYLIST:
-      bg_didl_set_title(didl, node,  bg_db_object_get_label(obj));
-      bg_didl_set_class(didl, node,  "object.container.playlistContainer");
+      bg_didl_set_title(q->didl, node,  bg_db_object_get_label(obj));
+      bg_didl_set_class(q->didl, node,  "object.container.playlistContainer");
       /* Res */
       if(bg_didl_filter_element("res", q->filter))
         {
@@ -427,8 +406,8 @@ static xmlNodePtr bg_didl_add_object(xmlDocPtr didl, bg_db_object_t * obj,
       break;
     case BG_DB_OBJECT_VFOLDER:
     case BG_DB_OBJECT_VFOLDER_LEAF:
-      bg_didl_set_title(didl, node,  bg_db_object_get_label(obj));
-      bg_didl_set_class(didl, node,  "object.container");
+      bg_didl_set_title(q->didl, node,  bg_db_object_get_label(obj));
+      bg_didl_set_class(q->didl, node,  "object.container");
       break;
     /* The following objects should never get returned */
     case BG_DB_OBJECT_OBJECT: 
@@ -438,8 +417,8 @@ static xmlNodePtr bg_didl_add_object(xmlDocPtr didl, bg_db_object_t * obj,
     case BG_DB_OBJECT_VIDEO_PREVIEW:
     case BG_DB_OBJECT_MOVIE_POSTER:
     case BG_DB_OBJECT_THUMBNAIL:
-      bg_didl_set_title(didl, node,  bg_db_object_get_label(obj));
-      bg_didl_set_class(didl, node,  "object.item");
+      bg_didl_set_title(q->didl, node,  bg_db_object_get_label(obj));
+      bg_didl_set_class(q->didl, node,  "object.item");
       break;
     }
 
@@ -449,33 +428,82 @@ static xmlNodePtr bg_didl_add_object(xmlDocPtr didl, bg_db_object_t * obj,
 static void query_callback(void * priv, void * obj)
   {
   query_t * q = priv;
-  bg_didl_add_object(q->doc, obj, q->upnp_parent, NULL, q);
+  bg_didl_add_object(q, obj, q->upnp_parent, NULL);
   }
 
-#if 0
-char * def_result =
-  "<DIDL-Lite xmlns:dc=\"http://purl.org/dc/elements/1.1/\""
-  " xmlns:upnp=\"urn:schemas-upnp-org:metadata-1-0/upnp/\""
-  " xmlns=\"urn:schemas-upnp-org:metadata-1-0/DIDL-Lite/\">"
-  "<container id=\"1\" parentID=\"0\" childCount=\"2\" restricted=\"1\">\n"
-  "<dc:title>My Music</dc:title>\n"
-  "<upnp:class>object.container.storageFolder</upnp:class>\n"
-  "<dc:storageUsed>100000000</dc:storageUsed>\n"
-  "<upnp:writeStatus>PROTECTED</upnp:writeStatus>\n"
-  "</container>\n"
-  "</DIDL-Lite>";
+/* We add some fake objects, which are not present in the dabatase */
 
-char * def_root =
-  "<DIDL-Lite xmlns:dc=\"http://purl.org/dc/elements/1.1/\""
-  " xmlns:upnp=\"urn:schemas-upnp-org:metadata-1-0/upnp/\""
-  " xmlns=\"urn:schemas-upnp-org:metadata-1-0/DIDL-Lite/\">"
-  "<container id=\"0\" parentID=\"-1\" childCount=\"1\" restricted=\"1\">\n"
-  "<dc:title>Root</dc:title>\n"
-  "<upnp:class>object.container</upnp:class>\n"
-  "</container>\n"
-  "</DIDL-Lite>";
-#endif
+static int num_fake_children(bg_db_object_t * obj)
+  {
+  bg_db_object_type_t type;
+  type = bg_db_object_get_type(obj);
+  if(type == BG_DB_OBJECT_VFOLDER_LEAF)
+    {
+    bg_db_vfolder_t * vf;
 
+    vf = (bg_db_vfolder_t *)obj;
+
+    if(vf->type == BG_DB_OBJECT_PLAYLIST)
+      return 1;
+    
+    }
+  return 0;
+  }
+
+/* Add a fake object to a parent container */
+static void add_playlist_streams_container(bg_db_object_t * parent, query_t * q)
+  {
+  xmlNodePtr node;
+  node = bg_didl_add_container(q->didl);
+  bg_didl_set_title(q->didl, node,  "Playlist streams");
+  bg_didl_set_class(q->didl, node,  "object.container");
+  BG_XML_SET_PROP(node, "restricted", "1");
+
+  if(bg_didl_filter_attribute("container", "childCount", q->filter))
+    bg_didl_set_attribute_int(node, "childCount", parent->children);
+  }
+
+static void add_fake_child(bg_db_object_t * parent, query_t * q, int index)
+  {
+  bg_db_object_type_t type;
+    
+  type = bg_db_object_get_type(parent);
+  if(type == BG_DB_OBJECT_VFOLDER_LEAF)
+    {
+    bg_db_vfolder_t * vf;
+
+    vf = (bg_db_vfolder_t *)parent;
+
+    if(vf->type == BG_DB_OBJECT_PLAYLIST)
+      add_playlist_streams_container(parent, q);
+    }
+  }
+
+/* Get children of a fake container */
+static int browse_fake_children(bg_db_object_t * parent, query_t * q,
+                                const char * id, int start, int num, int * total_matches)
+  {
+  if(!strncmp(id, "pls-streams$", 12))
+    {
+    q->flags |= QUERY_PLS_AS_STREAM;
+    return bg_db_query_children(q->db, parent->id,
+                                query_callback, q,
+                                start, num, total_matches);
+    }
+  return 0;
+  }
+
+/* Get children of a fake container */
+static int browse_fake_metadata(bg_db_object_t * parent, query_t * q,
+                                const char * id)
+  {
+  if(!strncmp(id, "pls-streams$", 12))
+    add_playlist_streams_container(parent, q);
+  return 1;
+  }
+
+
+  
 static int Browse(bg_upnp_service_t * s)
   {
   bg_mediaserver_t * priv;
@@ -501,7 +529,9 @@ static int Browse(bg_upnp_service_t * s)
   fprintf(stderr, "Browse: Id: %s, Flag: %s, Filter: %s, Start: %d, Num: %d\n",
           ObjectID, BrowseFlag, Filter, StartingIndex, RequestedCount);
 
-  q.doc = bg_didl_create();
+  memset(&q, 0, sizeof(q));
+  
+  q.didl = bg_didl_create();
   q.dev = s->dev;
 
   if(strcmp(Filter, "*"))
@@ -519,7 +549,7 @@ static int Browse(bg_upnp_service_t * s)
     bg_db_object_t * obj =
       bg_db_object_query(priv->db, id);
     
-    bg_didl_add_object(q.doc, obj, NULL, ObjectID, &q);
+    bg_didl_add_object(&q, obj, NULL, ObjectID);
     bg_db_object_unref(obj);
     NumberReturned = 1;
     TotalMatches = 1;
@@ -534,7 +564,7 @@ static int Browse(bg_upnp_service_t * s)
     }
   
 
-  ret = bg_xml_save_to_memory_opt(q.doc, XML_SAVE_NO_DECL);
+  ret = bg_xml_save_to_memory_opt(q.didl, XML_SAVE_NO_DECL);
   //  ret = bg_xml_save_to_memory(q.doc);
   
   bg_upnp_service_set_arg_out_int(&s->req, ARG_NumberReturned, NumberReturned);
@@ -549,7 +579,7 @@ static int Browse(bg_upnp_service_t * s)
   if(ret[strlen(ret)-1] == '\n')
     ret[strlen(ret)-1] = '\0';
   
-  xmlFreeDoc(q.doc);
+  xmlFreeDoc(q.didl);
 
   if(q.filter)
     bg_strbreak_free(q.filter);

@@ -201,3 +201,26 @@ void bg_didl_set_attribute_int(xmlNodePtr node, const char * name, int64_t val)
   snprintf(buf, 127, "%"PRId64, val);
   BG_XML_SET_PROP(node, name, buf);
   }
+
+void bg_didl_set_date(xmlDocPtr didl, xmlNodePtr node,
+                             const bg_db_date_t * date_c, char ** filter)
+  {
+  bg_db_date_t date;
+  char date_string[BG_DB_DATE_STRING_LEN];
+  
+  if(date_c->year == 9999)
+    return;
+  
+  if(!bg_didl_filter_element("dc:date", filter))
+    return;
+  
+  memcpy(&date, date_c, sizeof(date));
+  if(!date.day)
+    date.day = 1;
+  if(!date.month)
+    date.month = 1;
+
+  bg_db_date_to_string(&date, date_string);
+  
+  bg_didl_add_element(didl, node, "dc:date", date_string);
+  }

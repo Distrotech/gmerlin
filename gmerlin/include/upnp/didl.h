@@ -54,3 +54,6 @@ xmlNodePtr bg_didl_add_element_int(xmlDocPtr doc,
 
 /* Filtering must be done by the caller!! */
 void bg_didl_set_attribute_int(xmlNodePtr node, const char * name, int64_t val);
+
+void bg_didl_set_date(xmlDocPtr didl, xmlNodePtr node,
+                      const bg_db_date_t * date_c, char ** filter);
