@@ -16,6 +16,7 @@ connectionmanager.c \
 contentdirectory.c \
 device.c \
 devicedesc.c \
+didl.c \
 mediaserver.c \
 service_action.c \
 service_event.c \

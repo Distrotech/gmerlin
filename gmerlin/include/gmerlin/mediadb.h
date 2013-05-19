@@ -64,7 +64,7 @@ typedef struct
   {
   int day;   // 1 - 31 (0 = unknown)
   int month; // 1 - 12 (0 = unknown)
-  int year;  // 2013
+  int year;  // 2013, 9999 = unknown
   } bg_db_date_t;
 
 int bg_db_date_equal(const bg_db_date_t * d1,
