@@ -30,6 +30,8 @@
 #include <string.h>
 #include <unistd.h> // close
 
+#define CLIENT_TIMEOUT 500
+
 static char * create_event(bg_upnp_service_t * s, int * len)
   {
   char * ret;
@@ -136,10 +138,10 @@ static int send_event(bg_upnp_event_subscriber_t * es,
   gavl_metadata_free(&m);
   gavl_metadata_init(&m);
   
-  if(!bg_http_response_read(fd, &m, 500))
+  if(!bg_http_response_read(fd, &m, CLIENT_TIMEOUT))
     goto fail;
-  //  fprintf(stderr, "Got response:\n");
-  //  gavl_metadata_dump(&m, 0);
+  fprintf(stderr, "Got response:\n");
+  gavl_metadata_dump(&m, 0);
 
   if(bg_http_response_get_status_int(&m) != 200)
     goto fail;

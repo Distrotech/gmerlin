@@ -268,3 +268,8 @@ int server_handle_ondemand(server_t * s, int * fd,
                            const char * method,
                            const char * path_orig,
                            const gavl_metadata_t * req);
+
+int server_handle_static(server_t * s, int * fd,
+                         const char * method,
+                         const char * path_orig,
+                         const gavl_metadata_t * req);

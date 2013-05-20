@@ -30,6 +30,8 @@
 #include <gmerlin/log.h>
 #define LOG_DOMAIN "upnp.action"
 
+#define DUMP_SOAP
+
 static const bg_upnp_soap_arg_t *
 get_in_arg_by_id(bg_upnp_soap_request_t * req,
                  int id)
@@ -124,10 +126,12 @@ bg_upnp_service_handle_action_request(bg_upnp_service_t * s, int fd,
       /* Error */
       }
     buf[content_length] = '\0';
-    //    fprintf(stderr, "Got SOAP request\n");
-    //    gavl_metadata_dump(&res, 0);
-    //    fprintf(stderr, "%s\n", buf);
-    
+
+#ifdef DUMP_SOAP
+    fprintf(stderr, "Got SOAP request\n");
+    gavl_metadata_dump(header, 0);
+    fprintf(stderr, "%s\n", buf);
+#endif
     if(!bg_upnp_soap_request_from_xml(s, buf, content_length, header))
       {
       /* Error */
@@ -148,10 +152,11 @@ bg_upnp_service_handle_action_request(bg_upnp_service_t * s, int fd,
     bg_http_header_set_date(&res, "DATE");
     bg_http_header_set_empty_var(&res, "EXT");
     gavl_metadata_set(&res, "SERVER", s->dev->server_string);
-
+#ifdef DUMP_SOAP
     fprintf(stderr, "Sending SOAP response\n");
     gavl_metadata_dump(&res, 0);
     fprintf(stderr, "%s\n", buf);
+#endif
     
     if(bg_http_response_write(fd, &res))
       bg_socket_write_data(fd, (uint8_t*)buf, content_length);

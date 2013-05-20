@@ -10,6 +10,8 @@ AM_LDFLAGS = @GMERLIN_EXE_LDFLAGS@
 
 INCLUDES = -I$(top_srcdir)/include
 
+SUBDIRS = web
+
 bin_PROGRAMS = gmerlin-server
 
 gmerlin_server_SOURCES = \
@@ -23,6 +25,7 @@ ondemand.c \
 server.c \
 sink.c \
 source.c \
+statichandler.c \
 transcode.c 
 
 # dist_man_MANS = gmerlin-dbedit.1

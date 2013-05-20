@@ -186,7 +186,8 @@ static void handle_client_connection(server_t * s, int fd)
      !server_handle_transcode(s, &fd, method, path, &req) &&
      !server_handle_source(s, &fd, method, path, &req) &&
      !server_handle_stream(s, &fd, method, path, &req) &&
-     !server_handle_ondemand(s, &fd, method, path, &req))
+     !server_handle_ondemand(s, &fd, method, path, &req) &&
+     !server_handle_static(s, &fd, method, path, &req))
     send_404(fd);
   
   fail:

@@ -191,7 +191,7 @@ int server_handle_media(server_t * s, int * fd,
                             400, "Bad Request");
       goto go_on;
       }
-    fprintf(stderr, "Got range: %"PRId64"-%"PRId64"\n", start, end);
+    // fprintf(stderr, "Got range: %"PRId64"-%"PRId64"\n", start, end);
     }
   else
     {

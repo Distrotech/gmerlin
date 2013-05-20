@@ -1013,6 +1013,10 @@ apps/thumbnailer/Makefile \
 apps/nmjedit/Makefile \
 apps/dbedit/Makefile \
 apps/mediaserver/Makefile \
+apps/mediaserver/web/Makefile \
+apps/mediaserver/web/js/Makefile \
+apps/mediaserver/web/icons/Makefile \
+apps/mediaserver/web/css/Makefile \
 doc/Makefile \
 doc/Doxyfile \
 icons/Makefile \

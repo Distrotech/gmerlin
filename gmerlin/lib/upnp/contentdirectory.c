@@ -227,6 +227,8 @@ typedef struct
   int flags;
   } query_t;
 
+static int num_fake_children(bg_db_object_t * obj);
+
 /* 
  *  UPNP IDs are build the following way:
  *
@@ -242,11 +244,21 @@ static xmlNodePtr bg_didl_add_object(query_t * q, bg_db_object_t * obj,
   char * tmp_string;
   xmlNodePtr node;
   xmlNodePtr child;
-  
   bg_db_object_type_t type;
+  int is_container = 0;
+  
   type = bg_db_object_get_type(obj);
 
   if(type & (BG_DB_FLAG_CONTAINER|BG_DB_FLAG_VCONTAINER))
+    {
+    if((type != BG_DB_OBJECT_PLAYLIST) ||
+       !(q->flags & QUERY_PLS_AS_STREAM))
+      is_container = 1;
+    }
+  else
+    is_container = 0;
+  
+  if(is_container)
     node = bg_didl_add_container(q->didl);
   else
     node = bg_didl_add_item(q->didl);
@@ -271,10 +283,11 @@ static xmlNodePtr bg_didl_add_object(query_t * q, bg_db_object_t * obj,
   BG_XML_SET_PROP(node, "restricted", "1");
 
   /* Optional */
-  if((type & (BG_DB_FLAG_CONTAINER|BG_DB_FLAG_VCONTAINER)) &&
+  if(is_container &&
      bg_didl_filter_attribute("container", "childCount", q->filter))
-    bg_didl_set_attribute_int(node, "childCount", obj->children);
-
+    bg_didl_set_attribute_int(node, "childCount",
+                              obj->children + num_fake_children(obj));
+  
   switch(type)
     {
     case BG_DB_OBJECT_AUDIO_FILE:
@@ -390,8 +403,17 @@ static xmlNodePtr bg_didl_add_object(query_t * q, bg_db_object_t * obj,
       bg_didl_add_element_int(q->didl, node, "upnp:storageUsed", obj->size, q->filter);
       break;
     case BG_DB_OBJECT_PLAYLIST:
+
+      
       bg_didl_set_title(q->didl, node,  bg_db_object_get_label(obj));
-      bg_didl_set_class(q->didl, node,  "object.container.playlistContainer");
+
+      if(q->flags & QUERY_PLS_AS_STREAM)
+        bg_didl_set_class(q->didl, node,
+                          "object.item.audioItem.audioBroadcast");
+      else
+        bg_didl_set_class(q->didl, node,
+                          "object.container.playlistContainer");
+
       /* Res */
       if(bg_didl_filter_element("res", q->filter))
         {
@@ -451,19 +473,33 @@ static int num_fake_children(bg_db_object_t * obj)
   }
 
 /* Add a fake object to a parent container */
-static void add_playlist_streams_container(bg_db_object_t * parent, query_t * q)
+static void add_playlist_streams_container(bg_db_object_t * parent, query_t * q,
+                                           const char * id, const char * parent_id)
   {
+  char * tmp_string;
   xmlNodePtr node;
   node = bg_didl_add_container(q->didl);
   bg_didl_set_title(q->didl, node,  "Playlist streams");
   bg_didl_set_class(q->didl, node,  "object.container");
+
+  if(parent_id)
+    {
+    tmp_string = bg_sprintf("pls-streams$%s", parent_id);
+    BG_XML_SET_PROP(node, "id", tmp_string);
+    free(tmp_string);
+    }
+  else
+    BG_XML_SET_PROP(node, "id", id);
+
   BG_XML_SET_PROP(node, "restricted", "1");
 
   if(bg_didl_filter_attribute("container", "childCount", q->filter))
     bg_didl_set_attribute_int(node, "childCount", parent->children);
   }
 
-static void add_fake_child(bg_db_object_t * parent, query_t * q, int index)
+static void add_fake_child(bg_db_object_t * parent,
+                           query_t * q, const char * parent_id,
+                           int index)
   {
   bg_db_object_type_t type;
     
@@ -475,30 +511,42 @@ static void add_fake_child(bg_db_object_t * parent, query_t * q, int index)
     vf = (bg_db_vfolder_t *)parent;
 
     if(vf->type == BG_DB_OBJECT_PLAYLIST)
-      add_playlist_streams_container(parent, q);
+      add_playlist_streams_container(parent, q, NULL, parent_id);
     }
   }
 
 /* Get children of a fake container */
-static int browse_fake_children(bg_db_object_t * parent, query_t * q,
-                                const char * id, int start, int num, int * total_matches)
+static int browse_fake_children(query_t * q,
+                                const char * upnp_id, int start,
+                                int num, int * total_matches)
   {
-  if(!strncmp(id, "pls-streams$", 12))
+  if(!strncmp(upnp_id, "pls-streams$", 12))
     {
+    int64_t id;
+    q->upnp_parent = upnp_id;
     q->flags |= QUERY_PLS_AS_STREAM;
-    return bg_db_query_children(q->db, parent->id,
-                                query_callback, q,
+
+    id = strtoll(upnp_id + 12, NULL, 10);
+    
+    return bg_db_query_children(q->db, id, query_callback, q,
                                 start, num, total_matches);
     }
   return 0;
   }
 
 /* Get children of a fake container */
-static int browse_fake_metadata(bg_db_object_t * parent, query_t * q,
-                                const char * id)
+static int browse_fake_metadata(query_t * q,
+                                const char * upnp_id)
   {
-  if(!strncmp(id, "pls-streams$", 12))
-    add_playlist_streams_container(parent, q);
+  if(!strncmp(upnp_id, "pls-streams$", 12))
+    {
+    int64_t id;
+    bg_db_object_t * obj;
+    id = strtoll(upnp_id + 12, NULL, 10);
+    obj = bg_db_object_query(q->db, id);
+    add_playlist_streams_container(obj, q, upnp_id, NULL);
+    bg_db_object_unref(obj);
+    }
   return 1;
   }
 
@@ -541,28 +589,76 @@ static int Browse(bg_upnp_service_t * s)
 
   q.db = priv->db;
   q.cl = detect_client(s->req.req);
-  
-  id = strtoll(ObjectID, NULL, 10);
-  
-  if(!strcmp(BrowseFlag, "BrowseMetadata"))
+
+  if(isdigit(ObjectID[0]))
     {
-    bg_db_object_t * obj =
-      bg_db_object_query(priv->db, id);
+    bg_db_object_t * obj;
+    id = strtoll(ObjectID, NULL, 10);
     
-    bg_didl_add_object(&q, obj, NULL, ObjectID);
-    bg_db_object_unref(obj);
-    NumberReturned = 1;
-    TotalMatches = 1;
+    if(!strcmp(BrowseFlag, "BrowseMetadata"))
+      {
+      obj = bg_db_object_query(priv->db, id);
+
+      if(strstr(ObjectID, "pls-streams"))
+        q.flags |= QUERY_PLS_AS_STREAM;
+            
+      bg_didl_add_object(&q, obj, NULL, ObjectID);
+      bg_db_object_unref(obj);
+      NumberReturned = 1;
+      TotalMatches = 1;
+      }
+    else
+      {
+      int num_fake, i;
+      q.upnp_parent = ObjectID;
+      NumberReturned =
+        bg_db_query_children(priv->db, id,
+                             query_callback, &q,
+                             StartingIndex, RequestedCount, &TotalMatches);
+      obj = bg_db_object_query(priv->db, id);
+
+      num_fake = num_fake_children(obj);
+
+      TotalMatches += num_fake;
+
+      if(!RequestedCount)
+        {
+        for(i = 0; i < num_fake; i++)
+          {
+          add_fake_child(obj, &q, ObjectID, i);
+          NumberReturned++;
+          }
+        }
+      else
+        {
+        for(i = 0; i < num_fake; i++)
+          {
+          add_fake_child(obj, &q, ObjectID, i);
+          NumberReturned++;
+          i++;
+
+          if(NumberReturned == RequestedCount)
+            break;
+          }
+        }
+      bg_db_object_unref(obj);
+      }
     }
   else
     {
-    q.upnp_parent = ObjectID;
-    NumberReturned =
-      bg_db_query_children(priv->db, id,
-                           query_callback, &q,
-                           StartingIndex, RequestedCount, &TotalMatches);
+    if(!strcmp(BrowseFlag, "BrowseMetadata"))
+      {
+      browse_fake_metadata(&q, ObjectID);
+      NumberReturned = 1;
+      TotalMatches = 1;
+      }
+    else
+      {
+      NumberReturned =
+        browse_fake_children(&q, ObjectID, StartingIndex, RequestedCount, &TotalMatches);
+      }
     }
-  
+ 
 
   ret = bg_xml_save_to_memory_opt(q.didl, XML_SAVE_NO_DECL);
   //  ret = bg_xml_save_to_memory(q.doc);
