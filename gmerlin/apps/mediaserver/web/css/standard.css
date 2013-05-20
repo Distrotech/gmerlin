@@ -1,0 +1,72 @@
+div.browser
+  {
+  display: inline-block;
+  overflow-y: scroll;
+  border: inset;
+  border-width: 1px;
+  }
+
+div.placeholder
+  {
+  display: inline-block;
+  width: 16px;
+  height: 16px;
+  }
+
+div.handleopen
+  {
+  display: inline-block;
+  width: 16px;
+  height: 16px;
+  background-image:url(/static/icons/handle_open_16.png);
+  }
+
+div.handleclosed
+  {
+  display: inline-block;
+  width: 16px;
+  height: 16px;
+  background-image:url(/static/icons/handle_closed_16.png);
+  }
+
+div.folderopen
+  {
+  display: inline-block;
+  width: 16px;
+  height: 16px;
+  background-image:url(/static/icons/folder_open_16.png);
+  }
+
+div.folderclosed
+  {
+  display: inline-block;
+  width: 16px;
+  height: 16px;
+  background-image:url(/static/icons/folder_closed_16.png);
+  }
+
+span.treerow
+  {
+  vertical-align: middle;
+  }
+
+span.treerow_selected
+  {
+  vertical-align: middle;
+  }
+
+div.treerow
+  {
+  height: 16px;
+  width: 100%;
+  font-family: Verdana;
+  margin-top: 5px;
+  }
+
+div.treerow_selected
+  {
+  height: 16px;
+  width: 100%;
+  font-family: Verdana;  
+  margin-top: 5px;
+  }
