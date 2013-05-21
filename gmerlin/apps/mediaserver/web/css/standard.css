@@ -1,3 +1,13 @@
+html, body
+  {
+  height: 100%;
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
+  font-family: Verdana;  
+  font-size: small;
+  }
+
 div.browser
   {
   display: inline-block;
@@ -45,28 +55,61 @@ div.folderclosed
   background-image:url(/static/icons/folder_closed_16.png);
   }
 
-span.treerow
-  {
-  vertical-align: middle;
-  }
-
-span.treerow_selected
-  {
-  vertical-align: middle;
-  }
-
 div.treerow
   {
-  height: 16px;
   width: 100%;
-  font-family: Verdana;
   margin-top: 5px;
+  vertical-align: middle;
+  color: #000000;
+  background-color: #ffffff;
+  -webkit-user-select: none;
+  -khtml-user-select: none;
+  -moz-user-select: none;
+  -o-user-select: none;
+  user-select: none;
+  cursor: default;
+  overflow: hidden;
+  white-space: nowrap;
   }
 
 div.treerow_selected
   {
-  height: 16px;
   width: 100%;
-  font-family: Verdana;  
   margin-top: 5px;
+  vertical-align: middle;
+  color: #ffffff;
+  background-color: #000000;
+  -webkit-user-select: none;
+  -khtml-user-select: none;
+  -moz-user-select: none;
+  -o-user-select: none;
+  user-select: none;
+  cursor: default;
+  overflow: hidden;
+  white-space: nowrap;
+  }
+
+table.albumtracks
+  {
+  font-size: small;
+  width: 100%;
+  }
+
+span.albumtitle
+  {
+  font-size: small;  
+  font-weight: bold;
+  white-space: normal;
+  }
+
+span.albuminfo
+  {
+  font-size: small;  
+  white-space: normal;
+  }
+
+img.albumcover
+  {
+  border: inset;
+  border-width: 1px;
   }

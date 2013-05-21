@@ -78,7 +78,7 @@ function browse(id, flag)
     alert("Browse media server failed");
     return NULL;
     }
-
+//  alert(req.responseXML.getElementsByTagName("Result")[0].textContent);
   return parse_xml(req.responseXML.getElementsByTagName("Result")[0].textContent);
   }
 
