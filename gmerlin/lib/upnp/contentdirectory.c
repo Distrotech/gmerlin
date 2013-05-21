@@ -215,6 +215,70 @@ static xmlNodePtr bg_didl_create_res_file(xmlDocPtr doc,
 
 #define QUERY_PLS_AS_STREAM (1<<0)
 
+static const struct
+  {
+  const char * mimetype;
+  int max_width;
+  int max_height;
+  const char * profile;
+  }
+image_profiles[] =
+  {
+    {
+       .mimetype   = "image/jpeg",
+       .max_width  = 160,
+       .max_height = 160,
+       .profile    = "JPEG_TN",
+    },
+    {
+       .mimetype   = "image/jpeg",
+       .max_width  = 640,
+       .max_height = 480,
+       .profile    = "JPEG_SM",
+    },
+    {
+       .mimetype   = "image/jpeg",
+       .max_width  = 1024,
+       .max_height = 768,
+       .profile    = "JPEG_MED",
+    },
+    {
+       .mimetype   = "image/jpeg",
+       .max_width  = 4096,
+       .max_height = 4096,
+       .profile    = "JPEG_LRG",
+    },
+    {
+       .mimetype   = "image/png",
+       .max_width  = 160,
+       .max_height = 160,
+       .profile    = "PNG_TN",
+    },
+    {
+       .mimetype   = "image/png",
+       .max_width  = 4096,
+       .max_height = 4096,
+       .profile    = "PNG_LRG",
+    },
+    { /* */ }
+  };
+
+static const char * get_dlna_image_profile(bg_db_object_t * obj)
+  {
+  int i = 0;
+  bg_db_image_file_t * img = (bg_db_image_file_t*)(obj);
+
+  while(image_profiles[i].mimetype)
+    {
+    if(!strcmp(img->file.mimetype, image_profiles[i].mimetype) &&
+       (img->width <= image_profiles[i].max_width) &&
+       (img->height <= image_profiles[i].max_height))
+      return image_profiles[i].profile;
+    else
+      i++;
+    }
+  return NULL;
+  }
   
 typedef struct
   {
@@ -226,6 +290,56 @@ typedef struct
   const client_t * cl;
   int flags;
   } query_t;
+
+static void add_album_art(xmlNodePtr node, int64_t cover_id, query_t * q)
+  {
+  bg_db_object_t * cover;
+  bg_db_object_t * cover_thumb; 
+  char * tmp_string;
+  xmlNodePtr child;
+
+  cover = bg_db_object_query(q->db, cover_id);
+  cover_thumb = bg_db_get_thumbnail(q->db, cover_id, 160, 160, 1, "image/jpeg");
+
+  /* Cover thumbnail */
+  if(cover_thumb)
+    {
+    tmp_string = bg_sprintf("%smedia/%"PRId64, q->dev->url_base, bg_db_object_get_id(cover_thumb));
+    child = bg_didl_add_element_string(q->didl, node, "upnp:albumArtURI", tmp_string, NULL);
+    free(tmp_string);
+
+    if(child)
+      {
+      xmlNsPtr dlna_ns;
+      dlna_ns = xmlNewNs(child,
+                         (xmlChar*)"urn:schemas-dlna-org:metadata-1-0/",
+                         (xmlChar*)"dlna");
+      xmlSetNsProp(child, dlna_ns, (const xmlChar*)"profileID", (const xmlChar*)"JPEG_TN");
+      }
+    bg_db_object_unref(cover_thumb);
+    }
+  /* Original size */
+  tmp_string = bg_sprintf("%smedia/%"PRId64, q->dev->url_base, cover_id); 
+  child = bg_didl_add_element_string(q->didl, node, "upnp:albumArtURI", tmp_string, NULL);
+  free(tmp_string);
+  
+  if(child)
+    {
+    const char * dlna_id;
+    xmlNsPtr dlna_ns;
+    dlna_id = get_dlna_image_profile(cover);
+       
+    if(dlna_id)
+      {
+      dlna_ns = xmlNewNs(child,
+                         (xmlChar*)"urn:schemas-dlna-org:metadata-1-0/",
+                         (xmlChar*)"dlna");
+      xmlSetNsProp(child, dlna_ns, (const xmlChar*)"profileID", (const xmlChar*)dlna_id);
+      }
+    }
+  bg_db_object_unref(cover);
+  }
+
 
 static int num_fake_children(bg_db_object_t * obj);
 
@@ -327,28 +441,7 @@ static xmlNodePtr bg_didl_add_object(query_t * q, bg_db_object_t * obj,
         if(album)
           {
           if(album->cover_id > 0)
-            {
-            bg_db_object_t * cover_thumb =
-              bg_db_get_thumbnail(q->db, album->cover_id,
-                                  160, 160, 1, "image/jpeg");
-
-            if(cover_thumb)
-              {
-              tmp_string = bg_sprintf("%smedia/%"PRId64, q->dev->url_base, bg_db_object_get_id(cover_thumb));
-              child = bg_didl_add_element_string(q->didl, node, "upnp:albumArtURI", tmp_string, NULL);
-              free(tmp_string);
-              
-              if(child)
-                {
-                xmlNsPtr dlna_ns;
-                dlna_ns = xmlNewNs(child,
-                                   (xmlChar*)"urn:schemas-dlna-org:metadata-1-0/",
-                                   (xmlChar*)"dlna");
-                xmlSetNsProp(child, dlna_ns, (const xmlChar*)"profileID", (const xmlChar*)"JPEG_TN");
-                }
-              bg_db_object_unref(cover_thumb);
-              }
-            }
+            add_album_art(node, album->cover_id, q);
           bg_db_object_unref(album);
           }
         }
@@ -379,13 +472,9 @@ static xmlNodePtr bg_didl_add_object(query_t * q, bg_db_object_t * obj,
       if(o->genre)
         bg_didl_add_element_string(q->didl, node, "upnp:genre", o->genre, q->filter);
 
-      if(o->cover_id > 0)
-        {
-        tmp_string = bg_sprintf("%smedia/%"PRId64, q->dev->url_base, o->cover_id);
-        bg_didl_add_element_string(q->didl, node, "upnp:albumArtURI", tmp_string, q->filter);
-        free(tmp_string);
-        }
-
+      if((o->cover_id > 0) && bg_didl_filter_element("upnp:albumArtURI", q->filter))
+        add_album_art(node, o->cover_id, q);
+      
       if((child = bg_didl_add_element_string(q->didl, node, "upnp:searchClass",
                                           "object.item.audioItem.musicTrack",
                                           q->filter)))
