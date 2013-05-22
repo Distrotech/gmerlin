@@ -218,6 +218,45 @@ static int get_bitrate_mp3(bg_db_object_t * obj)
   return 320000;
   }
 
+/* Vorbis (for firefox) */
+
+static int is_supported_vorbis(bg_plugin_registry_t * plugin_reg)
+  {
+  return 1;
+  }
+
+static char * make_command_vorbis(const char * source_file)
+  {
+  return bg_sprintf("gavf-decode -vs m -ts m -os m -as d -i \"%s\" | "
+                    "gavf-encode -enc \"a2v=0:ae=e_vorbis\" "
+                    "-ac \"bitrate_mode=vbr:quality=5.0\" -o -", source_file);
+  }
+
+static char * make_protocol_info_vorbis(bg_db_object_t * obj)
+  {
+  return bg_sprintf("http-get:*:audio/ogg:*");
+  }
+                    
+
+static void set_header_vorbis(bg_db_object_t * obj,
+                              const gavl_metadata_t * req,
+                              gavl_metadata_t * res)
+  {
+  char * tmp_string;
+  gavl_metadata_set(res, "Content-Type", "audio/ogg");
+  if(obj->duration > 0)
+    {
+    tmp_string = bg_sprintf("%f", gavl_time_to_seconds(obj->duration));
+    gavl_metadata_set(res, "X-Content-Duration", tmp_string);
+    free(tmp_string);
+    }
+  }
+
+static int get_bitrate_vorbis(bg_db_object_t * obj)
+  {
+  return 0;
+  }
+
 static bg_upnp_transcoder_t transcoders[] =
   {
 #if 0
@@ -243,6 +282,16 @@ static bg_upnp_transcoder_t transcoders[] =
       .in_mimetype  = "audio/*",
       .out_mimetype = "audio/mpeg",
       
+    },
+    {
+      .is_supported = is_supported_vorbis,
+      .make_command = make_command_vorbis,
+      .make_protocol_info = make_protocol_info_vorbis,
+      .set_header = set_header_vorbis,
+      .get_bitrate = get_bitrate_vorbis,
+      .name         = "vorbis",
+      .in_mimetype  = "audio/*",
+      .out_mimetype = "audio/ogg",
     },
     { /* */ }
   };

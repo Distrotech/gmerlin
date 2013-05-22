@@ -181,7 +181,8 @@ static void handle_client_connection(server_t * s, int fd)
 
   /* Try to handle things */
 
-  if(!bg_upnp_device_handle_request(s->dev, fd, method, path, &req) &&
+  if((!s->dev ||
+      !bg_upnp_device_handle_request(s->dev, fd, method, path, &req)) &&
      !server_handle_media(s, &fd, method, path, &req) &&
      !server_handle_transcode(s, &fd, method, path, &req) &&
      !server_handle_source(s, &fd, method, path, &req) &&
@@ -308,7 +309,9 @@ int server_iteration(server_t * s)
     }
   
   /* Ping upnp device so it can do it's ssdp stuff */
-  ret += bg_upnp_device_ping(s->dev);
+
+  if(s->dev)
+    ret += bg_upnp_device_ping(s->dev);
 
   if(!ret)
     gavl_time_delay(&delay_time);

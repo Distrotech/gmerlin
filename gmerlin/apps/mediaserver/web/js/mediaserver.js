@@ -1,13 +1,8 @@
 var selected_tree_row = null;
 
-function stop_propagate(e)
-  {
-  var evt = e ? e:window.event;
-  if (evt.stopPropagation)
-    evt.stopPropagation();
-  if(evt.cancelBubble!=null)
-    evt.cancelBubble = true;
-  }
+var player_window = null;
+
+
 
 function tree_select_callback(el)
   {
@@ -56,34 +51,55 @@ function tree_expand_callback(event, el)
   stop_propagate(event);
   }
 
-function get_didl_element(el, name)
+function close_player()
   {
-  if(el.getElementsByTagNameNS)
-    {
-    if(el.getElementsByTagNameNS("*", name)[0] != null)
-      return el.getElementsByTagNameNS("*", name)[0].textContent;
-    else
-      return null;
-    }
-  else
-    return null;
+  alert("Player closed");
+  player_window = null;
   }
 
-function get_duration(el)
+function open_player()
   {
-  var res;
-  var ret;
-  var idx;
-  res = el.getElementsByTagName("res")[0];
-  if(res == null)
-    return null;
-  ret = res.getAttribute("duration");
-  idx = ret.lastIndexOf(".");
-  if(idx >= 0)
-    ret = ret.substr(0, idx);
-  if(ret.charAt(0) == "0")
-    ret = ret.substr(1);
-  return ret;
+  if(player_window == null)
+    player_window = window.open("/static/audioplayer.html",
+				"Audio player",
+				"width=300,height=200,location=no,menubar=no");
+
+  player_window.document.body.onunload = close_player;
+
+  }
+
+function play_song(id)
+  {
+  open_player();
+  }
+
+function play_album(id)
+  {
+  open_player();
+  }
+
+function create_play_button(func, id)
+  {
+  var a;
+  var play_button;
+  a = document.createElement("a");
+  a.href = "javascript: " + func + "('" + id + "');";
+  play_button = document.createElement("img");
+  play_button.setAttribute("src", "/static/icons/play_16.png");
+  play_button.setAttribute("width", 16);
+  play_button.setAttribute("height", 16);
+  a.appendChild(play_button);
+  return a;
+  }
+
+function create_song_play_button(id)
+  {
+  return create_play_button("play_song", id);
+  }
+
+function create_album_play_button(id)
+  {
+  return create_play_button("play_album", id);
   }
 
 function append_music_track(parent, el)
@@ -93,16 +109,19 @@ function append_music_track(parent, el)
 
 function append_music_album(parent, el)
   {
+  var play_button;
   var tracks;
   var i;
   var didl;
   var str;
   var albumdiv;
   var trackstable;
-  var cell;
+  var albumcell;
+  var trackscell;
   var span;
   var text;
   var row1;
+  var dur_total = 0;
   var use_artist = false;
   var first_artist = null;
   var row = document.createElement("table");
@@ -113,8 +132,8 @@ function append_music_album(parent, el)
 
   row.appendChild(row1);
 
-  cell = document.createElement("td");
-  cell.setAttribute("style", "width: 180px; padding: 10px; vertical-align: top;");
+  albumcell = document.createElement("td");
+  albumcell.setAttribute("style", "width: 180px; padding: 10px; vertical-align: top;");
 
   /* Cover */
   str = get_didl_element(el, "albumArtURI");
@@ -125,8 +144,8 @@ function append_music_album(parent, el)
     img.setAttribute("width", 160);
     img.setAttribute("height", 160);
     img.setAttribute("class", "albumcover");
-    cell.appendChild(img);
-    cell.appendChild(document.createElement("br"));
+    albumcell.appendChild(img);
+    albumcell.appendChild(document.createElement("br"));
     }
 
   str = get_didl_element(el, "title");
@@ -136,8 +155,8 @@ function append_music_album(parent, el)
     span.setAttribute("class", "albumtitle");
     text = document.createTextNode(str);
     span.appendChild(text);
-    cell.appendChild(span);
-    cell.appendChild(document.createElement("br"));
+    albumcell.appendChild(span);
+    albumcell.appendChild(document.createElement("br"));
     }
 
   str = get_didl_element(el, "artist");
@@ -147,8 +166,8 @@ function append_music_album(parent, el)
     span.setAttribute("class", "albuminfo");
     text = document.createTextNode(str);
     span.appendChild(text);
-    cell.appendChild(span);
-    cell.appendChild(document.createElement("br"));
+    albumcell.appendChild(span);
+    albumcell.appendChild(document.createElement("br"));
     }
   str = get_didl_element(el, "date");
   if(str != null)
@@ -157,8 +176,8 @@ function append_music_album(parent, el)
     span.setAttribute("class", "albuminfo");
     text = document.createTextNode(str.substring(0, 4));
     span.appendChild(text);
-    cell.appendChild(span);
-    cell.appendChild(document.createElement("br"));
+    albumcell.appendChild(span);
+    albumcell.appendChild(document.createElement("br"));
     }
   str = get_didl_element(el, "genre");
   if(str != null)
@@ -167,15 +186,15 @@ function append_music_album(parent, el)
     span.setAttribute("class", "albuminfo");
     text = document.createTextNode(str);
     span.appendChild(text);
-    cell.appendChild(span);
-    cell.appendChild(document.createElement("br"));
+    albumcell.appendChild(span);
+    albumcell.appendChild(document.createElement("br"));
     }
-  row1.appendChild(cell);
+  row1.appendChild(albumcell);
 
   /* Tracks */
 
-  cell = document.createElement("td");
-  cell.setAttribute("style", "vertical-align: top; padding: 10px;");
+  trackscell = document.createElement("td");
+  trackscell.setAttribute("style", "vertical-align: top; padding: 10px;");
 
   didl = browse_children(el.getAttribute("id"));
   tracks = didl.getElementsByTagName("DIDL-Lite")[0].childNodes;
@@ -202,7 +221,6 @@ function append_music_album(parent, el)
     {
     var track_row;
     var track_cell;
-    var play_button;
     if(get_didl_element(tracks[i], "class") ==
        "object.item.audioItem.musicTrack")
       {
@@ -230,31 +248,38 @@ function append_music_album(parent, el)
 
       /* Duration */
       str = get_duration(tracks[i]);
+      dur_total += get_duration_num(str);
       track_cell = document.createElement("td");
       track_cell.setAttribute("style", "text-align: right;");
 
-      text = document.createTextNode(str);
+      text = document.createTextNode(format_duration_str(str));
       track_cell.appendChild(text);
       track_row.appendChild(track_cell);
 
       /* Play */
-      play_button = document.createElement("img");
 
       track_cell = document.createElement("td");
       track_cell.setAttribute("style", "width: 16px;");
-      play_button.setAttribute("src", "/static/icons/play_16.png");
-      play_button.setAttribute("width", 16);
-      play_button.setAttribute("height", 16);
+      play_button = create_song_play_button(tracks[i].getAttribute('id'));
       track_cell.appendChild(play_button);
       track_row.appendChild(track_cell);
-
-
       trackstable.appendChild(track_row);
       }
     }
+  /* Total duration */
+  str = get_duration_str(dur_total);
 
-  cell.appendChild(trackstable);
-  row1.appendChild(cell);
+  span = document.createElement("span");
+  span.setAttribute("class", "albuminfo");
+  text = document.createTextNode("Total: " + str + " ");
+  span.appendChild(text);
+  albumcell.appendChild(span);
+
+  play_button = create_album_play_button(el.getAttribute('id'));
+  albumcell.appendChild(play_button);
+
+  trackscell.appendChild(trackstable);
+  row1.appendChild(trackscell);
 
   parent.appendChild(row);
   parent.appendChild(document.createElement("hr"));
