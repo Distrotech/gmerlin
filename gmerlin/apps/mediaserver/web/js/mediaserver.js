@@ -1,8 +1,6 @@
 var selected_tree_row = null;
 
-var player_window = null;
-
-
+var audio_player = null;
 
 function tree_select_callback(el)
   {
@@ -51,31 +49,43 @@ function tree_expand_callback(event, el)
   stop_propagate(event);
   }
 
-function close_player()
+function open_audio_player()
   {
-  alert("Player closed");
-  player_window = null;
-  }
-
-function open_player()
-  {
-  if(player_window == null)
-    player_window = window.open("/static/audioplayer.html",
+  if((audio_player == null) || (audio_player.closed))
+    audio_player = window.open("/static/audioplayer.html",
 				"Audio player",
 				"width=300,height=200,location=no,menubar=no");
+  }
 
-  player_window.document.body.onunload = close_player;
-
+function play_audio_track(track)
+  {
+  /* Send the didl data of the audio track to the player window */
   }
 
 function play_song(id)
   {
+  var didl;
+  var track;
+  didl = browse_metadata(id);
   open_player();
+  play_audio_track(didl.getElementsByTagName("item")[0]);
   }
 
 function play_album(id)
   {
+  var didl;
+  var i;
+  var tracks;
+  didl = browse_children(id);
+  tracks = didl.getElementsByTagName("DIDL-Lite")[0].childNodes;
   open_player();
+   
+  for(i = 0; i < tracks.length; i++)
+    {
+    if(get_didl_element(tracks[i], "class") ==
+       "object.item.audioItem.musicTrack")
+      play_audio_track(tracks[i]);
+    }
   }
 
 function create_play_button(func, id)

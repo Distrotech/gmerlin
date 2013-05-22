@@ -1,6 +1,7 @@
 pkgdatadir = $(datadir)/gmerlin/server/js
 
 files = \
+audioplayer.js \
 mediaserver.js \
 soap.js \
 utils.js

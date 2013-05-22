@@ -6,7 +6,11 @@
 <script src="/static/js/utils.js" type="text/javascript"></script>
 <link rel="stylesheet" type="text/css" href="/static/css/standard.css">
 </head>
-<body>
-<audio controls></audio>
+<body onload="audioplayer_init()">
+<div style="display: inline-block">
+<div id="trackinfo"></div>
+<audio id="audioplayer" controls></audio>
+</div>
+<div id="playlist"></div>
 </body>
 </html>
