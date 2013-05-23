@@ -28,6 +28,7 @@
 #include <ctype.h>
 
 #include <gmerlin/utils.h>
+#include <fnmatch.h>
 
 /* Client stuff:
  */
@@ -36,20 +37,34 @@ typedef struct
   {
   int (*check)(const gavl_metadata_t * m);
   const char ** mimetypes;
-  }
-  client_t;
+  int multiple_res;
+  } client_t;
 
 static int check_client_generic(const gavl_metadata_t * m)
   {
   return 1;
   }
 
+static int check_client_gmerlin_web (const gavl_metadata_t * m)
+  {
+  if(gavl_metadata_get(m, "X-Gmerlin-Webclient"))
+    return 1;
+  return 0;
+  }
+
 client_t clients[] =
   {
     {
+      .check = check_client_gmerlin_web,
+      .mimetypes = (const char*[]) { "audio/ogg",  // Firefox
+                                     "audio/mpeg", // Chrome
+                                     NULL },
+      .multiple_res = 1,
+    },
+    {
       .check = check_client_generic,
-      .mimetypes = (const char*[]) { "audio/L16",
-                                     "audio/mpeg", NULL },
+      .mimetypes = (const char*[]) { "audio/mpeg", NULL },
+      .multiple_res = 0,
     },
     { /* End */ },
   };
@@ -64,6 +79,19 @@ static const client_t * detect_client(const gavl_metadata_t * m)
     i++;
     }
   return NULL;
+  }
+
+static int client_supports_mimetype(const client_t * cl, const char * mimetype)
+  {
+  int i = 0;
+  while(cl->mimetypes[i])
+    {
+    /* Directly supported */
+    if(!strcmp(cl->mimetypes[i], mimetype))
+      return 1;
+    i++;
+    }
+  return 0;
   }
 
 /* Service actions */
@@ -105,89 +133,9 @@ static int GetSystemUpdateID(bg_upnp_service_t * s)
 
 /* DIDL stuff */
 
-
-static xmlNodePtr bg_didl_create_res_file(xmlDocPtr doc,
-                                       xmlNodePtr node,
-                                       void * f, const char * url_base, 
-                                       char ** filter,
-                                       const client_t * cl)
+static void set_res_format(xmlNodePtr child, void * f, char ** filter,
+                           const bg_upnp_transcoder_t * transcoder)
   {
-  bg_db_file_t * file = f;
-  char * tmp_string;
-  char * protocol_info = NULL;
-  xmlNodePtr child;
-  int i;
-  int done = 0;
-  const bg_upnp_transcoder_t * transcoder = NULL;
-  
-  if(!bg_didl_filter_element("res", filter))
-    return NULL;
-  
-  /* Location (required) */
-
-  i = 0;
-  while(cl->mimetypes[i])
-    {
-    /* Directly supported */
-    if(!strcmp(cl->mimetypes[i], file->mimetype))
-      {
-      done = 1;
-      break;
-      }
-    i++;
-    }
-
-  if(!done) // Try transcoding
-    {
-    transcoder = bg_upnp_transcoder_find(cl->mimetypes, file->mimetype);
-    if(transcoder)
-      {
-      tmp_string = bg_sprintf("%stranscode/%"PRId64"/%s", url_base,
-                              bg_db_object_get_id(f), transcoder->name);
-      child = bg_xml_append_child_node(node, "res", tmp_string);
-      free(tmp_string);
-      
-      protocol_info = transcoder->make_protocol_info(f);
-     
-      done = 1;
-      }
-    }
-
-  /* Output element like it is */
-  if(!transcoder)
-    {
-    tmp_string = bg_sprintf("%smedia/%"PRId64, url_base, bg_db_object_get_id(f));
-    child = bg_xml_append_child_node(node, "res", tmp_string);
-    free(tmp_string);
-    done = 1;
-
-    /* Protocol info (required) */
-    protocol_info = bg_sprintf("http-get:*:%s:*", file->mimetype);
-    done = 1;
-    }
-
-  if(protocol_info)
-    {
-    BG_XML_SET_PROP(child, "protocolInfo", protocol_info);
-    free(protocol_info);
-    }
-  
-  /* Size (optional) */
-  if(bg_didl_filter_attribute("res", "size", filter))
-    {
-    if(!transcoder)
-      bg_didl_set_attribute_int(child, "size", file->obj.size);
-    else
-      bg_didl_set_attribute_int(child, "size", bg_upnp_transcoder_get_size(transcoder, f));
-    }
-  /* Duration (optional) */
-  if((file->obj.duration > 0) && bg_didl_filter_attribute("res", "duration", filter))
-    {
-    char buf[GAVL_TIME_STRING_LEN_MS];
-    gavl_time_prettyprint_ms(file->obj.duration, buf);
-    BG_XML_SET_PROP(child, "duration", buf);
-    }
-
   /* Format specific stuff */
   if(bg_db_object_get_type(f) == BG_DB_OBJECT_AUDIO_FILE)
     {
@@ -206,11 +154,87 @@ static xmlNodePtr bg_didl_create_res_file(xmlDocPtr doc,
       bg_didl_set_attribute_int(child, "sampleFrequency", af->samplerate);
     if(bg_didl_filter_attribute("res", "nrAudioChannels", filter))
       bg_didl_set_attribute_int(child, "nrAudioChannels", af->channels);
-    if(bg_didl_filter_attribute("res", "bitsPerSample", filter))
-      bg_didl_set_attribute_int(child, "bitsPerSample", 16);
+
+    /* Duration (optional) */
+    if((af->file.obj.duration > 0) &&
+       bg_didl_filter_attribute("res", "duration", filter))
+      {
+      char buf[GAVL_TIME_STRING_LEN_MS];
+      gavl_time_prettyprint_ms(af->file.obj.duration, buf);
+      BG_XML_SET_PROP(child, "duration", buf);
+      }
     }
+
+
   
-  return child;
+  }
+
+static void bg_didl_create_res_file(xmlDocPtr doc,
+                                    xmlNodePtr node,
+                                    void * f, const char * url_base, 
+                                    char ** filter,
+                                    const client_t * cl)
+  {
+  bg_db_file_t * file = f;
+  char * tmp_string;
+  xmlNodePtr child;
+  int i;
+  int num = 0;
+  
+  if(!bg_didl_filter_element("res", filter))
+    return;
+  
+  /* Location (required) */
+
+  if(client_supports_mimetype(cl, file->mimetype))
+    {
+    tmp_string = bg_sprintf("%smedia/%"PRId64, url_base, bg_db_object_get_id(f));
+    child = bg_xml_append_child_node(node, "res", tmp_string);
+    free(tmp_string);
+
+    tmp_string = bg_sprintf("http-get:*:%s:*", file->mimetype);
+    BG_XML_SET_PROP(child, "protocolInfo", tmp_string);
+    free(tmp_string);
+    
+    num++;
+
+    set_res_format(child, f, filter, NULL);
+
+    if(bg_didl_filter_attribute("res", "size", filter))
+      bg_didl_set_attribute_int(child, "size", file->obj.size);
+    }
+
+  if(num && !cl->multiple_res)
+    return;
+
+  i = 0;
+  while(bg_upnp_transcoders[i].name)
+    {
+    if(fnmatch(bg_upnp_transcoders[i].in_mimetype, file->mimetype, 0) ||
+       !strcmp(file->mimetype, bg_upnp_transcoders[i].out_mimetype) ||
+       !client_supports_mimetype(cl, bg_upnp_transcoders[i].out_mimetype))
+      {
+      i++;
+      continue;
+      }
+
+    tmp_string = bg_sprintf("%stranscode/%"PRId64"/%s", url_base,
+                            bg_db_object_get_id(f), bg_upnp_transcoders[i].name);
+    child = bg_xml_append_child_node(node, "res", tmp_string);
+    free(tmp_string);
+    
+    tmp_string = bg_upnp_transcoders[i].make_protocol_info(f);
+    BG_XML_SET_PROP(child, "protocolInfo", tmp_string);
+    free(tmp_string);
+#if 0    
+    if(bg_didl_filter_attribute("res", "size", filter))
+      bg_didl_set_attribute_int(child, "size",
+                                bg_upnp_transcoder_get_size(bg_upnp_transcoders[i].transcoder, f));
+#endif
+    set_res_format(child, f, filter, &bg_upnp_transcoders[i]);
+
+    i++;
+    }
   }
 
 #define QUERY_PLS_AS_STREAM (1<<0)

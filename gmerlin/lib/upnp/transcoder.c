@@ -22,7 +22,6 @@
 #include <gmerlin/upnp/device.h>
 #include <gmerlin/utils.h>
 
-#include <fnmatch.h>
 #include <string.h>
 
 /* dlna stuff (taken from libdlna) */
@@ -257,7 +256,7 @@ static int get_bitrate_vorbis(bg_db_object_t * obj)
   return 0;
   }
 
-static bg_upnp_transcoder_t transcoders[] =
+const bg_upnp_transcoder_t bg_upnp_transcoders[] =
   {
 #if 0
     {
@@ -297,34 +296,13 @@ static bg_upnp_transcoder_t transcoders[] =
   };
 
 const bg_upnp_transcoder_t *
-bg_upnp_transcoder_find(const char ** mimetypes_supp, const char * in_mimetype)
-  {
-  int i = 0;
-  while(transcoders[i].is_supported)
-    {
-    if(!fnmatch(transcoders[i].in_mimetype, in_mimetype, 0))
-      {
-      int j = 0;
-      while(mimetypes_supp[j])
-        {
-        if(!strcmp(mimetypes_supp[j], transcoders[i].out_mimetype))
-          return &transcoders[i];
-        j++;
-        }
-      }
-    i++;
-    }
-  return NULL;
-  }
-
-const bg_upnp_transcoder_t *
 bg_upnp_transcoder_by_name(const char * name)
   {
   int i = 0;
-  while(transcoders[i].is_supported)
+  while(bg_upnp_transcoders[i].is_supported)
     {
-    if(!strcmp(name, transcoders[i].name))
-      return &transcoders[i];
+    if(!strcmp(name, bg_upnp_transcoders[i].name))
+      return &bg_upnp_transcoders[i];
     i++;
     }
   return NULL;

@@ -4,13 +4,18 @@
 <link rel="shortcut icon" href="/static/icons/server_16.png" type="image/png">
 <script src="/static/js/soap.js" type="text/javascript"></script>
 <script src="/static/js/utils.js" type="text/javascript"></script>
+<script src="/static/js/audioplayer.js" type="text/javascript"></script>
 <link rel="stylesheet" type="text/css" href="/static/css/standard.css">
+<title>Audio player</title>
 </head>
 <body onload="audioplayer_init()">
 <div style="display: inline-block">
 <div id="trackinfo"></div>
 <audio id="audioplayer" controls></audio>
 </div>
-<div id="playlist"></div>
+<div style="width: 100%; height: 200px; overflow-y: scroll;">
+  <table id="playlist" style="width: 100%;">
+  </table>
+</div>
 </body>
 </html>

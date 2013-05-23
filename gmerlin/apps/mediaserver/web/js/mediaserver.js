@@ -1,6 +1,8 @@
 var selected_tree_row = null;
 
 var audio_player = null;
+var audio_player_ready = false;
+var audio_player_queue;
 
 function tree_select_callback(el)
   {
@@ -49,17 +51,38 @@ function tree_expand_callback(event, el)
   stop_propagate(event);
   }
 
-function open_audio_player()
+
+
+function player_created()
   {
-  if((audio_player == null) || (audio_player.closed))
-    audio_player = window.open("/static/audioplayer.html",
-				"Audio player",
-				"width=300,height=200,location=no,menubar=no");
+  audio_player_ready = true;
+
+  /* Flush the queue */
+  while(audio_player_queue.length > 0)
+    {
+    audio_player.add_track(audio_player_queue[0]);
+    audio_player_queue.shift();
+    }
   }
+
 
 function play_audio_track(track)
   {
-  /* Send the didl data of the audio track to the player window */
+  if((audio_player == null) || (audio_player.closed == true))
+    {
+    audio_player_ready = false;
+    audio_player = window.open("/static/audioplayer.html",
+				"Audio player",
+			        "width=460,height=250,location=no,menubar=no");
+    }
+  if(audio_player_ready == false)
+    {
+    /* Push to queue */
+    audio_player_queue.push(track);
+    }
+  else
+    /* Send the didl data of the audio track to the player window */
+    audio_player.add_track(track);
   }
 
 function play_song(id)
@@ -67,7 +90,6 @@ function play_song(id)
   var didl;
   var track;
   didl = browse_metadata(id);
-  open_player();
   play_audio_track(didl.getElementsByTagName("item")[0]);
   }
 
@@ -78,8 +100,7 @@ function play_album(id)
   var tracks;
   didl = browse_children(id);
   tracks = didl.getElementsByTagName("DIDL-Lite")[0].childNodes;
-  open_player();
-   
+
   for(i = 0; i < tracks.length; i++)
     {
     if(get_didl_element(tracks[i], "class") ==
@@ -441,4 +462,5 @@ function global_init()
     document.title = req.responseXML.getElementsByTagName("friendlyName")[0].textContent;
   didl = browse_children("0");
   handle_didl_containers(didl, null);
+  audio_player_queue = new Array();
   }

@@ -75,8 +75,7 @@ typedef struct
 
 typedef struct bg_upnp_transcoder_ctx_s bg_upnp_transcoder_ctx_t;
 
-const bg_upnp_transcoder_t *
-bg_upnp_transcoder_find(const char ** mimetypes_supp, const char * in_mimetype);
+extern const bg_upnp_transcoder_t bg_upnp_transcoders[];
 
 const bg_upnp_transcoder_t *
 bg_upnp_transcoder_by_name(const char * name);

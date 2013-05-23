@@ -113,3 +113,14 @@ img.albumcover
   border: inset;
   border-width: 1px;
   }
+
+tr.playlist
+  {
+  font-size: small;  
+  }
+
+tr.playlist_current
+  {
+  font-size: small;  
+  font-weight: bold;
+  }
