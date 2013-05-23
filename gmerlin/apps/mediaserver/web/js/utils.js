@@ -8,6 +8,25 @@ function stop_propagate(e)
     evt.cancelBubble = true;
   }
 
+/**
+ * John Resig, erklaert auf Flexible Javascript Events
+ */
+
+function add_event_handler( obj, type, fn )
+  {
+  if(obj.addEventListener) 
+    {
+    obj.addEventListener( type, fn, false );
+    } 
+  else if (obj.attachEvent) 
+    {
+    obj["e"+type+fn] = fn;
+    obj[type+fn] = function() { obj["e"+type+fn]( window.event ); }
+    obj.attachEvent( "on"+type, obj[type+fn] );
+    }
+  }
+
+
 function get_didl_element(el, name)
   {
   if(el.getElementsByTagNameNS)
