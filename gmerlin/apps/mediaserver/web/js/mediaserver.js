@@ -51,8 +51,6 @@ function tree_expand_callback(event, el)
   stop_propagate(event);
   }
 
-
-
 function player_created()
   {
   audio_player_ready = true;
@@ -60,13 +58,13 @@ function player_created()
   /* Flush the queue */
   while(audio_player_queue.length > 0)
     {
-    audio_player.add_track(audio_player_queue[0]);
+    audio_player.add_track(audio_player_queue[0].track,
+                           audio_player_queue[0].do_play);
     audio_player_queue.shift();
     }
   }
 
-
-function play_audio_track(track)
+function add_audio_track(track, do_play)
   {
   if((audio_player == null) || (audio_player.closed == true))
     {
@@ -77,23 +75,54 @@ function play_audio_track(track)
     }
   if(audio_player_ready == false)
     {
+    var queue = new Object;
+    queue.track = track;
+    queue.do_play = do_play;
     /* Push to queue */
-    audio_player_queue.push(track);
+    audio_player_queue.push(queue);
     }
   else
     /* Send the didl data of the audio track to the player window */
-    audio_player.add_track(track);
+    audio_player.add_track(track, do_play);
   }
 
 function play_song(id)
   {
   var didl;
-  var track;
   didl = browse_metadata(id);
-  play_audio_track(didl.getElementsByTagName("item")[0]);
+  add_audio_track(didl.getElementsByTagName("item")[0], true);
+  }
+
+function add_song(id)
+  {
+  var didl;
+  didl = browse_metadata(id);
+  add_audio_track(didl.getElementsByTagName("item")[0], false);
   }
 
 function play_album(id)
+  {
+  var didl;
+  var i;
+  var tracks;
+  var do_play;
+  do_play = true;
+
+  didl = browse_children(id);
+  tracks = didl.getElementsByTagName("DIDL-Lite")[0].childNodes;
+
+  for(i = 0; i < tracks.length; i++)
+    {
+    if(get_didl_element(tracks[i], "class") ==
+       "object.item.audioItem.musicTrack")
+      {
+      add_audio_track(tracks[i], do_play);
+      do_play = false;
+      }
+    }
+  }
+
+function add_album(id)
   {
   var didl;
   var i;
@@ -105,22 +134,20 @@ function play_album(id)
     {
     if(get_didl_element(tracks[i], "class") ==
        "object.item.audioItem.musicTrack")
-      play_audio_track(tracks[i]);
+      add_audio_track(tracks[i], false);
     }
   }
 
 function create_play_button(func, id)
   {
-  var a;
-  var play_button;
-  a = document.createElement("a");
-  a.href = "javascript: " + func + "('" + id + "');";
-  play_button = document.createElement("img");
-  play_button.setAttribute("src", "/static/icons/play_16.png");
-  play_button.setAttribute("width", 16);
-  play_button.setAttribute("height", 16);
-  a.appendChild(play_button);
-  return a;
+  return create_button(func + "('" + id + "')",
+		       "play_16.png", "play_cl_16.png", "Play");
+  }
+
+function create_add_button(func, id)
+  {
+  return create_button(func + "('" + id + "')",
+		       "add_16.png", "add_cl_16.png", "Add to playlist");
   }
 
 function create_song_play_button(id)
@@ -132,6 +159,17 @@ function create_album_play_button(id)
   {
   return create_play_button("play_album", id);
   }
+
+function create_song_add_button(id)
+  {
+  return create_add_button("add_song", id);
+  }
+
+function create_album_add_button(id)
+  {
+  return create_add_button("add_album", id);
+  }
+
 
 function append_music_track(parent, el)
   {
@@ -288,10 +326,17 @@ function append_music_album(parent, el)
       track_row.appendChild(track_cell);
 
       /* Play */
-
       track_cell = document.createElement("td");
       track_cell.setAttribute("style", "width: 16px;");
       play_button = create_song_play_button(tracks[i].getAttribute('id'));
+      track_cell.appendChild(play_button);
+      track_row.appendChild(track_cell);
+      trackstable.appendChild(track_row);
+
+      /* Add */
+      track_cell = document.createElement("td");
+      track_cell.setAttribute("style", "width: 16px;");
+      play_button = create_song_add_button(tracks[i].getAttribute('id'));
       track_cell.appendChild(play_button);
       track_row.appendChild(track_cell);
       trackstable.appendChild(track_row);
@@ -307,6 +352,9 @@ function append_music_album(parent, el)
   albumcell.appendChild(span);
 
   play_button = create_album_play_button(el.getAttribute('id'));
+  albumcell.appendChild(play_button);
+
+  play_button = create_album_add_button(el.getAttribute('id'));
   albumcell.appendChild(play_button);
 
   trackscell.appendChild(trackstable);

@@ -103,9 +103,10 @@ function add_track(track, do_play)
 
   if(playlist.rows.length == 1)
     set_current_track(0);
-  if(do_play)
+  if(do_play == true)
     {
     set_current_track(playlist.rows.length - 1);
+
     play_track();
     }
   }
@@ -129,6 +130,6 @@ function audioplayer_init()
   {
   var audio_player = document.getElementById("audioplayer");
   /* Set event handlers */
-  add_event_handler(audio_player, "ended", timeout_cb);
+  add_event_handler(audio_player, "ended", ended_cb);
   self.opener.player_created();
   }

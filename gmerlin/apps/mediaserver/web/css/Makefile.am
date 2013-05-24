@@ -1,6 +1,7 @@
 pkgdatadir = $(datadir)/gmerlin/server/css
 
 files = \
+buttons.css \
 standard.css
 
 pkgdata_DATA = $(files)
