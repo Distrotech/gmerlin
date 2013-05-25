@@ -71,7 +71,7 @@ function add_audio_track(track, do_play)
     audio_player_ready = false;
     audio_player = window.open("/static/audioplayer.html",
 				"Audio player",
-			        "width=460,height=250,location=no,menubar=no");
+			        "width=460,height=320,location=no,menubar=no");
     }
   if(audio_player_ready == false)
     {

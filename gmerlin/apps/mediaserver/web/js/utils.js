@@ -14,14 +14,14 @@ function stop_propagate(e)
 
 function add_event_handler( obj, type, fn )
   {
-  if(obj.addEventListener) 
+  if(obj.addEventListener)
     {
     obj.addEventListener( type, fn, false );
-    } 
-  else if (obj.attachEvent) 
+    }
+  else if (obj.attachEvent)
     {
     obj["e"+type+fn] = fn;
-    obj[type+fn] = function() { obj["e"+type+fn]( window.event ); }
+    obj[type+fn] = function() { obj["e"+type+fn]( window.event ); };
     obj.attachEvent( "on"+type, obj[type+fn] );
     }
   }

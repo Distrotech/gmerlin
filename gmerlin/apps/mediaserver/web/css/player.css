@@ -1,0 +1,178 @@
+
+a.button
+  {
+  position: absolute;
+  display: inline-block;
+  background: #4f4f4f;
+  width: 24px;
+  height: 24px;
+  border-style: solid;
+  border-width: 1px;
+  border-color: #4f4f4f;
+  }
+
+a.button:hover
+  {
+  border-color: #ffffff;
+  }
+
+a.button:active
+  {
+  background: #f0f0f0;
+  border-color: #ffffff;
+  }
+
+a.prev
+  {
+  left: 0;
+  background-image: url(/static/icons/prev_white_24.png);
+  }
+
+a.prev:active
+  {
+  background-image: url(/static/icons/prev_black_24.png);
+  }
+
+a.play
+  {
+  left: 26px;
+  background-image: url(/static/icons/play_white_24.png);
+  }
+
+a.play:active
+  {
+  background-image: url(/static/icons/play_black_24.png);
+  }
+
+a.stop
+  {
+  left: 26px;
+  background-image: url(/static/icons/stop_white_24.png);
+  }
+
+a.stop:active
+  {
+  background-image: url(/static/icons/stop_black_24.png);
+  }
+
+
+a.next
+  {
+  left: 52px;
+  background-image: url(/static/icons/next_white_24.png);
+  }
+
+a.next:active
+  {
+  background-image: url(/static/icons/next_black_24.png);
+  }
+
+a.show
+  {
+  right: 0px;
+  background-image: url(/static/icons/show_white_24.png);
+  }
+
+a.show:active
+  {
+  background-image: url(/static/icons/show_black_24.png);
+  }
+
+a.hide
+  {
+  right: 0px;
+  background-image: url(/static/icons/hide_white_24.png);
+  }
+
+a.hide:active
+  {
+  background-image: url(/static/icons/hide_black_24.png);
+  }
+
+div.slider
+  {
+  background: #4f4f4f;
+  position:   absolute;
+  left:       0px;
+  top:        0px;
+  right:      0px;
+  height:     28px;
+  z-index:    1;
+  }
+
+div.slider_inner
+  {
+  background: #8f8f8f;
+  position:   absolute;
+  left:       0px;
+  top:        0px;
+  right:      50%;
+  height:     20px;
+  margin:     4px;
+  z-index:    2;
+  }
+
+
+.timetable
+  {
+  height:  100%;
+  width:   100%;
+  position: absolute;
+  margin:  0;
+  padding: 0;
+  border:  0;
+  vertical-align: middle;
+  text-align: center;
+  color:  #f8f8f8;
+  font-weight: bold;
+  z-index:    3;
+  }
+
+div.toolbar
+  {
+  background: #ff4f4f;
+  position:   absolute;
+  left:       0px;
+  top:        28px;
+  right:      0px;
+  height:     26px;
+  }
+
+div.infobox
+  {
+  width: 100%;
+  position: absolute;
+  top: 54px;
+  height: 170px;
+  }
+
+div.cover
+  {
+  position: absolute;
+  width:    160px;
+  height:   160px;
+  padding:  5px;
+  left: 0px;
+  top:  0px;
+  }
+
+div.trackinfo
+  {
+  position: absolute;
+  height:   160px;
+  padding:  5px;
+  left:     170px;
+  right:    0px;
+  }
+
+div.playlist
+  {
+  position: absolute;
+  top: 224px;
+  bottom: 0px;
+  left: 1px;
+  right: 1px;
+  overflow-y: scroll;
+  border: inset;
+  border-width: 1px;
+  }

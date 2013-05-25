@@ -6,14 +6,35 @@
 <script src="/static/js/utils.js" type="text/javascript"></script>
 <script src="/static/js/audioplayer.js" type="text/javascript"></script>
 <link rel="stylesheet" type="text/css" href="/static/css/standard.css">
+<link rel="stylesheet" type="text/css" href="/static/css/player.css">
 <title>Audio player</title>
 </head>
 <body onload="audioplayer_init()">
-<div style="display: inline-block">
-<div id="trackinfo"></div>
-<audio id="audioplayer" controls></audio>
+<div class="slider">
+  <div class="slider_inner" id="timeslider">
+  </div>
+  <table class="timetable"><tr>
+  <td id="timedisplay" class="timetable">0:00<td>
+  </tr></table>
 </div>
-<div style="width: 100%; height: 200px; overflow-y: scroll;">
+<div class="toolbar">
+<a class="button prev" href="javascript: previous_track();"></a>
+<a class="button play" href="javascript: play();" id="play_button"></a>
+<a class="button next" href="javascript: next_track();"></a>
+<a class="button show" href="#"></a>
+</div>
+<div class="infobox">
+
+<div class="cover">
+  <img id="cover" width="160" height="160">
+</div>
+
+<div id="trackinfo" class="trackinfo">
+</div>
+
+</div>
+<audio id="audioplayer"></audio>
+<div class="playlist">
   <table id="playlist" style="width: 100%;">
   </table>
 </div>
