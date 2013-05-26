@@ -261,9 +261,9 @@ static int flush_object(bg_db_t * db, void * obj)
   {
   bg_db_cache_t * st = obj;
   st->sync = 1;
-  if(memcmp(&st->obj, &st->orig, sizeof(&st->obj)))
+  if(memcmp(&st->obj, &st->orig, sizeof(st->obj)))
     {
-    //    fprintf(stderr, "Flush %ld\n", db->cache[i].obj.obj.id);
+    fprintf(stderr, "Flush %ld\n", st->obj.obj.id);
     bg_db_object_update(db, &st->obj, 1, 1);
     memcpy(&st->orig, &st->obj, sizeof(st->obj));
     return 1;
@@ -376,6 +376,19 @@ void bg_db_flush(bg_db_t * db)
 
 void bg_db_destroy(bg_db_t * db)
   {
+  int num_added, num_deleted;
+  db_flush(db, 0);
+  /* Check if we need to clean things up */
+
+  num_added = db->num_added;
+  num_deleted = db->num_deleted;
+  
+  if(num_added || num_deleted)
+    bg_db_cleanup_vfolders(db);
+
+  if(num_deleted)
+    bg_db_cleanup_audio(db);
+  
   /* Flush cache */
   db_flush(db, 1);
   free(db->cache);
@@ -411,7 +424,7 @@ void bg_db_add_directory(bg_db_t * db, const char * d, int scan_flags)
     
     bg_log(BG_LOG_INFO, LOG_DOMAIN,
            "Directory %s already in database, updating", path);
-    bg_db_update_files(db, files, num_files, dir->scan_flags, id);
+    bg_db_update_files(db, files, num_files, dir->scan_flags, id, path);
     scan_flags = dir->scan_flags; // Ignore old scan flags
     id = bg_db_object_get_id(dir);
     bg_db_object_unref(dir);
@@ -442,7 +455,7 @@ void bg_db_del_directory(bg_db_t * db, const char * d)
   int64_t id;
   char * path = bg_canonical_filename(d);
   
-  if((id = bg_dir_by_path(db, path) <= 0))
+  if((id = bg_dir_by_path(db, path)) <= 0)
     {
     bg_log(BG_LOG_ERROR, LOG_DOMAIN,
            "Directory %s not in database", path);

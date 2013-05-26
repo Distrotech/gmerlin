@@ -258,8 +258,7 @@ make_thumbnail(bg_db_t * db,
          output_format.image_height, path_abs);
   
   
-  thumb = bg_db_file_create_from_object(db, (bg_db_object_t*)thumb,
-                                        ~0, &item, image->file.scan_dir_id);
+  thumb = bg_db_file_create_from_object(db, (bg_db_object_t*)thumb, ~0, &item, -1);
   if(!thumb)
     goto end;
   

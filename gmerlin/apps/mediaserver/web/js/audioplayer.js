@@ -3,6 +3,7 @@ var supported_mimetypes;
 var current_track = -1;
 var playing = false;
 var current_duration = 0;
+var last_clicked_row = -1;
 
 function play()
   {
@@ -37,6 +38,16 @@ function play()
     }
   }
 
+function set_track_class(row)
+  {
+  var klass = "playlist";
+  if(row.selected == true)
+    klass += " selected";
+  if(row.current == true)
+    klass += " current";
+  row.setAttribute("class", klass);
+  }
+
 function set_current_track(t)
   {
   var str;
@@ -47,9 +58,15 @@ function set_current_track(t)
   if(playlist.rows.length == 0)
     return;
   if(current_track >= 0)
-    playlist.rows[current_track].setAttribute("class", "playlist");
+    {
+    playlist.rows[current_track].current = false;
+    set_track_class(playlist.rows[current_track]);
+    }
   current_track = t;
-  playlist.rows[current_track].setAttribute("class", "playlist_current");
+
+
+  playlist.rows[current_track].current = true;
+  set_track_class(playlist.rows[current_track]);
 
   didl = playlist.rows[current_track].didl;
 
@@ -164,6 +181,64 @@ function stop()
   playing = false;
   }
 
+function playlist_dblclick()
+  {
+  set_current_track(this.rowIndex);
+  play();
+  }
+
+function playlist_mousedown(event)
+  {
+  var i;
+  var playlist = document.getElementById("playlist");
+
+  if(event.ctrlKey == true)
+    {
+    if(this.selected == true)
+      this.selected = false;
+    else
+      this.selected = true;
+    set_track_class(this);
+    }
+  else if((event.shiftKey == true) && (last_clicked_row >= 0))
+    {
+    if(this.rowIndex < last_clicked_row)
+      {
+      for(i = this.rowIndex; i <= last_clicked_row; i++)
+	{
+        playlist.rows[i].selected = true;
+        set_track_class(playlist.rows[i]);
+	}
+      }
+    else
+      {
+      for(i = last_clicked_row; i <= this.rowIndex; i++)
+        {
+        playlist.rows[i].selected = true;
+        set_track_class(playlist.rows[i]);
+	}
+      }
+      
+    }
+  else
+    {
+    for(i = 0; i < playlist.rows.length; i++)
+      {
+      if(i != this.rowIndex)
+        {
+        if(playlist.rows[i].selected)
+	  {
+          playlist.rows[i].selected = false;
+          set_track_class(playlist.rows[i]);
+          }
+        }
+      this.selected = true;
+      set_track_class(this);
+      }
+    }
+  last_clicked_row = this.rowIndex;
+  }
+
 function add_track(track, do_play)
   {
   var text;
@@ -174,6 +249,8 @@ function add_track(track, do_play)
 
   row = document.createElement("tr");
   row.setAttribute("class", "playlist");
+  row.ondblclick = playlist_dblclick;
+  row.onmousedown = playlist_mousedown;
   row.didl = track;
 
   playlist.appendChild(row);

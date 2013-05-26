@@ -97,6 +97,16 @@ static void update_audioalbum(bg_db_t * db, void * obj)
 
 static void del_audioalbum(bg_db_t * db, bg_db_object_t * obj) // Delete from db
   {
+  bg_db_audio_album_t*a = (bg_db_audio_album_t*)obj;
+  /* If we had an album cover, we need to set it's type back to
+     image file */
+  if(a->cover_id > 0)
+    {
+    bg_db_object_t * cover = bg_db_object_query(db, a->cover_id);
+    bg_db_object_set_type(cover, BG_DB_OBJECT_IMAGE_FILE);
+    bg_db_object_unref(cover);
+    }
+
   bg_sqlite_delete_by_id(db->db, "AUDIO_ALBUMS", obj->id);
   }
 
@@ -214,18 +224,18 @@ void bg_db_audio_file_add_to_album(bg_db_t * db, bg_db_audio_file_t * f)
     bg_db_object_set_type(a, BG_DB_OBJECT_AUDIO_ALBUM);
     bg_db_object_set_parent_id(db, a, -1);
     a->genre_id = f->genre_id;
-    
+    a->cover_id = -1;
     /* Remove title completely? */
     a->title = gavl_strdup(f->album);
     a->search_title = gavl_strdup(bg_db_get_search_string(a->title));
+    
+    bg_log(BG_LOG_INFO, LOG_DOMAIN, "Creating album %s", a->title);
     
     bg_db_object_set_label(a, f->album);
     bg_db_date_copy(&a->date, &f->date);
     a->artist_id = f->albumartist_id;
 
     bg_log(BG_LOG_INFO, LOG_DOMAIN, "Adding audio album %s", a->title);
-
-    
     bg_db_date_to_string(&a->date, date_string);
     
     sql = sqlite3_mprintf("INSERT INTO AUDIO_ALBUMS ( ID, ARTIST, TITLE, SEARCH_TITLE, GENRE, DATE ) VALUES ( %"PRId64", %"PRId64", %Q, %Q, %"PRId64", %Q);",
@@ -253,7 +263,10 @@ void bg_db_audio_file_remove_from_album(bg_db_t * db, bg_db_audio_file_t * f)
   bg_db_object_remove_child(db, a, f);
 
   if(!a->obj.children)
+    {
+    bg_log(BG_LOG_INFO, LOG_DOMAIN, "Removing empty album %s", a->title);
     bg_db_object_delete(db, a);
+    }
   else
     bg_db_object_unref(a);
   

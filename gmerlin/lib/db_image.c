@@ -103,9 +103,19 @@ const bg_db_object_class_t bg_db_image_file_class =
     .parent = &bg_db_file_class, // Object
   };
 
+static void del_thumbnail(bg_db_t * db, bg_db_object_t * obj) 
+  {
+  /* Delete thumbnail file */
+  bg_db_file_t * f = (bg_db_file_t *)obj;
+  bg_log(BG_LOG_INFO, LOG_DOMAIN, "Removing %s", f->path);
+  remove(f->path);
+  }
+
+
 const bg_db_object_class_t bg_db_thumbnail_class =
   {
     .name = "Thumbnail",
+    .del = del_thumbnail,
     .parent = &bg_db_image_file_class, // Object
   };
 

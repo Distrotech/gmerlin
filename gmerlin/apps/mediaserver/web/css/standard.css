@@ -89,10 +89,15 @@ div.treerow_selected
   white-space: nowrap;
   }
 
-table.albumtracks
+table.musictracks
   {
   font-size: small;
   width: 100%;
+  }
+
+tr.musictrack_title
+  {
+  font-weight: bold;
   }
 
 span.albumtitle
@@ -114,13 +119,3 @@ img.albumcover
   border-width: 1px;
   }
 
-tr.playlist
-  {
-  font-size: small;  
-  }
-
-tr.playlist_current
-  {
-  font-size: small;  
-  font-weight: bold;
-  }

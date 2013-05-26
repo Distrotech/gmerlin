@@ -92,6 +92,9 @@ struct bg_db_s
   
   int cache_size;
   bg_db_cache_t * cache;
+
+  int num_added;
+  int num_deleted;
   };
 
 /* File scanning */
@@ -207,6 +210,9 @@ extern const bg_db_object_class_t bg_db_audio_file_class;
 
 void bg_db_audio_file_create_refs(bg_db_t * db, void * obj);
 
+/* Remove empty audio genres and artists */
+void bg_db_cleanup_audio(bg_db_t * db);
+
 /* Audio album */
 
 void bg_db_audio_file_add_to_album(bg_db_t * db, bg_db_audio_file_t * t);
@@ -228,6 +234,10 @@ void
 bg_db_create_vfolders(bg_db_t * db, void * obj);
 
 void bg_db_create_tables_vfolders(bg_db_t * db);
+
+void
+bg_db_cleanup_vfolders(bg_db_t * db);
+
 
 extern const bg_db_object_class_t bg_db_vfolder_leaf_class;
 extern const bg_db_object_class_t bg_db_vfolder_class;
@@ -252,7 +262,7 @@ void bg_db_add_files(bg_db_t * db, bg_db_scan_item_t * files,
 
 void bg_db_update_files(bg_db_t * db, bg_db_scan_item_t * files,
                         int num, int scan_flags,
-                        int64_t scan_dir_id);
+                        int64_t scan_dir_id, const char * scan_dir);
 
 char * bg_db_path_to_label(const char * path);
 

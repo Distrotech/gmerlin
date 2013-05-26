@@ -173,6 +173,95 @@ function create_album_add_button(id)
 
 function append_music_track(parent, el)
   {
+  var str1;
+  var str2;
+  var str3;
+  var str;
+  var row1;
+  var text;
+  var cell;
+  var button;
+  var row = document.createElement("table");
+  row.setAttribute("id", el.getAttribute("id"));
+  row.setAttribute("class", "musictracks");
+  row1 = document.createElement("tr");
+  row1.setAttribute("class", "musictrack_title");
+  row.appendChild(row1);
+
+  /* Artist, title */
+  str1 = get_didl_element(el, "title");
+  str2 = get_didl_element(el, "artist");
+
+  cell = document.createElement("td");
+  if((str1 != null) && (str2 != null))
+    text = document.createTextNode(str2 + ": " + str1);
+  else if(str2 != null)
+    text = document.createTextNode(str2);
+
+  cell.appendChild(text);
+  row1.appendChild(cell);
+
+  /* Duration */
+  str1 = get_duration(el);
+  cell = document.createElement("td");
+  cell.setAttribute("style", "text-align: right;");
+  text = document.createTextNode(format_duration_str(str1));
+  cell.appendChild(text);
+  row1.appendChild(cell);
+
+  /* Play */
+  cell = document.createElement("td");
+  cell.setAttribute("style", "width: 16px;");
+  button = create_song_play_button(el.getAttribute('id'));
+  cell.appendChild(button);
+  row1.appendChild(cell);
+
+  /* Add */
+  cell = document.createElement("td");
+  cell.setAttribute("style", "width: 16px;");
+  button = create_song_add_button(el.getAttribute('id'));
+  cell.appendChild(button);
+  row1.appendChild(cell);
+
+  /* Album, Genre, Date */
+  str1 = get_didl_element(el, "album");
+  str2 = get_didl_element(el, "genre");
+  str3 = get_didl_element(el, "date");
+
+  str = null;
+  if(str1 != null)
+    str = str1;
+
+  if(str2 != null)
+    {
+    if(str != null)
+      str += ", " + str2;
+    else
+      str = str2;
+    }
+  if(str3 != null)
+    {
+    if(str != null)
+      str += ", " + str3.substring(0, 4);
+    else
+      str = str3.substring(0, 4);
+    }
+
+  if(str != null)
+    {
+    row1 = document.createElement("tr");
+    cell = document.createElement("td");
+    text = document.createTextNode(str);
+    cell.appendChild(text);
+    row1.appendChild(cell);
+    row.appendChild(row1);
+    }
+
+  parent.appendChild(row);
+
+  row = document.createElement("hr");
+  row.setAttribute("style", "margin-top: 0px; margin-bottom: 0px;");
+  parent.appendChild(row);
 
   }
 
@@ -268,7 +357,7 @@ function append_music_album(parent, el)
   didl = browse_children(el.getAttribute("id"));
   tracks = didl.getElementsByTagName("DIDL-Lite")[0].childNodes;
   trackstable = document.createElement("table");
-  trackstable.setAttribute("class", "albumtracks");
+  trackstable.setAttribute("class", "musictracks");
 
   /* If all artists are the same, we omit it from the label */
   for(i=0; i < tracks.length; i++)
@@ -331,7 +420,6 @@ function append_music_album(parent, el)
       play_button = create_song_play_button(tracks[i].getAttribute('id'));
       track_cell.appendChild(play_button);
       track_row.appendChild(track_cell);
-      trackstable.appendChild(track_row);
 
       /* Add */
       track_cell = document.createElement("td");

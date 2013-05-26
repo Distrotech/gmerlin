@@ -241,7 +241,7 @@ int main(int argc, char ** argv)
   for(i = 0; i < num_add_dirs; i++)
     bg_db_add_directory(db, add_dirs[i], scan_type);
   for(i = 0; i < num_del_dirs; i++)
-    bg_db_del_directory(db, add_dirs[i]);
+    bg_db_del_directory(db, del_dirs[i]);
   for(i = 0; i < num_add_albums; i++)
     bg_db_add_album(db, add_albums[i]);
   

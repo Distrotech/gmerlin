@@ -228,3 +228,93 @@ void bg_db_audio_file_create(bg_db_t * db, void * obj, bg_track_info_t * t)
   audio_file_add(db, f);
   bg_db_create_vfolders(db, f);
   }
+
+void bg_db_cleanup_audio(bg_db_t * db)
+  {
+  int i;
+  int64_t count;
+  int64_t total;
+  char * sql = NULL;
+  bg_sqlite_id_tab_t tab;
+  int result;
+  bg_sqlite_id_tab_init(&tab);
+
+  total = 0;
+  
+  sql = sqlite3_mprintf("select ID from AUDIO_GENRES;");
+  result = bg_sqlite_exec(db->db, sql, bg_sqlite_append_id_callback, &tab);
+  sqlite3_free(sql);
+  
+  for(i = 0; i < tab.num_val; i++)
+    {
+    /* Count songs with that genre */
+    count = 0;
+    sql = sqlite3_mprintf("select count(*) from AUDIO_FILES where GENRE = %"PRId64";",
+                          tab.val[i]);
+    result = bg_sqlite_exec(db->db, sql, bg_sqlite_int_callback, &count);
+    sqlite3_free(sql);
+
+    total = count;
+    
+    /* Count albums with that genre */
+    count = 0;
+    sql = sqlite3_mprintf("select count(*) from AUDIO_ALBUMS where GENRE = %"PRId64";",
+                          tab.val[i]);
+    result = bg_sqlite_exec(db->db, sql, bg_sqlite_int_callback, &count);
+    sqlite3_free(sql);
+
+    total += count;
+
+    /* Check if empty */
+    if(!total)
+      {
+      char * name;
+      name = bg_sqlite_id_to_string(db->db, "AUDIO_GENRES", "NAME", "ID", tab.val[i]);
+      bg_log(BG_LOG_INFO, LOG_DOMAIN, "Removing empty audio genre %s", name);
+      free(name);
+      bg_sqlite_delete_by_id(db->db, "AUDIO_GENRES", tab.val[i]);
+      }
+    }
+
+  bg_sqlite_id_tab_reset(&tab);
+
+  /* Artists */
+  sql = sqlite3_mprintf("select ID from AUDIO_ARTISTS;");
+  result = bg_sqlite_exec(db->db, sql, bg_sqlite_append_id_callback, &tab);
+  sqlite3_free(sql);
+
+  for(i = 0; i < tab.num_val; i++)
+    {
+    /* Count songs with that artist */
+    count = 0;
+    sql = sqlite3_mprintf("select count(*) from AUDIO_FILES where ARTIST = %"PRId64";",
+                          tab.val[i]);
+    result = bg_sqlite_exec(db->db, sql, bg_sqlite_int_callback, &count);
+    sqlite3_free(sql);
+
+    total = count;
+    
+    /* Count albums with that artist */
+    count = 0;
+    sql = sqlite3_mprintf("select count(*) from AUDIO_ALBUMS where ARTIST = %"PRId64";",
+                          tab.val[i]);
+    result = bg_sqlite_exec(db->db, sql, bg_sqlite_int_callback, &count);
+    sqlite3_free(sql);
+
+    total += count;
+
+    /* Check if empty */
+    if(!total)
+      {
+      char * name;
+      name = bg_sqlite_id_to_string(db->db, "AUDIO_ARTISTS", "NAME", "ID", tab.val[i]);
+      bg_log(BG_LOG_INFO, LOG_DOMAIN, "Removing empty audio artist %s", name);
+      free(name);
+      bg_sqlite_delete_by_id(db->db, "AUDIO_ARTISTS", tab.val[i]);
+      }
+    }
+  
+  
+  bg_sqlite_id_tab_free(&tab);
+  }
+

@@ -236,7 +236,7 @@ void bg_db_object_update_duration(bg_db_t * db, void * obj, gavl_time_t delta_d)
     return;
     
   o->duration += delta_d;
-  if(o->parent_id > 0)
+  if(o->parent_id >= 0)
     {
     bg_db_object_t * parent = bg_db_object_query(db, o->parent_id);
     bg_db_object_update_duration(db, parent, delta_d);
@@ -277,7 +277,7 @@ void bg_db_object_set_type(void * obj, bg_db_object_type_t t)
   {
   bg_db_object_t * o = obj;
   const bg_db_object_class_t * c = bg_db_object_get_class(t);
-  if(c->parent != o->klass)
+  if((c->parent != o->klass) && (o->klass->parent != c))
     bg_log(BG_LOG_ERROR, LOG_DOMAIN, "bg_object_set_type failed");
   o->klass = c;
   o->type = t;
@@ -295,11 +295,14 @@ static void * object_create(bg_db_t * db, int root)
   else
     obj->id = bg_sqlite_get_next_id(db->db, "OBJECTS");
 
+  obj->parent_id = -1;
+  
   sql = sqlite3_mprintf("INSERT INTO OBJECTS "
                         "( ID ) VALUES ( %"PRId64" );",
                         obj->id);
   result = bg_sqlite_exec(db->db, sql, NULL, NULL);
   sqlite3_free(sql);
+  db->num_added++;
   return obj;
   }
 
@@ -477,8 +480,14 @@ void bg_db_object_add_child(bg_db_t * db, void * obj1, void * child1)
   bg_db_object_t * child = child1;
 
   obj->children++;
-  bg_db_object_update_size(db, obj, child->size);
-  bg_db_object_update_duration(db, obj, child->duration);
+
+  if(obj->type & BG_DB_FLAG_CONTAINER)
+    {
+    bg_db_object_update_size(db, obj, child->size);
+
+    if(child->duration != GAVL_TIME_UNDEFINED)
+      bg_db_object_update_duration(db, obj, child->duration);
+    }
   }
 
 void bg_db_object_remove_child(bg_db_t * db, void * obj1, void * child1)
@@ -486,8 +495,14 @@ void bg_db_object_remove_child(bg_db_t * db, void * obj1, void * child1)
   bg_db_object_t * obj = obj1;
   bg_db_object_t * child = child1;
   obj->children--;
-  bg_db_object_update_size(db, obj, -child->size);
-  bg_db_object_update_duration(db, obj, -child->duration);
+
+  if(obj->type & BG_DB_FLAG_CONTAINER)
+    {
+    bg_db_object_update_size(db, obj, -child->size);
+    
+    if(child->duration != GAVL_TIME_UNDEFINED)
+      bg_db_object_update_duration(db, obj, -child->duration);
+    }
   }
 
 void bg_db_object_set_parent(bg_db_t * db, void * obj1, void * parent1)
@@ -503,7 +518,7 @@ static void delete_from_parent(bg_db_t * db, bg_db_object_t * obj)
   {
   bg_db_object_t * parent;
   
-  if(obj->parent_id > 0)
+  if(obj->parent_id >= 0)
     {
     parent = bg_db_object_query(db, obj->parent_id);
 
@@ -520,15 +535,13 @@ void bg_db_object_delete(bg_db_t * db, void * obj1)
   {
   const bg_db_object_class_t * c;
   bg_sqlite_id_tab_t  tab;
-  bg_db_object_storage_t child_s;
   bg_db_object_t * child;
 
   int i;
+  int result;
   char * sql;
   bg_db_object_t * obj = obj1;
   bg_db_cache_t * ci;
-
-  child = (bg_db_object_t *)&child_s;
 
   ci = obj1;
   
@@ -537,13 +550,17 @@ void bg_db_object_delete(bg_db_t * db, void * obj1)
     bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Cannot delete object, refcount > 1");
     return;
     }
+  ci->refcount = 0;
   
   bg_sqlite_id_tab_init(&tab);
   
   /* Delete referenced objects and children */
   sql =
-    sqlite3_mprintf("select ID from OBJECTS where (REF_ID = %"PRId64" | PARENT_ID = %"PRId64");",
-                    obj->id, obj->id);
+    sqlite3_mprintf("select ID from OBJECTS where (REF_ID = %"PRId64") |"
+                    " (PARENT_ID = %"PRId64");", obj->id, obj->id);
+
+  result = bg_sqlite_exec(db->db, sql, bg_sqlite_append_id_callback, &tab);
+  sqlite3_free(sql);
   
   for(i = 0; i < tab.num_val; i++)
     {
@@ -569,5 +586,10 @@ void bg_db_object_delete(bg_db_t * db, void * obj1)
       c->del(db, obj);
     c = c->parent;
     }
+  db->num_deleted++;
+
+  bg_db_object_free(obj);
+  bg_db_object_init(obj);
+  
   }
 

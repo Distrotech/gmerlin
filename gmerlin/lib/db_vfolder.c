@@ -41,7 +41,6 @@ vfolder_types[] =
       .type = BG_DB_OBJECT_AUDIO_ALBUM,
       .name = "Genre/Artist",
       .cats = { BG_DB_CAT_GENRE,
-                BG_DB_CAT_GROUP,
                 BG_DB_CAT_ARTIST,
               },
     },
@@ -61,13 +60,21 @@ vfolder_types[] =
     },
     {
       .type = BG_DB_OBJECT_AUDIO_FILE,
-      .name = "Genre/Artist",
-      .cats = { BG_DB_CAT_GENRE, BG_DB_CAT_GROUP, BG_DB_CAT_ARTIST },
+      .name = "Artist",
+      .cats = { BG_DB_CAT_GROUP,
+                BG_DB_CAT_ARTIST },
     },
     {
       .type = BG_DB_OBJECT_AUDIO_FILE,
-      .name = "Artist",
-      .cats = { BG_DB_CAT_GROUP, BG_DB_CAT_ARTIST },
+      .name = "Genre/Artist",
+      .cats = { BG_DB_CAT_GENRE,
+                BG_DB_CAT_ARTIST },
+    },
+    {
+      .type = BG_DB_OBJECT_AUDIO_FILE,
+      .name = "Genre/Year",
+      .cats = { BG_DB_CAT_GENRE,
+                BG_DB_CAT_YEAR },
     },
     {
       .type = BG_DB_OBJECT_PLAYLIST,
@@ -213,19 +220,14 @@ static void get_children_vfolder_leaf(bg_db_t * db, void * obj, bg_sqlite_id_tab
       sql = bg_sprintf("SELECT ID FROM AUDIO_ALBUMS WHERE ");
       break;
     case BG_DB_OBJECT_PLAYLIST:
-      sql = bg_sprintf("SELECT ID FROM OBJECTS WHERE TYPE = %d ", BG_DB_OBJECT_PLAYLIST);
+      sql = bg_sprintf("SELECT ID FROM OBJECTS WHERE TYPE = %d ORDER BY LABEL;", BG_DB_OBJECT_PLAYLIST);
       break;
     default:
       goto fail;
       break;
     }
 
-  if(f->type == BG_DB_OBJECT_PLAYLIST)
-    {
-    condition = bg_sprintf("ORDER BY LABEL;");
-    sql = gavl_strcat(sql, condition);
-    }
-  else
+  if(f->type != BG_DB_OBJECT_PLAYLIST)
     {
     /* Go through conditions */
     num = 0;
@@ -270,8 +272,7 @@ static void get_children_vfolder_leaf(bg_db_t * db, void * obj, bg_sqlite_id_tab
     sql = gavl_strcat(sql, ";");
     }
   
-  
-  fprintf(stderr, "SQL: %s\n", sql);
+  //  fprintf(stderr, "SQL: %s\n", sql);
   
   result = bg_sqlite_exec(db->db, sql, bg_sqlite_append_id_callback, tab);
 
@@ -668,6 +669,51 @@ bg_db_create_vfolders(bg_db_t * db, void * obj)
     i++;
     }
   
+  }
+
+void
+bg_db_cleanup_vfolders(bg_db_t * db)
+  {
+  int i;
+  char * sql = NULL;
+  int result;
+  bg_db_object_t * vfolder;
+  bg_sqlite_id_tab_t vfolders_tab;
+  bg_sqlite_id_tab_t children_tab;
+
+  bg_sqlite_id_tab_init(&children_tab);
+  bg_sqlite_id_tab_init(&vfolders_tab);
+  
+  bg_log(BG_LOG_INFO, LOG_DOMAIN, "Cleaning up vfolders");
+
+  sql = sqlite3_mprintf("select ID from OBJECTS where TYPE = %d;", BG_DB_OBJECT_VFOLDER_LEAF);
+  result = bg_sqlite_exec(db->db, sql, bg_sqlite_append_id_callback, &vfolders_tab);
+  sqlite3_free(sql);
+
+  if(!result)
+    goto end;
+
+  for(i = 0; i < vfolders_tab.num_val; i++)
+    {
+    vfolder = bg_db_object_query(db, vfolders_tab.val[i]);
+    get_children_vfolder_leaf(db, vfolder, &children_tab);
+
+    if(children_tab.num_val)
+      {
+      vfolder->children = children_tab.num_val;
+      bg_db_object_unref(vfolder);
+      }
+    else
+      {
+      bg_log(BG_LOG_INFO, LOG_DOMAIN, "Deleting empty vfolder %s", vfolder->label);
+      bg_db_object_delete(db, vfolder);
+      }
+    bg_sqlite_id_tab_reset(&children_tab);
+    }
+  
+  end:
+  bg_sqlite_id_tab_free(&children_tab);
+  bg_sqlite_id_tab_free(&vfolders_tab);
   }
 
 void

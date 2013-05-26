@@ -178,6 +178,7 @@ bg_db_file_create_from_object(bg_db_t * db, bg_db_object_t * obj, int scan_flags
 
   file->mtime = item->mtime;
   file->scan_dir_id = scan_dir_id;
+  
   bg_db_object_update_size(db, file, item->size);
   bg_db_object_set_label_nocpy(file, bg_db_path_to_label(file->path));
   
@@ -349,7 +350,8 @@ void bg_db_add_files(bg_db_t * db, bg_db_scan_item_t * files, int num,
         break;
       }
     }
-  bg_db_object_unref(dir);
+  if(dir)
+    bg_db_object_unref(dir);
   }
 
 static bg_db_scan_item_t * find_by_path(bg_db_scan_item_t * files, int num, 
@@ -365,7 +367,7 @@ static bg_db_scan_item_t * find_by_path(bg_db_scan_item_t * files, int num,
   }
 
 void bg_db_update_files(bg_db_t * db, bg_db_scan_item_t * files, int num, int scan_flags,
-                        int64_t scan_dir_id)
+                        int64_t scan_dir_id, const char * scan_dir)
   {
   char * sql;
   int result;
@@ -389,6 +391,12 @@ void bg_db_update_files(bg_db_t * db, bg_db_scan_item_t * files, int num, int sc
   for(i = 0; i < tab.num_val; i++)
     {
     dir = bg_db_object_query(db, tab.val[i]);
+
+    if(!strcmp(dir->path, scan_dir))
+      {
+      bg_db_object_unref(dir);
+      continue;
+      }
     
     si = find_by_path(files, num, dir->path, BG_DB_DIRENT_DIRECTORY);
     if(!si)

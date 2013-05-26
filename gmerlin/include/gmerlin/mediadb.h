@@ -108,7 +108,7 @@ typedef enum
 
   // Root container: Object ID 0, has all toplevel containers as children
 
-  BG_DB_OBJECT_ROOT          = (50<<16) | BG_DB_FLAG_VCONTAINER,
+  BG_DB_OBJECT_ROOT          = (50<<16) | BG_DB_FLAG_CONTAINER,
 
   // object.container.album.musicAlbum
   // Audio albums are *no* containers for the internal database
@@ -122,7 +122,7 @@ typedef enum
   BG_DB_OBJECT_PLAYLIST    =  (54<<16) | BG_DB_FLAG_VCONTAINER,
 
   // Virtual Folder */
-  BG_DB_OBJECT_VFOLDER      =  (55<<16)  | BG_DB_FLAG_CONTAINER | BG_DB_FLAG_NO_EMPTY,
+  BG_DB_OBJECT_VFOLDER      =  (55<<16) | BG_DB_FLAG_CONTAINER | BG_DB_FLAG_NO_EMPTY,
   BG_DB_OBJECT_VFOLDER_LEAF =  (56<<16) | BG_DB_FLAG_VCONTAINER | BG_DB_FLAG_NO_EMPTY,
   } bg_db_object_type_t;
 

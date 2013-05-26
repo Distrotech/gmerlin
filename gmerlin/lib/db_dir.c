@@ -236,21 +236,3 @@ bg_db_dir_ensure_parent(bg_db_t * db, bg_db_dir_t * dir, const char * path)
     }
   return bg_db_object_query(db, id);
   }
-
-#if 0
-int bg_db_dir_update(bg_db_t * db, bg_db_dir_t * dir)
-  {
-  char * sql;
-  int result;
- 
-  dir->update_id++;
-  
-  sql = sqlite3_mprintf("UPDATE DIRECORIES SET UPDATE_ID = %"PRId64" WHERE ID = %"PRId64";",
-                        dir->update_id, dir->id);
-  
-  result = bg_sqlite_exec(db->db, sql, NULL, NULL);
-  sqlite3_free(sql);
-  return result;
-  }
-#endif
-
