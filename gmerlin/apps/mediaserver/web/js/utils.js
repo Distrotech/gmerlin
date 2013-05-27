@@ -1,3 +1,25 @@
+function get_element_position(element)
+  {
+  var xPosition = 0;
+  var yPosition = 0;
+
+  while(element &&
+	!isNaN( element.offsetLeft ) &&
+	!isNaN( element.offsetTop ))
+    {
+    xPosition += (element.offsetLeft - element.scrollLeft + element.clientLeft);
+    yPosition += (element.offsetTop - element.scrollTop + element.clientTop);
+    element = element.offsetParent;
+    }
+  return { x: xPosition, y: yPosition };
+  }
+
+function resize_window(w, h)
+  {
+  window.resizeTo(
+            w + (window.outerWidth - window.innerWidth),
+            h + (window.outerHeight - window.innerHeight));
+  }
 
 function stop_propagate(e)
   {

@@ -23,7 +23,24 @@ prev_white_24.png \
 show_black_24.png \
 show_white_24.png \
 stop_black_24.png \
-stop_white_24.png
+stop_white_24.png \
+repeat_black_24.png \
+repeat_white_24.png \
+shuffle_black_24.png \
+shuffle_white_24.png \
+straight_black_24.png \
+straight_white_24.png \
+volume.png \
+vol_0_black_24.png \
+vol_0_white_24.png \
+vol_25_black_24.png \
+vol_25_white_24.png \
+vol_50_black_24.png \
+vol_50_white_24.png \
+vol_75_black_24.png \
+vol_75_white_24.png \
+vol_mute_black_24.png \
+vol_mute_white_24.png
 
 pkgdata_DATA = $(files)
 dist_pkgdata_DATA = $(files)

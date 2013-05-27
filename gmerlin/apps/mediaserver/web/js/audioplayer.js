@@ -3,7 +3,12 @@ var supported_mimetypes;
 var current_track = -1;
 var playing = false;
 var current_duration = 0;
+var current_duration_str = "0:00";
+
 var last_clicked_row = -1;
+var current_play_mode = "straight";
+var expanded = true;
+var expanded_height = 0;
 
 function play()
   {
@@ -35,6 +40,102 @@ function play()
       play_button.setAttribute("href", "javascript: stop();");
       return;
       }
+    }
+  }
+
+function play_mode()
+  {
+  var mode_button = document.getElementById("mode_button");
+  if(current_play_mode == "straight")
+    {
+    current_play_mode = "repeat";
+    }
+  else if(current_play_mode == "repeat")
+    {
+    current_play_mode = "shuffle";
+    }
+  else if(current_play_mode == "shuffle")
+    {
+    current_play_mode = "straight";
+    }
+  mode_button.setAttribute("class", "button " + current_play_mode);
+  }
+
+function set_volume_button()
+  {
+  var audio_player = document.getElementById("audioplayer");
+  var button = document.getElementById("volume_button");
+  if(audio_player.muted == true)
+    button.setAttribute("class", "button vol_mute");
+  else if(audio_player.volume < 0.25)
+    button.setAttribute("class", "button vol_0");
+  else if(audio_player.volume < 0.50)
+    button.setAttribute("class", "button vol_25");
+  else if(audio_player.volume < 0.75)
+    button.setAttribute("class", "button vol_50");
+  else
+    button.setAttribute("class", "button vol_75");
+  }
+
+function volume_click(event)
+  {
+  var volume;
+  var volume_slider;
+  var pos;
+  var percentage;
+  var audio_player = document.getElementById("audioplayer");
+
+  audio_player.muted = false;
+
+  volume_slider = document.getElementById("volume-slider");
+  volume = document.getElementById("volume");
+
+  pos = get_element_position(volume);
+
+  percentage = (event.clientX - pos.x) / volume.offsetWidth;
+
+  volume_slider.setAttribute("style",
+			     "right: " +
+			     (100 - percentage * 100).toString() + "%;");
+  audio_player.volume = percentage;
+  set_volume_button();
+
+//  alert("Percentage " + percentage.toString());
+  }
+
+function mute()
+  {
+  var audio_player = document.getElementById("audioplayer");
+  if(audio_player.muted == false)
+    audio_player.muted = true;
+  else
+    audio_player.muted = false;
+  set_volume_button();
+  }
+
+function expand()
+  {
+  var infobox = document.getElementById("infobox");
+  var playlist = document.getElementById("playlist-div");
+
+  var expand_button = document.getElementById("expand_button");
+  if(expanded == true) // Hide
+    {
+    expanded_height = window.innerHeight;
+    resize_window(window.innerWidth, 54);
+    expand_button.setAttribute("class", "button show");
+    expanded = false;
+
+    infobox.setAttribute("style", "visibility: hidden;");
+    playlist.setAttribute("style", "top: 54px;");
+    }
+  else // Show
+    {
+    resize_window(window.innerWidth, expanded_height);
+    expand_button.setAttribute("class", "button hide");
+    expanded = true;
+    infobox.setAttribute("style", "visibility: visible;");
+    playlist.setAttribute("style", "224px;");
     }
   }
 
@@ -135,7 +236,7 @@ function set_current_track(t)
     el.appendChild(span);
     el.appendChild(document.createElement("br"));
     }
-
+  current_duration_str = format_duration_str(get_duration(didl));
   }
 
 function next_track()
@@ -218,7 +319,7 @@ function playlist_mousedown(event)
         set_track_class(playlist.rows[i]);
 	}
       }
-      
+
     }
   else
     {
@@ -301,17 +402,33 @@ function timeout_cb()
   var sl = document.getElementById("timeslider");
   var time = ap.currentTime;
   /* Update time display */
-  td.innerHTML = get_duration_str(time);
+  if(current_duration > 0)
+    {
+    td.innerHTML = get_duration_str(time) + "/" + current_duration_str;
+    sl.setAttribute("style", "width: " +
+	            (time * 100 / current_duration).toString() + "%;");
+    }
+  else
+    {
+    td.innerHTML = get_duration_str(time) + "/" + "-:--";
+    sl.setAttribute("style", "width: 0px;");
+    }
+
   /* Update slider */
-  sl.setAttribute("style", "width: " +
-		  (time * 100 / current_duration).toString() + "%;");
   }
 
 function audioplayer_init()
   {
+  var volume;
   var audio_player = document.getElementById("audioplayer");
   /* Set event handlers */
   add_event_handler(audio_player, "ended", ended_cb);
   add_event_handler(audio_player, "timeupdate", timeout_cb);
+  audio_player.volume = 0.5;
+
+  /* Set some callbacks */
+  volume =  document.getElementById("volume");
+  volume.onmousedown = volume_click;
+
   self.opener.player_created();
   }

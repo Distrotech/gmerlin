@@ -10,20 +10,31 @@
 <title>Audio player</title>
 </head>
 <body onload="audioplayer_init()">
-<div class="slider">
-  <div class="slider_inner" id="timeslider">
+<div class="slider_outer">
+  <div class="slider">
+    <div class="slider_inner" id="timeslider"></div>
   </div>
-  <table class="timetable"><tr>
-  <td id="timedisplay" class="timetable">0:00<td>
-  </tr></table>
 </div>
 <div class="toolbar">
 <a class="button prev" href="javascript: previous_track();"></a>
 <a class="button play" href="javascript: play();" id="play_button"></a>
 <a class="button next" href="javascript: next_track();"></a>
-<a class="button show" href="#"></a>
+<a class="button straight" href="javascript: play_mode();" id="mode_button"></a>
+<a class="button hide" href="javascript: expand();" id="expand_button"></a>
+<div class="volume" id="volume">
+  <div class="volume_slider" id="volume-slider"></div>
 </div>
-<div class="infobox">
+<a class="button vol_50" href="javascript: mute();" id="volume_button"></a>
+
+<table class="timetable">
+  <tr>
+    <td id="timedisplay" class="timetable">0:00/0:00<td>
+  </tr>
+</table>
+
+
+</div>
+<div class="infobox" id="infobox">
 
 <div class="cover">
   <img id="cover" width="160" height="160">
@@ -34,7 +45,7 @@
 
 </div>
 <audio id="audioplayer"></audio>
-<div class="playlist">
+<div class="playlist" id="playlist-div">
   <table id="playlist" style="width: 100%;" cellspacing="0px">
   </table>
 </div>

@@ -24,7 +24,7 @@ a.button:active
 
 a.prev
   {
-  left: 0;
+  left: 130px;
   background-image: url(/static/icons/prev_white_24.png);
   }
 
@@ -35,7 +35,7 @@ a.prev:active
 
 a.play
   {
-  left: 26px;
+  left: 156px;
   background-image: url(/static/icons/play_white_24.png);
   }
 
@@ -46,7 +46,7 @@ a.play:active
 
 a.stop
   {
-  left: 26px;
+  left: 156px;
   background-image: url(/static/icons/stop_white_24.png);
   }
 
@@ -58,13 +58,101 @@ a.stop:active
 
 a.next
   {
-  left: 52px;
+  left: 182px;
   background-image: url(/static/icons/next_white_24.png);
   }
 
 a.next:active
   {
   background-image: url(/static/icons/next_black_24.png);
+  }
+
+a.repeat
+  {
+  left: 208px;
+  background-image: url(/static/icons/repeat_white_24.png);
+  }
+
+a.repeat:active
+  {
+  background-image: url(/static/icons/repeat_black_24.png);
+  }
+
+a.straight
+  {
+  left: 208px;
+  background-image: url(/static/icons/straight_white_24.png);
+  }
+
+a.straight:active
+  {
+  background-image: url(/static/icons/straight_black_24.png);
+  }
+
+a.shuffle
+  {
+  left: 208px;
+  background-image: url(/static/icons/shuffle_white_24.png);
+  }
+
+a.shuffle:active
+  {
+  background-image: url(/static/icons/shuffle_black_24.png);
+  }
+
+a.vol_mute
+  {
+  left: 0px;
+  background-image: url(/static/icons/vol_mute_white_24.png);
+  }
+
+a.vol_mute:active
+  {
+  background-image: url(/static/icons/vol_mute_black_24.png);
+  }
+
+a.vol_0
+  {
+  left: 0px;
+  background-image: url(/static/icons/vol_0_white_24.png);
+  }
+
+a.vol_0:active
+  {
+  background-image: url(/static/icons/vol_0_black_24.png);
+  }
+
+a.vol_25
+  {
+  left: 0px;
+  background-image: url(/static/icons/vol_25_white_24.png);
+  }
+
+a.vol_25:active
+  {
+ background-image: url(/static/icons/vol_25_black_24.png);
+  }
+
+a.vol_50
+  {
+  left: 0px;
+  background-image: url(/static/icons/vol_50_white_24.png);
+  }
+
+a.vol_50:active
+  {
+  background-image: url(/static/icons/vol_50_black_24.png);
+  }
+
+a.vol_75
+  {
+  left: 0px;
+  background-image: url(/static/icons/vol_75_white_24.png);
+  }
+
+a.vol_75:active
+  {
+  background-image: url(/static/icons/vol_75_black_24.png);
   }
 
 a.show
@@ -89,7 +177,35 @@ a.hide:active
   background-image: url(/static/icons/hide_black_24.png);
   }
 
-div.slider
+div.volume
+  {
+  position: absolute;
+  display: inline-block;
+  background: #4f4f4f;
+  width: 102px;
+  height: 24px;
+  left:    26px;
+  top:     0px;
+  border-style: solid;
+  border-width: 1px;
+  border-color: #4f4f4f;
+  z-index:    1;
+  }
+
+div.volume_slider
+  {
+  position: absolute;
+  display: inline-block;
+  background: #4f4f4f;
+  height: 24px;
+  left:    0px;
+  right:   50%;
+  top:     0px;
+  background-image: url(/static/icons/volume.png);
+  z-index:    2;
+  }
+
+div.slider_outer
   {
   background: #4f4f4f;
   position:   absolute;
@@ -100,37 +216,56 @@ div.slider
   z-index:    1;
   }
 
+div.slider
+  {
+  background: #4f4f4f;
+  position:   absolute;
+  left:       0px;
+  top:        0px;
+  right:      0px;
+  margin:     4px;
+  height:     20px;
+  z-index:    2;
+  }
+
 div.slider_inner
   {
   background: #8f8f8f;
   position:   absolute;
   left:       0px;
   top:        0px;
-  right:      50%;
+  right:      100%;
   height:     20px;
-  margin:     4px;
-  z-index:    2;
+  margin:     0px;
+  z-index:    3;
   }
 
 
-.timetable
+table.timetable
   {
-  height:  100%;
-  width:   100%;
+  height:  26px;
   position: absolute;
   margin:  0;
   padding: 0;
   border:  0;
+  left:    234px;
+  right:   26px;
+  }
+
+td.timetable
+  {
+  width: 100%;
+  height: 100%;
   vertical-align: middle;
   text-align: center;
   color:  #f8f8f8;
   font-weight: bold;
-  z-index:    3;
+  z-index:    4;
   }
 
 div.toolbar
   {
-  background: #ff4f4f;
+  background: #4f4f4f;
   position:   absolute;
   left:       0px;
   top:        28px;
