@@ -119,3 +119,45 @@ img.albumcover
   border-width: 1px;
   }
 
+a.button
+  {
+  display: inline-block;
+  background: #ffffff;
+  width: 16px;
+  height: 16px;
+  border-style: solid;
+  border-width: 1px;
+  border-color: #ffffff;
+  }
+
+a.button:hover
+  {
+  border-color: #000000;
+  }
+
+a.button:active
+  {
+  background: #000000;
+  border-color: #000000;
+  }
+
+a.play
+  {
+  background-image: url(/static/icons/play_black_16.png);
+  }
+
+a.play:active
+  {
+  background-image: url(/static/icons/play_white_16.png);
+  }
+
+a.add
+  {
+  background-image: url(/static/icons/add_black_16.png);
+  }
+
+a.add:active
+  {
+  background-image: url(/static/icons/add_white_16.png);
+  }
+

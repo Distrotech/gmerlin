@@ -26,8 +26,10 @@ function play()
      we can play */
   for(i = 0; i < res.length; i++)
     {
-    protocol_info = res[i].getAttribute("protocolInfo");
-    mimetype = protocol_info.split(":")[2];
+    protocol_info = res[i].getAttribute("protocolInfo").split(":");
+    if(protocol_info[0] != "http-get")
+      continue;
+    mimetype = protocol_info[2];
     canplay = ap.canPlayType(mimetype);
     if((canplay == "maybe") || (canplay == "probably"))
       {

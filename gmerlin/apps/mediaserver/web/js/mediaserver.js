@@ -140,14 +140,20 @@ function add_album(id)
 
 function create_play_button(func, id)
   {
-  return create_button(func + "('" + id + "')",
-		       "play_16.png", "play_cl_16.png", "Play");
+  var ret = document.createElement("a");
+  ret.setAttribute("href", "javascript: " + func + "('" + id + "')" );
+  ret.setAttribute("class", "button play");
+  ret.setAttribute("title", "Play");
+  return ret;
   }
 
 function create_add_button(func, id)
   {
-  return create_button(func + "('" + id + "')",
-		       "add_16.png", "add_cl_16.png", "Add to playlist");
+  var ret = document.createElement("a");
+  ret.setAttribute("href", "javascript: " + func + "('" + id + "')" );
+  ret.setAttribute("class", "button add");
+  ret.setAttribute("title", "Add to playlist");
+  return ret;
   }
 
 function create_song_play_button(id)
