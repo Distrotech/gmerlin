@@ -33,11 +33,14 @@
 /* Client stuff:
  */
 
+#define CLIENT_MULTIPLE_RES (1<<0)   /* Client understands multiple <res> elements */
+#define CLIENT_ORIG_LOCATION (1<<1)  /* Client wants the (non-standard) original location */
+
 typedef struct
   {
   int (*check)(const gavl_metadata_t * m);
   const char ** mimetypes;
-  int multiple_res;
+  int flags;
   } client_t;
 
 static int check_client_generic(const gavl_metadata_t * m)
@@ -59,12 +62,11 @@ client_t clients[] =
       .mimetypes = (const char*[]) { "audio/ogg",  // Firefox
                                      "audio/mpeg", // Chrome
                                      NULL },
-      .multiple_res = 1,
+      .flags = CLIENT_MULTIPLE_RES | CLIENT_ORIG_LOCATION,
     },
     {
       .check = check_client_generic,
       .mimetypes = (const char*[]) { "audio/mpeg", NULL },
-      .multiple_res = 0,
     },
     { /* End */ },
   };
@@ -183,9 +185,28 @@ static void bg_didl_create_res_file(xmlDocPtr doc,
   
   if(!bg_didl_filter_element("res", filter))
     return;
-  
-  /* Location (required) */
 
+  /* Local file */
+  if(cl->flags & CLIENT_ORIG_LOCATION)  
+    {
+    tmp_string = bg_sprintf("file://%s", file->path);
+    child = bg_xml_append_child_node(node, "res", tmp_string);
+    free(tmp_string);
+ 
+    tmp_string = bg_sprintf("*:*:%s:*", file->mimetype);
+    BG_XML_SET_PROP(child, "protocolInfo", tmp_string);
+    free(tmp_string);
+
+    set_res_format(child, f, filter, NULL);
+    if(bg_didl_filter_attribute("res", "size", filter))
+      bg_didl_set_attribute_int(child, "size", file->obj.size);
+    num++;
+    }
+
+  if(num && !(cl->flags & CLIENT_MULTIPLE_RES))
+    return;
+
+  /* Original (via http) */
   if(client_supports_mimetype(cl, file->mimetype))
     {
     tmp_string = bg_sprintf("%smedia/%"PRId64, url_base, bg_db_object_get_id(f));
@@ -204,7 +225,7 @@ static void bg_didl_create_res_file(xmlDocPtr doc,
       bg_didl_set_attribute_int(child, "size", file->obj.size);
     }
 
-  if(num && !cl->multiple_res)
+  if(num && !(cl->flags & CLIENT_MULTIPLE_RES))
     return;
 
   i = 0;
@@ -232,6 +253,11 @@ static void bg_didl_create_res_file(xmlDocPtr doc,
                                 bg_upnp_transcoder_get_size(bg_upnp_transcoders[i].transcoder, f));
 #endif
     set_res_format(child, f, filter, &bg_upnp_transcoders[i]);
+
+    num++;
+
+    if(num && !(cl->flags & CLIENT_MULTIPLE_RES))
+      return;
 
     i++;
     }
