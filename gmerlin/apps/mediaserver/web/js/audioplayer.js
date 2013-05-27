@@ -472,9 +472,35 @@ function pls_load()
 
   }
 
+var pls_blob = null;
+var pls_url = null;
+
 function pls_save()
   {
+  var m3u;
+  var i;
+  var filename;
+  var playlist = document.getElementById("playlist");
 
+  if(pls_url != null)
+    window.URL.revokeObjectURL(pls_url);
+  /* Create file */
+  m3u = "#EXTM3U\r\n";
+
+  for(i = 0; i < playlist.rows.length; i++)
+    {
+    filename = didl_get_filename(playlist.rows[i].didl);
+    if(filename != null)
+      {
+      m3u += "#EXTINF:" + get_duration_num(get_duration(playlist.rows[i].didl)).toFixed() + ", " +
+	  playlist.rows[i].cells[1].innerHTML + "\r\n" +
+	  filename + "\r\n";
+      }
+    }
+
+  pls_blob = new Blob([ m3u ]);
+  pls_url = window.URL.createObjectURL(pls_blob);
+  document.getElementById("pls_save_link").setAttribute("href", pls_url);
   }
 
 function pls_up()

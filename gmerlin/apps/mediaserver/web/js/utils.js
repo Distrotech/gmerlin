@@ -48,7 +48,6 @@ function add_event_handler( obj, type, fn )
     }
   }
 
-
 function get_didl_element(el, name)
   {
   if(el.getElementsByTagNameNS)
@@ -70,6 +69,19 @@ function get_duration(el)
   if(res == null)
     return null;
   return res.getAttribute("duration");
+  }
+
+/* Ge the upnp duration */
+function didl_get_filename(el)
+  {
+  var res, i;
+  res = el.getElementsByTagName("res");
+  for(i = 0; i < res.length; i++)
+    {
+    if(res[i].textContent.indexOf("file://") == 0)
+      return res[i].textContent.substring(7);
+    }
+  return null;
   }
 
 function format_duration_str(dur)
