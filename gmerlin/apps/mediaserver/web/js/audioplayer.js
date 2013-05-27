@@ -434,3 +434,77 @@ function audioplayer_init()
 
   self.opener.player_created();
   }
+
+/* Playlist operations */
+
+function pls_extract_selected(playlist)
+  {
+  var i, idx;
+  var ret = new Array();
+
+  i = 0;
+  idx = 0;
+
+  while(i < playlist.rows.length)
+    {
+    if(playlist.rows[i].selected == true)
+      {
+      ret[idx] = playlist.rows[i];
+      idx++;
+      playlist.deleteRow(i);
+      }
+    else
+      i++;
+    }
+  return ret;
+  }
+
+function pls_renumber(playlist)
+  {
+  var i;
+  for(i = 0; i < playlist.rows.length; i++)
+    playlist.rows[i].cells[0].innerHTML = (i+1).toString() + ".";
+  }
+
+function pls_load()
+  {
+  var playlist = document.getElementById("playlist");
+
+  }
+
+function pls_save()
+  {
+
+  }
+
+function pls_up()
+  {
+  var i;
+  var row0;
+  var playlist = document.getElementById("playlist");
+  var rows = pls_extract_selected(playlist);
+
+  row0 = playlist.rows[0];
+
+  for(i = 0; i < rows.length; i++)
+    playlist.insertBefore(rows[i], row0);
+
+  pls_renumber(playlist);
+  }
+
+function pls_down()
+  {
+  var i;
+  var playlist = document.getElementById("playlist");
+  var rows = pls_extract_selected(playlist);
+  for(i = 0; i < rows.length; i++)
+    playlist.appendChild(rows[i]);
+  pls_renumber(playlist);
+  }
+
+function pls_delete()
+  {
+  var playlist = document.getElementById("playlist");
+  pls_extract_selected(playlist);
+  pls_renumber(playlist);
+  }
