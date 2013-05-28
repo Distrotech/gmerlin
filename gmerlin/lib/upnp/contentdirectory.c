@@ -708,7 +708,7 @@ static int Browse(bg_upnp_service_t * s)
   int RequestedCount =
     bg_upnp_service_get_arg_in_int(&s->req, ARG_RequestedCount);
 
-  int NumberReturned;
+  int NumberReturned = 0;
   int TotalMatches = 1;
   
   priv = s->dev->priv;
@@ -729,7 +729,39 @@ static int Browse(bg_upnp_service_t * s)
   q.db = priv->db;
   q.cl = detect_client(s->req.req);
 
-  if(isdigit(ObjectID[0]))
+  /* Special feature: We also parse m3u files if they
+     point to real files */
+  if(!strncmp(ObjectID, "#EXTM3U", 7))
+    {
+    int i;
+    char * pos;
+    bg_db_object_t * obj;
+    char ** lines = bg_strbreak(ObjectID, '\n');
+    i = 0;
+    while(lines[i])
+      {
+      pos = strchr(lines[i], '\r');
+      if(pos)
+        *pos = '\0';
+      }
+    
+    i = 0;
+    while(lines[i])
+      {
+      if(*(lines[i] != '#'))
+        {
+        id = bg_db_file_by_path(priv->db, lines[i]);
+        if(id >= 0)
+          obj = bg_db_object_query(priv->db, id);
+        bg_didl_add_object(&q, obj, NULL, ObjectID);
+        bg_db_object_unref(obj);
+        NumberReturned++;
+        TotalMatches++;
+        }
+      i++;
+      }
+    }
+  else if(isdigit(ObjectID[0]))
     {
     bg_db_object_t * obj;
     id = strtoll(ObjectID, NULL, 10);

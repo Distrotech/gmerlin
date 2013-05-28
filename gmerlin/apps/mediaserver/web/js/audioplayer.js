@@ -468,8 +468,8 @@ function pls_renumber(playlist)
 
 function pls_load()
   {
-  var playlist = document.getElementById("playlist");
-
+  var input = document.getElementById("file_input");
+  input.click();
   }
 
 var pls_blob = null;
@@ -480,6 +480,7 @@ function pls_save()
   var m3u;
   var i;
   var filename;
+  var didl;
   var playlist = document.getElementById("playlist");
 
   if(pls_url != null)
@@ -489,12 +490,12 @@ function pls_save()
 
   for(i = 0; i < playlist.rows.length; i++)
     {
-    filename = didl_get_filename(playlist.rows[i].didl);
+    didl = playlist.rows[i].didl;
+    filename = didl_get_filename(didl);
     if(filename != null)
       {
-      m3u += "#EXTINF:" + get_duration_num(get_duration(playlist.rows[i].didl)).toFixed() + ", " +
-	  playlist.rows[i].cells[1].innerHTML + "\r\n" +
-	  filename + "\r\n";
+      m3u += "#EXTINF:" + get_duration_num(get_duration(didl)).toFixed() + ", " +
+	playlist.rows[i].cells[1].innerHTML + "\r\n" + filename + "\r\n";
       }
     }
 
@@ -533,4 +534,18 @@ function pls_delete()
   var playlist = document.getElementById("playlist");
   pls_extract_selected(playlist);
   pls_renumber(playlist);
+  }
+
+function add_m3u(m3u)
+  {
+  var didl = browse_metadata(m3u);
+  }
+
+function handle_file(files)
+  {
+  var reader = new FileReader();
+  reader.onload = function(e) {
+    add_m3u(e.target.result);
+  };
+  reader.readAsText(files[0]);
   }

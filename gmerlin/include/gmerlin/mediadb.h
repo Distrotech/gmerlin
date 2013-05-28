@@ -303,6 +303,9 @@ typedef void (*bg_db_query_callback)(void * priv, void * obj);
 void * bg_db_object_query(bg_db_t * db, int64_t id); 
 int64_t bg_db_object_get_id(void * obj);
 
+/* Get the id of a file from it's path */
+int64_t bg_db_file_by_path(bg_db_t * db, const char * path);
+
 
 void bg_db_object_dump(void * obj);
 void bg_db_object_unref(void * obj);

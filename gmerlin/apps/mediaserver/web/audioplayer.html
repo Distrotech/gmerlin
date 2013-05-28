@@ -10,7 +10,10 @@
 <title>Audio player</title>
 </head>
 <body onload="audioplayer_init()">
-<div class="slider_outer">
+<input type="file" id="file_input" accept="audio/mpegurl"
+       onchange="handle_file(this.files)"
+       style="visibility:hidden;position:absolute;top:-50;left:-50"></input>
+  <div class="slider_outer">
   <div class="slider">
     <div class="slider_inner" id="timeslider"></div>
   </div>

@@ -199,7 +199,6 @@ bg_db_file_create_from_object(bg_db_t * db, bg_db_object_t * obj, int scan_flags
 /* Create an internally generated files (e.g. a thumbnail) */
 bg_db_file_t * bg_db_file_create_internal(bg_db_t * db, const char * path_rel);
 
-int64_t bg_db_file_by_path(bg_db_t * db, const char * path);
 
 /* Audio file */
 void bg_db_audio_file_create(bg_db_t * db, void * obj, bg_track_info_t * t);
