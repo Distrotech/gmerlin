@@ -742,9 +742,9 @@ static int Browse(bg_upnp_service_t * s)
     i = 0;
     while(lines[i])
       {
-      pos = strchr(lines[i], '\r');
-      if(pos)
+      if((pos = strchr(lines[i], '\r')))
         *pos = '\0';
+      i++;
       }
     
     i = 0;

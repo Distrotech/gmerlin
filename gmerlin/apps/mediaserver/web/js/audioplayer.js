@@ -538,7 +538,12 @@ function pls_delete()
 
 function add_m3u(m3u)
   {
+  var i;
+  var items;
   var didl = browse_metadata(m3u);
+  items = didl.getElementsByTagName("item");
+  for(i = 0; i < items.length; i++)
+    add_track(items[i], false);
   }
 
 function handle_file(files)
