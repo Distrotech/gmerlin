@@ -401,8 +401,9 @@ static int num_fake_children(bg_db_object_t * obj);
  *  tree and they always have unique upnp IDs as required by the standard.
  */
 
-static xmlNodePtr bg_didl_add_object(query_t * q, bg_db_object_t * obj, 
-                                     const char * upnp_parent, const char * upnp_id)
+static
+xmlNodePtr bg_didl_add_object(query_t * q, bg_db_object_t * obj, 
+                              const char * upnp_parent, const char * upnp_id)
   {
   const char * pos;
   char * tmp_string;
@@ -736,6 +737,7 @@ static int Browse(bg_upnp_service_t * s)
     int i;
     char * pos;
     bg_db_object_t * obj;
+    char * tmp_string;
     char ** lines = bg_strbreak(ObjectID, '\n');
     i = 0;
     while(lines[i])
@@ -748,15 +750,16 @@ static int Browse(bg_upnp_service_t * s)
     i = 0;
     while(lines[i])
       {
-      if(*(lines[i] != '#'))
+      if((*(lines[i]) != '#') &&
+         ((id = bg_db_file_by_path(priv->db, lines[i])) > 0))
         {
-        id = bg_db_file_by_path(priv->db, lines[i]);
-        if(id >= 0)
-          obj = bg_db_object_query(priv->db, id);
-        bg_didl_add_object(&q, obj, NULL, ObjectID);
+        tmp_string = bg_sprintf("%"PRId64"$0", id);
+        obj = bg_db_object_query(priv->db, id);
+        bg_didl_add_object(&q, obj, NULL, tmp_string);
         bg_db_object_unref(obj);
         NumberReturned++;
         TotalMatches++;
+        free(tmp_string);
         }
       i++;
       }
