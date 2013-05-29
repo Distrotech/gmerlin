@@ -72,6 +72,55 @@ struct bg_db_object_class_s
   const struct bg_db_object_class_s * parent;
   };
 
+/* string cache */
+
+typedef struct
+  {
+  int64_t id;
+  char * str;
+  } bg_db_string_cache_item_t;
+
+typedef struct
+  {
+  int size;
+  int alloc;
+  bg_db_string_cache_item_t * items;
+  char * table;
+  char * str_col;
+  char * id_col;
+  } bg_db_string_cache_t;
+
+bg_db_string_cache_t * bg_db_string_cache_create(int size,
+                                                 const char * table,
+                                                 const char * str_col,
+                                                 const char * id_col);
+
+void
+bg_db_string_cache_destroy(bg_db_string_cache_t *);
+
+char *
+bg_db_string_cache_get(bg_db_string_cache_t *, sqlite3 * db, int64_t id);
+
+/* Thumbnail cache */
+
+typedef struct
+  {
+  int max_width;
+  int max_height;
+  char * mimetype;
+  int force;
+  int max_size;
+
+  int64_t ref_id;
+  int64_t thumb_id;
+  } bg_db_thumbnail_cache_item_t;
+
+typedef struct
+  {
+  int size;
+  int alloc;
+  bg_db_thumbnail_cache_item_t *items;
+  } bg_db_thumbnail_cache_t;
 
 #define BG_DB_CACHE_SIZE 128
 
@@ -81,7 +130,8 @@ typedef struct
   bg_db_object_storage_t orig;
   int refcount;
   int sync;
-  } bg_db_cache_t;
+  } bg_db_obj_cache_t;
+
 
 struct bg_db_s
   {
@@ -91,10 +141,24 @@ struct bg_db_s
   bg_plugin_registry_t * plugin_reg;
   
   int cache_size;
-  bg_db_cache_t * cache;
+  bg_db_obj_cache_t * cache;
 
   int num_added;
   int num_deleted;
+
+  /* String cache */
+  bg_db_string_cache_t * audio_artists;
+  bg_db_string_cache_t * audio_genres;
+  bg_db_string_cache_t * audio_albums;
+  bg_db_string_cache_t * mimetypes;
+
+  /* Select statements for common tables */
+
+  sqlite3_stmt * q_objects;
+  sqlite3_stmt * q_files;
+  sqlite3_stmt * q_audio_files;
+  sqlite3_stmt * q_audio_albums;
+  sqlite3_stmt * q_directories;
   };
 
 /* File scanning */
@@ -291,3 +355,14 @@ void bg_db_time_to_string(time_t time, char * str);
   if(!strcasecmp(azColName[i], col) && argv[i]) \
     ret->val = bg_db_string_to_time(argv[i]);
 
+#define BG_DB_GET_COL_INT(col, val) \
+  val = sqlite3_column_int64(st, col)
+
+#define BG_DB_GET_COL_STRING(col, val) \
+  val = gavl_strdup((const char*)sqlite3_column_text(st, col))
+
+#define BG_DB_GET_COL_DATE(col, val) \
+  bg_db_string_to_date((const char*)sqlite3_column_text(st, col), &val)
+
+#define BG_DB_GET_COL_MTIME(col, val) \
+  val = bg_db_string_to_time((const char*)sqlite3_column_text(st, col))

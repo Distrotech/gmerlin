@@ -31,7 +31,7 @@
 #define LOG_DOMAIN "db.dir"
 
 /* Delete from database */
-
+#if 0
 static int dir_query_callback(void * data, int argc, char **argv, char **azColName)
   {
   int i;
@@ -47,19 +47,34 @@ static int dir_query_callback(void * data, int argc, char **argv, char **azColNa
   ret->obj.found = 1;
   return 0;
   }
+#endif
+
+#define PATH_COL          1
+#define SCAN_FLAGS_COL    2
+#define UPDATE_ID_COL     3
+#define SCAN_DIR_ID_COL   4
 
 static int query_dir(bg_db_t * db, void * dir1, int full)
   {
-  char * sql;
   int result;
+  int found = 0;
   bg_db_dir_t * dir = dir1;
+  sqlite3_stmt * st = db->q_directories;
+  sqlite3_bind_int64(st, 1, dir->obj.id);
+
+  if((result = sqlite3_step(st)) == SQLITE_ROW)
+    {
+    BG_DB_GET_COL_STRING(PATH_COL, dir->path);
+    BG_DB_GET_COL_INT(SCAN_FLAGS_COL, dir->scan_flags);
+    BG_DB_GET_COL_INT(UPDATE_ID_COL, dir->update_id);
+    BG_DB_GET_COL_INT(SCAN_DIR_ID_COL, dir->scan_dir_id);
+    found = 1;
+    }
+
+  sqlite3_reset(st);
+  sqlite3_clear_bindings(st);
   
-  sql =
-    sqlite3_mprintf("select * from DIRECTORIES where ID = %"PRId64";",
-                    dir->obj.id);
-  result = bg_sqlite_exec(db->db, sql, dir_query_callback, dir);
-  sqlite3_free(sql);
-  if(!result || !dir->obj.found)
+  if(!found)
     return 0;
   
   dir->path = bg_db_filename_to_abs(db, dir->path);

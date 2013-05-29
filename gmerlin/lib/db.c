@@ -116,6 +116,11 @@ static const char * create_commands[] =
     "IDX INTEGER"
     ");",
 
+    "CREATE INDEX AUDIO_FILES_ALBUM ON AUDIO_FILES (ALBUM);",
+    "CREATE INDEX OBJECTS_TYPE ON OBJECTS (TYPE);",
+    "CREATE INDEX OBJECTS_PARENT_ID ON OBJECTS (PARENT_ID);",
+    "CREATE INDEX FILES_PATH ON FILES (PATH);",
+    "CREATE INDEX DIRECTORIES_PATH ON DIRECTORIES(PATH);",
     NULL,
   };
 
@@ -157,7 +162,7 @@ bg_db_t * bg_db_create(const char * path,
   bg_db_t * ret;
   int i;
   char * tmp_string;
-
+  const char * sql;
   tmp_string = bg_sprintf("%s/gmerlin-db", path);
   
   if(!access(tmp_string, R_OK | W_OK))
@@ -222,6 +227,50 @@ bg_db_t * bg_db_create(const char * path,
   ret->base_dir = bg_canonical_filename(path);
   ret->base_dir = gavl_strcat(ret->base_dir, "/");
   ret->base_len = strlen(ret->base_dir);
+
+  /* String cache */
+  ret->audio_artists =
+    bg_db_string_cache_create(256,
+                              "AUDIO_ARTISTS",
+                              "NAME", "ID");
+
+  ret->audio_genres =
+    bg_db_string_cache_create(16,
+                              "AUDIO_GENRES",
+                              "NAME", "ID");
+  
+  ret->audio_albums =
+    bg_db_string_cache_create(256,
+                              "AUDIO_ALBUMS",
+                              "TITLE", "ID");
+
+  ret->mimetypes =
+    bg_db_string_cache_create(16,
+                              "MIMETYPES",
+                              "NAME", "ID");
+
+  /* Pre-compile select statements */
+
+  sql = "SELECT * FROM OBJECTS WHERE ID = ?1;";
+  if(sqlite3_prepare_v2(ret->db, sql, strlen(sql)+1, &ret->q_objects, NULL) != SQLITE_OK)
+    return NULL;
+  
+  sql = "SELECT * FROM FILES WHERE ID = ?1;";
+  if(sqlite3_prepare_v2(ret->db, sql, strlen(sql)+1, &ret->q_files, NULL) != SQLITE_OK)
+    return NULL;
+  
+  sql = "SELECT * FROM AUDIO_FILES WHERE ID = ?1;";
+  if(sqlite3_prepare_v2(ret->db, sql, strlen(sql)+1, &ret->q_audio_files, NULL) != SQLITE_OK)
+    return NULL;
+  
+  sql = "SELECT * FROM AUDIO_ALBUMS WHERE ID = ?1;";
+  if(sqlite3_prepare_v2(ret->db, sql, strlen(sql)+1, &ret->q_audio_albums, NULL) != SQLITE_OK)
+    return NULL;
+
+  sql = "SELECT * FROM DIRECTORIES WHERE ID = ?1;";
+  if(sqlite3_prepare_v2(ret->db, sql, strlen(sql)+1, &ret->q_directories, NULL) != SQLITE_OK)
+    return NULL;
+  
   return ret;
   }
 
@@ -259,7 +308,7 @@ void bg_db_time_to_string(time_t time, char * str)
 
 static int flush_object(bg_db_t * db, void * obj)
   {
-  bg_db_cache_t * st = obj;
+  bg_db_obj_cache_t * st = obj;
   st->sync = 1;
   if(memcmp(&st->obj, &st->orig, sizeof(st->obj)))
     {
@@ -392,9 +441,22 @@ void bg_db_destroy(bg_db_t * db)
   /* Flush cache */
   db_flush(db, 1);
   free(db->cache);
+
+  sqlite3_finalize(db->q_objects);
+  sqlite3_finalize(db->q_files);
+  sqlite3_finalize(db->q_audio_files);
+  sqlite3_finalize(db->q_audio_albums);
+  sqlite3_finalize(db->q_directories);
+
   
   sqlite3_close(db->db);
   free(db->base_dir);
+
+  bg_db_string_cache_destroy(db->audio_artists);
+  bg_db_string_cache_destroy(db->audio_genres);
+  bg_db_string_cache_destroy(db->audio_albums);
+  bg_db_string_cache_destroy(db->mimetypes);
+  
   free(db);
   }
 

@@ -30,7 +30,7 @@
 #include <gmerlin/log.h>
 #define LOG_DOMAIN "upnp.action"
 
-#define DUMP_SOAP
+// #define DUMP_SOAP
 
 static const bg_upnp_soap_arg_t *
 get_in_arg_by_id(bg_upnp_soap_request_t * req,

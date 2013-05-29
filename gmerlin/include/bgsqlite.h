@@ -85,3 +85,5 @@ int bg_sqlite_select_join(sqlite3 * db, bg_sqlite_id_tab_t * tab,
                           const char * table_2,
                           const char * col_2,
                           int64_t val_2);
+
+char * bg_sqlite_get_col_str(sqlite3_stmt * st, int col);

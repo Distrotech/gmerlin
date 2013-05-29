@@ -33,6 +33,7 @@
 #include <errno.h>
 #define LOG_DOMAIN "db.file"
 
+#if 0
 static int file_query_callback(void * data, int argc, char **argv, char **azColName)
   {
   int i;
@@ -48,25 +49,42 @@ static int file_query_callback(void * data, int argc, char **argv, char **azColN
   ret->obj.found = 1;
   return 0;
   }
+#endif
+
+#define PATH_COL        1
+#define MTIME_COL       2
+#define MIMETYPE_COL    3
+#define SCAN_DIR_ID_COL 4
 
 static int query_file(bg_db_t * db, void * file1, int full)
   {
-  char * sql;
   int result;
   bg_db_file_t * f = file1;
-  f->obj.found = 0;
+  int found = 0;
 
-  sql = sqlite3_mprintf("select * from FILES where ID = %"PRId64";",
-                        f->obj.id);
-  result = bg_sqlite_exec(db->db, sql, file_query_callback, f);
-  sqlite3_free(sql);
-  if(!result || !f->obj.found)
+  sqlite3_stmt * st = db->q_files;
+
+  sqlite3_bind_int64(st, 1, f->obj.id);
+  
+  if((result = sqlite3_step(st)) == SQLITE_ROW)
+    {
+    BG_DB_GET_COL_STRING(PATH_COL, f->path);
+    BG_DB_GET_COL_MTIME(MTIME_COL, f->mtime);
+    BG_DB_GET_COL_INT(MIMETYPE_COL, f->mimetype_id);
+    BG_DB_GET_COL_INT(SCAN_DIR_ID_COL, f->scan_dir_id);
+    found = 1;
+    }
+  sqlite3_reset(st);
+  sqlite3_clear_bindings(st);
+  
+  if(!found)
     return 0;
-
+  
   f->path = bg_db_filename_to_abs(db, f->path);
   
   if(full)
-    f->mimetype = bg_sqlite_id_to_string(db->db, "MIMETYPES", "NAME", "ID", f->mimetype_id);
+    f->mimetype = bg_db_string_cache_get(db->mimetypes, db->db,
+                                         f->mimetype_id);
   return 1;
   }
 

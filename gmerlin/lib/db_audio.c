@@ -75,6 +75,7 @@ static void del_audio_file(bg_db_t * db, bg_db_object_t * obj) // Delete from db
   bg_db_audio_file_remove_from_album(db, (bg_db_audio_file_t*)obj);
   }
 
+#if 0 
 static int audio_query_callback(void * data, int argc, char **argv, char **azColName)
   {
   int i;
@@ -96,26 +97,59 @@ static int audio_query_callback(void * data, int argc, char **argv, char **azCol
   ret->file.obj.found = 1;
   return 0;
   }
+#endif
+
+#define TITLE_COL         1
+#define SEARCH_TITLE_COL  2
+#define ARTIST_COL        3
+#define GENRE_COL         4
+#define DATE_COL          5
+#define ALBUM_COL         6
+#define TRACK_COL         7
+#define BITRATE_COL       8
+#define SAMPLERATE_COL    9
+#define CHANNELS_COL     10
+
 
 static int query_audio_file(bg_db_t * db, void * obj, int full)
   {
-  char * sql;
   int result;
+  int found = 0;
   bg_db_audio_file_t * f = obj;
+
+  sqlite3_stmt * st = db->q_audio_files;
   
-  f->file.obj.found = 0;
-  sql =
-    sqlite3_mprintf("select * from AUDIO_FILES where ID = %"PRId64";", bg_db_object_get_id(f));
-  result = bg_sqlite_exec(db->db, sql, audio_query_callback, f);
-  sqlite3_free(sql);
-  if(!result || !f->file.obj.found)
+  sqlite3_bind_int64(st, 1, f->file.obj.id);
+  
+  if((result = sqlite3_step(st)) == SQLITE_ROW)
+    {
+    BG_DB_GET_COL_STRING(TITLE_COL, f->title);
+    BG_DB_GET_COL_STRING(SEARCH_TITLE_COL, f->search_title);
+    BG_DB_GET_COL_INT(ARTIST_COL, f->artist_id);
+    BG_DB_GET_COL_INT(GENRE_COL, f->genre_id);
+    BG_DB_GET_COL_DATE(DATE_COL, f->date);
+    BG_DB_GET_COL_INT(ALBUM_COL, f->album_id);
+    BG_DB_GET_COL_INT(TRACK_COL, f->track);
+    BG_DB_GET_COL_STRING(BITRATE_COL, f->bitrate);
+    BG_DB_GET_COL_INT(SAMPLERATE_COL, f->samplerate);
+    BG_DB_GET_COL_INT(CHANNELS_COL, f->channels);
+    found = 1;
+    }
+  sqlite3_reset(st);
+  sqlite3_clear_bindings(st);
+  
+  if(!found)
     return 0;
+  
   if(!full)
     return 1;
 
-  f->artist = bg_sqlite_id_to_string(db->db, "AUDIO_ARTISTS", "NAME", "ID", f->artist_id);
-  f->genre  = bg_sqlite_id_to_string(db->db, "AUDIO_GENRES",  "NAME", "ID", f->genre_id);
-  f->album  = bg_sqlite_id_to_string(db->db, "AUDIO_ALBUMS",  "TITLE", "ID", f->album_id);
+  f->artist = bg_db_string_cache_get(db->audio_artists, db->db,
+                                     f->artist_id);
+  f->genre = bg_db_string_cache_get(db->audio_genres, db->db,
+                                    f->genre_id);
+  f->album = bg_db_string_cache_get(db->audio_albums, db->db,
+                                    f->album_id);
   return 1;
   }
 

@@ -28,6 +28,7 @@
 
 #define LOG_DOMAIN "db.audioalbum"
 
+#if 0
 static int album_query_callback(void * data, int argc, char **argv, char **azColName)
   {
   int i;
@@ -45,26 +46,50 @@ static int album_query_callback(void * data, int argc, char **argv, char **azCol
   ret->obj.found = 1;
   return 0;
   }
+#endif
+
+#define ARTIST_COL        1
+#define TITLE_COL         2
+#define SEARCH_TITLE_COL  3
+#define GENRE_COL         4
+#define COVER_COL         5
+#define DATE_COL          6
 
 static int query_audioalbum(bg_db_t * db, void * a1, int full)
   {
-  char * sql;
   int result;
+  int found = 0;
   bg_db_audio_album_t * a = a1;
+  sqlite3_stmt * st = db->q_audio_albums;
+  sqlite3_bind_int64(st, 1, a->obj.id);
+
+  if((result = sqlite3_step(st)) == SQLITE_ROW)
+    {
+    BG_DB_GET_COL_INT(ARTIST_COL, a->artist_id);
+    BG_DB_GET_COL_STRING(TITLE_COL, a->title);
+    BG_DB_GET_COL_STRING(SEARCH_TITLE_COL, a->search_title);
+    BG_DB_GET_COL_INT(GENRE_COL, a->genre_id);
+    BG_DB_GET_COL_INT(COVER_COL, a->cover_id);
+    BG_DB_GET_COL_DATE(DATE_COL, a->date);
+    found = 1;
+    }
+  sqlite3_reset(st);
+  sqlite3_clear_bindings(st);
   
-  sql = sqlite3_mprintf("select * from AUDIO_ALBUMS where ID = %"PRId64";", bg_db_object_get_id(a));
+  if(!found)
+    return 0;
+  
+#if 0
+  
   result = bg_sqlite_exec(db->db, sql, album_query_callback, a);
-  sqlite3_free(sql);
   if(!result || !a->obj.found)
     return 0;
-
-  a->artist = bg_sqlite_id_to_string(db->db,
-                                     "AUDIO_ARTISTS", "NAME", "ID",
+#endif
+  
+  a->artist = bg_db_string_cache_get(db->audio_artists, db->db,
                                      a->artist_id);
-  a->genre  = bg_sqlite_id_to_string(db->db,
-                                     "AUDIO_GENRES",  "NAME", "ID",
+  a->genre  = bg_db_string_cache_get(db->audio_genres, db->db,
                                      a->genre_id);
-
   return 1;
   }
 

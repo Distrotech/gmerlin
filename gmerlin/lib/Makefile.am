@@ -95,6 +95,7 @@ db_object.c \
 db_playlist.c \
 db_root.c \
 db_scan.c \
+db_stringcache.c \
 db_thumbnail.c \
 db_vfolder.c \
 device.c \

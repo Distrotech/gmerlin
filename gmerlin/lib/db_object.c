@@ -124,14 +124,14 @@ static bg_db_object_t * get_cache_item(bg_db_t * db)
 void
 bg_db_object_unref(void * obj)
   {
-  bg_db_cache_t * s = (bg_db_cache_t *)obj;
+  bg_db_obj_cache_t * s = (bg_db_obj_cache_t *)obj;
   s->refcount--;
   }
 
 void
 bg_db_object_ref(void * obj)
   {
-  bg_db_cache_t * s = (bg_db_cache_t *)obj;
+  bg_db_obj_cache_t * s = (bg_db_obj_cache_t *)obj;
   s->refcount++;
   }
 
@@ -316,7 +316,7 @@ void * bg_db_object_create_root(bg_db_t * db)
   return object_create(db, 1);
   }
 
-
+#if 0
 static int
 object_query_callback(void * data, int argc, char **argv, char **azColName)
   {
@@ -337,18 +337,28 @@ object_query_callback(void * data, int argc, char **argv, char **azColName)
   ret->found = 1;
   return 0;
   }
+#endif
+
+#define TYPE_COL      1
+#define REF_ID_COL    2
+#define PARENT_ID_COL 3
+#define CHILDREN_COL  4
+#define SIZE_COL      5
+#define DURATION_COL  6
+#define LABEL_COL     7
 
 /* Query from DB  */
 void * bg_db_object_query(bg_db_t * db, int64_t id) 
   {
   int i;
-  char * sql;
   int result;
+  int found = 0;
   const bg_db_object_class_t * c;
   
-  bg_db_cache_t * cache;
+  bg_db_obj_cache_t * cache;
   bg_db_object_t * obj;
-  
+  sqlite3_stmt * st = db->q_objects;
+
   /* Check if the object is in the cache */
   for(i = 0; i < db->cache_size; i++)
     {
@@ -361,16 +371,29 @@ void * bg_db_object_query(bg_db_t * db, int64_t id)
 
   obj = get_cache_item(db);
   
-  obj->found = 0;
-  sql = sqlite3_mprintf("select * from OBJECTS where ID = %"PRId64";",
-                        id);
-  result = bg_sqlite_exec(db->db, sql, object_query_callback, obj);
-  sqlite3_free(sql);
-  if(!result || !obj->found)
-    return 0;
+  sqlite3_bind_int64(st, 1, id);
+  
+  if((result = sqlite3_step(st)) == SQLITE_ROW)
+    {
+    obj->id = id;
+    BG_DB_GET_COL_INT(TYPE_COL, obj->type);
+    BG_DB_GET_COL_INT(REF_ID_COL, obj->ref_id);
+    BG_DB_GET_COL_INT(PARENT_ID_COL, obj->parent_id);
+    BG_DB_GET_COL_INT(CHILDREN_COL, obj->children);
+    BG_DB_GET_COL_INT(SIZE_COL, obj->size);
+    BG_DB_GET_COL_INT(DURATION_COL, obj->duration);
+    BG_DB_GET_COL_STRING(LABEL_COL, obj->label);
+    found = 1;
+    }
+
+  sqlite3_reset(st);
+  sqlite3_clear_bindings(st);
+  //  sqlite3_free(sql);
+
+  if(!found)
+    return NULL;
   
   obj->klass = bg_db_object_get_class(obj->type);
-
   
   /* Children */
   c = obj->klass;
@@ -383,7 +406,7 @@ void * bg_db_object_query(bg_db_t * db, int64_t id)
 
   /* Remember original state */
 
-  cache = (bg_db_cache_t*)obj;
+  cache = (bg_db_obj_cache_t*)obj;
   memcpy(&cache->orig, &cache->obj, sizeof(cache->obj));
   
   return obj;
@@ -541,7 +564,7 @@ void bg_db_object_delete(bg_db_t * db, void * obj1)
   int result;
   char * sql;
   bg_db_object_t * obj = obj1;
-  bg_db_cache_t * ci;
+  bg_db_obj_cache_t * ci;
 
   ci = obj1;
   

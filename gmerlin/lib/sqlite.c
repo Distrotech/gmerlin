@@ -39,7 +39,7 @@ bg_sqlite_exec(sqlite3 * db,                              /* An open database */
 
   err = sqlite3_exec(db, sql, callback, data, &err_msg);
 
-  //  fprintf(stderr, "Sending %s\n", sql);
+  fprintf(stderr, "SQL: %s\n", sql);
 
   if(err)
     {
@@ -59,7 +59,8 @@ int bg_sqlite_int_callback(void * data, int argc, char **argv, char **azColName)
   return 0;
   }
 
-int bg_sqlite_string_callback(void * data, int argc, char **argv, char **azColName)
+int bg_sqlite_string_callback(void * data, int argc,
+                              char **argv, char **azColName)
   {
   char ** ret = data;
   if((argv[0]) && (*(argv[0]) != '\0'))
@@ -67,7 +68,8 @@ int bg_sqlite_string_callback(void * data, int argc, char **argv, char **azColNa
   return 0;
   }
 
-static int64_t get_max_int(sqlite3 * db, const char * table, const char * row)
+static int64_t get_max_int(sqlite3 * db, const char * table,
+                           const char * row)
   {
   int result;
   char * sql;
@@ -241,4 +243,9 @@ int bg_sqlite_select_join(sqlite3 * db, bg_sqlite_id_tab_t * tab,
   result = bg_sqlite_exec(db, sql, bg_sqlite_append_id_callback, tab);
   sqlite3_free(sql);
   return result;
+  }
+
+char * bg_sqlite_get_col_str(sqlite3_stmt * st, int col)
+  {
+  return gavl_strdup((const char*)sqlite3_column_text(st, col));
   }
