@@ -706,9 +706,6 @@ bg_db_cleanup_vfolders(bg_db_t * db)
     else
       {
       bg_log(BG_LOG_INFO, LOG_DOMAIN, "Deleting empty vfolder %s", vfolder->label);
-      if(!strcmp(vfolder->label, "1991"))
-        fprintf(stderr, "Blupp");
-
       bg_db_object_delete(db, vfolder);
       }
     bg_sqlite_id_tab_reset(&children_tab);

@@ -29,6 +29,9 @@
 
 #define LOG_DOMAIN "db.object"
 
+static void object_delete(bg_db_t * db, void * obj1, int64_t child_id);
+
+
     /*
   int64_t id;
   bg_db_object_type_t type;
@@ -558,14 +561,15 @@ static void delete_from_parent(bg_db_t * db, bg_db_object_t * obj)
       {
       bg_log(BG_LOG_INFO, LOG_DOMAIN, "Deleting empty container %s",
              parent->label);
-      bg_db_object_delete(db, parent);
+      object_delete(db, parent, obj->id);
       }
     else
       bg_db_object_unref(parent);
     }
   }
 
-void bg_db_object_delete(bg_db_t * db, void * obj1)
+/* child_id if the ID of the child which triggered the delete */
+static void object_delete(bg_db_t * db, void * obj1, int64_t child_id)
   {
   const bg_db_object_class_t * c;
   bg_sqlite_id_tab_t  tab;
@@ -581,7 +585,8 @@ void bg_db_object_delete(bg_db_t * db, void * obj1)
   
   if(ci->refcount > 1)
     {
-    bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Cannot delete object, refcount > 1");
+    bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Cannot delete object, refcount = %d", ci->refcount);
+    bg_db_object_dump(obj);
     return;
     }
   
@@ -597,6 +602,9 @@ void bg_db_object_delete(bg_db_t * db, void * obj1)
   
   for(i = 0; i < tab.num_val; i++)
     {
+    if(tab.val[i] == child_id)
+      continue;
+    
     child = bg_db_object_query(db, tab.val[i]);
     
     if(child->parent_id == obj->id)
@@ -623,6 +631,12 @@ void bg_db_object_delete(bg_db_t * db, void * obj1)
 
   bg_db_object_free(obj);
   bg_db_object_init(obj);
-  
+  ci->refcount = 0;
+  }
+
+
+void bg_db_object_delete(bg_db_t * db, void * obj1)
+  {
+  object_delete(db, obj1, -1);
   }
 

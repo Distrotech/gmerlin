@@ -286,16 +286,12 @@ bg_db_t * bg_db_create(const char * path,
 
 void bg_db_start_transaction(bg_db_t * db)
   {
-  int result;
-  if((result = sqlite3_step(db->cmd_start)) != SQLITE_DONE)
-    bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Start transaction failed");
+  bg_sqlite_exec(db->db, "BEGIN TRANSACTION;", NULL, NULL);
   }
 
 void bg_db_end_transaction(bg_db_t * db)
   {
-  int result;
-  if((result = sqlite3_step(db->cmd_end)) != SQLITE_DONE)
-    bg_log(BG_LOG_ERROR, LOG_DOMAIN, "End transaction failed");
+  bg_sqlite_exec(db->db, "END;", NULL, NULL);
   }
 
 
@@ -337,7 +333,7 @@ static int flush_object(bg_db_t * db, void * obj)
   st->sync = 1;
   if(memcmp(&st->obj, &st->orig, sizeof(st->obj)))
     {
-    fprintf(stderr, "Flush %ld\n", st->obj.obj.id);
+    //    fprintf(stderr, "Flush %ld\n", st->obj.obj.id);
     bg_db_object_update(db, &st->obj, 1, 1);
     memcpy(&st->orig, &st->obj, sizeof(st->obj));
     return 1;

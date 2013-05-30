@@ -215,7 +215,8 @@ static int detect_album_cover(bg_db_t * db, bg_db_image_file_t * f)
 void bg_db_identify_images(bg_db_t * db, int64_t scan_dir_id, int scan_flags)
   {
   int i;
-
+  int result;
+  char * sql;
   bg_db_image_file_t * f;
 
   bg_sqlite_id_tab_t tab;
@@ -224,14 +225,12 @@ void bg_db_identify_images(bg_db_t * db, int64_t scan_dir_id, int scan_flags)
   /* Get all unidentified images from the scan directory */  
 
   bg_log(BG_LOG_INFO, LOG_DOMAIN, "Finding unidentifies images");
-  
-  if(!bg_sqlite_select_join(db->db, &tab,
-                            "OBJECTS",
-                            "TYPE",
-                            BG_DB_OBJECT_IMAGE_FILE,
-                            "FILES",
-                            "SCAN_DIR_ID",
-                            scan_dir_id))
+
+  sql = sqlite3_mprintf("select ID from OBJECTS where TYPE = %d;", BG_DB_OBJECT_IMAGE_FILE);
+  result = bg_sqlite_exec(db->db, sql, bg_sqlite_append_id_callback, &tab);
+  sqlite3_free(sql);
+
+  if(!result)
     return;
 
   bg_log(BG_LOG_INFO, LOG_DOMAIN, "Found %d unidentifies images", tab.num_val);
@@ -239,7 +238,13 @@ void bg_db_identify_images(bg_db_t * db, int64_t scan_dir_id, int scan_flags)
   for(i = 0; i < tab.num_val; i++)
     {
     f = bg_db_object_query(db, tab.val[i]);
- 
+
+    if(f->file.scan_dir_id != scan_dir_id)
+      {
+      bg_db_object_unref(f);
+      continue;
+      }
+    
     if((scan_flags & BG_DB_SCAN_AUDIO) && detect_album_cover(db, f))
       {
       bg_db_object_unref(f);

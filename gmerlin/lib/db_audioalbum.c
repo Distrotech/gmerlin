@@ -80,7 +80,6 @@ static int query_audioalbum(bg_db_t * db, void * a1, int full)
     return 0;
   
 #if 0
-  
   result = bg_sqlite_exec(db->db, sql, album_query_callback, a);
   if(!result || !a->obj.found)
     return 0;
@@ -218,7 +217,7 @@ void bg_db_audio_file_add_to_album(bg_db_t * db, bg_db_audio_file_t * f)
   int64_t id;
   bg_db_audio_album_t * a;
   bg_db_object_t * o;
-  
+  int changed = 0;
   if((id = find_by_file(db, f)) > 0)
     {
     /* Add to album */
@@ -230,11 +229,16 @@ void bg_db_audio_file_add_to_album(bg_db_t * db, bg_db_audio_file_t * f)
 
     /* If there is a date set, we check if it's the same for the added track */
     if(!bg_db_date_equal(&a->date, &f->date))
+      {
       bg_db_date_set_invalid(&a->date);
-
+      changed = 1;
+      }
     /* If there is a genre set, we check if it's the same for the added track */
     if(a->genre_id != f->genre_id)
+      {
       a->genre_id = 0;
+      changed = 1;
+      }
     f->album_id = bg_db_object_get_id(a);
     bg_db_object_unref(a);
     }
@@ -272,9 +276,11 @@ void bg_db_audio_file_add_to_album(bg_db_t * db, bg_db_audio_file_t * f)
     f->album_id = bg_db_object_get_id(a);
     
     bg_db_object_add_child(db, a, f);
-    bg_db_create_vfolders(db, a);
     bg_db_object_unref(a);
+    changed = 1;
     }
+  if(changed)
+    bg_db_create_vfolders(db, a);
   }
 
 void bg_db_audio_file_remove_from_album(bg_db_t * db, bg_db_audio_file_t * f)
