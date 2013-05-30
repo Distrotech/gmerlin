@@ -223,6 +223,8 @@ void bg_db_identify_images(bg_db_t * db, int64_t scan_dir_id, int scan_flags)
 
   /* Get all unidentified images from the scan directory */  
 
+  bg_log(BG_LOG_INFO, LOG_DOMAIN, "Finding unidentifies images");
+  
   if(!bg_sqlite_select_join(db->db, &tab,
                             "OBJECTS",
                             "TYPE",
@@ -231,6 +233,8 @@ void bg_db_identify_images(bg_db_t * db, int64_t scan_dir_id, int scan_flags)
                             "SCAN_DIR_ID",
                             scan_dir_id))
     return;
+
+  bg_log(BG_LOG_INFO, LOG_DOMAIN, "Found %d unidentifies images", tab.num_val);
 
   for(i = 0; i < tab.num_val; i++)
     {

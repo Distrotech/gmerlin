@@ -545,10 +545,21 @@ static void delete_from_parent(bg_db_t * db, bg_db_object_t * obj)
     {
     parent = bg_db_object_query(db, obj->parent_id);
 
+    if(!parent)
+      {
+      fprintf(stderr, "BUG: Orphaned object\n");
+      bg_db_object_dump(obj);
+      return;
+      }
+    
     bg_db_object_remove_child(db, parent, obj);
       
     if(!parent->children && (parent->type & BG_DB_FLAG_NO_EMPTY))
+      {
+      bg_log(BG_LOG_INFO, LOG_DOMAIN, "Deleting empty container %s",
+             parent->label);
       bg_db_object_delete(db, parent);
+      }
     else
       bg_db_object_unref(parent);
     }

@@ -287,14 +287,14 @@ bg_db_t * bg_db_create(const char * path,
 void bg_db_start_transaction(bg_db_t * db)
   {
   int result;
-  if((result = sqlite3_step(db->cmd_start)) == SQLITE_DONE)
+  if((result = sqlite3_step(db->cmd_start)) != SQLITE_DONE)
     bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Start transaction failed");
   }
 
 void bg_db_end_transaction(bg_db_t * db)
   {
   int result;
-  if((result = sqlite3_step(db->cmd_end)) == SQLITE_DONE)
+  if((result = sqlite3_step(db->cmd_end)) != SQLITE_DONE)
     bg_log(BG_LOG_ERROR, LOG_DOMAIN, "End transaction failed");
   }
 
@@ -505,6 +505,8 @@ void bg_db_add_directory(bg_db_t * db, const char * d, int scan_flags)
            path, db->base_dir);
     return;
     }
+
+  bg_db_start_transaction(db);
   
   files = bg_db_scan_directory(path, &num_files);
 
@@ -537,6 +539,9 @@ void bg_db_add_directory(bg_db_t * db, const char * d, int scan_flags)
   
   /* Identify images */
   bg_db_identify_images(db, id, scan_flags);
+
+  bg_db_end_transaction(db);
+
   }
 
 void bg_db_del_directory(bg_db_t * db, const char * d)

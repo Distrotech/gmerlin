@@ -39,7 +39,7 @@ bg_sqlite_exec(sqlite3 * db,                              /* An open database */
 
   err = sqlite3_exec(db, sql, callback, data, &err_msg);
 
-  fprintf(stderr, "SQL: %s\n", sql);
+  //  fprintf(stderr, "SQL: %s\n", sql);
 
   if(err)
     {
