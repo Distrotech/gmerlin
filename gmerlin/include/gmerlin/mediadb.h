@@ -289,6 +289,9 @@ void bg_db_flush(bg_db_t * db);
 
 void bg_db_destroy(bg_db_t *);
 
+void bg_db_start_transaction(bg_db_t *);
+void bg_db_end_transaction(bg_db_t *);
+
 /* Edit functions */
 void bg_db_add_directory(bg_db_t *, const char * dir, int scan_type);
 void bg_db_del_directory(bg_db_t *, const char * dir);

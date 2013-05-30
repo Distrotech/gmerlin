@@ -573,7 +573,6 @@ void bg_db_object_delete(bg_db_t * db, void * obj1)
     bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Cannot delete object, refcount > 1");
     return;
     }
-  ci->refcount = 0;
   
   bg_sqlite_id_tab_init(&tab);
   

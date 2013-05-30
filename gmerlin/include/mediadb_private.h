@@ -122,6 +122,10 @@ typedef struct
   bg_db_thumbnail_cache_item_t *items;
   } bg_db_thumbnail_cache_t;
 
+void bg_db_thumbnail_cache_init(bg_db_thumbnail_cache_t * c);
+void bg_db_thumbnail_cache_free(bg_db_thumbnail_cache_t * c);
+
+
 #define BG_DB_CACHE_SIZE 128
 
 typedef struct
@@ -146,12 +150,15 @@ struct bg_db_s
   int num_added;
   int num_deleted;
 
-  /* String cache */
+  /* String caches */
   bg_db_string_cache_t * audio_artists;
   bg_db_string_cache_t * audio_genres;
   bg_db_string_cache_t * audio_albums;
   bg_db_string_cache_t * mimetypes;
 
+  /* Thumbnail cache */
+  bg_db_thumbnail_cache_t th_cache;
+  
   /* Select statements for common tables */
 
   sqlite3_stmt * q_objects;
@@ -159,6 +166,9 @@ struct bg_db_s
   sqlite3_stmt * q_audio_files;
   sqlite3_stmt * q_audio_albums;
   sqlite3_stmt * q_directories;
+
+  sqlite3_stmt * cmd_start;
+  sqlite3_stmt * cmd_end;
   };
 
 /* File scanning */

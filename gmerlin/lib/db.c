@@ -249,6 +249,8 @@ bg_db_t * bg_db_create(const char * path,
                               "MIMETYPES",
                               "NAME", "ID");
 
+  bg_db_thumbnail_cache_init(&ret->th_cache);
+  
   /* Pre-compile select statements */
 
   sql = "SELECT * FROM OBJECTS WHERE ID = ?1;";
@@ -270,9 +272,32 @@ bg_db_t * bg_db_create(const char * path,
   sql = "SELECT * FROM DIRECTORIES WHERE ID = ?1;";
   if(sqlite3_prepare_v2(ret->db, sql, strlen(sql)+1, &ret->q_directories, NULL) != SQLITE_OK)
     return NULL;
+
+  sql = "BEGIN TRANSACTION;";
+  if(sqlite3_prepare_v2(ret->db, sql, strlen(sql)+1, &ret->cmd_start, NULL) != SQLITE_OK)
+    return NULL;
+
+  sql = "END;";
+  if(sqlite3_prepare_v2(ret->db, sql, strlen(sql)+1, &ret->cmd_end, NULL) != SQLITE_OK)
+    return NULL;
   
   return ret;
   }
+
+void bg_db_start_transaction(bg_db_t * db)
+  {
+  int result;
+  if((result = sqlite3_step(db->cmd_start)) == SQLITE_DONE)
+    bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Start transaction failed");
+  }
+
+void bg_db_end_transaction(bg_db_t * db)
+  {
+  int result;
+  if((result = sqlite3_step(db->cmd_end)) == SQLITE_DONE)
+    bg_log(BG_LOG_ERROR, LOG_DOMAIN, "End transaction failed");
+  }
+
 
 char * bg_db_filename_to_abs(bg_db_t * db, char * filename)
   {
@@ -447,6 +472,8 @@ void bg_db_destroy(bg_db_t * db)
   sqlite3_finalize(db->q_audio_files);
   sqlite3_finalize(db->q_audio_albums);
   sqlite3_finalize(db->q_directories);
+  sqlite3_finalize(db->cmd_start);
+  sqlite3_finalize(db->cmd_end);
 
   
   sqlite3_close(db->db);
@@ -456,6 +483,8 @@ void bg_db_destroy(bg_db_t * db)
   bg_db_string_cache_destroy(db->audio_genres);
   bg_db_string_cache_destroy(db->audio_albums);
   bg_db_string_cache_destroy(db->mimetypes);
+
+  bg_db_thumbnail_cache_free(&db->th_cache);
   
   free(db);
   }

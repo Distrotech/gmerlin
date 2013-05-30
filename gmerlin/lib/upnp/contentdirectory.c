@@ -730,6 +730,8 @@ static int Browse(bg_upnp_service_t * s)
   q.db = priv->db;
   q.cl = detect_client(s->req.req);
 
+  bg_db_start_transaction(priv->db);
+  
   /* Special feature: We also parse m3u files if they
      point to real files */
   if(!strncmp(ObjectID, "#EXTM3U", 7))
@@ -853,6 +855,8 @@ static int Browse(bg_upnp_service_t * s)
 
   if(q.filter)
     bg_strbreak_free(q.filter);
+
+  bg_db_end_transaction(priv->db);
   
   bg_upnp_service_set_arg_out_string(&s->req, ARG_Result, ret);
   bg_upnp_service_set_arg_out_int(&s->req, ARG_UpdateID, 0);
