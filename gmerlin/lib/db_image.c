@@ -201,7 +201,7 @@ static int detect_album_cover(bg_db_t * db, bg_db_image_file_t * f)
     album->cover_id = bg_db_object_get_id(f);
     bg_db_object_set_type(f, BG_DB_OBJECT_ALBUM_COVER);
     
-    thumb = bg_db_get_thumbnail(db, album->cover_id, 160, 160, 1, "image/jpeg");
+    thumb = bg_db_get_thumbnail(db, album->cover_id, 160, 160, "image/jpeg");
     bg_db_object_unref(thumb);
     
     }

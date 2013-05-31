@@ -108,7 +108,6 @@ typedef struct
   int max_width;
   int max_height;
   char * mimetype;
-  int force;
   int max_size;
 
   int64_t ref_id;
@@ -166,9 +165,6 @@ struct bg_db_s
   sqlite3_stmt * q_audio_files;
   sqlite3_stmt * q_audio_albums;
   sqlite3_stmt * q_directories;
-
-  sqlite3_stmt * cmd_start;
-  sqlite3_stmt * cmd_end;
   };
 
 /* File scanning */

@@ -349,7 +349,7 @@ static void add_album_art(xmlNodePtr node, int64_t cover_id, query_t * q)
   xmlNodePtr child;
 
   cover = bg_db_object_query(q->db, cover_id);
-  cover_thumb = bg_db_get_thumbnail(q->db, cover_id, 160, 160, 1, "image/jpeg");
+  cover_thumb = bg_db_get_thumbnail(q->db, cover_id, 160, 160, "image/jpeg");
 
   /* Cover thumbnail */
   if(cover_thumb)

@@ -145,7 +145,7 @@ static int id3v2_generate_by_file(bg_db_t * db, bg_db_audio_file_t * song, id3v2
     album = bg_db_object_query(db, song->album_id);
     if(album->cover_id > 0)
       cover = bg_db_get_thumbnail(db, album->cover_id,
-                                  320, 320, 0, "image/jpeg");
+                                  320, 320, "image/jpeg");
     }
   /* Create tag */
   ret->len = 0;

@@ -127,8 +127,13 @@ static void del_audioalbum(bg_db_t * db, bg_db_object_t * obj) // Delete from db
   if(a->cover_id > 0)
     {
     bg_db_object_t * cover = bg_db_object_query(db, a->cover_id);
-    bg_db_object_set_type(cover, BG_DB_OBJECT_IMAGE_FILE);
-    bg_db_object_unref(cover);
+
+    // Cover can be disappeared already if a whole directory vanished
+    if(cover)
+      {
+      bg_db_object_set_type(cover, BG_DB_OBJECT_IMAGE_FILE);
+      bg_db_object_unref(cover);
+      }
     }
 
   bg_sqlite_delete_by_id(db->db, "AUDIO_ALBUMS", obj->id);
@@ -217,9 +222,9 @@ void bg_db_audio_file_add_to_album(bg_db_t * db, bg_db_audio_file_t * f)
   int64_t id;
   bg_db_audio_album_t * a;
   bg_db_object_t * o;
-  int changed = 0;
   if((id = find_by_file(db, f)) > 0)
-    {
+   {
+    int changed = 0;
     /* Add to album */
     a = bg_db_object_query(db, id);
     o = (bg_db_object_t *)a;
@@ -240,6 +245,10 @@ void bg_db_audio_file_add_to_album(bg_db_t * db, bg_db_audio_file_t * f)
       changed = 1;
       }
     f->album_id = bg_db_object_get_id(a);
+
+    if(changed)
+      bg_db_create_vfolders(db, a);
+
     bg_db_object_unref(a);
     }
   else
@@ -276,11 +285,9 @@ void bg_db_audio_file_add_to_album(bg_db_t * db, bg_db_audio_file_t * f)
     f->album_id = bg_db_object_get_id(a);
     
     bg_db_object_add_child(db, a, f);
-    bg_db_object_unref(a);
-    changed = 1;
-    }
-  if(changed)
     bg_db_create_vfolders(db, a);
+    bg_db_object_unref(a);
+    }
   }
 
 void bg_db_audio_file_remove_from_album(bg_db_t * db, bg_db_audio_file_t * f)

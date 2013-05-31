@@ -152,7 +152,7 @@ static char * save_image(bg_db_t * db,
 static void *
 make_thumbnail(bg_db_t * db,
                bg_db_object_t * obj,
-               int max_width, int max_height, int force_scale,
+               int max_width, int max_height,
                const char * mimetype)
   {
   bg_db_file_t * thumb;
@@ -169,16 +169,17 @@ make_thumbnail(bg_db_t * db,
   bg_db_image_file_t * image = (bg_db_image_file_t *)obj;
 
   char * path_abs;
-  
   bg_db_scan_item_t item;
+
+  double ext_x, ext_y;
+  double ar;
   
   src_ext = strrchr(image->file.path, '.');
   if(src_ext)
     src_ext++;
   
   /* Return early */
-  if(!force_scale &&
-     image->file.mimetype &&
+  if(image->file.mimetype &&
      !strcasecmp(image->file.mimetype, mimetype) &&
      (image->width <= max_width) &&
      (image->height <= max_height))
@@ -193,54 +194,29 @@ make_thumbnail(bg_db_t * db,
   input_frame = bg_plugin_registry_load_image(db->plugin_reg,
                                               image->file.path,
                                               &input_format, NULL);
- 
-  gavl_video_format_copy(&output_format, &input_format);
+
+  ar = (double)input_format.image_width / (double)input_format.image_height;
   
-  if(force_scale)
-    {
-    gavl_rectangle_f_t src_rect;
-    gavl_rectangle_i_t dst_rect;
-    gavl_rectangle_f_set_all(&src_rect, &input_format);
+  gavl_video_format_copy(&output_format, &input_format);
     
-    output_format.image_width = max_width;
-    output_format.image_height = max_height;
-    output_format.pixel_width = 1;
-    output_format.pixel_height = 1;
-    
-    gavl_rectangle_fit_aspect(&dst_rect,
-                              &input_format,
-                              &src_rect,
-                              &output_format,
-                              1.0, 0.0);
-    gavl_video_options_set_rectangles(gavl_video_converter_get_options(cnv), 
-                                      &src_rect, &dst_rect);
-    }
-  /* Scale to max size */
-  else
-    {
-    double ext_x, ext_y;
-    double ar = (double)input_format.image_width /
-      (double)input_format.image_height;
-    
-    ext_x = (double)input_format.image_width / (double)max_width;
-    ext_y = (double)input_format.image_height / (double)max_height;
+  ext_x = (double)input_format.image_width / (double)max_width;
+  ext_y = (double)input_format.image_height / (double)max_height;
 
     
-    if((ext_x > 1.0) || (ext_y > 1.0))
+  if((ext_x > 1.0) || (ext_y > 1.0))
+    {
+    if(ext_x > ext_y) // Fit to max_width
       {
-      if(ext_x > ext_y) // Fit to max_width
-        {
-        output_format.image_width  = max_width;
-        output_format.image_height = (int)((double)max_width / ar + 0.5);
-        }
-      else // Fit to max_height
-        {
-        output_format.image_height  = max_height;
-        output_format.image_width = (int)((double)max_height * ar + 0.5);
-        }
+      output_format.image_width  = max_width;
+      output_format.image_height = (int)((double)max_width / ar + 0.5);
+      }
+    else // Fit to max_height
+      {
+      output_format.image_height  = max_height;
+      output_format.image_width = (int)((double)max_height * ar + 0.5);
       }
     }
-
+  
   /* Save image */
 
   thumb = bg_db_object_create(db);
@@ -323,7 +299,6 @@ typedef struct
   {
   int max_width;
   int max_height;
-  int force;
   const char * mimetype;
   bg_db_image_file_t * ret;
   } browse_t;
@@ -333,33 +308,19 @@ static void browse_callback(void * data, void * obj)
   browse_t * b = data;
   bg_db_image_file_t * image = obj;
 
-  if(b->force)
-    {
-    if((image->width == b->max_width) &&
-       (image->height == b->max_height) &&
-       (!b->mimetype || !strcmp(image->file.mimetype, b->mimetype)))
-      {
-      b->ret = image;
-      bg_db_object_ref(b->ret);
-      }
-    }
-  else /* Take the largest version not larger than max */
-    {
-    if(b->mimetype && strcmp(image->file.mimetype, b->mimetype))
-      return;
-
-    if((image->width > b->max_width) || (image->height > b->max_height))
-      return;
-    
-    if(!b->ret || (b->ret->width < image->width))
-      {
-      if(b->ret)
-        bg_db_object_unref(b->ret);
-      b->ret = image;
-      bg_db_object_ref(b->ret);
-      }
-    }
+  if(b->mimetype && strcmp(image->file.mimetype, b->mimetype))
+    return;
   
+  if((image->width > b->max_width) || (image->height > b->max_height))
+    return;
+  
+  if(!b->ret || (b->ret->width < image->width))
+    {
+    if(b->ret)
+      bg_db_object_unref(b->ret);
+    b->ret = image;
+    bg_db_object_ref(b->ret);
+    }
   }
 
 
@@ -382,7 +343,7 @@ void bg_db_thumbnail_cache_free(bg_db_thumbnail_cache_t * c)
 
 static int64_t cache_get(bg_db_thumbnail_cache_t * c,
                          int64_t id,
-                         int max_width, int max_height, int force,
+                         int max_width, int max_height,
                          const char * mimetype)
   {
   int i;
@@ -391,7 +352,6 @@ static int64_t cache_get(bg_db_thumbnail_cache_t * c,
     if((c->items[i].ref_id == id) &&
        (c->items[i].max_width == max_width) &&
        (c->items[i].max_height == max_height) &&
-       (c->items[i].force == force) &&
        !(strcmp(c->items[i].mimetype, mimetype)))
       return c->items[i].thumb_id;
     }
@@ -400,7 +360,7 @@ static int64_t cache_get(bg_db_thumbnail_cache_t * c,
 
 static void cache_put(bg_db_thumbnail_cache_t * c,
                       int64_t id,
-                      int max_width, int max_height, int force,
+                      int max_width, int max_height,
                       const char * mimetype, int thumb_id)
   {
   if(c->size == c->alloc)
@@ -414,27 +374,25 @@ static void cache_put(bg_db_thumbnail_cache_t * c,
   c->items[0].thumb_id = thumb_id;
   c->items[0].max_width = max_width;
   c->items[0].max_height = max_height;
-  c->items[0].force = force;
   c->items[0].mimetype = gavl_strdup(mimetype);
   c->size++;
   }
   
 void * bg_db_get_thumbnail(bg_db_t * db, int64_t id,
-                           int max_width, int max_height, int force,
+                           int max_width, int max_height,
                            const char * mimetype)
   {
   browse_t b;
   int64_t thumb_id;
 
   if((thumb_id = cache_get(&db->th_cache,
-               id, max_width, max_height, force,
+               id, max_width, max_height,
                mimetype)) > 0)
     return bg_db_object_query(db, thumb_id);
   
   memset(&b, 0, sizeof(b));
   b.max_width = max_width;
   b.max_height = max_height;
-  b.force = force;
   b.mimetype = mimetype;
 
   bg_db_browse_thumbnails(db, id, browse_callback, &b);
@@ -443,12 +401,12 @@ void * bg_db_get_thumbnail(bg_db_t * db, int64_t id,
     {
     bg_db_object_t * img = bg_db_object_query(db, id);
     b.ret = make_thumbnail(db,
-                           img, max_width, max_height, force, mimetype);
+                           img, max_width, max_height, mimetype);
     bg_db_object_unref(img);
     }
   cache_put(&db->th_cache,
             id,
-            max_width, max_height, force,
+            max_width, max_height,
             mimetype, bg_db_object_get_id(b.ret));
   return b.ret;
   }

@@ -326,7 +326,7 @@ void bg_db_browse_thumbnails(bg_db_t * db, int64_t id,
                              bg_db_query_callback cb, void * data);
 
 void * bg_db_get_thumbnail(bg_db_t * db, int64_t id,
-                           int max_width, int max_height, int force,
+                           int max_width, int max_height,
                            const char * mimetype);
 
 

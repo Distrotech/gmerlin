@@ -410,6 +410,9 @@ void bg_db_update_files(bg_db_t * db, bg_db_scan_item_t * files, int num, int sc
     {
     dir = bg_db_object_query(db, tab.val[i]);
 
+    if(!dir) // dir can be gone already if the parent directory vanished
+      continue;
+    
     if(!strcmp(dir->path, scan_dir))
       {
       bg_db_object_unref(dir);
