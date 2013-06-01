@@ -132,8 +132,7 @@ function add_album(id)
 
   for(i = 0; i < tracks.length; i++)
     {
-    if(get_didl_element(tracks[i], "class") ==
-       "object.item.audioItem.musicTrack")
+    if(get_didl_element(tracks[i], "class") == "object.item.audioItem.musicTrack")
       add_audio_track(tracks[i], false);
     }
   }
@@ -484,6 +483,7 @@ function handle_didl_item(el)
 
 function handle_didl_container(el, parent, after)
   {
+  var button;
   var element;
   var text;
   var i;
@@ -528,6 +528,12 @@ function handle_didl_container(el, parent, after)
   row.setAttribute("title", title);
 
   row.appendChild(element);
+
+  if(get_didl_element(el, "class") == "object.container.playlistContainer")
+    {
+    button = create_add_button("add_album", el.getAttribute("id"));
+    row.appendChild(button);
+    }
 
   if(after == null)
     container.appendChild(row);
