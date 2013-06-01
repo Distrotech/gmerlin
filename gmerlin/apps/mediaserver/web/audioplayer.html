@@ -12,15 +12,18 @@
 <body onload="audioplayer_init()">
 <input type="file" id="file_input" accept="audio/mpegurl"
        onchange="handle_file(this.files)"
-       style="visibility:hidden;position:absolute;top:-50;left:-50"></input>
+       style="visibility:hidden;position:absolute;top:-50;left:-50" />
   <div class="slider_outer">
   <div class="slider">
     <div class="slider_inner" id="timeslider"></div>
+    <div class="trackdisplay" id="trackdisplay">
+      Bla
+    </div>
   </div>
 </div>
 <div class="toolbar">
-<a class="button prev" href="javascript: previous_track();"></a>
-<a class="button play" href="javascript: play();" id="play_button"></a>
+<a class="button prev" href="javascript: previous_track();" ></a>
+<a class="button play" href="javascript: play();" id="play_button" ></a>
 <a class="button next" href="javascript: next_track();"></a>
 <a class="button straight" href="javascript: play_mode();" id="mode_button"></a>
 <a class="button hide" href="javascript: expand();" id="expand_button"></a>
@@ -55,7 +58,7 @@
 <div class="plstoolbar">
   <a class="plsbutton up" title="Move selected up" href="javascript: pls_up();"></a>
   <a class="plsbutton down" title="Move selected down" href="javascript: pls_down();"></a>
-  <a class="plsbutton load" title="Load" href="javascript: pls_load();"></a>
+  <a class="plsbutton load" title="Load" href="javascript: pls_load();" ></a>
   <a class="plsbutton save" title="Save" download="playlist.m3u" onclick="pls_save();return true;" href="#" id="pls_save_link"></a>
   <a class="plsbutton delete" title="Delete selected" href="javascript: pls_delete();"></a>
 </div>

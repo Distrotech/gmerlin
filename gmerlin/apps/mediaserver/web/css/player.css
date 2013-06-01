@@ -4,7 +4,6 @@ html, body
   font-size: small;
   }
 
-
 a.button
   {
   position: absolute;
@@ -15,6 +14,7 @@ a.button
   border-style: solid;
   border-width: 1px;
   border-color: #4f4f4f;
+  z-index:    2;
   }
 
 a.button:hover
@@ -195,7 +195,7 @@ div.volume
   border-style: solid;
   border-width: 1px;
   border-color: #4f4f4f;
-  z-index:    1;
+  z-index:    2;
   }
 
 div.volume_slider
@@ -208,7 +208,7 @@ div.volume_slider
   right:   50%;
   top:     0px;
   background-image: url(/static/icons/volume.png);
-  z-index:    2;
+  z-index:    3;
   }
 
 div.slider_outer
@@ -219,7 +219,7 @@ div.slider_outer
   top:        0px;
   right:      0px;
   height:     28px;
-  z-index:    1;
+  z-index:    2;
   }
 
 div.slider
@@ -231,7 +231,7 @@ div.slider
   right:      0px;
   margin:     4px;
   height:     20px;
-  z-index:    2;
+  z-index:    3;
   }
 
 div.slider_inner
@@ -243,9 +243,24 @@ div.slider_inner
   right:      100%;
   height:     20px;
   margin:     0px;
-  z-index:    3;
+  z-index:    4;
   }
 
+div.trackdisplay
+  {
+  position:   absolute;
+  left:       0px;
+  top:        0px;
+  margin:  0px;
+  padding: 0px;
+  border:  0px;
+  white-space: nowrap;
+  color:  #f8f8f8;
+  z-index:    5;
+  font-family: Verdana;  
+  font-size:   small;
+  font-weight: bold;
+  }
 
 table.timetable
   {
@@ -363,6 +378,7 @@ a.plsbutton
   border-style: solid;
   border-width: 1px;
   border-color: #ffffff;
+  z-index:      1
   }
 
 a.plsbutton:hover

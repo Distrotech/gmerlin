@@ -10,6 +10,13 @@ var current_play_mode = "straight";
 var expanded = true;
 var expanded_height = 0;
 
+var trackdisplay_x = 0;
+var trackdisplay_y = 0;
+var trackdisplay_dx = 1;
+
+var trackdisplay_x_min = 0;
+var trackdisplay_timeout = null;
+
 function play()
   {
   var i;
@@ -43,6 +50,49 @@ function play()
       return;
       }
     }
+  }
+
+function trackdisplay_timeout_func()
+  {
+  var d = document.getElementById("trackdisplay");
+  trackdisplay_x += trackdisplay_dx;
+
+  if((trackdisplay_x >= 0) || (trackdisplay_x <= trackdisplay_x_min))
+    trackdisplay_dx = - trackdisplay_dx;
+
+  d.setAttribute("style",
+		 "left: " + trackdisplay_x + "px; " +
+		 "top: " + trackdisplay_y + "px;");
+
+  }
+
+function setup_track_display()
+  {
+  var d = document.getElementById("trackdisplay");
+
+  if(trackdisplay_timeout != null)
+    {
+    window.clearInterval(trackdisplay_timeout);
+    trackdisplay_timeout = null;
+    }
+
+  trackdisplay_x = (d.parentNode.clientWidth - d.clientWidth) / 2;
+  trackdisplay_x = trackdisplay_x.toFixed();
+
+  trackdisplay_y = (d.parentNode.clientHeight - d.clientHeight) / 2;
+  trackdisplay_y = trackdisplay_y.toFixed();
+
+  if(trackdisplay_x < 0) // Scroll
+    {
+    trackdisplay_x = 0;
+    trackdisplay_dx = -1;
+    trackdisplay_timeout =
+	window.setInterval("trackdisplay_timeout_func()", 100);
+    trackdisplay_x_min = d.parentNode.clientWidth - d.clientWidth;
+    }
+  d.setAttribute("style",
+		 "left: " + trackdisplay_x + "px; " +
+		 "top: " + trackdisplay_y + "px;");
   }
 
 function play_mode()
@@ -158,6 +208,7 @@ function set_current_track(t)
   var el;
   var span;
   var text;
+  var trackdisplay;
   if(playlist.rows.length == 0)
     return;
   if(current_track >= 0)
@@ -167,6 +218,10 @@ function set_current_track(t)
     }
   current_track = t;
 
+  trackdisplay = document.getElementById("trackdisplay");
+  trackdisplay.innerHTML =
+    playlist.rows[current_track].cells[1].innerHTML;
+  setup_track_display();
 
   playlist.rows[current_track].current = true;
   set_track_class(playlist.rows[current_track]);
@@ -220,6 +275,8 @@ function set_current_track(t)
     span = document.createElement("span");
     span.setAttribute("style", "font-weight: bold;");
     text = document.createTextNode("Album: ");
+    span.appendChild(text);
+    text = document.createElement("br");
     span.appendChild(text);
     el.appendChild(span);
 
@@ -419,6 +476,11 @@ function timeout_cb()
   /* Update slider */
   }
 
+function resize_callback()
+  {
+  setup_track_display();
+  }
+
 function audioplayer_init()
   {
   var volume;
@@ -431,7 +493,7 @@ function audioplayer_init()
   /* Set some callbacks */
   volume =  document.getElementById("volume");
   volume.onmousedown = volume_click;
-
+  window.onresize = resize_callback;
   self.opener.player_created();
   }
 
@@ -449,7 +511,11 @@ function pls_extract_selected(playlist)
     {
     if(playlist.rows[i].selected == true)
       {
+      if(idx == current_track)
+        current_track = -1;
+
       ret[idx] = playlist.rows[i];
+
       idx++;
       playlist.deleteRow(i);
       }
@@ -462,8 +528,21 @@ function pls_extract_selected(playlist)
 function pls_renumber(playlist)
   {
   var i;
+  current_track = -1;
   for(i = 0; i < playlist.rows.length; i++)
+    {
     playlist.rows[i].cells[0].innerHTML = (i+1).toString() + ".";
+
+    if(playlist.rows[i].current == true)
+      {
+      if(current_track < 0)
+        current_track = i;
+      else
+	playlist.rows[i].current = false;
+      }
+
+
+    }
   }
 
 function pls_load()
