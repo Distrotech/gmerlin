@@ -22,6 +22,7 @@
 #include "server.h"
 
 #include <signal.h>
+#include <string.h>
 
 #define LOG_DOMAIN "gmerlin-server"
 
@@ -30,7 +31,9 @@ struct sigaction old_int_sigaction;
 struct sigaction old_term_sigaction;
 
 const bg_parameter_info_t * s_params;
-bg_cfg_section_t * s_section;
+bg_cfg_section_t * s_section = NULL;
+
+char * save_config = NULL;
 
 static void sigint_handler(int sig)
   {
@@ -61,6 +64,66 @@ static void set_sigint_handler()
     fprintf(stderr, "sigaction failed\n");
   }
 
+static bg_cfg_section_t * load_config_file(const char * name)
+  {
+  xmlNodePtr node;
+  xmlDocPtr xml_doc;
+  bg_cfg_section_t * ret;
+  
+  xml_doc = bg_xml_parse_file(name, 1);
+
+  if(!xml_doc)
+    return NULL;
+  
+  node = xml_doc->children;
+  
+  if(BG_XML_STRCMP(node->name, "SERVERCONFIG"))
+    {
+    xmlFreeDoc(xml_doc);
+    return NULL;
+    }
+  ret = bg_cfg_section_create(NULL);
+  bg_cfg_xml_2_section(xml_doc, node, ret);
+  xmlFreeDoc(xml_doc);
+  return ret;
+  }
+
+static void save_config_file(const bg_cfg_section_t * s)
+  {
+  xmlDocPtr  xml_doc;
+  xmlNodePtr node;
+  xml_doc = xmlNewDoc((xmlChar*)"1.0");
+  node = xmlNewDocRawNode(xml_doc, NULL, (xmlChar*)"SERVERCONFIG", NULL);
+  
+  xmlDocSetRootElement(xml_doc, node);
+
+  bg_cfg_section_2_xml(s, node);
+
+  bg_xml_save_file(xml_doc, save_config, 1);
+  xmlFreeDoc(xml_doc);
+  }
+
+
+static void opt_c(void * data, int * argc, char *** _argv, int arg)
+  {
+  if(arg >= *argc)
+    {
+    fprintf(stderr, "Option -c requires an argument\n");
+    exit(-1);
+    }
+
+  bg_log(BG_LOG_INFO, LOG_DOMAIN, "Using config file %s", (*_argv)[arg]);
+  
+  if(!s_section)
+    s_section = load_config_file((*_argv)[arg]);
+  else
+    {
+    bg_cfg_section_t * tmp = load_config_file((*_argv)[arg]);
+    bg_cfg_section_transfer(tmp, s_section);
+    bg_cfg_section_destroy(tmp);
+    }
+  }
+
 static void opt_s(void * data, int * argc, char *** _argv, int arg)
   {
   if(arg >= *argc)
@@ -69,6 +132,10 @@ static void opt_s(void * data, int * argc, char *** _argv, int arg)
     exit(-1);
     }
 
+  if(!s_section)
+    s_section =
+      bg_cfg_section_create_from_parameters("server", s_params);
+  
   if(!bg_cmdline_apply_options(s_section,
                                NULL,
                                NULL,
@@ -84,8 +151,20 @@ static bg_cmdline_arg_t global_options[] =
     {
       .arg =         "-s",
       .help_arg =    "<options>",
-      .help_string = "Sever options",
+      .help_string = "Server options",
       .callback =    opt_s,
+    },
+    {
+      .arg = "-sc",
+      .help_arg = "<file>",
+      .help_string = TRS("Save config to file"),
+      .argv = &save_config,
+    },
+    {
+      .arg = "-c",
+      .help_arg = "<file>",
+      .help_string = TRS("Load config from file"),
+      .callback =    opt_c,
     },
     { /* End */ }
   };
@@ -110,6 +189,7 @@ const bg_cmdline_app_data_t app_data =
     
   };
 
+
 int main(int argc, char ** argv)
   {
   server_t s;
@@ -122,7 +202,6 @@ int main(int argc, char ** argv)
   server_init(&s);
 
   s_params = server_get_parameters();
-  s_section = bg_cfg_section_create_from_parameters("server", s_params);
   
   bg_cmdline_arg_set_parameters(global_options, "-s",
                                 s_params);
@@ -130,6 +209,10 @@ int main(int argc, char ** argv)
   bg_cmdline_init(&app_data);
   bg_cmdline_parse(global_options, &argc, &argv, NULL);
 
+  if(!s_section)
+    s_section =
+      bg_cfg_section_create_from_parameters("server", s_params);
+  
   bg_cfg_section_apply(s_section,
                        s_params,
                        server_set_parameter,
@@ -137,6 +220,12 @@ int main(int argc, char ** argv)
  
   if(!server_start(&s))
     goto fail;
+
+  if(save_config)
+    {
+    bg_cfg_section_get(s_section, s_params, server_get_parameter, &s);
+    save_config_file(s_section);
+    }
   
   while(server_iteration(&s))
     {

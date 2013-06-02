@@ -50,6 +50,12 @@ static const bg_parameter_info_t parameters[] =
       .val_min     = { .val_i = 0 },
       .val_max     = { .val_i = 65535 },
     },
+    {
+      .name =      "uuid",
+      .type = BG_PARAMETER_STRING,
+      .flags = BG_PARAMETER_HIDE_DIALOG,
+      .long_name =  TRS("UUID"),
+    },
     { /* End */ },
   };
 
@@ -58,7 +64,8 @@ const bg_parameter_info_t * server_get_parameters()
   return parameters;
   }
 
-void server_set_parameter(void * priv, const char * name, const bg_parameter_value_t * val)
+void server_set_parameter(void * priv, const char * name,
+                          const bg_parameter_value_t * val)
   {
   server_t * s = priv;
   if(!name)
@@ -67,6 +74,20 @@ void server_set_parameter(void * priv, const char * name, const bg_parameter_val
     s->dbpath = gavl_strrep(s->dbpath, val->val_str);
   else if(!strcmp(name, "port"))
     s->port = val->val_i;
+  if(!strcmp(name, "uuid"))
+    s->uuid_str = gavl_strrep(s->uuid_str, val->val_str);
+  }
+
+int server_get_parameter(void * priv, const char * name,
+                          bg_parameter_value_t * val)
+  {
+  server_t * s = priv;
+  if(!name)
+    return 0;
+  if(!strcmp(name, "uuid"))
+    val->val_str = gavl_strrep(val->val_str, s->uuid_str);
+  else if(!strcmp(name, "port"))
+    val->val_i = s->port;
   }
 
 void server_init(server_t * s)
@@ -102,7 +123,8 @@ int server_start(server_t * s)
   if(!bg_socket_address_set_local(s->addr, s->port))
     return 0;
 
-  s->fd = bg_listen_socket_create_inet(s->addr, 0 /* Port */, 10 /* queue_size */,
+  s->fd = bg_listen_socket_create_inet(s->addr, 0 /* Port */,
+                                       10 /* queue_size */,
                                        0 /* flags */);
 
   if(s->fd < 0)
@@ -114,16 +136,30 @@ int server_start(server_t * s)
   bg_log(BG_LOG_INFO, LOG_DOMAIN, "Socket listening on %s",
          bg_socket_address_to_string(s->addr, addr_str));
 
+  /* get_parameter() might need that */
+  s->port = bg_socket_address_get_port(s->addr);
+  
   s->root_url = bg_sprintf("http://%s", addr_str);
 
   /* TODO: Remember UUID */
-  uuid_clear(s->uuid);
-  //  uuid_generate(s->uuid);
-  uuid_parse("41491152-4894-43fe-bf88-307b6aa6eb45", s->uuid);
-    
+
+  if(s->uuid_str)
+    uuid_parse(s->uuid_str, s->uuid);
+  else
+    {
+    uuid_clear(s->uuid);
+    uuid_generate(s->uuid);
+    s->uuid_str = calloc(37, 1);
+    uuid_unparse(s->uuid, s->uuid_str);
+    bg_log(BG_LOG_INFO, LOG_DOMAIN, "Generated UUID: %s",
+           s->uuid_str);
+    }
+  
   /* Create DB */
-  s->db = bg_db_create(s->dbpath,
-                       s->plugin_reg, 0);
+
+  if(s->dbpath)
+    s->db = bg_db_create(s->dbpath, s->plugin_reg, 0);
+  
   if(!s->db)
     bg_log(BG_LOG_INFO, LOG_DOMAIN, "No database found");
   else
@@ -351,6 +387,10 @@ void server_cleanup(server_t * s)
     free(s->id3_cache);
     }
 
+  if(s->uuid_str)
+    free(s->uuid_str);
+  
+  
   bg_plugin_registry_destroy(s->plugin_reg);
   bg_cfg_registry_destroy(s->cfg_reg);
   }

@@ -213,7 +213,8 @@ struct server_s
   bg_db_t * db;
 
   uuid_t uuid;
-
+  char * uuid_str;
+  
   const char * server_string;
 
   id3v2_t * id3_cache;
@@ -237,6 +238,8 @@ const bg_parameter_info_t * server_get_parameters();
 void server_set_parameter(void * server, const char * name,
                           const bg_parameter_value_t * val);
 
+int server_get_parameter(void * server, const char * name,
+                         bg_parameter_value_t * val);
 
 int server_iteration(server_t * s);
 

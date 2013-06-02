@@ -45,6 +45,8 @@ bg_stream_action_t * video_actions = NULL;
 bg_stream_action_t * text_actions = NULL;
 bg_stream_action_t * overlay_actions = NULL;
 
+double seek_pos = -1.0;
+
 static void opt_t(void * data, int * argc, char *** _argv, int arg)
   {
   if(arg >= *argc)
@@ -53,6 +55,17 @@ static void opt_t(void * data, int * argc, char *** _argv, int arg)
     exit(-1);
     }
   selected_track = atoi((*_argv)[arg]) - 1;
+  bg_cmdline_remove_arg(argc, _argv, arg);
+  }
+
+static void opt_seek(void * data, int * argc, char *** _argv, int arg)
+  {
+  if(arg >= *argc)
+    {
+    fprintf(stderr, "Option -seek requires an argument\n");
+    exit(-1);
+    }
+  seek_pos = strtod((*_argv)[arg], NULL);
   bg_cmdline_remove_arg(argc, _argv, arg);
   }
 
@@ -118,6 +131,12 @@ static bg_cmdline_arg_t global_options[] =
       .arg =         "-edl",
       .help_string = TRS("Use EDL"),
       .callback =    opt_edl,
+    },
+    {
+      .arg =         "-seek",
+      .help_arg =    "<seconds>",
+      .help_string = TRS("Seek to position"),
+      .callback =    opt_seek,
     },
     GAVFTOOLS_AUDIO_STREAM_OPTIONS,
     GAVFTOOLS_VIDEO_STREAM_OPTIONS,
@@ -218,6 +237,12 @@ int main(int argc, char ** argv)
              "-i <location> cannot be used with -a <album> or -m3u <playlist>");
       return ret;
       }
+    if(seek_pos > 0.0)
+      {
+      bg_log(BG_LOG_ERROR, LOG_DOMAIN,
+             "-seek cannot be used with -a <album> or -m3u <playlist>");
+      return ret;
+      }
     /* Initialize from album */
     if(!init_decode_album(&album))
       return ret;
@@ -228,7 +253,9 @@ int main(int argc, char ** argv)
     album.out_plug = out_plug;
     }
   else
-    {  
+    {
+    int force_decompress = 0;
+    
     if(!input_file)
       {
       bg_log(BG_LOG_ERROR, LOG_DOMAIN, "No input file or source given");
@@ -245,12 +272,36 @@ int main(int argc, char ** argv)
       return ret;
       }
 
-
+    if(seek_pos > 0.0)
+      force_decompress = 1;
+    
     if(!load_input_file(input_file, input_plugin,
                         selected_track, &file_conn,
-                        &cb, &h, &m, &cl, use_edl, 0))
+                        &cb, &h, &m, &cl, use_edl, force_decompress))
       return ret;
 
+    if(seek_pos > 0.0)
+      {
+      bg_track_info_t * ti;
+      bg_input_plugin_t * plugin = (bg_input_plugin_t *)h->plugin;
+      gavl_time_t seek_time;
+      if(!plugin->seek)
+        {
+        bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Plugin %s doesn't support seeking",
+               h->info->name);
+        return ret;
+        }
+      ti = plugin->get_track_info(h->priv, selected_track);
+      if(!(ti->flags & BG_TRACK_SEEKABLE))
+        {
+        bg_log(BG_LOG_ERROR, LOG_DOMAIN, "%s is not seekable",
+               input_file);
+        return ret;
+        }
+      seek_time = gavl_seconds_to_time(seek_pos);
+      plugin->seek(h->priv, &seek_time, GAVL_TIME_SCALE);
+      }
+    
     conn = &file_conn;
     }
 

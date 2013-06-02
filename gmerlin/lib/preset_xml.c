@@ -41,6 +41,7 @@ bg_cfg_section_t * bg_preset_load(bg_preset_t * p)
   if(BG_XML_STRCMP(node->name, "PRESET"))
     {
     xmlFreeDoc(xml_doc);
+    return NULL;
     }
   
   ret = bg_cfg_section_create(NULL);
