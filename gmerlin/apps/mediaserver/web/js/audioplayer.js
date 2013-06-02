@@ -17,6 +17,9 @@ var trackdisplay_dx = 1;
 var trackdisplay_x_min = 0;
 var trackdisplay_timeout = null;
 
+var shuffle_list  = null;
+var shuffle_index = 0;
+
 function play()
   {
   var i;
@@ -303,10 +306,23 @@ function next_track()
   var playlist = document.getElementById("playlist");
   if(playlist.rows.length == 0)
     return;
-  if(current_track + 1 >= playlist.rows.length)
-    set_current_track(0);
+
+  if(current_play_mode == "shuffle")
+    {
+    if(shuffle_index + 1 >= playlist.rows.length)
+      shuffle_index = 0;
+    else
+      shuffle_index++;
+    set_current_track(shuffle_list[shuffle_index]);
+    }
   else
-    set_current_track(current_track + 1);
+    {
+    if(current_track + 1 >= playlist.rows.length)
+      set_current_track(0);
+    else
+      set_current_track(current_track + 1);
+    }
+
 
   if(playing == true)
     play();
@@ -317,10 +333,23 @@ function previous_track()
   var playlist = document.getElementById("playlist");
   if(playlist.rows.length == 0)
     return;
-  if(current_track == 0)
-    set_current_track(playlist.rows.length - 1);
+
+  if(current_play_mode == "shuffle")
+    {
+    if(shuffle_index - 1 < 0)
+      shuffle_index = playlist.rows.length - 1;
+    else
+      shuffle_index--;
+    set_current_track(shuffle_list[shuffle_index]);
+    }
   else
-    set_current_track(current_track - 1);
+    {
+    if(current_track == 0)
+      set_current_track(playlist.rows.length - 1);
+    else
+      set_current_track(current_track - 1);
+    }
+
   if(playing == true)
     play();
   }
@@ -445,13 +474,19 @@ function add_track(track, do_play)
     set_current_track(playlist.rows.length - 1);
     play();
     }
+  pls_changed(playlist);
   }
 
 function ended_cb()
   {
+  var old_current_track = current_track;
+
   playing = false;
   next_track();
-  play();
+
+  if((current_play_mode != "straight") ||
+     (current_track > old_current_track))
+    play();
   }
 
 function timeout_cb()
@@ -525,14 +560,15 @@ function pls_extract_selected(playlist)
   return ret;
   }
 
-function pls_renumber(playlist)
+function pls_changed(playlist)
   {
   var i;
+  shuffle_list = new Array(playlist.rows.length);
   current_track = -1;
+
   for(i = 0; i < playlist.rows.length; i++)
     {
-    playlist.rows[i].cells[0].innerHTML = (i+1).toString() + ".";
-
+    shuffle_list[i] = i;
     if(playlist.rows[i].current == true)
       {
       if(current_track < 0)
@@ -540,9 +576,30 @@ function pls_renumber(playlist)
       else
 	playlist.rows[i].current = false;
       }
-
-
     }
+  /* Shuffle */
+  for(i = 0; i < playlist.rows.length; i++)
+    {
+    var tmp;
+    var idx = Math.floor(Math.random()*playlist.rows.length);
+    tmp = shuffle_list[idx];
+    shuffle_list[idx] = shuffle_list[i];
+    shuffle_list[i] = tmp;
+    }
+
+
+  }
+
+function pls_renumber(playlist)
+  {
+  var i;
+
+  for(i = 0; i < playlist.rows.length; i++)
+    {
+    shuffle_list[i] = i;
+    playlist.rows[i].cells[0].innerHTML = (i+1).toString() + ".";
+    }
+  pls_changed(playlist);
   }
 
 function pls_load()
