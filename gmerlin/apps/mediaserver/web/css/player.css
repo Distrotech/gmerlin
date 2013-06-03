@@ -2,6 +2,7 @@ html, body
   {
   font-family: Verdana;  
   font-size: small;
+  overflow-y: hidden;
   }
 
 a.button
@@ -264,21 +265,21 @@ div.trackdisplay
 
 table.timetable
   {
+  table-layout: fixed;
   height:  26px;
   position: absolute;
   margin:  0;
   padding: 0;
   border:  0;
-  left:    234px;
   right:   26px;
+  width: auto;
   }
 
 td.timetable
   {
-  width: 100%;
   height: 100%;
   vertical-align: middle;
-  text-align: center;
+  text-align: right;
   color:  #f8f8f8;
   font-weight: bold;
   z-index:    4;

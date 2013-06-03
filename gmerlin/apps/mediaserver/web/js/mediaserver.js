@@ -411,6 +411,9 @@ function append_music_album(parent, el)
 
       /* Duration */
       str = get_duration(tracks[i]);
+      if(str == null)
+	alert("Track " + (i+1) + " from album " +
+	      get_didl_element(el, "title") + "has no duration");
       dur_total += get_duration_num(str);
       track_cell = document.createElement("td");
       track_cell.setAttribute("style", "text-align: right;");
@@ -579,17 +582,32 @@ function handle_didl_containers(didl, parent)
     }
   }
 
-function handle_didl_items(didl)
+var didl_items = null;
+var didl_index = 0;
+
+function didl_timeout()
   {
-  var elements, i;
-  elements = didl.getElementsByTagName("DIDL-Lite")[0].childNodes;
-  for(i=0; i<elements.length; i++)
+  var i;
+  for(i = 0; i < 5; i++)
     {
-    if(is_item(elements[i]))
-      handle_didl_item(elements[i]);
+    if(is_item(didl_items[didl_index]))
+      handle_didl_item(didl_items[didl_index]);
+    didl_index++;
+    if(didl_index >= didl_items.length)
+      return;
     }
+  if(didl_index < didl_items.length)
+    window.setTimeout(didl_timeout, 1);
+  else
+    didl_items = null;
   }
 
+function handle_didl_items(didl)
+  {
+  didl_items = didl.getElementsByTagName("DIDL-Lite")[0].childNodes;
+  didl_index = 0;
+  didl_timeout();
+  }
 
 var device_desc = null;
 

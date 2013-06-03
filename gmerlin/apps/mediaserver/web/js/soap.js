@@ -71,7 +71,7 @@ function browse(id, flag)
   req.setRequestHeader('Content-Type',   'text/xml; charset="utf-8"');
   req.setRequestHeader('X-Gmerlin-Webclient', 'true');
 
-  req.setRequestHeader('Content-Length', body.length);
+//  req.setRequestHeader('Content-Length', body.length);
   req.setRequestHeader('SOAPACTION', '"urn:schemas-upnp-org:service:ContentDirectory:1#Browse"');
   req.send(body);
 

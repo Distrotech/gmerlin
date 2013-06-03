@@ -212,6 +212,7 @@ function set_current_track(t)
   var span;
   var text;
   var trackdisplay;
+  var playlist = document.getElementById("playlist");
   if(playlist.rows.length == 0)
     return;
   if(current_track >= 0)
@@ -372,7 +373,7 @@ function stop()
 
 function playlist_dblclick()
   {
-  set_current_track(this.rowIndex);
+  set_current_track(this.sectionRowIndex);
   play();
   }
 
@@ -391,9 +392,9 @@ function playlist_mousedown(event)
     }
   else if((event.shiftKey == true) && (last_clicked_row >= 0))
     {
-    if(this.rowIndex < last_clicked_row)
+    if(this.sectionRowIndex < last_clicked_row)
       {
-      for(i = this.rowIndex; i <= last_clicked_row; i++)
+      for(i = this.sectionRowIndex; i <= last_clicked_row; i++)
 	{
         playlist.rows[i].selected = true;
         set_track_class(playlist.rows[i]);
@@ -401,7 +402,7 @@ function playlist_mousedown(event)
       }
     else
       {
-      for(i = last_clicked_row; i <= this.rowIndex; i++)
+      for(i = last_clicked_row; i <= this.sectionRowIndex; i++)
         {
         playlist.rows[i].selected = true;
         set_track_class(playlist.rows[i]);
@@ -413,7 +414,7 @@ function playlist_mousedown(event)
     {
     for(i = 0; i < playlist.rows.length; i++)
       {
-      if(i != this.rowIndex)
+      if(i != this.sectionRowIndex)
         {
         if(playlist.rows[i].selected)
 	  {
@@ -425,7 +426,7 @@ function playlist_mousedown(event)
       set_track_class(this);
       }
     }
-  last_clicked_row = this.rowIndex;
+  last_clicked_row = this.sectionRowIndex;
   }
 
 function add_track(track, do_play)
