@@ -64,7 +64,7 @@ typedef struct
 
   int (*is_supported)(bg_plugin_registry_t * plugin_reg);
 
-  char * (*make_command)(const char * source_file);
+  char * (*make_command)(const char * source_file, double seek_time);
   char * (*make_protocol_info)(bg_db_object_t * obj);
   void (*set_header)(bg_db_object_t * obj,
                      const gavl_metadata_t * req,

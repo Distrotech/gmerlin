@@ -187,6 +187,10 @@ client_t * sink_create_from_source(server_t * s,
                                    int * fd, client_t * source,
                                    const gavl_metadata_t * req);
 
+typedef int (*handler_func_t)(server_t * s, int * fd,
+                              const char * method, const char * path,
+                              const gavl_metadata_t * req);
+
 /* Server */
 
 struct server_s
@@ -219,6 +223,9 @@ struct server_s
 
   id3v2_t * id3_cache;
   int id3_cache_size;
+
+  int num_handlers;
+  handler_func_t handlers[16]; // Increase when more are needed
   };
 
 void server_attach_client(server_t*, client_t*cl);

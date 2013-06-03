@@ -90,7 +90,7 @@ static bg_db_object_t * playlist_by_name(bg_db_t * db, char * name)
   if((id = bg_db_playlist_by_name(db, name)) <= 0)
     {
     /* Create playlist */
-    bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Creating playlist %s", name);
+    bg_log(BG_LOG_INFO, LOG_DOMAIN, "Creating playlist %s", name);
     
     playlist = bg_db_object_create(db);
     bg_db_object_set_type(playlist, BG_DB_OBJECT_PLAYLIST);
@@ -103,7 +103,7 @@ static bg_db_object_t * playlist_by_name(bg_db_t * db, char * name)
     playlist = bg_db_object_query(db, id);
     
     /* Clear playlist */
-    bg_log(BG_LOG_ERROR, LOG_DOMAIN, "Clearing existing playlist %s", name);
+    bg_log(BG_LOG_INFO, LOG_DOMAIN, "Clearing existing playlist %s", name);
     del_playlist(db, playlist);
     playlist->children = 0;
     free(name);

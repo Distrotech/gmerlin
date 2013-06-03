@@ -34,6 +34,8 @@
 
 #define ONDEMAND_IDLE_TIME (30*GAVL_TIME_SCALE)
 
+#define DUMP_REQUESTS
+
 static const bg_parameter_info_t parameters[] =
   {
     {
@@ -97,6 +99,13 @@ void server_init(server_t * s)
   s->timer = gavl_timer_create();
   }
 
+static int server_handle_upnp(server_t * s, int * fd,
+                              const char * method, const char * path,
+                              const gavl_metadata_t * req)
+  {
+  return bg_upnp_device_handle_request(s->dev, *fd, method, path, req);
+  }
+
 int server_start(server_t * s)
   {
   char addr_str[BG_SOCKET_ADDR_STR_LEN];
@@ -141,7 +150,7 @@ int server_start(server_t * s)
   
   s->root_url = bg_sprintf("http://%s", addr_str);
 
-  /* TODO: Remember UUID */
+  /* Remember UUID */
 
   if(s->uuid_str)
     uuid_parse(s->uuid_str, s->uuid);
@@ -158,16 +167,20 @@ int server_start(server_t * s)
   /* Create DB */
 
   if(s->dbpath)
+    {
     s->db = bg_db_create(s->dbpath, s->plugin_reg, 0);
-  
-  if(!s->db)
-    bg_log(BG_LOG_INFO, LOG_DOMAIN, "No database found");
+    bg_log(BG_LOG_INFO, LOG_DOMAIN, "Database in %s not found, disabling upnp", s->dbpath);
+    }
   else
+    bg_log(BG_LOG_INFO, LOG_DOMAIN, "No database given, disabling upnp");
+
+
+  if(s->db) 
     {
     /* Create UPNP device(s) */
     s->dev = bg_upnp_create_media_server(s->addr,
                                          s->uuid,
-                                         "Gmerlin media server",
+                                         "Gmerlin server",
                                          (const bg_upnp_icon_t *)0,
                                          s->db);
     s->server_string = bg_upnp_device_get_server_string(s->dev);
@@ -179,8 +192,16 @@ int server_start(server_t * s)
       s->id3_cache[i].last_used = GAVL_TIME_UNDEFINED;
       s->id3_cache[i].id = -1;
       }
+
+    s->handlers[s->num_handlers++] = server_handle_upnp;
+    s->handlers[s->num_handlers++] = server_handle_media;
+    s->handlers[s->num_handlers++] = server_handle_transcode;
+    s->handlers[s->num_handlers++] = server_handle_ondemand;
     }
-  
+  s->handlers[s->num_handlers++] = server_handle_source;
+  s->handlers[s->num_handlers++] = server_handle_stream;
+  s->handlers[s->num_handlers++] = server_handle_static;
+
   gavl_timer_start(s->timer);
   return 1;
   }
@@ -202,35 +223,42 @@ static void handle_client_connection(server_t * s, int fd)
   const char * method;
   const char * path;
   const char * protocol;
-  
+  int i, done;
+
   gavl_metadata_t req;
   gavl_metadata_init(&req);
   if(!bg_http_request_read(fd, &req, TIMEOUT))
     goto fail;
 
-  fprintf(stderr, "Got request\n");
+#ifdef DUMP_REQUESTS
+  gavl_dprintf("Got request\n");
   gavl_metadata_dump(&req, 2);
-  
+#endif
+
   method = bg_http_request_get_method(&req);
   path = bg_http_request_get_path(&req);
   protocol = bg_http_request_get_protocol(&req);
 
   /* Try to handle things */
-
-  if((!s->dev ||
-      !bg_upnp_device_handle_request(s->dev, fd, method, path, &req)) &&
-     !server_handle_media(s, &fd, method, path, &req) &&
-     !server_handle_transcode(s, &fd, method, path, &req) &&
-     !server_handle_source(s, &fd, method, path, &req) &&
-     !server_handle_stream(s, &fd, method, path, &req) &&
-     !server_handle_ondemand(s, &fd, method, path, &req) &&
-     !server_handle_static(s, &fd, method, path, &req))
+  done = 0;
+  i = 0;
+  while(i < s->num_handlers)
+    {
+    if(s->handlers[i](s, &fd, method, path, &req))
+      {
+      done = 1;
+      break;
+      }
+    i++;
+    }
+  
+  if(!done)
     send_404(fd);
   
   fail:
   if(fd >= 0)
     {
-    fprintf(stderr, "Closing socket\n");
+//    fprintf(stderr, "Closing socket\n");
     close(fd);
     }
   gavl_metadata_free(&req);

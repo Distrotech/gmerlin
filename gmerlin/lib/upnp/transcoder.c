@@ -192,11 +192,11 @@ static int is_supported_mp3(bg_plugin_registry_t * plugin_reg)
   return 1;
   }
 
-static char * make_command_mp3(const char * source_file)
+static char * make_command_mp3(const char * source_file, double seek_time)
   {
-  return bg_sprintf("gavf-decode -vs m -ts m -os m -as d -i \"%s\" | "
+  return bg_sprintf("gavf-decode -seek %f -vs m -ts m -os m -as d -i \"%s\" | "
                     "gavf-encode -enc \"a2v=0:ae=e_lame{do_id3v1=0:do_id3v2=0}\" "
-                    "-ac cbr_bitrate=320 -o -", source_file);
+                    "-ac cbr_bitrate=320 -o -", seek_time, source_file);
   }
 
 static char * make_protocol_info_mp3(bg_db_object_t * obj)
@@ -224,11 +224,11 @@ static int is_supported_vorbis(bg_plugin_registry_t * plugin_reg)
   return 1;
   }
 
-static char * make_command_vorbis(const char * source_file)
+static char * make_command_vorbis(const char * source_file, double seek_time)
   {
-  return bg_sprintf("gavf-decode -vs m -ts m -os m -as d -i \"%s\" | "
+  return bg_sprintf("gavf-decode -seek %f -vs m -ts m -os m -as d -i \"%s\" | "
                     "gavf-encode -enc \"a2v=0:ae=e_vorbis\" "
-                    "-ac \"bitrate_mode=vbr:quality=5.0\" -o -", source_file);
+                    "-ac \"bitrate_mode=vbr:quality=5.0\" -o -", seek_time, source_file);
   }
 
 static char * make_protocol_info_vorbis(bg_db_object_t * obj)

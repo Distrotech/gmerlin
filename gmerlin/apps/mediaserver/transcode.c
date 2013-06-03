@@ -25,6 +25,8 @@
 #include <string.h>
 #include <signal.h>
 
+#define LOG_DOMAIN "server.transcode"
+
 typedef struct
   {
   bg_subprocess_t * proc;
@@ -71,7 +73,7 @@ int server_handle_transcode(server_t * s, int * fd,
   bg_db_file_t * f;
   int64_t id = 0;
   char * path = NULL;
-  gavl_metadata_t res;
+  gavl_metadata_t res, vars;
   int type;
   client_t * c;
   char * command;
@@ -79,9 +81,12 @@ int server_handle_transcode(server_t * s, int * fd,
   transcode_t * t;
   char * pos;
   const bg_upnp_transcoder_t * transcoder;
-  
+  double seek = -1.0;
+  const char * var;  
+
   gavl_metadata_init(&res);
-  
+  gavl_metadata_init(&vars);  
+
   if(strncmp(path_orig, "/transcode/", 11))
     return 0;
 
@@ -100,6 +105,9 @@ int server_handle_transcode(server_t * s, int * fd,
   /* Some clients append bullshit to the path */
   if((pos = strchr(path, '#')))
     *pos = '\0';
+
+  /* Parse url variables */
+  bg_url_get_vars(path, &vars);
 
   id = strtoll(path, &pos, 10);
   
@@ -139,10 +147,14 @@ int server_handle_transcode(server_t * s, int * fd,
     goto go_on;
     }
 
+  /* Seek time */
+  if((var = gavl_metadata_get(&vars, "seek")))
+    seek = strtod(var, NULL);
+
   f = (bg_db_file_t*)o;
 
-  command = transcoder->make_command(f->path);
-  fprintf(stderr, "Command: %s\n", command);
+  command = transcoder->make_command(f->path, seek);
+  bg_log(BG_LOG_INFO, LOG_DOMAIN, "Command: %s", command);
   sp = bg_subprocess_create(command, 0, 1, 0);
   
   if(!sp)
@@ -180,7 +192,7 @@ int server_handle_transcode(server_t * s, int * fd,
   t = calloc(1, sizeof(*t));
   t->proc = sp;
   
-  if(!strncmp(transcoder->out_mimetype, "audio/", 6))
+  if(!strcmp(transcoder->out_mimetype, "audio/mpeg"))
     {
     /* Send ID3 tag */
     id3v2_t * id3 = server_get_id3(s, id);
@@ -190,17 +202,15 @@ int server_handle_transcode(server_t * s, int * fd,
         goto cleanup;
       }
     }
-
   
   c = client_create(CLIENT_TYPE_MEDIA, *fd, t, cleanup_func, transcode_func);
   server_attach_client(s, c);
   *fd = -1;
-
-
-  
+ 
   cleanup:
 
   gavl_metadata_free(&res);
+  gavl_metadata_free(&vars);
   if(path)
     free(path);
   if(o)
