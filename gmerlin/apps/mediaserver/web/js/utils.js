@@ -68,8 +68,7 @@ function get_duration(el)
   res = el.getElementsByTagName("res")[0];
   if(res == null)
     return null;
-  ret = res.getAttribute("duration");
-  return ret;
+  return res.getAttribute("duration");
   }
 
 /* Ge the upnp duration */
@@ -88,6 +87,8 @@ function didl_get_filename(el)
 function format_duration_str(dur)
   {
   var idx;
+  if(dur == null)
+    return "-:--";
   idx = dur.lastIndexOf(".");
   if(idx >= 0)
     dur = dur.substr(0, idx);
@@ -100,7 +101,11 @@ function get_duration_num(dur)
   {
   var i;
   var ret = 0;
-  var split = dur.split(":");
+  var split;
+
+  if(dur == null)
+    return -1.0;
+  split = dur.split(":");
 
   for(i = 0; i < split.length; i++)
     {

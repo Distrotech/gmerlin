@@ -210,10 +210,7 @@ function append_music_track(parent, el)
   str1 = get_duration(el);
   cell = document.createElement("td");
   cell.setAttribute("style", "text-align: right;");
-  if(str1 != null)
-    text = document.createTextNode(format_duration_str(str1));
-  else
-    text = document.createTextNode("?:??");
+  text = document.createTextNode(format_duration_str(str1));
 
   cell.appendChild(text);
   row1.appendChild(cell);
