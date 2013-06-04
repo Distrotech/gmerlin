@@ -1,5 +1,4 @@
 
-var supported_mimetypes;
 var current_track = -1;
 var playing = false;
 var current_duration = 0;
@@ -20,17 +19,23 @@ var trackdisplay_timeout = null;
 var shuffle_list  = null;
 var shuffle_index = 0;
 
+var current_location = null;
+var current_mimetype = null;
+
+var time_offset = 0.0;
+
 function play()
   {
   var i;
   var canplay;
   var protocol_info;
-  var mimetype;
   var ap = document.getElementById("audioplayer");
   var playlist = document.getElementById("playlist");
   var track = playlist.rows[current_track].didl;
   var res = track.getElementsByTagName("res");
   var play_button = document.getElementById("play_button");
+
+  time_offset = 0.0;
 
   /* Get the res element from a didl item, which
      we can play */
@@ -39,12 +44,13 @@ function play()
     protocol_info = res[i].getAttribute("protocolInfo").split(":");
     if(protocol_info[0] != "http-get")
       continue;
-    mimetype = protocol_info[2];
-    canplay = ap.canPlayType(mimetype);
+    current_mimetype = protocol_info[2];
+    canplay = ap.canPlayType(current_mimetype);
     if((canplay == "maybe") || (canplay == "probably"))
       {
-      ap.src = res[i].textContent;
-      ap.type = mimetype;
+      current_location = res[i].textContent;
+      ap.src = current_location;
+      ap.type = current_mimetype;
       ap.play();
       current_duration = get_duration_num(get_duration(track));
       playing = true;
@@ -156,6 +162,45 @@ function volume_click(event)
   set_volume_button();
 
 //  alert("Percentage " + percentage.toString());
+  }
+
+function slider_click(event)
+  {
+  var slider;
+  var pos;
+  var seek_pos;
+  var percentage;
+  var audio_player = document.getElementById("audioplayer");
+
+  slider = document.getElementById("slider");
+
+  pos = get_element_position(slider);
+
+  percentage = (event.clientX - pos.x) / slider.offsetWidth;
+
+  if((playing != true) || (current_duration <= 0.0) ||
+     (current_location == null))
+    return;
+
+  seek_pos = current_duration * percentage;
+  /* Check if we are transcoding */
+  if(current_location.indexOf("transcode") != -1)
+    {
+    /* Use gmerlin server cheat code to seek */
+    time_offset = seek_pos;
+    audio_player.src = current_location + "?seek=" + seek_pos;
+    audio_player.type = current_mimetype;
+    audio_player.play();
+    }
+  else
+    {
+    /* Let the browser seek */
+    audio_player.currentTime = seek_pos;
+    audio_player.type = current_mimetype;
+    audio_player.play();
+    }
+
+
   }
 
 function mute()
@@ -373,7 +418,7 @@ function stop()
 
 function playlist_dblclick()
   {
-  set_current_track(this.sectionRowIndex);
+  set_current_track(this.row_index);
   play();
   }
 
@@ -392,9 +437,9 @@ function playlist_mousedown(event)
     }
   else if((event.shiftKey == true) && (last_clicked_row >= 0))
     {
-    if(this.sectionRowIndex < last_clicked_row)
+    if(this.row_index < last_clicked_row)
       {
-      for(i = this.sectionRowIndex; i <= last_clicked_row; i++)
+      for(i = this.row_index; i <= last_clicked_row; i++)
 	{
         playlist.rows[i].selected = true;
         set_track_class(playlist.rows[i]);
@@ -402,7 +447,7 @@ function playlist_mousedown(event)
       }
     else
       {
-      for(i = last_clicked_row; i <= this.sectionRowIndex; i++)
+      for(i = last_clicked_row; i <= this.row_index; i++)
         {
         playlist.rows[i].selected = true;
         set_track_class(playlist.rows[i]);
@@ -414,7 +459,7 @@ function playlist_mousedown(event)
     {
     for(i = 0; i < playlist.rows.length; i++)
       {
-      if(i != this.sectionRowIndex)
+      if(i != this.row_index)
         {
         if(playlist.rows[i].selected)
 	  {
@@ -426,7 +471,7 @@ function playlist_mousedown(event)
       set_track_class(this);
       }
     }
-  last_clicked_row = this.sectionRowIndex;
+  last_clicked_row = this.row_index;
   }
 
 function add_track(track, do_play)
@@ -478,6 +523,28 @@ function add_track(track, do_play)
   pls_changed(playlist);
   }
 
+function update_time(t)
+  {
+  var td = document.getElementById("timedisplay");
+  var sl = document.getElementById("timeslider");
+  if(current_duration > 0)
+    {
+    /* Update time display */
+    td.innerHTML = get_duration_str(t) + "/" + current_duration_str;
+
+    /* Update slider */
+    sl.setAttribute("style", "width: " +
+	            (t * 100 / current_duration).toString() + "%;");
+    }
+  else
+    {
+    /* Update time display */
+    td.innerHTML = get_duration_str(t) + "/" + "-:--";
+    /* Update slider */
+    sl.setAttribute("style", "width: 0px;");
+    }
+  }
+
 function ended_cb()
   {
   var old_current_track = current_track;
@@ -488,28 +555,19 @@ function ended_cb()
   if((current_play_mode != "straight") ||
      (current_track > old_current_track))
     play();
+  else
+    {
+    var play_button = document.getElementById("play_button");
+    play_button.setAttribute("class", "button play");
+    play_button.setAttribute("href", "javascript: play();");
+    update_time(0.0);
+    }
   }
 
 function timeout_cb()
   {
-  var td = document.getElementById("timedisplay");
   var ap = document.getElementById("audioplayer");
-  var sl = document.getElementById("timeslider");
-  var time = ap.currentTime;
-  /* Update time display */
-  if(current_duration > 0)
-    {
-    td.innerHTML = get_duration_str(time) + "/" + current_duration_str;
-    sl.setAttribute("style", "width: " +
-	            (time * 100 / current_duration).toString() + "%;");
-    }
-  else
-    {
-    td.innerHTML = get_duration_str(time) + "/" + "-:--";
-    sl.setAttribute("style", "width: 0px;");
-    }
-
-  /* Update slider */
+  update_time(ap.currentTime + time_offset);
   }
 
 function resize_callback()
@@ -519,7 +577,7 @@ function resize_callback()
 
 function audioplayer_init()
   {
-  var volume;
+  var volume, slider;
   var audio_player = document.getElementById("audioplayer");
   /* Set event handlers */
   add_event_handler(audio_player, "ended", ended_cb);
@@ -529,6 +587,10 @@ function audioplayer_init()
   /* Set some callbacks */
   volume =  document.getElementById("volume");
   volume.onmousedown = volume_click;
+
+  slider =  document.getElementById("slider");
+  slider.onmousedown = slider_click;
+
   window.onresize = resize_callback;
   self.opener.player_created();
   }
@@ -569,6 +631,7 @@ function pls_changed(playlist)
 
   for(i = 0; i < playlist.rows.length; i++)
     {
+    playlist.rows[i].row_index = i;
     shuffle_list[i] = i;
     if(playlist.rows[i].current == true)
       {

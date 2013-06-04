@@ -842,7 +842,7 @@ static int Browse(bg_upnp_service_t * s)
   bg_upnp_service_set_arg_out_int(&s->req, ARG_NumberReturned, NumberReturned);
   bg_upnp_service_set_arg_out_int(&s->req, ARG_TotalMatches, TotalMatches);
   
-  //  fprintf(stderr, "didl-test:\n%s\n", ret);
+  fprintf(stderr, "didl-test:\n%s\n", ret);
 
   //  fprintf(stderr, "NumberReturned: %d, TotalMatches: %d\n",
   //          NumberReturned, TotalMatches);

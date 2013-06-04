@@ -64,11 +64,12 @@ function get_didl_element(el, name)
 /* Ge the upnp duration */
 function get_duration(el)
   {
-  var res;
+  var res, ret;
   res = el.getElementsByTagName("res")[0];
   if(res == null)
     return null;
-  return res.getAttribute("duration");
+  ret = res.getAttribute("duration");
+  return ret;
   }
 
 /* Ge the upnp duration */

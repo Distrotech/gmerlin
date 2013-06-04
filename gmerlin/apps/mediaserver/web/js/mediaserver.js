@@ -210,7 +210,11 @@ function append_music_track(parent, el)
   str1 = get_duration(el);
   cell = document.createElement("td");
   cell.setAttribute("style", "text-align: right;");
-  text = document.createTextNode(format_duration_str(str1));
+  if(str1 != null)
+    text = document.createTextNode(format_duration_str(str1));
+  else
+    text = document.createTextNode("?:??");
+
   cell.appendChild(text);
   row1.appendChild(cell);
 
@@ -411,14 +415,15 @@ function append_music_album(parent, el)
 
       /* Duration */
       str = get_duration(tracks[i]);
-      if(str == null)
-	alert("Track " + (i+1) + " from album " +
-	      get_didl_element(el, "title") + "has no duration");
-      dur_total += get_duration_num(str);
+      if(str != null)
+        dur_total += get_duration_num(str);
       track_cell = document.createElement("td");
       track_cell.setAttribute("style", "text-align: right;");
 
-      text = document.createTextNode(format_duration_str(str));
+      if(str != null)
+        text = document.createTextNode(format_duration_str(str));
+      else
+        text = document.createTextNode("?:??");
       track_cell.appendChild(text);
       track_row.appendChild(track_cell);
 
