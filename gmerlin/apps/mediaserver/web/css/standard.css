@@ -16,42 +16,31 @@ div.browser
   border-width: 1px;
   }
 
-div.placeholder
+div.tree_elem
   {
   display: inline-block;
   width: 16px;
   height: 16px;
+  vertical-align: middle;
   }
 
 div.handleopen
   {
-  display: inline-block;
-  width: 16px;
-  height: 16px;
   background-image:url(/static/icons/handle_open_16.png);
   }
 
 div.handleclosed
   {
-  display: inline-block;
-  width: 16px;
-  height: 16px;
   background-image:url(/static/icons/handle_closed_16.png);
   }
 
 div.folderopen
   {
-  display: inline-block;
-  width: 16px;
-  height: 16px;
   background-image:url(/static/icons/folder_open_16.png);
   }
 
 div.folderclosed
   {
-  display: inline-block;
-  width: 16px;
-  height: 16px;
   background-image:url(/static/icons/folder_closed_16.png);
   }
 
@@ -74,28 +63,17 @@ div.treerow
 
 div.treerow_selected
   {
-  width: 100%;
-  margin-top: 5px;
-  vertical-align: middle;
   color: #ffffff;
   background-color: #000000;
-  -webkit-user-select: none;
-  -khtml-user-select: none;
-  -moz-user-select: none;
-  -o-user-select: none;
-  user-select: none;
-  cursor: default;
-  overflow: hidden;
-  white-space: nowrap;
   }
 
-table.musictracks
+table.mediaitem
   {
   font-size: small;
   width: 100%;
   }
 
-tr.musictrack_title
+tr.mediaitem_title
   {
   font-weight: bold;
   }
@@ -122,6 +100,7 @@ img.albumcover
 a.button
   {
   display: inline-block;
+  vertical-align: middle;
   background: #ffffff;
   width: 16px;
   height: 16px;

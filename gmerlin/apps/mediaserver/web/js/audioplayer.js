@@ -278,12 +278,12 @@ function set_current_track(t)
   didl = playlist.rows[current_track].didl;
 
   /* Cover */
+  el = document.getElementById("cover");
   str = get_didl_element(didl, "albumArtURI");
   if(str != null)
-    {
-    el = document.getElementById("cover");
     el.setAttribute("src", str);
-    }
+  else
+    el.setAttribute("src", "/static/icons/cover_160.png");
 
   el = document.getElementById("trackinfo");
   while(el.firstChild)
@@ -479,6 +479,7 @@ function add_track(track, do_play)
   var text;
   var row;
   var cell;
+  var artist, title;
   var ap = document.getElementById("audioplayer");
   var playlist = document.getElementById("playlist");
 
@@ -500,8 +501,14 @@ function add_track(track, do_play)
 
   /* Artist + title */
   cell = document.createElement("td");
-  text = document.createTextNode(get_didl_element(track, "artist") + ": " +
-				 get_didl_element(track, "title"));
+  artist = get_didl_element(track, "artist");
+  title = get_didl_element(track, "title");
+
+  if(artist != null)
+    text = document.createTextNode(artist + ": " + title);
+  else
+    text = document.createTextNode(title);
+
   cell.appendChild(text);
   row.appendChild(cell);
 

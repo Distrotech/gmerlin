@@ -15,7 +15,7 @@ function tree_select_callback(el)
   if(selected_tree_row != null)
     selected_tree_row.setAttribute("class", "treerow");
 
-  el.setAttribute("class", "treerow_selected");
+  el.setAttribute("class", "treerow treerow_selected");
 
   while(container.firstChild != null)
     container.removeChild(container.firstChild);
@@ -30,16 +30,16 @@ function tree_expand_callback(event, el)
   {
   var didl;
   var parent = el.parentNode;
-  if(el.getAttribute("class") == "handleclosed")
+  if(el.getAttribute("class") == "tree_elem handleclosed")
     {
-    el.setAttribute("class", "handleopen");
+    el.setAttribute("class", "tree_elem handleopen");
     didl = browse_children(parent.getAttribute("id"));
     handle_didl_containers(didl, parent);
     }
   else
     {
     var child;
-    el.setAttribute("class", "handleclosed");
+    el.setAttribute("class", "tree_elem handleclosed");
     while(true)
       {
       child = parent.nextSibling;
@@ -143,6 +143,12 @@ function create_play_button(func, id)
   ret.setAttribute("href", "javascript: " + func + "('" + id + "')" );
   ret.setAttribute("class", "button play");
   ret.setAttribute("title", "Play");
+/*
+  ret.onmousedown = function(evt) {
+    evt.preventDefault();
+    stop_propagate(evt);
+    };
+*/
   return ret;
   }
 
@@ -152,6 +158,15 @@ function create_add_button(func, id)
   ret.setAttribute("href", "javascript: " + func + "('" + id + "')" );
   ret.setAttribute("class", "button add");
   ret.setAttribute("title", "Add to playlist");
+/*
+  ret.onmousedown = function(evt) {
+    evt.preventDefault();
+    stop_propagate(evt);
+    };
+*/
+  ret.ondragstart = function() {
+     return false;
+  };
   return ret;
   }
 
@@ -175,6 +190,56 @@ function create_album_add_button(id)
   return create_add_button("add_album", id);
   }
 
+function create_type_cell(type)
+  {
+  var ret, cell;
+  ret = document.createElement("img");
+  ret.setAttribute("width", "16");
+  ret.setAttribute("height", "16");
+  if(type == "audio")
+    ret.setAttribute("src", "/static/icons/audio_black_16.png");
+  else if(type == "video")
+    ret.setAttribute("src", "/static/icons/video_black_16.png");
+  else if(type == "image")
+    ret.setAttribute("src", "/static/icons/image_black_16.png");
+
+  cell = document.createElement("td");
+  cell.setAttribute("style", "width: 16px;");
+  cell.appendChild(ret);
+  return cell;
+  }
+
+function append_audio_broadcast(parent, el)
+  {
+  var row1;
+  var cell;
+  var text;
+  var button;
+  var trackno;
+  var row = document.createElement("table");
+  row.setAttribute("id", el.getAttribute("id"));
+  row.setAttribute("class", "mediaitem");
+  row1 = document.createElement("tr");
+  row1.setAttribute("class", "mediaitem_title");
+  row.appendChild(row1);
+  row1.appendChild(create_type_cell("audio"));
+  cell = document.createElement("td");
+  text = document.createTextNode(get_didl_element(el, "title"));
+  cell.appendChild(text);
+  row1.appendChild(cell);
+
+  /* Play */
+  cell = document.createElement("td");
+  cell.setAttribute("style", "width: 16px;");
+  button = create_song_play_button(el.getAttribute('id'));
+  cell.appendChild(button);
+  row1.appendChild(cell);
+
+  parent.appendChild(row);
+  row = document.createElement("hr");
+  row.setAttribute("style", "margin-top: 0px; margin-bottom: 0px;");
+  parent.appendChild(row);
+  }
 
 function append_music_track(parent, el)
   {
@@ -186,16 +251,19 @@ function append_music_track(parent, el)
   var text;
   var cell;
   var button;
+  var trackno;
   var row = document.createElement("table");
   row.setAttribute("id", el.getAttribute("id"));
-  row.setAttribute("class", "musictracks");
+  row.setAttribute("class", "mediaitem");
   row1 = document.createElement("tr");
-  row1.setAttribute("class", "musictrack_title");
+  row1.setAttribute("class", "mediaitem_title");
   row.appendChild(row1);
 
   /* Artist, title */
   str1 = get_didl_element(el, "title");
   str2 = get_didl_element(el, "artist");
+
+  row1.appendChild(create_type_cell("audio"));
 
   cell = document.createElement("td");
   if((str1 != null) && (str2 != null))
@@ -204,6 +272,7 @@ function append_music_track(parent, el)
     text = document.createTextNode(str2);
 
   cell.appendChild(text);
+
   row1.appendChild(cell);
 
   /* Duration */
@@ -229,14 +298,19 @@ function append_music_track(parent, el)
   cell.appendChild(button);
   row1.appendChild(cell);
 
-  /* Album, Genre, Date */
+
   str1 = get_didl_element(el, "album");
   str2 = get_didl_element(el, "genre");
   str3 = get_didl_element(el, "date");
+  trackno = get_didl_element(el, "originalTrackNumber");
 
   str = null;
   if(str1 != null)
+    {
     str = str1;
+    if(trackno != null)
+      str += " (Track " + trackno + ")";
+    }
 
   if(str2 != null)
     {
@@ -256,6 +330,10 @@ function append_music_track(parent, el)
   if(str != null)
     {
     row1 = document.createElement("tr");
+
+    cell = document.createElement("td");
+    row1.appendChild(cell);
+
     cell = document.createElement("td");
     text = document.createTextNode(str);
     cell.appendChild(text);
@@ -285,6 +363,7 @@ function append_music_album(parent, el)
   var span;
   var text;
   var row1;
+  var img;
   var dur_total = 0;
   var use_artist = false;
   var first_artist = null;
@@ -301,16 +380,19 @@ function append_music_album(parent, el)
 
   /* Cover */
   str = get_didl_element(el, "albumArtURI");
-  if(str != null)
-    {
-    var img = document.createElement("img");
+
+  img = document.createElement("img");
+  if(str)
     img.setAttribute("src", str);
-    img.setAttribute("width", 160);
-    img.setAttribute("height", 160);
-    img.setAttribute("class", "albumcover");
-    albumcell.appendChild(img);
-    albumcell.appendChild(document.createElement("br"));
-    }
+  else
+    img.setAttribute("src", "/static/icons/cover_160.png");
+
+  img.setAttribute("width", 160);
+  img.setAttribute("height", 160);
+  img.setAttribute("class", "albumcover");
+  albumcell.appendChild(img);
+  albumcell.appendChild(document.createElement("br"));
+
 
   str = get_didl_element(el, "title");
   if(str != null)
@@ -363,7 +445,7 @@ function append_music_album(parent, el)
   didl = browse_children(el.getAttribute("id"));
   tracks = didl.getElementsByTagName("DIDL-Lite")[0].childNodes;
   trackstable = document.createElement("table");
-  trackstable.setAttribute("class", "musictracks");
+  trackstable.setAttribute("class", "mediaitem");
 
   /* If all artists are the same, we omit it from the label */
   for(i=0; i < tracks.length; i++)
@@ -416,11 +498,7 @@ function append_music_album(parent, el)
         dur_total += get_duration_num(str);
       track_cell = document.createElement("td");
       track_cell.setAttribute("style", "text-align: right;");
-
-      if(str != null)
-        text = document.createTextNode(format_duration_str(str));
-      else
-        text = document.createTextNode("?:??");
+      text = document.createTextNode(format_duration_str(str));
       track_cell.appendChild(text);
       track_row.appendChild(track_cell);
 
@@ -475,6 +553,10 @@ function handle_didl_item(el)
     {
     append_music_track(container, el);
     }
+  else if(klass == "object.item.audioItem.audioBroadcast")
+    {
+    append_audio_broadcast(container, el);
+    }
   else
     {
     var text;
@@ -507,7 +589,7 @@ function handle_didl_container(el, parent, after)
     for(i = 0; i < row.depth; i++)
       {
       element = document.createElement("div");
-      element.setAttribute("class", "placeholder");
+      element.setAttribute("class", "tree_elem");
       row.appendChild(element);
       }
     }
@@ -515,13 +597,14 @@ function handle_didl_container(el, parent, after)
     row.depth = 0;
 
   element = document.createElement("div");
-  element.setAttribute("class", "handleclosed");
-  element.onmousedown = function(event) { tree_expand_callback(event, this); };
+  element.setAttribute("class", "tree_elem handleclosed");
+  element.onmousedown = function(event) {
+  tree_expand_callback(event, this); };
 
   row.appendChild(element);
 
   element = document.createElement("div");
-  element.setAttribute("class", "folderclosed");
+  element.setAttribute("class", "tree_elem folderclosed");
   row.appendChild(element);
 
   element = document.createElement("span");

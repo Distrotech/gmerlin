@@ -50,7 +50,11 @@ vol_50_white_24.png \
 vol_75_black_24.png \
 vol_75_white_24.png \
 vol_mute_black_24.png \
-vol_mute_white_24.png
+vol_mute_white_24.png \
+audio_black_16.png \
+video_black_16.png \
+image_black_16.png \
+cover_160.png
 
 pkgdata_DATA = $(files)
 dist_pkgdata_DATA = $(files)
