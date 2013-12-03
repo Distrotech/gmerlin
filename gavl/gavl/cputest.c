@@ -65,7 +65,7 @@
 
 int gavl_accel_supported()
   {
-#ifdef ARCH_X86
+#if defined(ARCH_X86) && !defined(__ILP32__) 
      int rval = 0;
     int eax, ebx, ecx, edx;
     int max_std_level, max_ext_level, std_caps=0, ext_caps=0;
